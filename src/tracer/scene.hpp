@@ -12,7 +12,8 @@ class Triangle {
     glm::vec3 v0, v1, v2;
     glm::vec3 n0, n1, n2;
     glm::vec2 uv0, uv1, uv2;
-    Material* m_material;
+
+    const Material* m_material;
 };
 
 class Scene {
@@ -21,7 +22,7 @@ class Scene {
     std::vector<Camera> m_cameras;
     std::vector<Triangle> m_triangles;
 
-    void buildFromObj(OBJModel* model);
+    void buildFromObj(const OBJModel& model);
     bool allIntersection(math::Ray& r, Intersection& isect) const;
     bool anyIntersection(const math::Ray& r) const;
 };

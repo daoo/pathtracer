@@ -97,8 +97,8 @@ bool Scene::anyIntersection(const Ray& r) const {
 
 // -----------------------------------------------------------------------
 // Buid a Scene object from an OBJ file
-void Scene::buildFromObj(OBJModel* model) {
-  for (auto kv : model->m_lights) {
+void Scene::buildFromObj(const OBJModel& model) {
+  for (auto kv : model.m_lights) {
     m_lights.push_back(
         { kv.second.radius
         , kv.second.position
@@ -106,7 +106,7 @@ void Scene::buildFromObj(OBJModel* model) {
         });
   }
 
-  for (auto kv : model->m_cameras) {
+  for (auto kv : model.m_cameras) {
     m_cameras.push_back(
         { kv.second.position
         , normalize(kv.second.target - kv.second.position)
@@ -115,8 +115,8 @@ void Scene::buildFromObj(OBJModel* model) {
         });
   }
 
-  for (size_t i = 0; i < model->m_chunks.size(); ++i) {
-    OBJModel::Chunk& chunk = model->m_chunks[i];
+  for (size_t i = 0; i < model.m_chunks.size(); ++i) {
+    const OBJModel::Chunk& chunk = model.m_chunks[i];
     Material* material;
 
     DiffuseMaterial* diffuse = new DiffuseMaterial;

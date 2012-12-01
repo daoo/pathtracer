@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
     model.load("scenes/cornell.obj");
     //model.load("scenes/cornell_textured.obj");
     //model.load("scenes/cornellbottle2.obj");
-    g_scene.buildFromObj(&model);
+    g_scene.buildFromObj(model);
 
     restart(512, 512, 0);
 

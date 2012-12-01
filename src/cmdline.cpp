@@ -16,7 +16,7 @@ int main(int, char**) {
   //model.load("scenes/cornellbottle2.obj");
 
   Scene scene;
-  scene.buildFromObj(&model);
+  scene.buildFromObj(model);
 
   Pathtracer pt(512, 512, scene);
   pt.m_selectedCamera = 0;
