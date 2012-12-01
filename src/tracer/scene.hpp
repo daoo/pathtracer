@@ -21,9 +21,9 @@ class Scene {
     std::vector<Camera> m_cameras;
     std::vector<Triangle> m_triangles;
 
-    virtual void buildFromObj(OBJModel* model);
-    virtual bool allIntersection(math::Ray& r, Intersection& isect);
-    virtual bool anyIntersection(const math::Ray& r);
+    void buildFromObj(OBJModel* model);
+    bool allIntersection(math::Ray& r, Intersection& isect) const;
+    bool anyIntersection(const math::Ray& r) const;
 };
 
 #endif /* end of include guard: SCENE_HPP_BOFJZX4D */

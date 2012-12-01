@@ -77,7 +77,7 @@ namespace {
 
 // -----------------------------------------------------------------------
 // Find the first intersection between a ray and the scene.
-bool Scene::allIntersection(Ray& r, Intersection& isect) {
+bool Scene::allIntersection(Ray& r, Intersection& isect) const {
   bool foundIntersection = false;
   for (size_t i = 0; i < m_triangles.size(); ++i) {
     foundIntersection |= findIntersection(m_triangles[i], r, isect);
@@ -87,7 +87,7 @@ bool Scene::allIntersection(Ray& r, Intersection& isect) {
 
 // -----------------------------------------------------------------------
 // Return wether there there is ANY intersection between the ray and the scene
-bool Scene::anyIntersection(const Ray& r) {
+bool Scene::anyIntersection(const Ray& r) const {
   for (size_t i = 0; i < m_triangles.size(); ++i) {
     if (intersects(m_triangles[i], r))
       return true;
