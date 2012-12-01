@@ -1,26 +1,48 @@
 #ifndef KDTREE_HPP_3F5JNSBC
 #define KDTREE_HPP_3F5JNSBC
 
+#include "math/ray.hpp"
+#include "tracer/scene.hpp"
+
+#include <glm/glm.hpp>
 #include <vector>
 
-enum Direction {
-  X, Y, Z
+enum Axis {
+  X = 0, Y = 1, Z = 2
+};
+
+enum NodeType {
+  Parent, Leaf
 };
 
 class KdNode {
   public:
-    Direction dir;
-    KdNode next;
+    Axis dir;
+    float d;
 
-    Triangle
+    struct ParentNode {
+      KdNode* left;
+      KdNode* right;
+    };
+
+    struct LeafNode {
+      std::vector<const Triangle*> triangles;
+    };
+
+    NodeType type;
+
+    union {
+      ParentNode parent;
+      LeafNode leaf;
+    };
 };
 
-class KdTree {
-  public:
-
-
-  private:
-    std::vector<KdNode> nodes;
+struct KdTree {
+  KdNode* root;
 };
+
+KdTree buildTree(const Scene&);
+
+bool intersectsAll(const KdTree&, math::Ray&);
 
 #endif /* end of include guard: KDTREE_HPP_3F5JNSBC */
