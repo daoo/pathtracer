@@ -10,16 +10,15 @@ using namespace std;
 constexpr size_t MAX_SAMPLES_PER_PIXEL = 2048;
 
 int main(int, char**) {
-  Pathtracer pt(512, 512);
-
   OBJModel model;
-
   model.load("scenes/cornell.obj");
   //model.load("scenes/cornell_textured.obj");
   //model.load("scenes/cornellbottle2.obj");
 
-  pt.m_scene = new Scene;
-  pt.m_scene->buildFromObj(&model);
+  Scene scene;
+  scene.buildFromObj(&model);
+
+  Pathtracer pt(512, 512, scene);
   pt.m_selectedCamera = 0;
 
   typedef high_resolution_clock clock;

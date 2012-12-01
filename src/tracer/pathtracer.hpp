@@ -12,15 +12,15 @@ constexpr float PT_EPSILON      = 0.00001f;
 
 class Pathtracer {
   public:
-    Pathtracer(size_t, size_t);
+    Pathtracer(size_t, size_t, const Scene&);
     ~Pathtracer();
-
-    Scene* m_scene;
-    size_t m_selectedCamera;
 
     size_t m_frameBufferWidth, m_frameBufferHeight;
     size_t m_frameBufferSamples;
     std::vector<glm::vec3> m_frameBuffer;
+
+    const Scene& m_scene;
+    size_t m_selectedCamera;
 
     void restart();
     void resize(int, int);

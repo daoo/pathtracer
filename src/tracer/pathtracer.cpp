@@ -10,9 +10,9 @@ using namespace glm;
 using namespace math;
 using namespace std;
 
-Pathtracer::Pathtracer(size_t w, size_t h)
+Pathtracer::Pathtracer(size_t w, size_t h, const Scene& scene)
   : m_frameBufferWidth(w), m_frameBufferHeight(h),
-    m_frameBufferSamples(0), m_frameBuffer(w * h) {
+    m_frameBufferSamples(0), m_frameBuffer(w * h), m_scene(scene) {
 }
 
 Pathtracer::~Pathtracer() { }
@@ -21,7 +21,7 @@ Pathtracer::~Pathtracer() { }
 // Create and trace a ray per pixel
 void Pathtracer::tracePrimaryRays() {
   // Scene must have a camera
-  if (m_scene->m_cameras.empty()) {
+  if (m_scene.m_cameras.empty()) {
     cout << "Scene has no cameras!\n";
     exit(1);
   }
@@ -30,7 +30,7 @@ void Pathtracer::tracePrimaryRays() {
   const float height = static_cast<float>(m_frameBufferHeight);
 
   // Initialize selected camera
-  const Camera& camera = m_scene->m_cameras[m_selectedCamera % m_scene->m_cameras.size()];
+  const Camera& camera = m_scene.m_cameras[m_selectedCamera % m_scene.m_cameras.size()];
 
   const vec3 camera_pos   = camera.m_position;
   const vec3 camera_dir   = camera.m_direction;
@@ -64,7 +64,7 @@ void Pathtracer::tracePrimaryRays() {
           0.0f, FLT_MAX);
 
       Intersection isect;
-      if (m_scene->allIntersection(primaryRay, isect)) {
+      if (m_scene.allIntersection(primaryRay, isect)) {
         m_frameBuffer[y * m_frameBufferWidth + x] += Li(primaryRay, isect);
       } else {
         m_frameBuffer[y * m_frameBufferWidth + x] += Lenvironment(primaryRay);
@@ -91,13 +91,13 @@ vec3 Pathtracer::Li(const Ray& primaryRay, const Intersection& primaryIsect) {
 
     const vec3 offsetInNormalDir = PT_EPSILON * isect.m_normal;
 
-    for (const Light& light : m_scene->m_lights) {
+    for (const Light& light : m_scene.m_lights) {
       const vec3 isectPosition    = isect.m_position + offsetInNormalDir;
       const vec3 lightSamplePos   = sample(light);
       const vec3 directionToLight = lightSamplePos - isectPosition;
 
       const Ray shadow_ray(isectPosition, directionToLight, 0.0f, 1.0f);
-      if (!m_scene->anyIntersection(shadow_ray)) {
+      if (!m_scene.anyIntersection(shadow_ray)) {
         const vec3 wo = normalize(directionToLight);
         const vec3 li = Le(light, isect.m_position);
 
@@ -126,7 +126,7 @@ vec3 Pathtracer::Li(const Ray& primaryRay, const Intersection& primaryIsect) {
       current_ray = Ray(isect.m_position - offsetInNormalDir, wo, 0.0f, FLT_MAX);
     }
 
-    if (!m_scene->allIntersection(current_ray, isect)) {
+    if (!m_scene.allIntersection(current_ray, isect)) {
       return L + path_tp * Lenvironment(current_ray);
     }
   }
