@@ -1,5 +1,6 @@
 #include "gl.hpp"
 
+#include <cstdio>
 #include <iostream>
 #include <sstream>
 

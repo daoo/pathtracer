@@ -23,4 +23,4 @@ cmake:
 	mkdir -p $(build_dir)
 	cd $(build_dir); cmake -DCMAKE_BUILD_TYPE=$(target) $(path)
 
-.PHONY: build
+.PHONY: build clean cmake links debug run
