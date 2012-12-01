@@ -14,6 +14,4 @@ if(OPENMP_FOUND)
 endif()
 
 add_definitions(-Wall -std=c++11)
-add_subdirectory(shared)
-
 add_subdirectory(src)
