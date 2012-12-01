@@ -52,14 +52,17 @@ namespace {
 
   void bspBuilder(KdNode* node, const vector<const Triangle*>& triangles, Axis axis, size_t depth) {
     if (depth >= 20 || triangles.size() <= 3) {
+      node->type = Leaf;
+      node->leaf.triangles = triangles;
       return;
     }
 
-    Aabb bounding = findBounding(node->triangles);
+    Aabb bounding = findBounding(triangles);
     float d = middle(swizzle(bounding.min, axis), swizzle(bounding.max, axis));
 
-    node->left  = new KdNode;
-    node->right = new KdNode;
+    node->type         = Parent;
+    node->parent.left  = new KdNode;
+    node->parent.right = new KdNode;
 
     vector<const Triangle*> left, right;
     for (const Triangle* tri : triangles) {
@@ -72,22 +75,22 @@ namespace {
       }
     }
 
-    bspBuilder(node->left, left, next[axis], depth + 1);
-    bspBuilder(node->right, right, next[axis], depth + 1);
+    bspBuilder(node->parent.left, left, next[axis], depth + 1);
+    bspBuilder(node->parent.right, right, next[axis], depth + 1);
   }
 
-  bool intersectionFinder(const KdNode* node, Ray& ray) {
+  bool intersectionFinder(const KdNode* node, Ray& ray, Intersection& isect) {
     if (node->type == Leaf) {
-      for (const Triangle* tri : node->leaf.triangles) {
-        bool foundIntersection = false;
-        for (size_t i = 0; i < m_triangles.size(); ++i) {
-          foundIntersection |= findIntersection(m_triangles[i], r, isect);
-        }
-        return foundIntersection;
+      bool foundIntersection = false;
+      for (size_t i = 0; i < node->leaf.triangles.size(); ++i) {
+        foundIntersection |= findIntersection(*node->leaf.triangles[i], ray, isect);
       }
+      return foundIntersection;
     } else if (node->type == Parent) {
-
+      return false;
     }
+
+    return false;
   }
 }
 
@@ -96,15 +99,16 @@ KdTree buildTree(const Scene& scene) {
 
   tree.root = new KdNode;
 
+  vector<const Triangle*> triangles;
   for (const Triangle& tri : scene.m_triangles) {
-    tree.root->triangles.push_back(&tri);
+    triangles.push_back(&tri);
   }
 
-  bspBuilder(tree.root, X, 1);
+  bspBuilder(tree.root, triangles, X, 1);
 
   return tree;
 }
 
-bool intersectsTree(const KdTree& tree, Ray& ray) {
-  return intersectionFinder(tree.root, ray);
+bool intersectsTree(const KdTree& tree, Ray& ray, Intersection& isect) {
+  return intersectionFinder(tree.root, ray, isect);
 }

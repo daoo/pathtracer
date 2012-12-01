@@ -17,6 +17,8 @@ enum NodeType {
 
 class KdNode {
   public:
+    KdNode() { }
+
     Axis dir;
     float d;
 
@@ -43,6 +45,6 @@ struct KdTree {
 
 KdTree buildTree(const Scene&);
 
-bool intersectsAll(const KdTree&, math::Ray&);
+bool intersectsAll(const KdTree&, math::Ray&, Intersection&);
 
 #endif /* end of include guard: KDTREE_HPP_3F5JNSBC */

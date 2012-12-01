@@ -7,72 +7,70 @@ using namespace glm;
 using namespace math;
 using namespace std;
 
-namespace {
-  bool intersects(const Triangle& tri, const Ray& r) {
-    constexpr float epsilon = 0.00001f;
+bool intersects(const Triangle& tri, const Ray& r) {
+  constexpr float epsilon = 0.00001f;
 
-    const vec3 d  = r.d;
-    const vec3 o  = r.o;
-    const vec3 e1 = tri.v1 - tri.v0;
-    const vec3 e2 = tri.v2 - tri.v0;
-    const vec3 q  = cross(d, e2);
+  const vec3 d  = r.d;
+  const vec3 o  = r.o;
+  const vec3 e1 = tri.v1 - tri.v0;
+  const vec3 e2 = tri.v2 - tri.v0;
+  const vec3 q  = cross(d, e2);
 
-    float a = dot(e1, q);
-    if (a > -epsilon && a < epsilon)
-      return false;
+  float a = dot(e1, q);
+  if (a > -epsilon && a < epsilon)
+    return false;
 
-    float f = 1.0f/a;
-    vec3 s  = o - tri.v0;
-    float u = f * dot(s, q);
-    if (u < 0.0 || u > 1.0)
-      return false;
+  float f = 1.0f/a;
+  vec3 s  = o - tri.v0;
+  float u = f * dot(s, q);
+  if (u < 0.0 || u > 1.0)
+    return false;
 
-    vec3 R  = cross(s, e1);
-    float v = f * dot(d, R);
-    if (v < 0.0 || u + v > 1.0)
-      return false;
+  vec3 R  = cross(s, e1);
+  float v = f * dot(d, R);
+  if (v < 0.0 || u + v > 1.0)
+    return false;
 
-    float t = f * dot(e2, R);
-    if (t < r.mint || t > r.maxt)
-      return false;
+  float t = f * dot(e2, R);
+  if (t < r.mint || t > r.maxt)
+    return false;
 
-    return true;
-  }
+  return true;
+}
 
-  bool findIntersection(const Triangle& tri, Ray& r, Intersection& i) {
-    constexpr float epsilon = 0.00001f;
+bool findIntersection(const Triangle& tri, Ray& r, Intersection& i) {
+  constexpr float epsilon = 0.00001f;
 
-    vec3 d  = r.d;
-    vec3 o  = r.o;
-    vec3 e1 = tri.v1 - tri.v0;
-    vec3 e2 = tri.v2 - tri.v0;
-    vec3 q  = cross(d, e2);
+  vec3 d  = r.d;
+  vec3 o  = r.o;
+  vec3 e1 = tri.v1 - tri.v0;
+  vec3 e2 = tri.v2 - tri.v0;
+  vec3 q  = cross(d, e2);
 
-    float a = dot(e1, q);
-    if (a > -epsilon && a < epsilon)
-      return false;
+  float a = dot(e1, q);
+  if (a > -epsilon && a < epsilon)
+    return false;
 
-    float f = 1.0f/a;
-    vec3 s  = o - tri.v0;
-    float u = f * dot(s, q);
-    if (u < 0.0 || u > 1.0)
-      return false;
+  float f = 1.0f/a;
+  vec3 s  = o - tri.v0;
+  float u = f * dot(s, q);
+  if (u < 0.0 || u > 1.0)
+    return false;
 
-    vec3 R  = cross(s, e1);
-    float v = f * dot(d, R);
-    if (v < 0.0 || u+v > 1.0)
-      return false;
+  vec3 R  = cross(s, e1);
+  float v = f * dot(d, R);
+  if (v < 0.0 || u+v > 1.0)
+    return false;
 
-    float t = f * dot(e2, R);
-    if (t < r.mint || t > r.maxt)
-      return false;
+  float t = f * dot(e2, R);
+  if (t < r.mint || t > r.maxt)
+    return false;
 
-    r.maxt       = t;
-    i.m_position = r(t);
-    i.m_normal   = normalize((1.0f - (u + v)) * tri.n0 + u * tri.n1 + v * tri.n2);
-    i.m_material = tri.m_material;
-    return true;
-  }
+  r.maxt       = t;
+  i.m_position = r(t);
+  i.m_normal   = normalize((1.0f - (u + v)) * tri.n0 + u * tri.n1 + v * tri.n2);
+  i.m_material = tri.m_material;
+  return true;
 }
 
 // -----------------------------------------------------------------------

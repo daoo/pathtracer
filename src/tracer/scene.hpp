@@ -16,6 +16,9 @@ class Triangle {
     const Material* m_material;
 };
 
+bool intersects(const Triangle& tri, const math::Ray& r);
+bool findIntersection(const Triangle& tri, math::Ray& r, Intersection& i);
+
 class Scene {
   public:
     std::vector<Light> m_lights;
