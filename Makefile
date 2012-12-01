@@ -14,10 +14,10 @@ links:
 	ln -fsn $(path)/scenes $(build_dir)/src/scenes
 
 debug: links
-	cd $(build_dir)/src; gdb $(build_dir)/src/pathtracer
+	cd $(build_dir)/src; gdb $(build_dir)/src/pathtracer-gl
 
 run: links
-	cd $(build_dir)/src; $(build_dir)/src/pathtracer
+	cd $(build_dir)/src; $(build_dir)/src/pathtracer-gl
 
 cmake:
 	mkdir -p $(build_dir)

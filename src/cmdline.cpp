@@ -1,15 +1,13 @@
 #include <iostream>
+#include <chrono>
 
-#include "pt/pathtracer.hpp"
-#include "util/misc.hpp"
+#include "tracer/pathtracer.hpp"
+#include "util/image.hpp"
 
+using namespace std::chrono;
 using namespace std;
 
-#ifndef NDEBUG
-constexpr int MAX_SAMPLES_PER_PIXEL = 2048;
-#else
-constexpr int MAX_SAMPLES_PER_PIXEL = 2;
-#endif
+constexpr size_t MAX_SAMPLES_PER_PIXEL = 2048;
 
 int main(int, char**) {
   Pathtracer pt(512, 512);
@@ -24,9 +22,17 @@ int main(int, char**) {
   pt.m_scene->buildFromObj(&model);
   pt.m_selectedCamera = 0;
 
-  //while (pt.m_frameBufferSamples < MAX_SAMPLES_PER_PIXEL) {
+  typedef high_resolution_clock clock;
+  typedef clock::duration time;
+
+  while (pt.m_frameBufferSamples < MAX_SAMPLES_PER_PIXEL) {
+    time t1 = clock::now().time_since_epoch();
     pt.tracePrimaryRays();
-  //}
+    time t2 = clock::now().time_since_epoch();
+
+    cout << "Sample " << pt.m_frameBufferSamples
+         << ", in " << duration_cast<duration<double, ratio<1>>>(t2 - t1).count() << " seconds\n";
+  }
 
   writeImage("image.png", pt.m_frameBufferSamples,
       pt.m_frameBufferWidth, pt.m_frameBufferHeight,
