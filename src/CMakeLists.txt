@@ -22,9 +22,3 @@ target_link_libraries(pathtracer-gl
   ${GLEW_LIBRARIES}
   ${GLUT_LIBRARIES}
   )
-message(pathtracer-gl
-  ${FREEIMAGE_LIBRARIES}
-  ${OPENGL_LIBRARIES}
-  ${GLEW_LIBRARIES}
-  ${GLUT_LIBRARIES}
-  )
