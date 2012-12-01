@@ -34,9 +34,8 @@ int main(int, char**) {
          << ", in " << duration_cast<duration<double, ratio<1>>>(t2 - t1).count() << " seconds\n";
   }
 
-  writeImage("image.png", pt.m_frameBufferSamples,
-      pt.m_frameBufferWidth, pt.m_frameBufferHeight,
-      pt.m_frameBuffer);
+  writeImage("image.png", pt.m_frameBufferWidth, pt.m_frameBufferHeight,
+      pt.m_frameBufferSamples, pt.m_frameBuffer);
 
   return 0;
 }
