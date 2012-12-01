@@ -22,8 +22,6 @@ class Pathtracer {
     const Scene& m_scene;
     size_t m_selectedCamera;
 
-    void restart();
-    void resize(int, int);
     void tracePrimaryRays();
 
     glm::vec3 Li(const math::Ray&, const Intersection&);
