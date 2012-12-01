@@ -24,7 +24,7 @@ int g_subsample = 4;
 int g_subsample = 1;
 #endif
 
-constexpr int MAX_SAMPLES_PER_PIXEL = 2048;
+constexpr size_t MAX_SAMPLES_PER_PIXEL = 2048;
 
 void initGL() {
   glewInit();
