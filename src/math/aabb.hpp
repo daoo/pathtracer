@@ -4,9 +4,6 @@
 #include <glm/glm.hpp>
 
 namespace math {
-  /**
-  * An aabb defined by the min and max extrema.
-  */
   struct Aabb {
     glm::vec3 min;
     glm::vec3 max;
