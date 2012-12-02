@@ -90,4 +90,6 @@ void Scene::buildFromObj(const OBJModel& model) {
   }
 
   buildKdTreeLinked(kdtree, m_triangles);
+
+  print(cout, kdtree);
 }

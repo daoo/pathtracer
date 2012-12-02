@@ -6,6 +6,7 @@
 #include "triangle.hpp"
 
 #include <glm/glm.hpp>
+#include <ostream>
 #include <vector>
 
 namespace kdtree {
@@ -52,6 +53,8 @@ namespace kdtree {
 
   bool intersects(const KdTreeLinked&, math::Ray&, Intersection&);
   bool intersects(const KdTreeLinked&, const math::Ray&);
+
+  void print(std::ostream&, const KdTreeLinked&);
 }
 
 #endif /* end of include guard: KDTREE_HPP_3F5JNSBC */

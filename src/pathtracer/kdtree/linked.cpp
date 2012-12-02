@@ -91,6 +91,20 @@ namespace kdtree {
 
       return false;
     }
+
+    void printHelper(ostream& out, const KdNodeLinked* node, size_t depth) {
+      for (size_t i = 0; i < depth; ++i) {
+        out << "  ";
+      }
+
+      if (node->type == KdNodeLinked::Leaf) {
+        out << "Leaf: count = " << node->leaf.triangles->size() << "\n";
+      } else if (node->type == KdNodeLinked::Parent) {
+        out << "Parent: axis = " << node->dir << ", plane = " << node->d << "\n";
+        printHelper(out, node->parent.left, depth + 1);
+        printHelper(out, node->parent.right, depth + 1);
+      }
+    }
   }
 
   KdNodeLinked::KdNodeLinked() { }
@@ -131,5 +145,9 @@ namespace kdtree {
     Intersection isect;
     Ray raycopy(ray);
     return intersectsHelper(tree.root, ray.mint, ray.maxt, raycopy, isect);
+  }
+
+  void print(ostream& out, const KdTreeLinked& tree) {
+    printHelper(out, tree.root, 0);
   }
 }
