@@ -3,6 +3,7 @@
 
 #include "math/aabb.hpp"
 #include "triangle.hpp"
+#include <cassert>
 #include <glm/glm.hpp>
 
 namespace kdtree {
@@ -18,6 +19,8 @@ namespace kdtree {
     math::Aabb findBounding(const std::vector<const Triangle*>& triangles);
 
     inline float middle(float a, float b) {
+      assert(a < b);
+
       return a + (b - a) / 2.0f;
     }
 

@@ -93,14 +93,16 @@ namespace kdtree {
     }
 
     void printHelper(ostream& out, const KdNodeLinked* node, size_t depth) {
+      constexpr char AXIS[] = { 'X', 'Y', 'Z' };
+
       for (size_t i = 0; i < depth; ++i) {
         out << "  ";
       }
 
       if (node->type == KdNodeLinked::Leaf) {
-        out << "Leaf: count = " << node->leaf.triangles->size() << "\n";
+        out << "Leaf: " << node->leaf.triangles->size() << "\n";
       } else if (node->type == KdNodeLinked::Parent) {
-        out << "Parent: axis = " << node->dir << ", plane = " << node->d << "\n";
+        out << "Parent: " << AXIS[node->dir] << ", " << node->d << "\n";
         printHelper(out, node->parent.left, depth + 1);
         printHelper(out, node->parent.right, depth + 1);
       }
