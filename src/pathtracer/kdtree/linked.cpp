@@ -87,6 +87,8 @@ namespace kdtree {
         return result;
       }
 
+      assert(false && "incomplete if");
+
       return false;
     }
   }
