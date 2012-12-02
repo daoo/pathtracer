@@ -15,12 +15,12 @@ namespace kdtree {
       KdNodeLinked();
       ~KdNodeLinked();
 
-      Axis dir;
-      float d;
-
       enum NodeType { Parent, Leaf };
 
       struct ParentNode {
+        Axis axis;
+        float distance;
+
         KdNodeLinked* left;
         KdNodeLinked* right;
       };

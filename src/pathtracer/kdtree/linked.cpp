@@ -29,10 +29,11 @@ namespace kdtree {
         Aabb bounding = findBounding(triangles);
         float d = middle(swizzle(bounding.min, axis), swizzle(bounding.max, axis));
 
-        node->dir = axis;
-        node->d   = d;
+        node->type = KdNodeLinked::Parent;
 
-        node->type         = KdNodeLinked::Parent;
+        node->parent.axis     = axis;
+        node->parent.distance = d;
+
         node->parent.left  = new KdNodeLinked;
         node->parent.right = new KdNodeLinked;
 
@@ -68,10 +69,10 @@ namespace kdtree {
         }
         return foundIntersection;
       } else if (node->type == KdNodeLinked::Parent) {
-        float p = node->d;
+        float p = node->parent.distance;
 
-        float o = swizzle(ray.origin, node->dir);
-        float d = swizzle(ray.direction, node->dir);
+        float o = swizzle(ray.origin, node->parent.axis);
+        float d = swizzle(ray.direction, node->parent.axis);
 
         float t = (p - o) / d;
 
@@ -102,7 +103,7 @@ namespace kdtree {
       if (node->type == KdNodeLinked::Leaf) {
         out << "Leaf: " << node->leaf.triangles->size() << "\n";
       } else if (node->type == KdNodeLinked::Parent) {
-        out << "Parent: " << AXIS[node->dir] << ", " << node->d << "\n";
+        out << "Parent: " << AXIS[node->parent.axis] << ", " << node->parent.distance << "\n";
         printHelper(out, node->parent.left, depth + 1);
         printHelper(out, node->parent.right, depth + 1);
       }
