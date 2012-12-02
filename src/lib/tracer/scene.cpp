@@ -4,97 +4,18 @@
 #include <iostream>
 
 using namespace glm;
+using namespace kdtree;
 using namespace math;
 using namespace std;
 
-bool intersects(const Triangle& tri, const Ray& r) {
-  constexpr float epsilon = 0.00001f;
-
-  const vec3 d  = r.d;
-  const vec3 o  = r.o;
-  const vec3 e1 = tri.v1 - tri.v0;
-  const vec3 e2 = tri.v2 - tri.v0;
-  const vec3 q  = cross(d, e2);
-
-  float a = dot(e1, q);
-  if (a > -epsilon && a < epsilon)
-    return false;
-
-  float f = 1.0f/a;
-  vec3 s  = o - tri.v0;
-  float u = f * dot(s, q);
-  if (u < 0.0 || u > 1.0)
-    return false;
-
-  vec3 R  = cross(s, e1);
-  float v = f * dot(d, R);
-  if (v < 0.0 || u + v > 1.0)
-    return false;
-
-  float t = f * dot(e2, R);
-  if (t < r.mint || t > r.maxt)
-    return false;
-
-  return true;
+bool Scene::allIntersection(Ray& ray, Intersection& isect) const {
+  return intersects(kdtree, ray, isect);
 }
 
-bool findIntersection(const Triangle& tri, Ray& r, Intersection& i) {
-  constexpr float epsilon = 0.00001f;
-
-  vec3 d  = r.d;
-  vec3 o  = r.o;
-  vec3 e1 = tri.v1 - tri.v0;
-  vec3 e2 = tri.v2 - tri.v0;
-  vec3 q  = cross(d, e2);
-
-  float a = dot(e1, q);
-  if (a > -epsilon && a < epsilon)
-    return false;
-
-  float f = 1.0f/a;
-  vec3 s  = o - tri.v0;
-  float u = f * dot(s, q);
-  if (u < 0.0 || u > 1.0)
-    return false;
-
-  vec3 R  = cross(s, e1);
-  float v = f * dot(d, R);
-  if (v < 0.0 || u+v > 1.0)
-    return false;
-
-  float t = f * dot(e2, R);
-  if (t < r.mint || t > r.maxt)
-    return false;
-
-  r.maxt       = t;
-  i.m_position = r(t);
-  i.m_normal   = normalize((1.0f - (u + v)) * tri.n0 + u * tri.n1 + v * tri.n2);
-  i.m_material = tri.m_material;
-  return true;
+bool Scene::anyIntersection(const Ray& ray) const {
+  return intersects(kdtree, ray);
 }
 
-// -----------------------------------------------------------------------
-// Find the first intersection between a ray and the scene.
-bool Scene::allIntersection(Ray& r, Intersection& isect) const {
-  bool foundIntersection = false;
-  for (size_t i = 0; i < m_triangles.size(); ++i) {
-    foundIntersection |= findIntersection(m_triangles[i], r, isect);
-  }
-  return foundIntersection;
-}
-
-// -----------------------------------------------------------------------
-// Return wether there there is ANY intersection between the ray and the scene
-bool Scene::anyIntersection(const Ray& r) const {
-  for (size_t i = 0; i < m_triangles.size(); ++i) {
-    if (intersects(m_triangles[i], r))
-      return true;
-  }
-  return false;
-}
-
-// -----------------------------------------------------------------------
-// Buid a Scene object from an OBJ file
 void Scene::buildFromObj(const OBJModel& model) {
   for (auto kv : model.m_lights) {
     m_lights.push_back(
@@ -113,6 +34,7 @@ void Scene::buildFromObj(const OBJModel& model) {
         });
   }
 
+  vector<Triangle> triangles;
   for (size_t i = 0; i < model.m_chunks.size(); ++i) {
     const OBJModel::Chunk& chunk = model.m_chunks[i];
     Material* material;
@@ -164,7 +86,9 @@ void Scene::buildFromObj(const OBJModel& model) {
 
       triangle.m_material = material;
 
-      m_triangles.push_back(triangle);
+      triangles.push_back(triangle);
     }
   }
+
+  kdtree = buildKdTreeLinked(triangles);
 }

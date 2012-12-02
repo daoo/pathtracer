@@ -3,26 +3,24 @@
 
 #include "kdtree/util.hpp"
 #include "math/ray.hpp"
-#include "tracer/scene.hpp"
+#include "tracer/triangle.hpp"
 
 #include <glm/glm.hpp>
 #include <vector>
 
 namespace kdtree {
-  enum NodeType {
-    Parent, Leaf
-  };
-
-  class KdNode {
+  class KdNodeLinked {
     public:
-      KdNode() { }
+      KdNodeLinked() { }
 
       Axis dir;
       float d;
 
+      enum NodeType { Parent, Leaf };
+
       struct ParentNode {
-        KdNode* left;
-        KdNode* right;
+        KdNodeLinked* left;
+        KdNodeLinked* right;
       };
 
       struct LeafNode {
@@ -35,17 +33,16 @@ namespace kdtree {
         ParentNode parent;
         LeafNode leaf;
       };
-
-      static_assert(sizeof(LeafNode) > sizeof(ParentNode), "test");
   };
 
-  struct LinkedKdTree {
-    KdNode* root;
+  struct KdTreeLinked {
+    KdNodeLinked* root;
   };
 
-  LinkedKdTree buildTree(const Scene&);
+  KdTreeLinked buildKdTreeLinked(const std::vector<Triangle>&);
 
-  bool intersectsAll(const LinkedKdTree&, math::Ray&, Intersection&);
+  bool intersects(const KdTreeLinked&, math::Ray&, Intersection&);
+  bool intersects(const KdTreeLinked&, const math::Ray&);
 }
 
 #endif /* end of include guard: KDTREE_HPP_3F5JNSBC */
