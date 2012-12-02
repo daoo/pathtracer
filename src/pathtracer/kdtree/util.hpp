@@ -49,15 +49,15 @@ namespace kdtree {
     }
 
     inline bool containsLeft(const Triangle* tri, float d, Axis axis) {
-      return swizzle(tri->v0, axis) < d
-          || swizzle(tri->v1, axis) < d
-          || swizzle(tri->v2, axis) < d;
+      return swizzle(tri->v0, axis) <= d
+          || swizzle(tri->v1, axis) <= d
+          || swizzle(tri->v2, axis) <= d;
     }
 
     inline bool containsRight(const Triangle* tri, float d, Axis axis) {
-      return swizzle(tri->v0, axis) > d
-          || swizzle(tri->v1, axis) > d
-          || swizzle(tri->v2, axis) > d;
+      return swizzle(tri->v0, axis) >= d
+          || swizzle(tri->v1, axis) >= d
+          || swizzle(tri->v2, axis) >= d;
     }
   }
 }
