@@ -3,7 +3,7 @@
 
 #include "kdtree/util.hpp"
 #include "math/ray.hpp"
-#include "tracer/triangle.hpp"
+#include "triangle.hpp"
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -11,7 +11,8 @@
 namespace kdtree {
   class KdNodeLinked {
     public:
-      KdNodeLinked() { }
+      KdNodeLinked();
+      ~KdNodeLinked();
 
       Axis dir;
       float d;
@@ -24,7 +25,7 @@ namespace kdtree {
       };
 
       struct LeafNode {
-        std::vector<const Triangle*> triangles;
+        std::vector<const Triangle*>* triangles;
       };
 
       NodeType type;
@@ -35,11 +36,19 @@ namespace kdtree {
       };
   };
 
-  struct KdTreeLinked {
-    KdNodeLinked* root;
+  class KdTreeLinked {
+    public:
+      KdNodeLinked* root;
+
+      KdTreeLinked();
+      ~KdTreeLinked();
+
+    private:
+      KdTreeLinked(const KdTreeLinked&);
+      KdTreeLinked& operator=(const KdTreeLinked&);
   };
 
-  KdTreeLinked buildKdTreeLinked(const std::vector<Triangle>&);
+  void buildKdTreeLinked(KdTreeLinked&, const std::vector<Triangle>&);
 
   bool intersects(const KdTreeLinked&, math::Ray&, Intersection&);
   bool intersects(const KdTreeLinked&, const math::Ray&);

@@ -2,7 +2,7 @@
 #define TRIANGLE_HPP_N4FJV8PZ
 
 #include "math/ray.hpp"
-#include "tracer/material.hpp"
+#include "material.hpp"
 #include <glm/glm.hpp>
 
 class Triangle {

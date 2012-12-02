@@ -2,7 +2,7 @@
 #include <chrono>
 #include <sstream>
 
-#include "tracer/pathtracer.hpp"
+#include "pathtracer.hpp"
 #include "util/image.hpp"
 
 using namespace std::chrono;

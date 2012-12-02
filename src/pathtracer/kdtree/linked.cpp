@@ -14,9 +14,18 @@ namespace kdtree {
     array<Axis, 3> next = {{ Y, Z, X }};
 
     void bspBuilder(KdNodeLinked* node, const vector<const Triangle*>& triangles, Axis axis, size_t depth) {
+      assert(node != nullptr);
+      assert(!triangles.empty());
+
       if (depth >= 20 || triangles.size() <= 3) {
         node->type = KdNodeLinked::Leaf;
-        node->leaf.triangles = triangles;
+
+        node->leaf.triangles = new vector<const Triangle*>(triangles.size());
+        for (const Triangle* tri : triangles) {
+          assert(tri != nullptr);
+          node->leaf.triangles->push_back(tri);
+        }
+
         return;
       }
 
@@ -30,10 +39,12 @@ namespace kdtree {
       vector<const Triangle*> left, right;
       for (const Triangle* tri : triangles) {
         if (containsLeft(tri, d, axis)) {
+          assert(tri != nullptr);
           left.push_back(tri);
         }
 
         if (containsRight(tri, d, axis)) {
+          assert(tri != nullptr);
           right.push_back(tri);
         }
       }
@@ -50,8 +61,10 @@ namespace kdtree {
       switch (node->type) {
         case KdNodeLinked::Leaf: {
           bool foundIntersection = false;
-          for (size_t i = 0; i < node->leaf.triangles.size(); ++i) {
-            foundIntersection |= intersects(*node->leaf.triangles[i], ray, isect);
+
+          std::vector<const Triangle*> tris = *node->leaf.triangles;
+          for (size_t i = 0; i < tris.size(); ++i) {
+            foundIntersection |= intersects(*tris[i], ray, isect);
           }
           return foundIntersection;
         } case KdNodeLinked::Parent: {
@@ -62,8 +75,21 @@ namespace kdtree {
     }
   }
 
-  KdTreeLinked buildKdTreeLinked(const vector<Triangle>& triangles) {
-    KdTreeLinked tree;
+  KdNodeLinked::KdNodeLinked() { }
+  KdNodeLinked::~KdNodeLinked() {
+    if (type == Leaf) {
+      delete leaf.triangles;
+    } else if (type == Parent) {
+      delete parent.left;
+      delete parent.right;
+    }
+  }
+
+  KdTreeLinked::KdTreeLinked() { }
+  KdTreeLinked::~KdTreeLinked() { delete root; }
+
+  void buildKdTreeLinked(KdTreeLinked& tree, const vector<Triangle>& triangles) {
+    assert(!triangles.empty());
 
     tree.root = new KdNodeLinked;
 
@@ -73,8 +99,6 @@ namespace kdtree {
     }
 
     bspBuilder(tree.root, tris, X, 1);
-
-    return tree;
   }
 
   bool intersects(const KdTreeLinked& tree, Ray& ray, Intersection& isect) {

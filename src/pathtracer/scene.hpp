@@ -1,11 +1,11 @@
 #ifndef SCENE_HPP_BOFJZX4D
 #define SCENE_HPP_BOFJZX4D
 
+#include "camera.hpp"
 #include "kdtree/linked.hpp"
+#include "light.hpp"
+#include "material.hpp"
 #include "math/ray.hpp"
-#include "tracer/camera.hpp"
-#include "tracer/light.hpp"
-#include "tracer/material.hpp"
 #include "util/objmodel.hpp"
 
 class Scene {
@@ -18,6 +18,9 @@ class Scene {
     void buildFromObj(const OBJModel& model);
     bool allIntersection(math::Ray& r, Intersection& isect) const;
     bool anyIntersection(const math::Ray& r) const;
+
+  private:
+    std::vector<Triangle> m_triangles;
 };
 
 #endif /* end of include guard: SCENE_HPP_BOFJZX4D */

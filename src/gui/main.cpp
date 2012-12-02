@@ -5,7 +5,7 @@
 #include <sstream>
 
 #include "gl.hpp"
-#include "tracer/pathtracer.hpp"
+#include "pathtracer.hpp"
 #include "util/image.hpp"
 
 using namespace std;
