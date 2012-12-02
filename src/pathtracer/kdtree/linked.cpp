@@ -75,15 +75,16 @@ namespace kdtree {
 
         float t = (p - o) / d;
 
-        if (t < ray.maxt) {
-          return intersectsHelper(node->parent.left, mint, maxt, ray, isect);
+        bool result = false;
+        if (t <= ray.maxt) {
+          result |= intersectsHelper(node->parent.left, mint, maxt, ray, isect);
         }
 
-        if (t > ray.mint) {
-          return intersectsHelper(node->parent.right, mint, maxt, ray, isect);
+        if (t >= ray.mint) {
+          result |= intersectsHelper(node->parent.right, mint, maxt, ray, isect);
         }
 
-        return false;
+        return result;
       }
 
       return false;
