@@ -43,9 +43,9 @@ namespace kdtree {
     KdNode* root;
   };
 
-  KdTree buildTree(const Scene&);
+  LinkedKdTree buildTree(const Scene&);
 
-  bool intersectsAll(const KdTree&, math::Ray&, Intersection&);
+  bool intersectsAll(const LinkedKdTree&, math::Ray&, Intersection&);
 }
 
 #endif /* end of include guard: KDTREE_HPP_3F5JNSBC */

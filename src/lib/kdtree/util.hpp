@@ -2,6 +2,7 @@
 #define UTIL_HPP_26AQ5WXE
 
 #include "math/aabb.hpp"
+#include "tracer/scene.hpp"
 #include <glm/glm.hpp>
 
 namespace kdtree {

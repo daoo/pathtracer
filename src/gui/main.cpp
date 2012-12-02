@@ -4,8 +4,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "gl.hpp"
 #include "tracer/pathtracer.hpp"
-#include "util/gl.hpp"
 #include "util/image.hpp"
 
 using namespace std;

@@ -4,19 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "gl.hpp"
 #include "objmodel.hpp"
-
-#ifdef _MSC_VER
-#define FORCE_INLINE __forceinline
-#define FLATTEN
-#elif defined(__GNUC__) && __GNUC__ > 4
-#define FORCE_INLINE __attribute__((always_inline))
-#define FLATTEN __attribute__((flatten))
-#else
-#define FORCE_INLINE inline
-#define FLATTEN
-#endif //_MSC_VER || __GNUC__ > 4
 
 using namespace glm;
 using namespace std;
@@ -76,7 +64,7 @@ class ObjLexer {
       T_TexCoord = 'v' << 8 | 't',
     };
 
-    FORCE_INLINE int fillBuffer()
+    inline int fillBuffer()
     {
       if (m_bufferPos >= m_bufferEnd)
       {
@@ -87,7 +75,7 @@ class ObjLexer {
       return m_bufferEnd != 0;
     }
 
-    FORCE_INLINE int nextChar()
+    inline int nextChar()
     {
       if (fillBuffer())
       {
@@ -102,7 +90,7 @@ class ObjLexer {
       return nextChar() << 8 | nextChar();
     }
 
-    FORCE_INLINE int nextLine()
+    inline int nextLine()
     {
       // scan to end of line...
       while('\n' != nextChar())
@@ -137,7 +125,7 @@ class ObjLexer {
     }
 
 
-    FORCE_INLINE bool match(const char s[], const size_t l)
+    inline bool match(const char s[], const size_t l)
     {
       for (int i = 0; fillBuffer() && i < int(l) - 1; ++i)
       {
@@ -152,7 +140,7 @@ class ObjLexer {
       }
       return true;
     }
-    FORCE_INLINE bool matchString(string &str)
+    inline bool matchString(string &str)
     {
       while (fillBuffer() && !isspace(m_buffer[m_bufferPos]))
       {
@@ -161,7 +149,7 @@ class ObjLexer {
       return !str.empty();
     }
 
-    FORCE_INLINE bool matchFloat(float &result)
+    inline bool matchFloat(float &result)
     {
       bool found = false;
       result = 0.0f;
@@ -203,12 +191,12 @@ class ObjLexer {
       return found;
     }
 
-    FORCE_INLINE bool myIsDigit(char c)
+    inline bool myIsDigit(char c)
     {
       return ((unsigned int)(c) - (unsigned int)('0') < 10U);
     }
 
-    FORCE_INLINE bool matchInt(int &result)
+    inline bool matchInt(int &result)
     {
       bool found = false;
       result = 0;
@@ -221,7 +209,7 @@ class ObjLexer {
       }
       return found;
     }
-    FORCE_INLINE bool matchChar(int matchTo)
+    inline bool matchChar(int matchTo)
     {
       if (fillBuffer() && m_buffer[m_bufferPos] == matchTo)
       {
@@ -231,7 +219,7 @@ class ObjLexer {
       return false;
     }
 
-    FORCE_INLINE bool matchWs(bool optional = false)
+    inline bool matchWs(bool optional = false)
     {
       bool found = false;
       while (fillBuffer() &&
@@ -248,7 +236,7 @@ class ObjLexer {
     int m_bufferEnd;
 };
 
-FORCE_INLINE static bool parseFaceIndSet(ObjLexer &lexer, ObjTri &t, int v) {
+inline static bool parseFaceIndSet(ObjLexer &lexer, ObjTri &t, int v) {
   t.v[v] = -1;
   t.t[v] = -1;
   t.n[v] = -1;
@@ -269,7 +257,7 @@ FORCE_INLINE static bool parseFaceIndSet(ObjLexer &lexer, ObjTri &t, int v) {
   return false;
 }
 
-void FLATTEN OBJModel::loadOBJ(ifstream &file, const string& basePath) {
+void inline OBJModel::loadOBJ(ifstream &file, const string& basePath) {
   vector<vec3> positions;
   vector<vec3> normals;
   vector<vec2> uvs;
