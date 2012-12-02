@@ -13,6 +13,8 @@ using namespace std;
 Pathtracer* g_pathtracer;
 Scene g_scene;
 
+size_t width, height;
+
 GLuint framebufferTexture;
 GLuint shaderProgram;
 GLuint uniformFramebuffer, uniformFramebufferSamples;
@@ -145,7 +147,10 @@ void restart(size_t w, size_t h, size_t camera) {
 }
 
 void reshape(int w, int h) {
-  restart(w, h, g_pathtracer->m_selectedCamera);
+  width  = w;
+  height = h;
+
+  restart(width, height, g_pathtracer->m_selectedCamera);
 }
 
 void idle() {
@@ -156,19 +161,16 @@ void handleKeys(unsigned char key, int, int) {
   if (key == 27 || key == 'q') {
     exit(0);
   } else if (key == 'c') {
-    restart(g_pathtracer->m_frameBufferWidth, g_pathtracer->m_frameBufferHeight,
-        g_pathtracer->m_selectedCamera + 1);
+    restart(width, height, g_pathtracer->m_selectedCamera + 1);
   } else if (key == 's') {
     g_subsample += 1;
-    restart(g_pathtracer->m_frameBufferWidth, g_pathtracer->m_frameBufferHeight,
-        g_pathtracer->m_selectedCamera);
+    restart(width, height, g_pathtracer->m_selectedCamera);
   } else if (key == 'S') {
     g_subsample = max(1, g_subsample - 1);
-    restart(g_pathtracer->m_frameBufferWidth, g_pathtracer->m_frameBufferHeight,
-        g_pathtracer->m_selectedCamera);
+    restart(width, height, g_pathtracer->m_selectedCamera);
   } else if (key == 'p') {
     writeImage("screenshot.png",
-        g_pathtracer->m_frameBufferWidth, g_pathtracer->m_frameBufferHeight,
+        width, height,
         g_pathtracer->m_frameBufferSamples,
         g_pathtracer->m_frameBuffer);
   }
