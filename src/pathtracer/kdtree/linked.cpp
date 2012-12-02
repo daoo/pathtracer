@@ -46,7 +46,7 @@ namespace kdtree {
           }
         }
 
-        assert(left.size() + right.size() >= triangles.size());
+        assert(left.size() + right.size() >= triangles.size() && "geometry has disappeared");
 
         bspBuilder(node->parent.left, left, next[axis], depth + 1);
         bspBuilder(node->parent.right, right, next[axis], depth + 1);
@@ -73,11 +73,11 @@ namespace kdtree {
         float t = (p - o) / d;
 
         if (t < ray.maxt) {
-          return intersectsHelper(node->parent.left, t, maxt, ray, isect);
+          return intersectsHelper(node->parent.left, mint, maxt, ray, isect);
         }
 
         if (t > ray.mint) {
-          return intersectsHelper(node->parent.right, mint, t, ray, isect);
+          return intersectsHelper(node->parent.right, mint, maxt, ray, isect);
         }
 
         return false;
