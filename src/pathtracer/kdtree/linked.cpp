@@ -67,8 +67,8 @@ namespace kdtree {
       } else if (node->type == KdNodeLinked::Parent) {
         float p = node->d;
 
-        float o = swizzle(ray.o, node->dir);
-        float d = swizzle(ray.d, node->dir);
+        float o = swizzle(ray.origin, node->dir);
+        float d = swizzle(ray.direction, node->dir);
 
         float t = (p - o) / d;
 

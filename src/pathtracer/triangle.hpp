@@ -19,8 +19,9 @@ bool intersects(const Triangle& tri, math::Ray& r, Intersection& i);
 inline bool intersects(const Triangle& tri, math::Ray& r, Intersection& i) {
   constexpr float epsilon = 0.00001f;
 
-  glm::vec3 d  = r.d;
-  glm::vec3 o  = r.o;
+  const glm::vec3& d = r.direction;
+  const glm::vec3& o = r.origin;
+
   glm::vec3 e1 = tri.v1 - tri.v0;
   glm::vec3 e2 = tri.v2 - tri.v0;
   glm::vec3 q  = glm::cross(d, e2);

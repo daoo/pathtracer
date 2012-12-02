@@ -6,21 +6,15 @@
 namespace math {
   class Ray {
     public:
-      Ray() : mint(0.0f), maxt(FLT_MAX) {}
+      Ray(const glm::vec3& o, const glm::vec3& d, float start, float end) :
+        origin(o), direction(d), mint(start), maxt(end) { }
 
-      Ray(const glm::vec3& origin, const glm::vec3& direction, float start = 0.0f, float end = FLT_MAX) :
-        o(origin), d(direction), mint(start), maxt(end) {}
-
-      glm::vec3 o, d;
+      glm::vec3 origin, direction;
       float mint, maxt;
 
       glm::vec3 operator()(float t) const {
-        return o + d * t;
+        return origin + direction * t;
       }
-
-      // In pbrt we have:
-      // float time; // For motion blur
-      // int depth;  // Number of bounces
   };
 }
 

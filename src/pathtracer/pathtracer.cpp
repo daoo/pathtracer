@@ -87,7 +87,7 @@ vec3 Pathtracer::Li(const Ray& primaryRay, const Intersection& primaryIsect) {
 
   for (size_t i = 0; i < PT_MAX_BOUNCES; ++i) {
     const Material& mat = *isect.m_material;
-    const vec3 wi       = -current_ray.d;
+    const vec3 wi       = -current_ray.direction;
 
     const vec3 offsetInNormalDir = PT_EPSILON * isect.m_normal;
 
@@ -136,8 +136,8 @@ vec3 Pathtracer::Li(const Ray& primaryRay, const Intersection& primaryIsect) {
 
 // -----------------------------------------------------------------------
 // Evaluate the outgoing radiance from the environment
-vec3 Pathtracer::Lenvironment(const Ray& r) {
-  if (r.d.y > 0.0)
+vec3 Pathtracer::Lenvironment(const Ray& ray) {
+  if (ray.direction.y > 0.0)
     return vec3(0.5f, 0.6f, 0.7f);
   else
     return vec3(0.05f, 0.025f, 0.001f);
