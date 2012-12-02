@@ -1,4 +1,5 @@
 #include "scene.hpp"
+#include "kdtree/intersections.hpp"
 #include "mcsampling.hpp"
 
 #include <iostream>

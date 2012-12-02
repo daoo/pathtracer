@@ -15,9 +15,9 @@ namespace kdtree {
       KdNodeLinked();
       ~KdNodeLinked();
 
-      enum NodeType { Parent, Leaf };
+      enum NodeType { Split, Leaf };
 
-      struct ParentNode {
+      struct SplitNode {
         Axis axis;
         float distance;
 
@@ -32,8 +32,8 @@ namespace kdtree {
       NodeType type;
 
       union {
-        ParentNode parent;
         LeafNode leaf;
+        SplitNode split;
       };
   };
 

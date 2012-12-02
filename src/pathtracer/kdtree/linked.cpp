@@ -29,13 +29,13 @@ namespace kdtree {
         Aabb bounding = findBounding(triangles);
         float d = middle(swizzle(bounding.min, axis), swizzle(bounding.max, axis));
 
-        node->type = KdNodeLinked::Parent;
+        node->type = KdNodeLinked::Split;
 
-        node->parent.axis     = axis;
-        node->parent.distance = d;
+        node->split.axis     = axis;
+        node->split.distance = d;
 
-        node->parent.left  = new KdNodeLinked;
-        node->parent.right = new KdNodeLinked;
+        node->split.left  = new KdNodeLinked;
+        node->split.right = new KdNodeLinked;
 
         vector<const Triangle*> left, right;
         for (const Triangle* tri : triangles) {
@@ -52,45 +52,9 @@ namespace kdtree {
 
         assert(left.size() + right.size() >= triangles.size() && "geometry has disappeared");
 
-        bspBuilder(node->parent.left, left, next[axis], depth + 1);
-        bspBuilder(node->parent.right, right, next[axis], depth + 1);
+        bspBuilder(node->split.left, left, next[axis], depth + 1);
+        bspBuilder(node->split.right, right, next[axis], depth + 1);
       }
-    }
-
-    bool intersectsHelper(const KdNodeLinked* node, float mint, float maxt, Ray& ray, Intersection& isect) {
-      assert(node != nullptr);
-
-      if (node->type == KdNodeLinked::Leaf) {
-        bool foundIntersection = false;
-
-        std::vector<const Triangle*> tris = *node->leaf.triangles;
-        for (size_t i = 0; i < tris.size(); ++i) {
-          foundIntersection |= intersects(*(tris[i]), ray, isect);
-        }
-        return foundIntersection;
-      } else if (node->type == KdNodeLinked::Parent) {
-        float p = node->parent.distance;
-
-        float o = swizzle(ray.origin, node->parent.axis);
-        float d = swizzle(ray.direction, node->parent.axis);
-
-        float t = (p - o) / d;
-
-        bool result = false;
-        if (t <= ray.maxt) {
-          result |= intersectsHelper(node->parent.left, mint, maxt, ray, isect);
-        }
-
-        if (t >= ray.mint) {
-          result |= intersectsHelper(node->parent.right, mint, maxt, ray, isect);
-        }
-
-        return result;
-      }
-
-      assert(false && "incomplete if");
-
-      return false;
     }
 
     void printHelper(ostream& out, const KdNodeLinked* node, size_t depth) {
@@ -102,10 +66,10 @@ namespace kdtree {
 
       if (node->type == KdNodeLinked::Leaf) {
         out << "Leaf: " << node->leaf.triangles->size() << "\n";
-      } else if (node->type == KdNodeLinked::Parent) {
-        out << "Parent: " << AXIS[node->parent.axis] << ", " << node->parent.distance << "\n";
-        printHelper(out, node->parent.left, depth + 1);
-        printHelper(out, node->parent.right, depth + 1);
+      } else if (node->type == KdNodeLinked::Split) {
+        out << "Split: " << AXIS[node->split.axis] << ", " << node->split.distance << "\n";
+        printHelper(out, node->split.left, depth + 1);
+        printHelper(out, node->split.right, depth + 1);
       }
     }
   }
@@ -114,9 +78,9 @@ namespace kdtree {
   KdNodeLinked::~KdNodeLinked() {
     if (type == Leaf) {
       delete leaf.triangles;
-    } else if (type == Parent) {
-      delete parent.left;
-      delete parent.right;
+    } else if (type == Split) {
+      delete split.left;
+      delete split.right;
     }
   }
 
@@ -135,19 +99,9 @@ namespace kdtree {
       tris.push_back(&tri);
     }
 
-    bspBuilder(tree.root, tris, X, 1);
+    bspBuilder(tree.root, tris, Y, 1);
 
     cout << "done.\n";
-  }
-
-  bool intersects(const KdTreeLinked& tree, Ray& ray, Intersection& isect) {
-    return intersectsHelper(tree.root, ray.mint, ray.maxt, ray, isect);
-  }
-
-  bool intersects(const KdTreeLinked& tree, const Ray& ray) {
-    Intersection isect;
-    Ray raycopy(ray);
-    return intersectsHelper(tree.root, ray.mint, ray.maxt, raycopy, isect);
   }
 
   void print(ostream& out, const KdTreeLinked& tree) {

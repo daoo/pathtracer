@@ -14,9 +14,17 @@ namespace kdtree {
   namespace helpers {
     bool containsLeft(const Triangle* tri, float d, Axis axis);
     bool containsRight(const Triangle* tri, float d, Axis axis);
+
     float middle(float, float);
     float swizzle(const glm::vec3&, Axis);
+
     math::Aabb findBounding(const std::vector<const Triangle*>& triangles);
+
+    template <typename T>
+    inline void order(float t, const T* a, const T* b, const T*& first, const T*& second) {
+      first = t > 0 ? a : b;
+      second = t > 0 ? b : a;
+    }
 
     inline float middle(float a, float b) {
       assert(a < b);
