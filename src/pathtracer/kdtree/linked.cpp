@@ -20,39 +20,37 @@ namespace kdtree {
       if (depth >= 20 || triangles.size() <= 3) {
         node->type = KdNodeLinked::Leaf;
 
-        node->leaf.triangles = new vector<const Triangle*>(triangles.size());
+        node->leaf.triangles = new vector<const Triangle*>();
         for (const Triangle* tri : triangles) {
           assert(tri != nullptr);
           node->leaf.triangles->push_back(tri);
         }
+      } else {
+        Aabb bounding = findBounding(triangles);
+        float d = middle(swizzle(bounding.min, axis), swizzle(bounding.max, axis));
 
-        return;
-      }
+        node->type         = KdNodeLinked::Parent;
+        node->parent.left  = new KdNodeLinked;
+        node->parent.right = new KdNodeLinked;
 
-      Aabb bounding = findBounding(triangles);
-      float d = middle(swizzle(bounding.min, axis), swizzle(bounding.max, axis));
+        vector<const Triangle*> left, right;
+        for (const Triangle* tri : triangles) {
+          if (containsLeft(tri, d, axis)) {
+            assert(tri != nullptr);
+            left.push_back(tri);
+          }
 
-      node->type         = KdNodeLinked::Parent;
-      node->parent.left  = new KdNodeLinked;
-      node->parent.right = new KdNodeLinked;
-
-      vector<const Triangle*> left, right;
-      for (const Triangle* tri : triangles) {
-        if (containsLeft(tri, d, axis)) {
-          assert(tri != nullptr);
-          left.push_back(tri);
+          if (containsRight(tri, d, axis)) {
+            assert(tri != nullptr);
+            right.push_back(tri);
+          }
         }
 
-        if (containsRight(tri, d, axis)) {
-          assert(tri != nullptr);
-          right.push_back(tri);
-        }
+        assert(left.size() + right.size() >= triangles.size());
+
+        bspBuilder(node->parent.left, left, next[axis], depth + 1);
+        bspBuilder(node->parent.right, right, next[axis], depth + 1);
       }
-
-      assert(left.size() + right.size() >= triangles.size());
-
-      bspBuilder(node->parent.left, left, next[axis], depth + 1);
-      bspBuilder(node->parent.right, right, next[axis], depth + 1);
     }
 
     bool intersectsHelper(const KdNodeLinked* node, Ray& ray, Intersection& isect) {
@@ -64,7 +62,7 @@ namespace kdtree {
 
           std::vector<const Triangle*> tris = *node->leaf.triangles;
           for (size_t i = 0; i < tris.size(); ++i) {
-            foundIntersection |= intersects(*tris[i], ray, isect);
+            foundIntersection |= intersects(*(tris[i]), ray, isect);
           }
           return foundIntersection;
         } case KdNodeLinked::Parent: {
@@ -91,6 +89,8 @@ namespace kdtree {
   void buildKdTreeLinked(KdTreeLinked& tree, const vector<Triangle>& triangles) {
     assert(!triangles.empty());
 
+    cout << "Building Kd-tree... ";
+
     tree.root = new KdNodeLinked;
 
     vector<const Triangle*> tris;
@@ -99,6 +99,8 @@ namespace kdtree {
     }
 
     bspBuilder(tree.root, tris, X, 1);
+
+    cout << "done.\n";
   }
 
   bool intersects(const KdTreeLinked& tree, Ray& ray, Intersection& isect) {
