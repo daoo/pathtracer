@@ -29,6 +29,9 @@ namespace kdtree {
         Aabb bounding = findBounding(triangles);
         float d = middle(swizzle(bounding.min, axis), swizzle(bounding.max, axis));
 
+        node->dir = axis;
+        node->d   = d;
+
         node->type         = KdNodeLinked::Parent;
         node->parent.left  = new KdNodeLinked;
         node->parent.right = new KdNodeLinked;
