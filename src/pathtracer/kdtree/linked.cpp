@@ -53,23 +53,37 @@ namespace kdtree {
       }
     }
 
-    bool intersectsHelper(const KdNodeLinked* node, Ray& ray, Intersection& isect) {
+    bool intersectsHelper(const KdNodeLinked* node, float mint, float maxt, Ray& ray, Intersection& isect) {
       assert(node != nullptr);
 
-      switch (node->type) {
-        case KdNodeLinked::Leaf: {
-          bool foundIntersection = false;
+      if (node->type == KdNodeLinked::Leaf) {
+        bool foundIntersection = false;
 
-          std::vector<const Triangle*> tris = *node->leaf.triangles;
-          for (size_t i = 0; i < tris.size(); ++i) {
-            foundIntersection |= intersects(*(tris[i]), ray, isect);
-          }
-          return foundIntersection;
-        } case KdNodeLinked::Parent: {
-          return intersectsHelper(node->parent.left, ray, isect)
-              || intersectsHelper(node->parent.right, ray, isect);
+        std::vector<const Triangle*> tris = *node->leaf.triangles;
+        for (size_t i = 0; i < tris.size(); ++i) {
+          foundIntersection |= intersects(*(tris[i]), ray, isect);
         }
+        return foundIntersection;
+      } else if (node->type == KdNodeLinked::Parent) {
+        float p = node->d;
+
+        float o = swizzle(ray.o, node->dir);
+        float d = swizzle(ray.d, node->dir);
+
+        float t = (p - o) / d;
+
+        if (t < ray.maxt) {
+          return intersectsHelper(node->parent.left, t, maxt, ray, isect);
+        }
+
+        if (t > ray.mint) {
+          return intersectsHelper(node->parent.right, mint, t, ray, isect);
+        }
+
+        return false;
       }
+
+      return false;
     }
   }
 
@@ -104,12 +118,12 @@ namespace kdtree {
   }
 
   bool intersects(const KdTreeLinked& tree, Ray& ray, Intersection& isect) {
-    return intersectsHelper(tree.root, ray, isect);
+    return intersectsHelper(tree.root, ray.mint, ray.maxt, ray, isect);
   }
 
   bool intersects(const KdTreeLinked& tree, const Ray& ray) {
     Intersection isect;
     Ray raycopy(ray);
-    return intersectsHelper(tree.root, raycopy, isect);
+    return intersectsHelper(tree.root, ray.mint, ray.maxt, raycopy, isect);
   }
 }
