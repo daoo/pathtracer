@@ -14,7 +14,7 @@ namespace kdtree {
   namespace traverse {
     namespace detail {
       template <typename Iter>
-      bool searchNode(Iter iter, std::stack<std::tuple<Iter, float, float>> stack,
+      bool searchNode(Iter iter, std::stack<std::tuple<Iter, float, float>>& stack,
           float mint, float maxt, math::Ray& ray, Intersection& isect) {
         if (iter.isLeaf()) {
           bool hit = false;
@@ -61,9 +61,9 @@ namespace kdtree {
 
     template <typename Tree>
     bool stackSearchTree(const Tree& tree, math::Ray& ray, Intersection& isect) {
+      std::stack<std::tuple<typename Tree::Iterator, float, float>> stack;
       return detail::searchNode(typename Tree::Iterator(tree),
-          std::stack<std::tuple<typename Tree::Iterator, float, float>>(),
-          ray.mint, ray.maxt, ray, isect);
+          stack, ray.mint, ray.maxt, ray, isect);
     }
   }
 }
