@@ -43,6 +43,11 @@ namespace kdtree {
       KdTreeLinked();
       ~KdTreeLinked();
 
+    private:
+      KdTreeLinked(const KdTreeLinked&);
+      KdTreeLinked& operator=(const KdTreeLinked&);
+
+    public:
       class Iterator {
         public:
           Iterator() { }
@@ -99,10 +104,6 @@ namespace kdtree {
         private:
           const KdNodeLinked* node;
       };
-
-    private:
-      KdTreeLinked(const KdTreeLinked&);
-      KdTreeLinked& operator=(const KdTreeLinked&);
   };
 
   void buildKdTreeLinked(KdTreeLinked&, const std::vector<Triangle>&);
