@@ -19,7 +19,7 @@ namespace kdtree {
     bool searchNode(State& state, const KdNodeLinked* node, float mint, float maxt) {
       assert(node != nullptr);
 
-      if (node->type == KdNodeLinked::Leaf) {
+      if (node->type == Leaf) {
         return searchLeaf(state, node->leaf, maxt);
       } else /*if (node->type == KdNodeLinked::Split)*/ {
         return searchSplit(state, node->split, mint, maxt);

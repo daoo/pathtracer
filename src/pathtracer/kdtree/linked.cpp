@@ -18,7 +18,7 @@ namespace kdtree {
       assert(!triangles.empty());
 
       if (depth >= 5 || triangles.size() <= 3) {
-        node->type = KdNodeLinked::Leaf;
+        node->type = Leaf;
 
         node->leaf.triangles = new vector<const Triangle*>();
         for (const Triangle* tri : triangles) {
@@ -29,7 +29,7 @@ namespace kdtree {
         Aabb bounding = findBounding(triangles);
         float d = middle(swizzle(bounding.min, axis), swizzle(bounding.max, axis));
 
-        node->type = KdNodeLinked::Split;
+        node->type = Split;
 
         node->split.axis     = axis;
         node->split.distance = d;
@@ -64,9 +64,9 @@ namespace kdtree {
         out << "  ";
       }
 
-      if (node->type == KdNodeLinked::Leaf) {
+      if (node->type == Leaf) {
         out << "Leaf: " << node->leaf.triangles->size() << "\n";
-      } else if (node->type == KdNodeLinked::Split) {
+      } else if (node->type == Split) {
         out << "Split: " << AXIS[node->split.axis] << ", " << node->split.distance << "\n";
         printHelper(out, node->split.left, depth + 1);
         printHelper(out, node->split.right, depth + 1);
