@@ -65,7 +65,7 @@ namespace kdtree {
       const KdNodeLinked* second;
       helpers::order(d, node.left, node.right, first, second);
 
-      if (t >= maxt || t < 0) {
+      if (t >= maxt) {
         return searchNode(state, first, mint, maxt);
       } else if (t <= mint) {
         return searchNode(state, second, mint, maxt);
