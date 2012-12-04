@@ -12,10 +12,15 @@
 
 namespace kdtree {
   namespace traverse {
-    namespace detail {
-      template <typename Iter>
-      bool searchNode(Iter iter, std::stack<std::tuple<Iter, float, float>>& stack,
-          float mint, float maxt, math::Ray& ray, Intersection& isect) {
+    template <typename Tree>
+    bool stackSearchTree(const Tree& tree, math::Ray& ray, Intersection& isect) {
+      std::stack<std::tuple<typename Tree::Iterator, float, float>> stack;
+      typename Tree::Iterator iter(tree);
+
+      float mint = ray.mint;
+      float maxt = ray.maxt;
+
+      while (true) {
         if (iter.isLeaf()) {
           bool hit = false;
 
@@ -28,9 +33,12 @@ namespace kdtree {
           } else if (stack.empty()) {
             return false;
           } else {
-            std::tuple<Iter, float, float> tmp = stack.top();
+            std::tuple<typename Tree::Iterator, float, float> tmp = stack.top();
             stack.pop();
-            return searchNode(std::get<0>(tmp), stack, std::get<1>(tmp), std::get<2>(tmp), ray, isect);
+
+            iter = std::get<0>(tmp);
+            mint = std::get<1>(tmp);
+            maxt = std::get<2>(tmp);
           }
         } else if (iter.isSplit()) {
           float p = iter.split();
@@ -40,30 +48,24 @@ namespace kdtree {
 
           float t = (p - o) / d;
 
-          Iter first;
-          Iter second;
+          typename Tree::Iterator first;
+          typename Tree::Iterator second;
           helpers::order(d, iter.left(), iter.right(), first, second);
 
           if (t >= maxt) {
-            return searchNode(first, stack, mint, maxt, ray, isect);
+            iter = first;
           } else if (t <= mint) {
-            return searchNode(second, stack, mint, maxt, ray, isect);
+            iter = second;
           } else {
             stack.push(std::make_tuple(second, t, maxt));
-            return searchNode(first, stack, mint, t, ray, isect);
+            iter = first;
+            maxt = t;
           }
         }
-
-        assert(false && "Incomplete if");
-        return false;
       }
-    }
 
-    template <typename Tree>
-    bool stackSearchTree(const Tree& tree, math::Ray& ray, Intersection& isect) {
-      std::stack<std::tuple<typename Tree::Iterator, float, float>> stack;
-      return detail::searchNode(typename Tree::Iterator(tree),
-          stack, ray.mint, ray.maxt, ray, isect);
+      assert(false && "If this happens, something went very wrong.");
+      return false;
     }
   }
 }
