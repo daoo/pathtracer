@@ -22,8 +22,13 @@ namespace kdtree {
 
     template <typename T>
     inline void order(float t, const T* a, const T* b, const T*& first, const T*& second) {
-      first = t > 0 ? a : b;
-      second = t > 0 ? b : a;
+      if (t > 0) {
+        first  = a;
+        second = b;
+      } else {
+        first  = b;
+        second = a;
+      }
     }
 
     inline float middle(float a, float b) {
