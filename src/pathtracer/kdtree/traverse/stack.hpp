@@ -2,7 +2,6 @@
 #define STACK_HPP_5DYINPFY
 
 #include "intersection.hpp"
-#include "kdtree/node.hpp"
 #include "kdtree/util.hpp"
 #include "math/ray.hpp"
 #include "triangle.hpp"
