@@ -1,5 +1,5 @@
-#include <iostream>
 #include <chrono>
+#include <iostream>
 #include <sstream>
 
 #include "pathtracer.hpp"
