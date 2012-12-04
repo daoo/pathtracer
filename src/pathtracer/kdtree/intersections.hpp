@@ -1,7 +1,7 @@
 #ifndef INTERSECTIONS_HPP_HYFVF302
 #define INTERSECTIONS_HPP_HYFVF302
 
-#include "kdtree/stacktraverser.hpp"
+#include "kdtree/traverse/stack.hpp"
 #include "math/ray.hpp"
 
 namespace kdtree {

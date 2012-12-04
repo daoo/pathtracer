@@ -1,5 +1,5 @@
-#ifndef TRAVERSER_HPP_NIQVU4JM
-#define TRAVERSER_HPP_NIQVU4JM
+#ifndef STACKTRAVERSER_HPP_JCTSK9YD
+#define STACKTRAVERSER_HPP_JCTSK9YD
 
 #include "kdtree/linked.hpp"
 
@@ -11,4 +11,4 @@ namespace kdtree {
   }
 }
 
-#endif /* end of include guard: TRAVERSER_HPP_NIQVU4JM */
+#endif /* end of include guard: STACKTRAVERSER_HPP_JCTSK9YD */
