@@ -23,11 +23,11 @@ namespace kdtree {
       };
 
       template <typename Iter>
-      bool searchNode(State<Iter>& state, Iter node, float mint, float maxt) {
-        if (node->isLeaf()) {
+      bool searchNode(State<Iter>& state, Iter iter, float mint, float maxt) {
+        if (iter.isLeaf()) {
           bool hit = false;
 
-          for (const Triangle* tri : node->triangles()) {
+          for (const Triangle* tri : iter.triangles()) {
             hit |= intersects(*tri, state.ray, state.isect);
           }
 
@@ -40,17 +40,17 @@ namespace kdtree {
             state.stack.pop();
             return searchNode(state, std::get<0>(tmp), std::get<1>(tmp), std::get<2>(tmp));
           }
-        } else (node->isSplit()) {
-          float p = node.distance;
+        } else if (iter.isSplit()) {
+          float p = iter.split();
 
-          float o = helpers::swizzle(state.ray.origin, node.axis);
-          float d = helpers::swizzle(state.ray.direction, node.axis);
+          float o = helpers::swizzle(state.ray.origin, iter.axis());
+          float d = helpers::swizzle(state.ray.direction, iter.axis());
 
           float t = (p - o) / d;
 
-          const Iter first;
-          const Iter second;
-          helpers::order(d, node.left, node.right, first, second);
+          Iter first;
+          Iter second;
+          helpers::order(d, iter.left(), iter.right(), first, second);
 
           if (t >= maxt) {
             return searchNode(state, first, mint, maxt);
@@ -61,13 +61,16 @@ namespace kdtree {
             return searchNode(state, first, mint, t);
           }
         }
+
+        assert(false && "Incomplete if");
+        return false;
       }
     }
 
     template <typename Tree>
     bool stackSearchTree(const Tree& tree, math::Ray& ray, Intersection& isect) {
-      detail::State<Tree::Iterator> state(ray, isect);
-      return searchNode(state, Tree::Iterator(tree), ray.mint, ray.maxt);
+      detail::State<typename Tree::Iterator> state(ray, isect);
+      return detail::searchNode(state, typename Tree::Iterator(tree), ray.mint, ray.maxt);
     }
   }
 }

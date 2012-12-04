@@ -34,10 +34,32 @@ namespace kdtree {
         LeafNode leaf;
         SplitNode split;
       };
+  };
 
-      class IteratorLinked {
+  class KdTreeLinked {
+    public:
+      KdNodeLinked* root;
+
+      KdTreeLinked();
+      ~KdTreeLinked();
+
+      class Iterator {
         public:
-          IteratorLinked(KdNodeLinked* n) : node(n) {
+          Iterator() { }
+
+          Iterator& operator=(const Iterator& iter) {
+            if (this != &iter) {
+              node = iter.node;
+            }
+
+            return *this;
+          }
+
+          Iterator(const KdTreeLinked& tree) : node(tree.root) {
+            assert(tree.root != nullptr);
+          }
+
+          Iterator(KdNodeLinked* n) : node(n) {
             assert(n != nullptr);
           }
 
@@ -59,14 +81,14 @@ namespace kdtree {
             return node->split.distance;
           }
 
-          IteratorLinked left() const {
+          Iterator left() const {
             assert(node->type == Split);
-            return IteratorLinked(node->split.left);
+            return Iterator(node->split.left);
           }
 
-          IteratorLinked right() const {
+          Iterator right() const {
             assert(node->type == Split);
-            return IteratorLinked(node->split.right);
+            return Iterator(node->split.right);
           }
 
           const std::vector<const Triangle*>& triangles() const {
@@ -77,14 +99,6 @@ namespace kdtree {
         private:
           const KdNodeLinked* node;
       };
-  };
-
-  class KdTreeLinked {
-    public:
-      KdNodeLinked* root;
-
-      KdTreeLinked();
-      ~KdTreeLinked();
 
     private:
       KdTreeLinked(const KdTreeLinked&);
@@ -92,9 +106,6 @@ namespace kdtree {
   };
 
   void buildKdTreeLinked(KdTreeLinked&, const std::vector<Triangle>&);
-
-  bool intersects(const KdTreeLinked&, math::Ray&, Intersection&);
-  bool intersects(const KdTreeLinked&, const math::Ray&);
 
   void print(std::ostream&, const KdTreeLinked&);
 }

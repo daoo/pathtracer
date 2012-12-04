@@ -5,16 +5,15 @@
 #include <iostream>
 
 using namespace glm;
-using namespace kdtree;
 using namespace math;
 using namespace std;
 
 bool Scene::allIntersection(Ray& ray, Intersection& isect) const {
-  return intersects(kdtree, ray, isect);
+  return kdtree::intersects(kdtree, ray, isect);
 }
 
 bool Scene::anyIntersection(const Ray& ray) const {
-  return intersects(kdtree, ray);
+  return kdtree::intersects(kdtree, ray);
 }
 
 void Scene::buildFromObj(const OBJModel& model) {

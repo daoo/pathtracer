@@ -21,6 +21,17 @@ namespace kdtree {
     math::Aabb findBounding(const std::vector<const Triangle*>& triangles);
 
     template <typename T>
+    inline void order(float t, const T& a, const T& b, T& first, T& second) {
+      if (t > 0) {
+        first  = a;
+        second = b;
+      } else {
+        first  = b;
+        second = a;
+      }
+    }
+
+    template <typename T>
     inline void order(float t, const T* a, const T* b, const T*& first, const T*& second) {
       if (t > 0) {
         first  = a;
