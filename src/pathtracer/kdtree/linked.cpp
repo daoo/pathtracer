@@ -17,7 +17,7 @@ namespace kdtree {
       assert(node != nullptr);
       assert(!triangles.empty());
 
-      if (depth >= 5 || triangles.size() <= 3) {
+      if (depth >= 10 || triangles.size() <= 5) {
         node->type = Leaf;
 
         node->leaf.triangles = new vector<const Triangle*>();
