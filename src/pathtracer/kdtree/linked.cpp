@@ -13,11 +13,11 @@ using namespace std;
 namespace kdtree {
   KdNodeLinked::KdNodeLinked() { }
   KdNodeLinked::~KdNodeLinked() {
-    if (type == Leaf) {
-      delete leaf.triangles;
-    } else if (type == Split) {
-      delete split.left;
-      delete split.right;
+    if (m_type == Leaf) {
+      delete m_leaf.m_triangles;
+    } else if (m_type == Split) {
+      delete m_split.m_left;
+      delete m_split.m_right;
     }
   }
 

@@ -17,22 +17,22 @@ namespace kdtree {
       ~KdNodeLinked();
 
       struct SplitNode {
-        Axis axis;
-        float distance;
+        Axis m_axis;
+        float m_distance;
 
-        KdNodeLinked* left;
-        KdNodeLinked* right;
+        KdNodeLinked* m_left;
+        KdNodeLinked* m_right;
       };
 
       struct LeafNode {
-        std::vector<Triangle>* triangles;
+        std::vector<Triangle>* m_triangles;
       };
 
-      NodeType type;
+      NodeType m_type;
 
       union {
-        LeafNode leaf;
-        SplitNode split;
+        LeafNode m_leaf;
+        SplitNode m_split;
       };
   };
 
@@ -67,32 +67,32 @@ namespace kdtree {
           }
 
           void split(float d) {
-            m_node->type = Split;
-            m_node->split.axis = m_axis;
-            m_node->split.distance = d;
+            m_node->m_type = Split;
+            m_node->m_split.m_axis = m_axis;
+            m_node->m_split.m_distance = d;
           }
 
           void leaf(const std::vector<Triangle>& triangles) {
-            m_node->type = Leaf;
-            m_node->leaf.triangles = new std::vector<Triangle>();
+            m_node->m_type = Leaf;
+            m_node->m_leaf.m_triangles = new std::vector<Triangle>();
 
             for (const Triangle& tri : triangles) {
-              m_node->leaf.triangles->push_back(tri);
+              m_node->m_leaf.m_triangles->push_back(tri);
             }
           }
 
           BuildIter left() {
             constexpr std::array<Axis, 3> NEXT = {{ Y, Z, X }};
 
-            m_node->split.left = new KdNodeLinked;
-            return BuildIter(m_node->split.left, m_depth + 1, NEXT[m_axis]);
+            m_node->m_split.m_left = new KdNodeLinked;
+            return BuildIter(m_node->m_split.m_left, m_depth + 1, NEXT[m_axis]);
           }
 
           BuildIter right() {
             constexpr std::array<Axis, 3> NEXT = {{ Y, Z, X }};
 
-            m_node->split.right = new KdNodeLinked;
-            return BuildIter(m_node->split.right, m_depth + 1, NEXT[m_axis]);
+            m_node->m_split.m_right = new KdNodeLinked;
+            return BuildIter(m_node->m_split.m_right, m_depth + 1, NEXT[m_axis]);
           }
 
         private:
@@ -126,36 +126,36 @@ namespace kdtree {
           }
 
           bool isLeaf() const {
-            return node->type == Leaf;
+            return node->m_type == Leaf;
           }
 
           bool isSplit() const {
-            return node->type == Split;
+            return node->m_type == Split;
           }
 
           Axis axis() const {
-            assert(node->type == Split);
-            return node->split.axis;
+            assert(node->m_type == Split);
+            return node->m_split.m_axis;
           }
 
           float split() const {
-            assert(node->type == Split);
-            return node->split.distance;
+            assert(node->m_type == Split);
+            return node->m_split.m_distance;
           }
 
           Iterator left() const {
-            assert(node->type == Split);
-            return Iterator(node->split.left);
+            assert(node->m_type == Split);
+            return Iterator(node->m_split.m_left);
           }
 
           Iterator right() const {
-            assert(node->type == Split);
-            return Iterator(node->split.right);
+            assert(node->m_type == Split);
+            return Iterator(node->m_split.m_right);
           }
 
           const std::vector<Triangle>& triangles() const {
-            assert(node->type == Leaf);
-            return *node->leaf.triangles;
+            assert(node->m_type == Leaf);
+            return *node->m_leaf.m_triangles;
           }
 
         private:
