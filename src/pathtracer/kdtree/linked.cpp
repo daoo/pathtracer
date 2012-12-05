@@ -36,7 +36,7 @@ namespace kdtree {
       tris.push_back(&tri);
     }
 
-    build::boundingMiddleBuildTree(tree.root, tris, Y, 1);
+    build::boundingMiddleBuildTree(KdTreeLinked::BuildIter(tree), tris);
 
     cout << "done.\n";
   }

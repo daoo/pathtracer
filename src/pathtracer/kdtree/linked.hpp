@@ -6,8 +6,8 @@
 #include "math/ray.hpp"
 #include "triangle.hpp"
 
+#include <array>
 #include <glm/glm.hpp>
-#include <ostream>
 #include <vector>
 
 namespace kdtree {
@@ -48,6 +48,59 @@ namespace kdtree {
       KdTreeLinked& operator=(const KdTreeLinked&);
 
     public:
+      class BuildIter {
+        public:
+          BuildIter(KdNodeLinked* n, size_t depth, Axis axis) : m_axis(axis), m_depth(depth), m_node(n) {
+            assert(n != nullptr);
+          }
+
+          BuildIter(KdTreeLinked& tree) : m_axis(X), m_depth(0), m_node(tree.root) {
+            assert(tree.root != nullptr);
+          }
+
+          Axis axis() {
+            return m_axis;
+          }
+
+          size_t depth() {
+            return m_depth;
+          }
+
+          void split(float d) {
+            m_node->type = Split;
+            m_node->split.axis = m_axis;
+            m_node->split.distance = d;
+          }
+
+          void leaf(const std::vector<const Triangle*>& triangles) {
+            m_node->type = Leaf;
+            m_node->leaf.triangles = new std::vector<const Triangle*>();
+
+            for (const Triangle* tri : triangles) {
+              m_node->leaf.triangles->push_back(tri);
+            }
+          }
+
+          BuildIter left() {
+            constexpr std::array<Axis, 3> NEXT = {{ Y, Z, X }};
+
+            m_node->split.left = new KdNodeLinked;
+            return BuildIter(m_node->split.left, m_depth + 1, NEXT[m_axis]);
+          }
+
+          BuildIter right() {
+            constexpr std::array<Axis, 3> NEXT = {{ Y, Z, X }};
+
+            m_node->split.right = new KdNodeLinked;
+            return BuildIter(m_node->split.right, m_depth + 1, NEXT[m_axis]);
+          }
+
+        private:
+          Axis m_axis;
+          size_t m_depth;
+          KdNodeLinked* m_node;
+      };
+
       class Iterator {
         public:
           Iterator() { }
