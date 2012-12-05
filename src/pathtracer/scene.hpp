@@ -2,7 +2,7 @@
 #define SCENE_HPP_BOFJZX4D
 
 #include "camera.hpp"
-#include "kdtree/linked.hpp"
+#include "kdtree/dt/linked.hpp"
 #include "light.hpp"
 #include "material.hpp"
 #include "math/ray.hpp"
