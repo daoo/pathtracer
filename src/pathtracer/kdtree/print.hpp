@@ -6,7 +6,7 @@
 namespace kdtree {
   namespace detail {
     template <typename Iter>
-    void printHelper(std::ostream& out, const std::string& label, Iter iter, size_t depth) {
+    void printHelper(std::ostream& out, const std::string& label, const Iter& iter, size_t depth) {
       constexpr char AXIS[] = { 'X', 'Y', 'Z' };
 
       for (size_t i = 0; i < depth; ++i) {
