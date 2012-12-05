@@ -12,7 +12,7 @@
 namespace kdtree {
   class KdTreeLinked {
     public:
-      KdTreeLinked() : m_root(new KdNodeLinked) { }
+      KdTreeLinked() : m_root(new KdNodeLinked), m_starting_axis(X) { }
       ~KdTreeLinked() { delete m_root; }
 
     private:
@@ -53,8 +53,8 @@ namespace kdtree {
         return axis == X ? Y : axis == Y ? Z : X;
       }
 
-      Axis m_starting_axis;
       KdNodeLinked* m_root;
+      Axis m_starting_axis;
 
       KdTreeLinked(const KdTreeLinked&);
       KdTreeLinked& operator=(const KdTreeLinked&);
