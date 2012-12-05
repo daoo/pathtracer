@@ -47,9 +47,9 @@ namespace kdtree {
 
           float t = (p - o) / d;
 
-          typename Tree::Iterator first;
-          typename Tree::Iterator second;
-          helpers::order(d, iter.left(), iter.right(), first, second);
+          typename Tree::Iterator first(iter.left());
+          typename Tree::Iterator second(iter.right());
+          helpers::order(d, first, second);
 
           if (t >= maxt) {
             iter = first;
