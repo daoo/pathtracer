@@ -10,46 +10,46 @@
 #include <vector>
 
 namespace kdtree {
-  class KdNodeLinked {
-    public:
-      KdNodeLinked() { }
-      ~KdNodeLinked() {
-        if (m_type == Leaf) {
-          delete m_leaf.m_triangles;
-        } else if (m_type == Split) {
-          delete m_split.m_left;
-          delete m_split.m_right;
-        }
-      }
-
-      enum NodeType { Split, Leaf };
-
-      struct SplitNode {
-        Axis m_axis;
-        float m_distance;
-
-        KdNodeLinked* m_left;
-        KdNodeLinked* m_right;
-      };
-
-      struct LeafNode {
-        std::vector<Triangle>* m_triangles;
-      };
-
-      NodeType m_type;
-
-      union {
-        LeafNode m_leaf;
-        SplitNode m_split;
-      };
-  };
-
   class KdTreeLinked {
     public:
       KdTreeLinked() : m_root(new KdNodeLinked) { }
       ~KdTreeLinked() { delete m_root; }
 
     private:
+      class KdNodeLinked {
+        public:
+          KdNodeLinked() { }
+          ~KdNodeLinked() {
+            if (m_type == Leaf) {
+              delete m_leaf.m_triangles;
+            } else if (m_type == Split) {
+              delete m_split.m_left;
+              delete m_split.m_right;
+            }
+          }
+
+          enum NodeType { Split, Leaf };
+
+          struct SplitNode {
+            Axis m_axis;
+            float m_distance;
+
+            KdNodeLinked* m_left;
+            KdNodeLinked* m_right;
+          };
+
+          struct LeafNode {
+            std::vector<Triangle>* m_triangles;
+          };
+
+          NodeType m_type;
+
+          union {
+            LeafNode m_leaf;
+            SplitNode m_split;
+          };
+      };
+
       KdNodeLinked* m_root;
 
       KdTreeLinked(const KdTreeLinked&);
