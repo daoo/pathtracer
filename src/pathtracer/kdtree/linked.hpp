@@ -109,7 +109,8 @@ namespace kdtree {
 
           Iterator(const Iterator& iter) : node(iter.node) { }
 
-          Iterator& operator=(const Iterator& iter) : node(iter.node) noexcept {
+          Iterator& operator=(const Iterator& iter) noexcept {
+            node = iter.node;
             return *this;
           }
 
