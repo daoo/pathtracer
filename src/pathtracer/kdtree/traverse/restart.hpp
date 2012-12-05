@@ -10,7 +10,7 @@ namespace kdtree {
   namespace traverse {
     template <typename Tree>
     bool restartSearchTree(const Tree& tree, math::Ray& ray, Intersection& isect) {
-      typename Tree::Iterator iter(tree);
+      typename Tree::TraverseIter iter(tree);
 
       const float inital_maxt = ray.maxt;
 
@@ -30,7 +30,7 @@ namespace kdtree {
           } else if (maxt == inital_maxt) {
             return false;
           } else {
-            iter = typename Tree::Iterator(tree);
+            iter = typename Tree::TraverseIter(tree);
             mint = maxt;
             maxt = inital_maxt;
           }
@@ -42,8 +42,8 @@ namespace kdtree {
 
           float t = (p - o) / d;
 
-          typename Tree::Iterator first(iter.left());
-          typename Tree::Iterator second(iter.right());
+          typename Tree::TraverseIter first(iter.left());
+          typename Tree::TraverseIter second(iter.right());
           helpers::order(d, first, second);
 
           if (t >= maxt) {

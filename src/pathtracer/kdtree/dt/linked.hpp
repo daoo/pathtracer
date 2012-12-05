@@ -46,12 +46,12 @@ namespace kdtree {
 
   class KdTreeLinked {
     public:
-      KdNodeLinked* root;
-
-      KdTreeLinked() : root(new KdNodeLinked) { }
-      ~KdTreeLinked() { delete root; }
+      KdTreeLinked() : m_root(new KdNodeLinked) { }
+      ~KdTreeLinked() { delete m_root; }
 
     private:
+      KdNodeLinked* m_root;
+
       KdTreeLinked(const KdTreeLinked&);
       KdTreeLinked& operator=(const KdTreeLinked&);
 
@@ -62,9 +62,7 @@ namespace kdtree {
             assert(n != nullptr);
           }
 
-          BuildIter(KdTreeLinked& tree) : m_axis(X), m_depth(0), m_node(tree.root) {
-            assert(tree.root != nullptr);
-          }
+          BuildIter(KdTreeLinked& tree) : m_axis(X), m_depth(0), m_node(tree.m_root) { }
 
           Axis axis() {
             return m_axis;
@@ -109,26 +107,24 @@ namespace kdtree {
           KdNodeLinked* m_node;
       };
 
-      class Iterator {
+      class TraverseIter {
         public:
-          Iterator(const KdTreeLinked& tree) : node(tree.root) {
-            assert(tree.root != nullptr);
-          }
+          TraverseIter(const KdTreeLinked& tree) : node(tree.m_root) { }
 
-          Iterator(const Iterator& iter) : node(iter.node) { }
+          TraverseIter(const TraverseIter& iter) : node(iter.node) { }
 
-          Iterator& operator=(const Iterator& iter) noexcept {
+          TraverseIter& operator=(const TraverseIter& iter) noexcept {
             node = iter.node;
             return *this;
           }
 
-          Iterator& operator=(Iterator&& iter) noexcept {
+          TraverseIter& operator=(TraverseIter&& iter) noexcept {
             node = std::move(iter.node);
             iter.node = nullptr;
             return *this;
           }
 
-          Iterator(Iterator&& iter) noexcept {
+          TraverseIter(TraverseIter&& iter) noexcept {
             node = std::move(iter.node);
             iter.node = nullptr;
           }
@@ -151,14 +147,14 @@ namespace kdtree {
             return node->m_split.m_distance;
           }
 
-          Iterator left() const {
+          TraverseIter left() const {
             assert(node->m_type == KdNodeLinked::Split);
-            return Iterator(node->m_split.m_left);
+            return TraverseIter(node->m_split.m_left);
           }
 
-          Iterator right() const {
+          TraverseIter right() const {
             assert(node->m_type == KdNodeLinked::Split);
-            return Iterator(node->m_split.m_right);
+            return TraverseIter(node->m_split.m_right);
           }
 
           const std::vector<Triangle>& triangles() const {
@@ -169,7 +165,7 @@ namespace kdtree {
         private:
           const KdNodeLinked* node;
 
-          Iterator(KdNodeLinked* n) : node(n) {
+          TraverseIter(KdNodeLinked* n) : node(n) {
             assert(n != nullptr);
           }
       };
