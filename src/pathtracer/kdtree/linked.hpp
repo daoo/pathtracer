@@ -107,8 +107,6 @@ namespace kdtree {
   };
 
   void buildKdTreeLinked(KdTreeLinked&, const std::vector<Triangle>&);
-
-  void print(std::ostream&, const KdTreeLinked&);
 }
 
 #endif /* end of include guard: KDTREE_HPP_3F5JNSBC */
