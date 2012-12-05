@@ -12,8 +12,7 @@ class Scene {
   public:
     std::vector<Light> m_lights;
     std::vector<Camera> m_cameras;
-
-    kdtree::KdTreeLinked kdtree;
+    kdtree::KdTreeLinked m_kdtree;
 
     void buildFromObj(const OBJModel& model);
     bool allIntersection(math::Ray& r, Intersection& isect) const;

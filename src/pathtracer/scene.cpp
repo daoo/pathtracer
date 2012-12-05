@@ -10,11 +10,11 @@ using namespace math;
 using namespace std;
 
 bool Scene::allIntersection(Ray& ray, Intersection& isect) const {
-  return kdtree::intersects(kdtree, ray, isect);
+  return kdtree::intersects(m_kdtree, ray, isect);
 }
 
 bool Scene::anyIntersection(const Ray& ray) const {
-  return kdtree::intersects(kdtree, ray);
+  return kdtree::intersects(m_kdtree, ray);
 }
 
 void Scene::buildFromObj(const OBJModel& model) {
@@ -91,7 +91,5 @@ void Scene::buildFromObj(const OBJModel& model) {
     }
   }
 
-  buildKdTreeLinked(kdtree, triangles);
-
-  print(cout, kdtree);
+  buildKdTreeLinked(m_kdtree, triangles);
 }

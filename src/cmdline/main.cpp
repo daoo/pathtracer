@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "kdtree/print.hpp"
 #include "pathtracer.hpp"
 #include "util/image.hpp"
 
@@ -14,6 +15,7 @@ void program(const string& objFile, const string& output, size_t w, size_t h, si
 
   model.load(objFile);
   scene.buildFromObj(model);
+  kdtree::print(cout, scene.m_kdtree);
 
   Pathtracer pt(w, h, scene);
   pt.m_selectedCamera = camera;
