@@ -1,6 +1,6 @@
 #include "linked.hpp"
 
-#include "kdtree/build/boundingmiddle.hpp"
+#include "kdtree/build/halfsplits.hpp"
 #include "math/aabb.hpp"
 
 #include <array>
@@ -36,7 +36,7 @@ namespace kdtree {
       tris.push_back(tri);
     }
 
-    build::boundingMiddleBuildTree(KdTreeLinked::BuildIter(tree), tris);
+    build::halfSplitsBuildTree(KdTreeLinked::BuildIter(tree), tris);
 
     cout << "done.\n";
   }

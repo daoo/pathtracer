@@ -17,8 +17,10 @@ namespace kdtree {
 
     float middle(float, float);
     float swizzle(const glm::vec3&, Axis);
+    float& swizzle(glm::vec3&, Axis);
 
     math::Aabb findBounding(const std::vector<Triangle>& triangles);
+    math::Aabb splitAabb(const math::Aabb&, float, Axis);
 
     template <typename T>
     inline void order(float t, T& first, T& second) {
@@ -45,6 +47,14 @@ namespace kdtree {
     }
 
     inline float swizzle(const glm::vec3& v, Axis c) {
+      switch (c) {
+        case X: return v.x;
+        case Y: return v.y;
+        case Z: return v.z;
+      }
+    }
+
+    inline float& swizzle(glm::vec3& v, Axis c) {
       switch (c) {
         case X: return v.x;
         case Y: return v.y;
