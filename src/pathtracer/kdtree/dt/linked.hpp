@@ -109,63 +109,63 @@ namespace kdtree {
 
       class TraverseIter {
         public:
-          TraverseIter(const KdTreeLinked& tree) : node(tree.m_root) { }
+          TraverseIter(const KdTreeLinked& tree) : m_node(tree.m_root) { }
 
-          TraverseIter(const TraverseIter& iter) : node(iter.node) { }
+          TraverseIter(const TraverseIter& iter) : m_node(iter.m_node) { }
 
           TraverseIter& operator=(const TraverseIter& iter) noexcept {
-            node = iter.node;
+            m_node = iter.m_node;
             return *this;
           }
 
           TraverseIter& operator=(TraverseIter&& iter) noexcept {
-            node = std::move(iter.node);
-            iter.node = nullptr;
+            m_node = std::move(iter.m_node);
+            iter.m_node = nullptr;
             return *this;
           }
 
           TraverseIter(TraverseIter&& iter) noexcept {
-            node = std::move(iter.node);
-            iter.node = nullptr;
+            m_node = std::move(iter.m_node);
+            iter.m_node = nullptr;
           }
 
           bool isLeaf() const {
-            return node->m_type == KdNodeLinked::Leaf;
+            return m_node->m_type == KdNodeLinked::Leaf;
           }
 
           bool isSplit() const {
-            return node->m_type == KdNodeLinked::Split;
+            return m_node->m_type == KdNodeLinked::Split;
           }
 
           Axis axis() const {
-            assert(node->m_type == KdNodeLinked::Split);
-            return node->m_split.m_axis;
+            assert(m_node->m_type == KdNodeLinked::Split);
+            return m_node->m_split.m_axis;
           }
 
           float split() const {
-            assert(node->m_type == KdNodeLinked::Split);
-            return node->m_split.m_distance;
+            assert(m_node->m_type == KdNodeLinked::Split);
+            return m_node->m_split.m_distance;
           }
 
           TraverseIter left() const {
-            assert(node->m_type == KdNodeLinked::Split);
-            return TraverseIter(node->m_split.m_left);
+            assert(m_node->m_type == KdNodeLinked::Split);
+            return TraverseIter(m_node->m_split.m_left);
           }
 
           TraverseIter right() const {
-            assert(node->m_type == KdNodeLinked::Split);
-            return TraverseIter(node->m_split.m_right);
+            assert(m_node->m_type == KdNodeLinked::Split);
+            return TraverseIter(m_node->m_split.m_right);
           }
 
           const std::vector<Triangle>& triangles() const {
-            assert(node->m_type == KdNodeLinked::Leaf);
-            return *node->m_leaf.m_triangles;
+            assert(m_node->m_type == KdNodeLinked::Leaf);
+            return *m_node->m_leaf.m_triangles;
           }
 
         private:
-          const KdNodeLinked* node;
+          const KdNodeLinked* m_node;
 
-          TraverseIter(KdNodeLinked* n) : node(n) {
+          TraverseIter(KdNodeLinked* n) : m_node(n) {
             assert(n != nullptr);
           }
       };
