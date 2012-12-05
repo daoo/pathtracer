@@ -18,9 +18,6 @@ class Scene {
     void buildFromObj(const OBJModel& model);
     bool allIntersection(math::Ray& r, Intersection& isect) const;
     bool anyIntersection(const math::Ray& r) const;
-
-  private:
-    std::vector<Triangle> m_triangles;
 };
 
 #endif /* end of include guard: SCENE_HPP_BOFJZX4D */

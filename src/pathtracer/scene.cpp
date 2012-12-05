@@ -35,6 +35,7 @@ void Scene::buildFromObj(const OBJModel& model) {
         });
   }
 
+  std::vector<Triangle> triangles;
   for (size_t i = 0; i < model.m_chunks.size(); ++i) {
     const OBJModel::Chunk& chunk = model.m_chunks[i];
     Material* material;
@@ -86,11 +87,11 @@ void Scene::buildFromObj(const OBJModel& model) {
 
       triangle.m_material = material;
 
-      m_triangles.push_back(triangle);
+      triangles.push_back(triangle);
     }
   }
 
-  buildKdTreeLinked(kdtree, m_triangles);
+  buildKdTreeLinked(kdtree, triangles);
 
   print(cout, kdtree);
 }
