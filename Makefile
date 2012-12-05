@@ -1,10 +1,10 @@
 target = debug
 
 path      = $(realpath .)
-build_dir = $(path)/dist/$(target)
+build_dir = $(path)/build/$(target)
 
 build:
-	+@make -j2 --no-print-directory -C $(build_dir) all
+	+@make --no-print-directory -C $(build_dir) all
 
 clean:
 	+@make --no-print-directory -C $(build_dir) clean
