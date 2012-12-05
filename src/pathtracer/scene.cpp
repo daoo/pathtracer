@@ -1,4 +1,5 @@
 #include "scene.hpp"
+#include "kdtree/build/halfsplits.hpp"
 #include "kdtree/intersections.hpp"
 #include "kdtree/print.hpp"
 #include "mcsampling.hpp"
@@ -91,5 +92,5 @@ void Scene::buildFromObj(const OBJModel& model) {
     }
   }
 
-  buildKdTreeLinked(m_kdtree, triangles);
+  kdtree::build::halfSplitsBuildTree(kdtree::KdTreeLinked::BuildIter(m_kdtree), triangles);
 }

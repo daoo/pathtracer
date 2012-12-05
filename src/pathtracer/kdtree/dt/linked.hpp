@@ -12,8 +12,15 @@
 namespace kdtree {
   class KdNodeLinked {
     public:
-      KdNodeLinked();
-      ~KdNodeLinked();
+      KdNodeLinked() { }
+      ~KdNodeLinked() {
+        if (m_type == Leaf) {
+          delete m_leaf.m_triangles;
+        } else if (m_type == Split) {
+          delete m_split.m_left;
+          delete m_split.m_right;
+        }
+      }
 
       enum NodeType { Split, Leaf };
 
@@ -41,8 +48,8 @@ namespace kdtree {
     public:
       KdNodeLinked* root;
 
-      KdTreeLinked();
-      ~KdTreeLinked();
+      KdTreeLinked() : root(new KdNodeLinked) { }
+      ~KdTreeLinked() { delete root; }
 
     private:
       KdTreeLinked(const KdTreeLinked&);
@@ -167,8 +174,6 @@ namespace kdtree {
           }
       };
   };
-
-  void buildKdTreeLinked(KdTreeLinked&, const std::vector<Triangle>&);
 }
 
 #endif /* end of include guard: KDTREE_HPP_3F5JNSBC */
