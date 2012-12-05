@@ -103,22 +103,25 @@ namespace kdtree {
 
       class Iterator {
         public:
-          Iterator() { }
-
-          Iterator& operator=(const Iterator& iter) {
-            if (this != &iter) {
-              node = iter.node;
-            }
-
-            return *this;
-          }
-
           Iterator(const KdTreeLinked& tree) : node(tree.root) {
             assert(tree.root != nullptr);
           }
 
-          Iterator(KdNodeLinked* n) : node(n) {
-            assert(n != nullptr);
+          Iterator(const Iterator& iter) : node(iter.node) { }
+
+          Iterator& operator=(const Iterator& iter) : node(iter.node) noexcept {
+            return *this;
+          }
+
+          Iterator& operator=(Iterator&& iter) noexcept {
+            node = std::move(iter.node);
+            iter.node = nullptr;
+            return *this;
+          }
+
+          Iterator(Iterator&& iter) noexcept {
+            node = std::move(iter.node);
+            iter.node = nullptr;
           }
 
           bool isLeaf() const {
@@ -156,6 +159,10 @@ namespace kdtree {
 
         private:
           const KdNodeLinked* node;
+
+          Iterator(KdNodeLinked* n) : node(n) {
+            assert(n != nullptr);
+          }
       };
   };
 

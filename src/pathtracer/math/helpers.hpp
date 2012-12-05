@@ -10,4 +10,3 @@ namespace math {
 }
 
 #endif /* end of include guard: HELPERS_HPP_5NWOANYM */
-

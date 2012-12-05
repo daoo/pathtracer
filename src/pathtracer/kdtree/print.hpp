@@ -25,7 +25,7 @@ namespace kdtree {
 
   template <typename Tree>
   void print(std::ostream& out, const Tree& tree) {
-    detail::printHelper(out, typename Tree::Iterator(tree.root), 0);
+    detail::printHelper(out, typename Tree::Iterator(tree), 0);
   }
 }
 
