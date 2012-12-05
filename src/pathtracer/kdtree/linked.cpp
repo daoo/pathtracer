@@ -31,9 +31,9 @@ namespace kdtree {
 
     tree.root = new KdNodeLinked;
 
-    vector<const Triangle*> tris;
+    vector<Triangle> tris;
     for (const Triangle& tri : triangles) {
-      tris.push_back(&tri);
+      tris.push_back(tri);
     }
 
     build::boundingMiddleBuildTree(KdTreeLinked::BuildIter(tree), tris);

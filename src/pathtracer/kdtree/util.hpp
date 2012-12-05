@@ -12,13 +12,13 @@ namespace kdtree {
   };
 
   namespace helpers {
-    bool containsLeft(const Triangle* tri, float d, Axis axis);
-    bool containsRight(const Triangle* tri, float d, Axis axis);
+    bool containsLeft(const Triangle& tri, float d, Axis axis);
+    bool containsRight(const Triangle& tri, float d, Axis axis);
 
     float middle(float, float);
     float swizzle(const glm::vec3&, Axis);
 
-    math::Aabb findBounding(const std::vector<const Triangle*>& triangles);
+    math::Aabb findBounding(const std::vector<Triangle>& triangles);
 
     template <typename T>
     inline void order(float t, T& first, T& second) {
@@ -52,32 +52,32 @@ namespace kdtree {
       }
     }
 
-    inline math::Aabb findBounding(const std::vector<const Triangle*>& triangles) {
+    inline math::Aabb findBounding(const std::vector<Triangle>& triangles) {
       glm::vec3 min, max;
 
-      for (const Triangle* tri : triangles) {
-        min = glm::min(min, tri->v0);
-        min = glm::min(min, tri->v1);
-        min = glm::min(min, tri->v2);
+      for (const Triangle& tri : triangles) {
+        min = glm::min(min, tri.v0);
+        min = glm::min(min, tri.v1);
+        min = glm::min(min, tri.v2);
 
-        max = glm::max(max, tri->v0);
-        max = glm::max(max, tri->v1);
-        max = glm::max(max, tri->v2);
+        max = glm::max(max, tri.v0);
+        max = glm::max(max, tri.v1);
+        max = glm::max(max, tri.v2);
       }
 
       return { min, max };
     }
 
-    inline bool containsLeft(const Triangle* tri, float d, Axis axis) {
-      return swizzle(tri->v0, axis) <= d
-          || swizzle(tri->v1, axis) <= d
-          || swizzle(tri->v2, axis) <= d;
+    inline bool containsLeft(const Triangle& tri, float d, Axis axis) {
+      return swizzle(tri.v0, axis) <= d
+          || swizzle(tri.v1, axis) <= d
+          || swizzle(tri.v2, axis) <= d;
     }
 
-    inline bool containsRight(const Triangle* tri, float d, Axis axis) {
-      return swizzle(tri->v0, axis) >= d
-          || swizzle(tri->v1, axis) >= d
-          || swizzle(tri->v2, axis) >= d;
+    inline bool containsRight(const Triangle& tri, float d, Axis axis) {
+      return swizzle(tri.v0, axis) >= d
+          || swizzle(tri.v1, axis) >= d
+          || swizzle(tri.v2, axis) >= d;
     }
   }
 }

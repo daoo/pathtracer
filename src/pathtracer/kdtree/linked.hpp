@@ -25,7 +25,7 @@ namespace kdtree {
       };
 
       struct LeafNode {
-        std::vector<const Triangle*>* triangles;
+        std::vector<Triangle>* triangles;
       };
 
       NodeType type;
@@ -72,11 +72,11 @@ namespace kdtree {
             m_node->split.distance = d;
           }
 
-          void leaf(const std::vector<const Triangle*>& triangles) {
+          void leaf(const std::vector<Triangle>& triangles) {
             m_node->type = Leaf;
-            m_node->leaf.triangles = new std::vector<const Triangle*>();
+            m_node->leaf.triangles = new std::vector<Triangle>();
 
-            for (const Triangle* tri : triangles) {
+            for (const Triangle& tri : triangles) {
               m_node->leaf.triangles->push_back(tri);
             }
           }
@@ -153,7 +153,7 @@ namespace kdtree {
             return Iterator(node->split.right);
           }
 
-          const std::vector<const Triangle*>& triangles() const {
+          const std::vector<Triangle>& triangles() const {
             assert(node->type == Leaf);
             return *node->leaf.triangles;
           }

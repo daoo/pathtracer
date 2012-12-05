@@ -7,7 +7,7 @@
 namespace kdtree {
   namespace build {
     template <typename Iter>
-    void boundingMiddleBuildTree(Iter iter, const std::vector<const Triangle*>& triangles) {
+    void boundingMiddleBuildTree(Iter iter, const std::vector<Triangle>& triangles) {
       assert(!triangles.empty());
 
       if (iter.depth() >= 4 || triangles.size() <= 3) {
@@ -20,15 +20,13 @@ namespace kdtree {
 
         iter.split(d);
 
-        std::vector<const Triangle*> left, right;
-        for (const Triangle* tri : triangles) {
+        std::vector<Triangle> left, right;
+        for (const Triangle& tri : triangles) {
           if (helpers::containsLeft(tri, d, iter.axis())) {
-            assert(tri != nullptr);
             left.push_back(tri);
           }
 
           if (helpers::containsRight(tri, d, iter.axis())) {
-            assert(tri != nullptr);
             right.push_back(tri);
           }
         }

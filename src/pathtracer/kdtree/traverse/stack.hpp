@@ -23,8 +23,8 @@ namespace kdtree {
         if (iter.isLeaf()) {
           bool hit = false;
 
-          for (const Triangle* tri : iter.triangles()) {
-            hit |= intersects(*tri, ray, isect);
+          for (const Triangle& tri : iter.triangles()) {
+            hit |= intersects(tri, ray, isect);
           }
 
           if (hit && ray.maxt < maxt) {
