@@ -1,7 +1,6 @@
 #ifndef KDTREE_HPP_3F5JNSBC
 #define KDTREE_HPP_3F5JNSBC
 
-#include "kdtree/node.hpp"
 #include "kdtree/util.hpp"
 #include "math/ray.hpp"
 #include "triangle.hpp"
@@ -15,6 +14,8 @@ namespace kdtree {
     public:
       KdNodeLinked();
       ~KdNodeLinked();
+
+      enum NodeType { Split, Leaf };
 
       struct SplitNode {
         Axis m_axis;
@@ -67,13 +68,13 @@ namespace kdtree {
           }
 
           void split(float d) {
-            m_node->m_type = Split;
+            m_node->m_type = KdNodeLinked::Split;
             m_node->m_split.m_axis = m_axis;
             m_node->m_split.m_distance = d;
           }
 
           void leaf(const std::vector<Triangle>& triangles) {
-            m_node->m_type = Leaf;
+            m_node->m_type = KdNodeLinked::Leaf;
             m_node->m_leaf.m_triangles = new std::vector<Triangle>();
 
             for (const Triangle& tri : triangles) {
@@ -126,35 +127,35 @@ namespace kdtree {
           }
 
           bool isLeaf() const {
-            return node->m_type == Leaf;
+            return node->m_type == KdNodeLinked::Leaf;
           }
 
           bool isSplit() const {
-            return node->m_type == Split;
+            return node->m_type == KdNodeLinked::Split;
           }
 
           Axis axis() const {
-            assert(node->m_type == Split);
+            assert(node->m_type == KdNodeLinked::Split);
             return node->m_split.m_axis;
           }
 
           float split() const {
-            assert(node->m_type == Split);
+            assert(node->m_type == KdNodeLinked::Split);
             return node->m_split.m_distance;
           }
 
           Iterator left() const {
-            assert(node->m_type == Split);
+            assert(node->m_type == KdNodeLinked::Split);
             return Iterator(node->m_split.m_left);
           }
 
           Iterator right() const {
-            assert(node->m_type == Split);
+            assert(node->m_type == KdNodeLinked::Split);
             return Iterator(node->m_split.m_right);
           }
 
           const std::vector<Triangle>& triangles() const {
-            assert(node->m_type == Leaf);
+            assert(node->m_type == KdNodeLinked::Leaf);
             return *node->m_leaf.m_triangles;
           }
 
