@@ -1,5 +1,5 @@
-#ifndef KDTREE_HPP_3F5JNSBC
-#define KDTREE_HPP_3F5JNSBC
+#ifndef LINKED_HPP_DGVBYSLC
+#define LINKED_HPP_DGVBYSLC
 
 #include "kdtree/util.hpp"
 #include "math/ray.hpp"
@@ -156,4 +156,4 @@ namespace kdtree {
   };
 }
 
-#endif /* end of include guard: KDTREE_HPP_3F5JNSBC */
+#endif /* end of include guard: LINKED_HPP_DGVBYSLC */
