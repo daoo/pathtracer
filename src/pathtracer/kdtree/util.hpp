@@ -1,9 +1,8 @@
 #ifndef UTIL_HPP_26AQ5WXE
 #define UTIL_HPP_26AQ5WXE
 
-#include "math/aabb.hpp"
-#include "triangle.hpp"
-#include <cassert>
+#include "pathtracer/math/aabb.hpp"
+#include "pathtracer/triangle.hpp"
 #include <glm/glm.hpp>
 
 namespace kdtree {

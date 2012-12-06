@@ -5,8 +5,8 @@
 #include <sstream>
 
 #include "gl.hpp"
-#include "kdtree/print.hpp"
-#include "pathtracer.hpp"
+#include "pathtracer/kdtree/print.hpp"
+#include "pathtracer/pathtracer.hpp"
 #include "util/image.hpp"
 
 using namespace std;

@@ -19,7 +19,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "math/aabb.hpp"
+#include "pathtracer/math/aabb.hpp"
 
 #define X 0
 #define Y 1

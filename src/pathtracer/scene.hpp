@@ -6,7 +6,7 @@
 #include "light.hpp"
 #include "material.hpp"
 #include "math/ray.hpp"
-#include "util/objmodel.hpp"
+#include "objmodel.hpp"
 
 class Scene {
   public:

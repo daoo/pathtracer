@@ -1,10 +1,10 @@
 #ifndef TRAVERSE_HPP_IJFE6LBZ
 #define TRAVERSE_HPP_IJFE6LBZ
 
-#include "intersection.hpp"
-#include "kdtree/util.hpp"
-#include "math/ray.hpp"
-#include "triangle.hpp"
+#include "pathtracer/intersection.hpp"
+#include "pathtracer/kdtree/util.hpp"
+#include "pathtracer/math/ray.hpp"
+#include "pathtracer/triangle.hpp"
 
 namespace kdtree {
   template <typename Tree>

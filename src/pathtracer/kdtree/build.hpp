@@ -1,10 +1,10 @@
 #ifndef BUILD_HPP_BTVASI2S
 #define BUILD_HPP_BTVASI2S
 
-#include "kdtree/util.hpp"
-#include "math/aabb.hpp"
-#include "math/tribox.hpp"
-#include "triangle.hpp"
+#include "pathtracer/kdtree/util.hpp"
+#include "pathtracer/math/aabb.hpp"
+#include "pathtracer/math/tribox.hpp"
+#include "pathtracer/triangle.hpp"
 
 #include <array>
 #include <vector>
