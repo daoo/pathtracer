@@ -4,6 +4,8 @@
 #include "math/aabb.hpp"
 #include "math/ray.hpp"
 
+#include <utility>
+
 namespace math {
   bool intersect(const Aabb&, const Ray&, float&, float&);
   bool overlaps(const Aabb&, const Aabb&);
@@ -17,9 +19,9 @@ namespace math {
   inline bool intersect(const Aabb& a, const Ray& r, float& hit0, float& hit1) {
     float t0 = r.mint, t1 = r.maxt;
     for (int i = 0; i < 3; ++i) {
-      float invRayDir = 1.0f / r.d[i];
-      float tNear     = (a.min[i] - r.o[i]) * invRayDir;
-      float tFar      = (a.max[i] - r.o[i]) * invRayDir;
+      float invRayDir = 1.0f / r.direction[i];
+      float tNear     = (a.min[i] - r.origin[i]) * invRayDir;
+      float tFar      = (a.max[i] - r.origin[i]) * invRayDir;
 
       if (tNear > tFar) {
         std::swap(tNear, tFar);
