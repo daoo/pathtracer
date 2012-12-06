@@ -13,6 +13,7 @@ using namespace std;
 Pathtracer::Pathtracer(size_t w, size_t h, const Scene& scene)
   : m_frameBufferWidth(w), m_frameBufferHeight(h),
     m_frameBufferSamples(0), m_frameBuffer(w * h), m_scene(scene) {
+  assert(!scene.cameras().empty());
 }
 
 Pathtracer::~Pathtracer() { }
@@ -20,17 +21,11 @@ Pathtracer::~Pathtracer() { }
 // -----------------------------------------------------------------------
 // Create and trace a ray per pixel
 void Pathtracer::tracePrimaryRays() {
-  // Scene must have a camera
-  if (m_scene.m_cameras.empty()) {
-    cout << "Scene has no cameras!\n";
-    exit(1);
-  }
-
   const float width  = static_cast<float>(m_frameBufferWidth);
   const float height = static_cast<float>(m_frameBufferHeight);
 
   // Initialize selected camera
-  const Camera& camera = m_scene.m_cameras[m_selectedCamera % m_scene.m_cameras.size()];
+  const Camera& camera = m_scene.cameras()[m_selectedCamera % m_scene.cameras().size()];
 
   const vec3 camera_pos   = camera.m_position;
   const vec3 camera_dir   = camera.m_direction;
@@ -91,7 +86,7 @@ vec3 Pathtracer::Li(const Ray& primaryRay, const Intersection& primaryIsect) {
 
     const vec3 offsetInNormalDir = PT_EPSILON * isect.m_normal;
 
-    for (const Light& light : m_scene.m_lights) {
+    for (const Light& light : m_scene.lights()) {
       const vec3 isectPosition    = isect.m_position + offsetInNormalDir;
       const vec3 lightSamplePos   = sample(light);
       const vec3 directionToLight = lightSamplePos - isectPosition;

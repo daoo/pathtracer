@@ -11,10 +11,9 @@ using namespace std;
 
 void program(const string& objFile, const string& output, size_t w, size_t h, size_t camera, size_t samples) {
   OBJModel model;
-  Scene scene;
-
   model.load(objFile);
-  scene.buildFromObj(model);
+
+  Scene scene(model);
 
   Pathtracer pt(w, h, scene);
   pt.m_selectedCamera = camera;

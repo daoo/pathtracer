@@ -12,7 +12,7 @@
 using namespace std;
 
 Pathtracer* g_pathtracer;
-Scene g_scene;
+Scene* g_scene;
 
 size_t width, height;
 
@@ -143,7 +143,7 @@ void restart(size_t w, size_t h, size_t camera) {
   glViewport(0, 0, w, h);
 
   delete g_pathtracer;
-  g_pathtracer = new Pathtracer(w / g_subsample, h / g_subsample, g_scene);
+  g_pathtracer = new Pathtracer(w / g_subsample, h / g_subsample, *g_scene);
   g_pathtracer->m_selectedCamera = camera;
 }
 
@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
     model.load("scenes/cornell.obj");
     //model.load("scenes/cornell_textured.obj");
     //model.load("scenes/cornellbottle2.obj");
-    g_scene.buildFromObj(model);
+    g_scene = new Scene(model);
 
     restart(512, 512, 0);
 
