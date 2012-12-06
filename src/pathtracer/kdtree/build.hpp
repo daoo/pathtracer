@@ -3,6 +3,7 @@
 
 #include "kdtree/util.hpp"
 #include "math/aabb.hpp"
+#include "math/tribox.hpp"
 #include "triangle.hpp"
 
 #include <array>
@@ -14,9 +15,7 @@ namespace kdtree {
     if (iter.depth() >= 3 || triangles.size() <= 3) {
       iter.leaf(triangles);
     } else {
-      float d = helpers::middle(
-          helpers::swizzle(bounding.min, iter.axis()),
-          helpers::swizzle(bounding.max, iter.axis()));
+      float d = helpers::swizzle(bounding.center, iter.axis());
 
       std::vector<Triangle> left_triangles, right_triangles;
       for (const Triangle& tri : triangles) {
@@ -32,11 +31,13 @@ namespace kdtree {
       assert(left_triangles.size() + right_triangles.size() >= triangles.size()
           && "geometry has disappeared");
 
-      math::Aabb left_bounding(bounding);
-      math::Aabb right_bounding(bounding);
+      glm::vec3 new_size = bounding.half / 2.0f;
 
-      helpers::swizzle(left_bounding.max, iter.axis())  = d;
-      helpers::swizzle(right_bounding.min, iter.axis()) = d;
+      math::Aabb left_bounding({ bounding.center, new_size });
+      math::Aabb right_bounding({ bounding.center, new_size });
+
+      helpers::swizzle(left_bounding.center, iter.axis())  -= helpers::swizzle(new_size, iter.axis());
+      helpers::swizzle(right_bounding.center, iter.axis()) += helpers::swizzle(new_size, iter.axis());
 
       iter.split(d);
 

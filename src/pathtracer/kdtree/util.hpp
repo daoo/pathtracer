@@ -75,7 +75,8 @@ namespace kdtree {
         max = glm::max(max, tri.v2);
       }
 
-      return { min, max };
+      glm::vec3 half = (max - min) / 2.0f;
+      return { min + half, half };
     }
 
     inline bool containsLeft(const Triangle& tri, float d, Axis axis) {
