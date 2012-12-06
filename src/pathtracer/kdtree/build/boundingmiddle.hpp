@@ -12,7 +12,7 @@ namespace kdtree {
   namespace build {
     template <typename Iter>
     void boundingMiddleBuildTree(Iter iter, const std::vector<Triangle>& triangles) {
-      if (iter.depth() >= 4 || triangles.size() <= 3) {
+      if (iter.depth() >= 3 || triangles.size() <= 3) {
         iter.leaf(triangles);
       } else {
         math::Aabb bounding = helpers::findBounding(triangles);
