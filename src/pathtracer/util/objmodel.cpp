@@ -14,8 +14,9 @@ void OBJModel::load(const string& fileName) {
 
   file.open(fileName.c_str(), ios::binary);
   if (!file) {
-    cout << "Error in openening file '" << fileName << "'\n";
-    exit(1);
+    stringstream ss;
+    ss << "Error in openening file '" << fileName << "'\n";
+    throw ss.str();
   }
   cout << "Loading OBJ file: '" << fileName << "'...\n";
   string basePath = fileName.substr(0, fileName.find_last_of('/')) + "/";
@@ -432,8 +433,9 @@ void OBJModel::loadMaterials(const string& fileName, const string&) {
   ifstream file;
   file.open(fileName.c_str());
   if (!file) {
-    cout << "Error in openening file";
-    exit(1);
+    stringstream ss;
+    ss << "Error in openening file '" << fileName << "'\n";
+    throw ss.str();
   }
   string currentMaterial("");
   string currentLight("");
