@@ -69,7 +69,7 @@ namespace kdtree {
           }
 
           void split(float d) {
-            m_nodes.reserve(m_index);
+            m_nodes.reserve(m_index + 1);
 
             m_nodes[m_index].m_type = Node::Split;
             m_nodes[m_index].m_split.m_axis = m_axis;
@@ -77,7 +77,7 @@ namespace kdtree {
           }
 
           void leaf(const std::vector<Triangle>& triangles) {
-            m_nodes.reserve(m_index);
+            m_nodes.reserve(m_index + 1);
 
             m_nodes[m_index].m_type = Node::Leaf;
 
@@ -109,9 +109,7 @@ namespace kdtree {
           Axis m_axis;
 
           BuildIter(std::vector<Node>& nodes, size_t index, size_t depth, Axis axis) :
-              m_nodes(nodes), m_index(index), m_depth(depth), m_axis(axis) {
-            assert(index < nodes.size());
-          }
+              m_nodes(nodes), m_index(index), m_depth(depth), m_axis(axis) { }
       };
 
       class TraverseIter {
