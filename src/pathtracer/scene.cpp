@@ -89,5 +89,5 @@ void Scene::buildFromObj(const OBJModel& model) {
     }
   }
 
-  kdtree::build::boundingMiddleBuildTree(kdtree::KdTreeLinked::BuildIter(m_kdtree), triangles);
+  kdtree::buildTree(m_kdtree, triangles);
 }
