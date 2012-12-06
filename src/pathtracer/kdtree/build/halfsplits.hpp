@@ -29,7 +29,8 @@ namespace kdtree {
             }
           }
 
-          assert(left_triangles.size() + right_triangles.size() >= triangles.size() && "geometry has disappeared");
+          assert(left_triangles.size() + right_triangles.size() >= triangles.size()
+              && "geometry has disappeared");
 
           if (left_triangles.empty()) {
             iter.leaf(right_triangles);

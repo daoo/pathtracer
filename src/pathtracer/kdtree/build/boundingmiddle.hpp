@@ -18,8 +18,6 @@ namespace kdtree {
             helpers::swizzle(bounding.min, iter.axis()),
             helpers::swizzle(bounding.max, iter.axis()));
 
-        iter.split(d);
-
         std::vector<Triangle> left, right;
         for (const Triangle& tri : triangles) {
           if (helpers::containsLeft(tri, d, iter.axis())) {
@@ -31,7 +29,10 @@ namespace kdtree {
           }
         }
 
-        assert(left.size() + right.size() >= triangles.size() && "geometry has disappeared");
+        assert(left.size() + right.size() >= triangles.size()
+            && "geometry has disappeared");
+
+        iter.split(d);
 
         boundingMiddleBuildTree(iter.left(), left);
         boundingMiddleBuildTree(iter.right(), right);
