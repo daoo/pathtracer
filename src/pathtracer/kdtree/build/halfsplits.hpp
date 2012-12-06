@@ -1,6 +1,10 @@
 #ifndef HALFSPLITS_HPP_7SDFN4CN
 #define HALFSPLITS_HPP_7SDFN4CN
 
+#include "kdtree/util.hpp"
+#include "math/aabb.hpp"
+#include "triangle.hpp"
+
 #include <array>
 #include <vector>
 
