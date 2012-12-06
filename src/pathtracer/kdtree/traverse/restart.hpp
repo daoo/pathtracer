@@ -12,7 +12,7 @@ namespace kdtree {
     bool restartSearchTree(const Tree& tree, math::Ray& ray, Intersection& isect) {
       typename Tree::TraverseIter iter(tree);
 
-      const float inital_maxt = ray.maxt;
+      const float initial_maxt = ray.maxt;
 
       float mint = ray.mint;
       float maxt = ray.maxt;
@@ -27,12 +27,12 @@ namespace kdtree {
 
           if (hit && ray.maxt < maxt) {
             return true;
-          } else if (maxt == inital_maxt) {
+          } else if (maxt == initial_maxt) {
             return false;
           } else {
             iter = typename Tree::TraverseIter(tree);
             mint = maxt;
-            maxt = inital_maxt;
+            maxt = initial_maxt;
           }
         } else if (iter.isSplit()) {
           float p = iter.split();
