@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     size_t height   = parse<size_t>(argv[4]);
     size_t samples  = parse<size_t>(argv[5]);
 
-    program(argv[0], argv[1], width, height, 0, samples);
+    program(obj_file, img_file, width, height, 0, samples);
   } else {
     cout << "Usage: pathtracer model.obj output.png width height samples\n";
   }
