@@ -1,5 +1,5 @@
 #include "scene.hpp"
-#include "kdtree/build/halfsplits.hpp"
+#include "kdtree/build/boundingmiddle.hpp"
 #include "kdtree/intersections.hpp"
 #include "kdtree/print.hpp"
 #include "mcsampling.hpp"
@@ -92,5 +92,5 @@ void Scene::buildFromObj(const OBJModel& model) {
     }
   }
 
-  kdtree::build::halfSplitsBuildTree(kdtree::KdTreeLinked::BuildIter(m_kdtree), triangles);
+  kdtree::build::boundingMiddleBuildTree(kdtree::KdTreeLinked::BuildIter(m_kdtree), triangles);
 }
