@@ -7,14 +7,14 @@
 namespace kdtree {
   template <typename Tree>
   bool intersects(const Tree& tree, math::Ray& ray, Intersection& isect) {
-    return traverse::restartSearchTree<KdTreeLinked>(tree, ray, isect);
+    return traverse::restartSearchTree<Tree>(tree, ray, isect);
   }
 
   template <typename Tree>
   bool intersects(const Tree& tree, const math::Ray& ray) {
     Intersection isect;
     math::Ray raycopy(ray);
-    return traverse::restartSearchTree<KdTreeLinked>(tree, raycopy, isect);
+    return traverse::restartSearchTree<Tree>(tree, raycopy, isect);
   }
 }
 
