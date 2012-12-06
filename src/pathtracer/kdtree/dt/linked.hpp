@@ -58,7 +58,8 @@ namespace kdtree {
     public:
       class BuildIter {
         public:
-          BuildIter(KdTreeLinked& tree) : m_axis(X), m_depth(0), m_node(tree.m_root) { }
+          BuildIter(KdTreeLinked& tree) :
+            m_node(tree.m_root), m_depth(0), m_axis(X) { }
 
           Axis axis() {
             return m_axis;
@@ -98,13 +99,14 @@ namespace kdtree {
           }
 
         private:
-          BuildIter(Node* n, size_t depth, Axis axis) : m_axis(axis), m_depth(depth), m_node(n) {
-            assert(n != nullptr);
-          }
-
-          Axis m_axis;
-          size_t m_depth;
           Node* m_node;
+          size_t m_depth;
+          Axis m_axis;
+
+          BuildIter(Node* node, size_t depth, Axis axis) :
+              m_node(node), m_depth(depth), m_axis(axis) {
+            assert(node != nullptr);
+          }
       };
 
       class TraverseIter {
