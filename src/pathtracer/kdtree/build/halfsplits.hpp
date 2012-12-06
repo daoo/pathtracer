@@ -11,8 +11,8 @@
 namespace kdtree {
   namespace build {
     template <typename Iter>
-    void halfSplitsBuildTreeHelper(Iter iter, math::Aabb bounding, const std::vector<Triangle>& triangles) {
-      if (iter.depth() >= 5 || triangles.size() <= 3) {
+    void halfSplitsBuildTree(Iter iter, math::Aabb bounding, const std::vector<Triangle>& triangles) {
+      if (iter.depth() >= 3 || triangles.size() <= 3) {
         iter.leaf(triangles);
       } else {
         float d = helpers::middle(
@@ -41,8 +41,8 @@ namespace kdtree {
 
         iter.split(d);
 
-        halfSplitsBuildTreeHelper(iter.left(), left_bounding, left_triangles);
-        halfSplitsBuildTreeHelper(iter.right(), right_bounding, right_triangles);
+        halfSplitsBuildTree(iter.left(), left_bounding, left_triangles);
+        halfSplitsBuildTree(iter.right(), right_bounding, right_triangles);
       }
     }
   }
