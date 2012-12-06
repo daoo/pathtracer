@@ -19,8 +19,10 @@ void OBJModel::load(const string& fileName) {
     throw ss.str();
   }
   cout << "Loading OBJ file: '" << fileName << "'...\n";
+
   string basePath = fileName.substr(0, fileName.find_last_of('/')) + "/";
   loadOBJ(file, basePath);
+
   cout << " vertex count: " << getNumVerts() << "\n";
 }
 
