@@ -1,10 +1,20 @@
-#ifndef INTERSECTIONS_HPP_LOZBUIUH
-#define INTERSECTIONS_HPP_LOZBUIUH
+#ifndef TREE_HPP_47RCBESP
+#define TREE_HPP_47RCBESP
 
+#include "kdtree/build/boundingmiddle.hpp"
+#include "kdtree/dt/linked.hpp"
 #include "kdtree/traverse/restart.hpp"
 #include "math/ray.hpp"
 
 namespace kdtree {
+  typedef KdTreeLinked KdTree;
+
+  template <typename Tree>
+  void buildTree(Tree& iter, const std::vector<Triangle>& triangles) {
+    build::boundingMiddleBuildTree(typename Tree::BuildIter(iter),
+        helpers::findBounding(triangles), triangles);
+  }
+
   template <typename Tree>
   bool intersects(const Tree& tree, math::Ray& ray, Intersection& isect) {
     return traverse::restartSearchTree<Tree>(tree, ray, isect);
@@ -18,4 +28,4 @@ namespace kdtree {
   }
 }
 
-#endif /* end of include guard: INTERSECTIONS_HPP_LOZBUIUH */
+#endif /* end of include guard: TREE_HPP_47RCBESP */

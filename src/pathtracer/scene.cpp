@@ -1,7 +1,4 @@
 #include "scene.hpp"
-#include "kdtree/build/boundingmiddle.hpp"
-#include "kdtree/intersections.hpp"
-#include "kdtree/print.hpp"
 #include "mcsampling.hpp"
 
 #include <iostream>

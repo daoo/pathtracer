@@ -2,7 +2,7 @@
 #define SCENE_HPP_BOFJZX4D
 
 #include "camera.hpp"
-#include "kdtree/dt/linked.hpp"
+#include "kdtree/tree.hpp"
 #include "light.hpp"
 #include "material.hpp"
 #include "math/ray.hpp"
@@ -12,7 +12,7 @@ class Scene {
   public:
     std::vector<Light> m_lights;
     std::vector<Camera> m_cameras;
-    kdtree::KdTreeLinked m_kdtree;
+    kdtree::KdTree m_kdtree;
 
     void buildFromObj(const OBJModel& model);
     bool allIntersection(math::Ray& r, Intersection& isect) const;

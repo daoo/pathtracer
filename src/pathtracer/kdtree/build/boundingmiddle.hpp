@@ -1,6 +1,10 @@
 #ifndef BOUNDINGMIDDLE_HPP_VL4QZK2H
 #define BOUNDINGMIDDLE_HPP_VL4QZK2H
 
+#include "kdtree/util.hpp"
+#include "math/aabb.hpp"
+#include "triangle.hpp"
+
 #include <array>
 #include <vector>
 
