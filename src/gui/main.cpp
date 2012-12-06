@@ -195,7 +195,6 @@ int main(int argc, char *argv[]) {
     //model.load("scenes/cornell_textured.obj");
     //model.load("scenes/cornellbottle2.obj");
     g_scene.buildFromObj(model);
-    kdtree::print(cout, g_scene.m_kdtree);
 
     restart(512, 512, 0);
 
