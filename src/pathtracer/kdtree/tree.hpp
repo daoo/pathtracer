@@ -1,7 +1,7 @@
 #ifndef TREE_HPP_47RCBESP
 #define TREE_HPP_47RCBESP
 
-#include "kdtree/build/boundingmiddle.hpp"
+#include "kdtree/build/halfsplits.hpp"
 #include "kdtree/dt/linked.hpp"
 #include "kdtree/traverse/restart.hpp"
 #include "math/ray.hpp"
@@ -11,7 +11,7 @@ namespace kdtree {
 
   template <typename Tree>
   void buildTree(Tree& iter, const std::vector<Triangle>& triangles) {
-    build::boundingMiddleBuildTree(typename Tree::BuildIter(iter),
+    build::halfSplitsBuildTree(typename Tree::BuildIter(iter),
         helpers::findBounding(triangles), triangles);
   }
 
