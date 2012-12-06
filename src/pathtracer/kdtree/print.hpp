@@ -14,7 +14,11 @@ namespace kdtree {
       }
 
       if (iter.isLeaf()) {
-        out << "Leaf: " << iter.triangles().size() << "\n";
+        if (iter.hasTriangles()) {
+          out << "Leaf: " << iter.triangles().size() << "\n";
+        } else {
+          out << "Leaf: 0\n";
+        }
       } else if (iter.isSplit()) {
         out << "Split: " << label << ", " << AXIS[iter.axis()] << ", " << iter.split() << "\n";
         printHelper(out, "left", iter.left(), depth + 1);

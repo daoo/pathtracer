@@ -13,8 +13,8 @@ namespace kdtree {
   namespace traverse {
     template <typename Tree>
     bool stackSearchTree(const Tree& tree, math::Ray& ray, Intersection& isect) {
-      std::stack<std::tuple<typename Tree::Iterator, float, float>> stack;
-      typename Tree::Iterator iter(tree);
+      std::stack<std::tuple<typename Tree::TraverseIter, float, float>> stack;
+      typename Tree::TraverseIter iter(tree);
 
       float mint = ray.mint;
       float maxt = ray.maxt;
@@ -23,8 +23,10 @@ namespace kdtree {
         if (iter.isLeaf()) {
           bool hit = false;
 
-          for (const Triangle& tri : iter.triangles()) {
-            hit |= intersects(tri, ray, isect);
+          if (iter.hasTriangles()) {
+            for (const Triangle& tri : iter.triangles()) {
+              hit |= intersects(tri, ray, isect);
+            }
           }
 
           if (hit && ray.maxt < maxt) {
@@ -32,7 +34,7 @@ namespace kdtree {
           } else if (stack.empty()) {
             return false;
           } else {
-            std::tuple<typename Tree::Iterator, float, float> tmp = stack.top();
+            std::tuple<typename Tree::TraverseIter, float, float> tmp = stack.top();
             stack.pop();
 
             iter = std::get<0>(tmp);
@@ -47,8 +49,8 @@ namespace kdtree {
 
           float t = (p - o) / d;
 
-          typename Tree::Iterator first(iter.left());
-          typename Tree::Iterator second(iter.right());
+          typename Tree::TraverseIter first(iter.left());
+          typename Tree::TraverseIter second(iter.right());
           helpers::order(d, first, second);
 
           if (t >= maxt) {

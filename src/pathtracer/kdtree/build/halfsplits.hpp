@@ -9,8 +9,6 @@ namespace kdtree {
     namespace detail {
       template <typename Iter>
       void halfSplitsBuildTreeHelper(Iter iter, math::Aabb bounding, const std::vector<Triangle>& triangles) {
-        assert(!triangles.empty());
-
         if (iter.depth() >= 5 || triangles.size() <= 3) {
           iter.leaf(triangles);
         } else {
@@ -32,22 +30,16 @@ namespace kdtree {
           assert(left_triangles.size() + right_triangles.size() >= triangles.size()
               && "geometry has disappeared");
 
-          if (left_triangles.empty()) {
-            iter.leaf(right_triangles);
-          } else if (right_triangles.empty()) {
-            iter.leaf(left_triangles);
-          } else {
-            math::Aabb left_bounding(bounding);
-            math::Aabb right_bounding(bounding);
+          math::Aabb left_bounding(bounding);
+          math::Aabb right_bounding(bounding);
 
-            helpers::swizzle(left_bounding.max, iter.axis())  = d;
-            helpers::swizzle(right_bounding.min, iter.axis()) = d;
+          helpers::swizzle(left_bounding.max, iter.axis())  = d;
+          helpers::swizzle(right_bounding.min, iter.axis()) = d;
 
-            iter.split(d);
+          iter.split(d);
 
-            halfSplitsBuildTreeHelper(iter.left(), left_bounding, left_triangles);
-            halfSplitsBuildTreeHelper(iter.right(), right_bounding, right_triangles);
-          }
+          halfSplitsBuildTreeHelper(iter.left(), left_bounding, left_triangles);
+          halfSplitsBuildTreeHelper(iter.right(), right_bounding, right_triangles);
         }
       }
     }

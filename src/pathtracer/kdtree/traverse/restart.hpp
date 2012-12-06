@@ -20,9 +20,10 @@ namespace kdtree {
       while (true) {
         if (iter.isLeaf()) {
           bool hit = false;
-
-          for (const Triangle& tri : iter.triangles()) {
-            hit |= intersects(tri, ray, isect);
+          if (iter.hasTriangles()) {
+            for (const Triangle& tri : iter.triangles()) {
+              hit |= intersects(tri, ray, isect);
+            }
           }
 
           if (hit && ray.maxt < maxt) {

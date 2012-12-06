@@ -8,8 +8,6 @@ namespace kdtree {
   namespace build {
     template <typename Iter>
     void boundingMiddleBuildTree(Iter iter, const std::vector<Triangle>& triangles) {
-      assert(!triangles.empty());
-
       if (iter.depth() >= 4 || triangles.size() <= 3) {
         iter.leaf(triangles);
       } else {

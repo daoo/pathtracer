@@ -77,10 +77,14 @@ namespace kdtree {
 
           void leaf(const std::vector<Triangle>& triangles) {
             m_node->m_type = Node::Leaf;
-            m_node->m_leaf.m_triangles = new std::vector<Triangle>();
 
-            for (const Triangle& tri : triangles) {
-              m_node->m_leaf.m_triangles->push_back(tri);
+            if (triangles.empty()) {
+              m_node->m_leaf.m_triangles = nullptr;
+            } else {
+              m_node->m_leaf.m_triangles = new std::vector<Triangle>();
+              for (const Triangle& tri : triangles) {
+                m_node->m_leaf.m_triangles->push_back(tri);
+              }
             }
           }
 
@@ -117,6 +121,11 @@ namespace kdtree {
             return m_node->m_type == Node::Leaf;
           }
 
+          bool hasTriangles() const {
+            assert(m_node->m_type == Node::Leaf);
+            return m_node->m_leaf.m_triangles != nullptr;
+          }
+
           bool isSplit() const {
             return m_node->m_type == Node::Split;
           }
@@ -143,6 +152,7 @@ namespace kdtree {
 
           const std::vector<Triangle>& triangles() const {
             assert(m_node->m_type == Node::Leaf);
+            assert(m_node->m_leaf.m_triangles != nullptr);
             return *m_node->m_leaf.m_triangles;
           }
 
