@@ -1,12 +1,11 @@
 #ifndef ARRAY_HPP_BBXOECNY
 #define ARRAY_HPP_BBXOECNY
 
-#include "kdtree/util.hpp"
-#include "math/ray.hpp"
-#include "triangle.hpp"
+#include "pathtracer/kdtree/util.hpp"
+#include "pathtracer/math/ray.hpp"
+#include "pathtracer/triangle.hpp"
 
 #include <array>
-#include <glm/glm.hpp>
 #include <vector>
 
 namespace kdtree {
@@ -15,7 +14,6 @@ namespace kdtree {
       KdTreeArray() : m_nodes() { }
       ~KdTreeArray() { }
 
-    private:
       class Node {
         public:
           Node() { }
@@ -49,12 +47,6 @@ namespace kdtree {
           };
       };
 
-      std::vector<Node> m_nodes;
-
-      KdTreeArray(const KdTreeArray&);
-      KdTreeArray& operator=(const KdTreeArray&);
-
-    public:
       class BuildIter {
         public:
           BuildIter(KdTreeArray& tree) :
@@ -193,6 +185,12 @@ namespace kdtree {
           TraverseIter(const std::vector<Node>& nodes, size_t index) :
               m_nodes(nodes), m_node(&nodes[index]), m_index(index) { }
       };
+
+    private:
+      std::vector<Node> m_nodes;
+
+      KdTreeArray(const KdTreeArray&);
+      KdTreeArray& operator=(const KdTreeArray&);
   };
 }
 

@@ -5,8 +5,6 @@
 #include "pathtracer/math/ray.hpp"
 #include "pathtracer/triangle.hpp"
 
-#include <array>
-#include <glm/glm.hpp>
 #include <vector>
 
 namespace kdtree {
@@ -15,7 +13,6 @@ namespace kdtree {
       KdTreeLinked() : m_root(new Node) { }
       ~KdTreeLinked() { delete m_root; }
 
-    private:
       class Node {
         public:
           Node() { }
@@ -50,12 +47,6 @@ namespace kdtree {
           };
       };
 
-      Node* m_root;
-
-      KdTreeLinked(const KdTreeLinked&);
-      KdTreeLinked& operator=(const KdTreeLinked&);
-
-    public:
       class BuildIter {
         public:
           BuildIter(KdTreeLinked& tree) :
@@ -163,6 +154,12 @@ namespace kdtree {
             assert(n != nullptr);
           }
       };
+
+    private:
+      Node* m_root;
+
+      KdTreeLinked(const KdTreeLinked&);
+      KdTreeLinked& operator=(const KdTreeLinked&);
   };
 }
 
