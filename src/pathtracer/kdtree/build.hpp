@@ -12,7 +12,7 @@
 namespace kdtree {
   template <typename Iter>
   void buildTree(Iter iter, math::Aabb bounding, const std::vector<Triangle>& triangles) {
-    if (iter.depth() >= 3 || triangles.size() <= 3) {
+    if (iter.depth() >= 10 || triangles.size() <= 5) {
       iter.leaf(triangles);
     } else {
       float d = helpers::swizzle(bounding.center, iter.axis());
