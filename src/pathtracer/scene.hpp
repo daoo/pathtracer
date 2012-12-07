@@ -23,6 +23,10 @@ class Scene {
       return m_lights;
     }
 
+    const kdtree::KdTree& kdtree() const {
+      return m_kdtree;
+    }
+
   private:
     std::vector<Light> m_lights;
     std::vector<Camera> m_cameras;

@@ -2,7 +2,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "pathtracer/kdtree/print.hpp"
 #include "pathtracer/pathtracer.hpp"
 #include "util/image.hpp"
 #include "util/strings.hpp"

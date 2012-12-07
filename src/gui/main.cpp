@@ -5,7 +5,6 @@
 #include <sstream>
 
 #include "gl.hpp"
-#include "pathtracer/kdtree/print.hpp"
 #include "pathtracer/pathtracer.hpp"
 #include "util/image.hpp"
 
