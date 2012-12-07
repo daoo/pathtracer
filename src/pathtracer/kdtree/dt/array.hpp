@@ -60,27 +60,35 @@ namespace kdtree {
             return m_depth;
           }
 
+          /**
+           * Create a split node.
+           */
           void split(float d) {
-            m_nodes.reserve(m_index + 1);
+            Node node;
+            node.m_type             = Node::Split;
+            node.m_split.m_axis     = m_axis;
+            node.m_split.m_distance = d;
 
-            m_nodes[m_index].m_type = Node::Split;
-            m_nodes[m_index].m_split.m_axis = m_axis;
-            m_nodes[m_index].m_split.m_distance = d;
+            setNode(node);
           }
 
+          /**
+           * Create a leaf node.
+           */
           void leaf(const std::vector<Triangle>& triangles) {
-            m_nodes.reserve(m_index + 1);
-
-            m_nodes[m_index].m_type = Node::Leaf;
+            Node node;
+            node.m_type = Node::Leaf;
 
             if (triangles.empty()) {
-              m_nodes[m_index].m_leaf.m_triangles = nullptr;
+              node.m_leaf.m_triangles = nullptr;
             } else {
-              m_nodes[m_index].m_leaf.m_triangles = new std::vector<Triangle>();
+              node.m_leaf.m_triangles = new std::vector<Triangle>();
               for (const Triangle& tri : triangles) {
-                m_nodes[m_index].m_leaf.m_triangles->push_back(tri);
+                node.m_leaf.m_triangles->push_back(tri);
               }
             }
+
+            setNode(node);
           }
 
           BuildIter left() {
@@ -102,6 +110,16 @@ namespace kdtree {
 
           BuildIter(std::vector<Node>& nodes, size_t index, size_t depth, Axis axis) :
               m_nodes(nodes), m_index(index), m_depth(depth), m_axis(axis) { }
+
+          /**
+           * Set the current node.
+           */
+          void setNode(const Node& node) {
+            // When a build iter is created for some node, that node does not
+            // acctually exists in the underlying vector.
+
+            m_nodes[m_index] = node;
+          }
       };
 
       class TraverseIter {
@@ -117,24 +135,6 @@ namespace kdtree {
 
             m_node  = iter.m_node;
             m_index = iter.m_index;
-
-            return *this;
-          }
-
-          TraverseIter(TraverseIter&& iter) :
-              m_nodes(std::move(iter.m_nodes)), m_node(std::move(iter.m_node)),
-              m_index(std::move(iter.m_index)) {
-            iter.m_node = nullptr;
-          }
-
-          TraverseIter& operator=(TraverseIter&& iter) {
-            assert(this != &iter);
-            assert(&m_nodes == &iter.m_nodes);
-
-            m_node  = std::move(iter.m_node);
-            m_index = std::move(iter.m_index);
-
-            iter.m_node = nullptr;
 
             return *this;
           }
