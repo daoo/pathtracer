@@ -17,14 +17,7 @@ namespace kdtree {
         public:
           Node() { }
           ~Node() {
-            if (is_leaf(bitfield)) {
-              delete triangles_ptr(pointer);
-            } else if (is_split(bitfield)) {
-              Node* left = left_ptr(pointer);
-              Node* right = left + 1;
-              delete left;
-              delete right;
-            }
+            throw std::string("Not implemented");
           }
 
         private:
@@ -55,8 +48,18 @@ namespace kdtree {
             return reinterpret_cast<Node*>(pointer);
           }
 
-          size_t bitfield;
-          size_t pointer;
+          struct Leaf {
+            int32_t triangles;
+          };
+
+          struct Split {
+            float d;
+          };
+
+          union {
+            Leaf m_leaf;
+            Split m_split;
+          };
       };
 
       class BuildIter {
