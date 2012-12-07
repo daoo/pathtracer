@@ -12,17 +12,35 @@
 namespace kdtree {
   template <typename Iter>
   void buildTree(Iter iter, const math::Aabb& bounding, const std::vector<Triangle>& triangles) {
+    constexpr float epsilon = 0.0000001f;
+    const glm::vec3 vec_epsilon(epsilon);
+
     if (iter.depth() >= 12 || triangles.size() <= 10) {
       iter.leaf(triangles);
     } else {
       glm::vec3 new_size = bounding.half;
-      helpers::swizzle(new_size, iter.axis()) = helpers::swizzle(bounding.half / 2.0f, iter.axis());
+      glm::vec3 offset(0, 0, 0);
+      float d;
 
-      math::Aabb left_bounding({ bounding.center, new_size });
-      math::Aabb right_bounding({ bounding.center, new_size });
+      if (iter.axis() == X) {
+        d = bounding.center.x;
 
-      helpers::swizzle(left_bounding.center, iter.axis())  -= helpers::swizzle(new_size, iter.axis());
-      helpers::swizzle(right_bounding.center, iter.axis()) += helpers::swizzle(new_size, iter.axis());
+        new_size.x /= 2.0f;
+        offset.x = new_size.x;
+      } else if (iter.axis() == Y) {
+        d = bounding.center.y;
+
+        new_size.y /= 2.0f;
+        offset.y = new_size.y;
+      } else if (iter.axis() == Z) {
+        d = bounding.center.z;
+
+        new_size.z /= 2.0f;
+        offset.z = new_size.z;
+      }
+
+      math::Aabb left_bounding({ bounding.center - offset, new_size + epsilon });
+      math::Aabb right_bounding({ bounding.center + offset, new_size + epsilon });
 
       std::vector<Triangle> left_triangles, right_triangles;
       for (const Triangle& tri : triangles) {
@@ -38,7 +56,6 @@ namespace kdtree {
       assert(left_triangles.size() + right_triangles.size() >= triangles.size()
           && "geometry has disappeared");
 
-      float d = helpers::swizzle(bounding.center, iter.axis());
       iter.split(d);
 
       buildTree(iter.left(), left_bounding, left_triangles);

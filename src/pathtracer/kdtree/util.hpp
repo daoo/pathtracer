@@ -31,14 +31,6 @@ namespace kdtree {
       }
     }
 
-    inline float& swizzle(glm::vec3& v, Axis c) {
-      switch (c) {
-        case X: return v.x;
-        case Y: return v.y;
-        case Z: return v.z;
-      }
-    }
-
     inline math::Aabb findBounding(const std::vector<Triangle>& triangles) {
       glm::vec3 min, max;
 
@@ -54,18 +46,6 @@ namespace kdtree {
 
       glm::vec3 half = (max - min) / 2.0f;
       return { min + half, half };
-    }
-
-    inline bool containsLeft(const Triangle& tri, float d, Axis axis) {
-      return swizzle(tri.v0, axis) <= d
-          || swizzle(tri.v1, axis) <= d
-          || swizzle(tri.v2, axis) <= d;
-    }
-
-    inline bool containsRight(const Triangle& tri, float d, Axis axis) {
-      return swizzle(tri.v0, axis) >= d
-          || swizzle(tri.v1, axis) >= d
-          || swizzle(tri.v2, axis) >= d;
     }
   }
 }
