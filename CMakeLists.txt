@@ -18,3 +18,4 @@ find_package(OpenGL REQUIRED)
 
 add_definitions(-Wall -std=c++11)
 add_subdirectory(src)
+add_subdirectory(tests)
