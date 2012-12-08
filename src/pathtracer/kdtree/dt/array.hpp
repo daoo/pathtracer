@@ -6,6 +6,7 @@
 #include "pathtracer/triangle.hpp"
 
 #include <array>
+#include <cstdint>
 #include <limits>
 #include <vector>
 
@@ -22,15 +23,26 @@ namespace kdtree {
           Node() { }
           ~Node() { }
 
-          Node(int32_t index) : m_type(Leaf), m_triangles(index) { }
-          Node(float distance) : m_type(Split), m_distance(distance) { }
+          Node(int32_t index) : m_data((index << 1) & MASK_DATA) { }
+          Node(float distance) : m_distance(distance) { m_data |= MASK_TYPE; }
 
-          NodeType m_type;
+          bool isLeaf() const { return (m_data & MASK_TYPE) == TYPE_LEAF; }
+          bool isSplit() const { return (m_data & MASK_TYPE) == TYPE_SPLIT; }
 
+          int32_t getIndex() const { return m_data >> 1; }
+          float getDistance() const { return m_distance; }
+
+        private:
           union {
-            int32_t m_triangles;
+            int32_t m_data;
             float m_distance;
           };
+
+          static constexpr int32_t MASK_TYPE = 0x1;
+          static constexpr int32_t MASK_DATA = ~MASK_TYPE;
+
+          static constexpr int32_t TYPE_LEAF = 0;
+          static constexpr int32_t TYPE_SPLIT = 1;
       };
 
       class BuildIter {
@@ -111,16 +123,16 @@ namespace kdtree {
           }
 
           bool isLeaf() const {
-            return m_node->m_type == Node::Leaf;
+            return m_node->isLeaf();
           }
 
           bool hasTriangles() const {
             assert(isLeaf());
-            return m_node->m_triangles != std::numeric_limits<int32_t>::max();
+            return m_node->getIndex() != std::numeric_limits<int32_t>::max();
           }
 
           bool isSplit() const {
-            return m_node->m_type == Node::Split;
+            return m_node->isSplit();
           }
 
           Axis axis() const {
@@ -130,7 +142,7 @@ namespace kdtree {
 
           float split() const {
             assert(isSplit());
-            return m_node->m_distance;
+            return m_node->getDistance();
           }
 
           TraverseIter left() const {
@@ -145,7 +157,7 @@ namespace kdtree {
 
           const std::vector<Triangle>& triangles() const {
             assert(isLeaf() && hasTriangles());
-            return m_tree.m_leaf_store[m_node->m_triangles];
+            return m_tree.m_leaf_store[m_node->getIndex()];
           }
 
         private:
