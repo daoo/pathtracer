@@ -110,7 +110,9 @@ namespace kdtree {
             return *this;
           }
 
-          bool isLeaf() const { return m_node->m_type == Node::Leaf; }
+          bool isLeaf() const {
+            return m_node->m_type == Node::Leaf;
+          }
 
           bool hasTriangles() const {
             assert(isLeaf());
