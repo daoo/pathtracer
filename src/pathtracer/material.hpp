@@ -20,7 +20,6 @@ class Material {
         FastRand&, const glm::vec3& wi, glm::vec3& wo, const Intersection&, float& pdf) const = 0;
 };
 
-
 /**
  * Diffuse reflection
  *
