@@ -104,8 +104,14 @@ namespace kdtree {
           }
 
           bool hasTriangles() const {
-            assert(m_node->m_type == Node::Leaf);
+            assert(isLeaf());
             return m_node->m_leaf.m_triangles != nullptr;
+          }
+
+          const std::vector<Triangle>& triangles() const {
+            assert(isLeaf());
+            assert(m_node->m_leaf.m_triangles != nullptr);
+            return *m_node->m_leaf.m_triangles;
           }
 
           bool isSplit() const {
@@ -113,29 +119,23 @@ namespace kdtree {
           }
 
           Axis axis() const {
-            assert(m_node->m_type == Node::Split);
+            assert(isSplit());
             return m_node->m_split.m_axis;
           }
 
           float split() const {
-            assert(m_node->m_type == Node::Split);
+            assert(isSplit());
             return m_node->m_split.m_distance;
           }
 
           TraverseIter left() const {
-            assert(m_node->m_type == Node::Split);
+            assert(isSplit());
             return TraverseIter(m_node->m_split.m_left);
           }
 
           TraverseIter right() const {
-            assert(m_node->m_type == Node::Split);
+            assert(isSplit());
             return TraverseIter(m_node->m_split.m_right);
-          }
-
-          const std::vector<Triangle>& triangles() const {
-            assert(m_node->m_type == Node::Leaf);
-            assert(m_node->m_leaf.m_triangles != nullptr);
-            return *m_node->m_leaf.m_triangles;
           }
 
         private:
