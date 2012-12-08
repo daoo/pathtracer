@@ -5,6 +5,7 @@
 #include "scene.hpp"
 
 #include <glm/glm.hpp>
+#include <random>
 
 class Pathtracer {
   public:
@@ -36,6 +37,10 @@ class Pathtracer {
     glm::vec3 m_camera_pos;
     glm::vec3 m_min_d;
     glm::vec3 m_dx, m_dy;
+
+    std::ranlux24_base m_rand;
+    //std::mt19937 m_rand;
+    std::uniform_real_distribution<float> m_dist_zero_one;
 };
 
 #endif /* end of include guard: PATHTRACER_HPP_NVGMZUSY */

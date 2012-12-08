@@ -21,7 +21,9 @@ Pathtracer::Pathtracer(size_t w, size_t h, const Scene& scene, size_t camera_ind
     m_iwidth(w), m_iheight(h),
     m_fwidth(static_cast<float>(w)), m_fheight(static_cast<float>(h)),
 
-    m_scene(scene) {
+    m_scene(scene),
+    m_rand(random_device()()),
+    m_dist_zero_one(0, 1) {
   assert(!scene.cameras().empty());
 
   const Camera& camera = m_scene.cameras()[camera_index % m_scene.cameras().size()];
@@ -50,8 +52,8 @@ void Pathtracer::tracePrimaryRays() {
   for (size_t y = 0; y < m_iheight; ++y) {
     for (size_t x = 0; x < m_iwidth; ++x) {
       const vec2 screenCoord = vec2(
-          (static_cast<float>(x) + randf()) / m_fwidth,
-          (static_cast<float>(y) + randf()) / m_fheight
+          (static_cast<float>(x) + m_dist_zero_one(m_rand)) / m_fwidth,
+          (static_cast<float>(y) + m_dist_zero_one(m_rand)) / m_fheight
       );
 
       Ray primaryRay(m_camera_pos,
