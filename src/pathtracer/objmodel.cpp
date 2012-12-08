@@ -415,13 +415,12 @@ void OBJModel::loadMaterials(const string& fileName, const string&) {
     ss << "Error in openening file '" << fileName << "'\n";
     throw ss.str();
   }
-  string currentMaterial("");
-  string currentLight("");
-  string currentCamera("");
+  string currentMaterial;
+  string currentLight;
+  string currentCamera;
 
   string lineread;
-  while(getline(file, lineread)) // Read line by line
-  {
+  while (getline(file, lineread)) {
     //cout << lineread << "\n";
     stringstream ss(lineread);
     string firstword;

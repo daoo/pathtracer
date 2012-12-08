@@ -4,7 +4,6 @@
 #include <cmath>
 #include <glm/glm.hpp>
 #include <glm/gtx/constants.hpp>
-#include <iostream>
 
 #include "util/fastrand.hpp"
 

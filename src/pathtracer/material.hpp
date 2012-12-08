@@ -2,7 +2,6 @@
 #define MATERIAL_HPP_FNROXKUG
 
 #include "intersection.hpp"
-#include "mcsampling.hpp"
 #include "texture.hpp"
 #include "util/fastrand.hpp"
 
@@ -13,11 +12,19 @@
  */
 class Material {
   public:
+    virtual ~Material() { }
+
     virtual glm::vec3 f(
-        const glm::vec3& wi, const glm::vec3& wo, const Intersection&) const = 0;
+        const glm::vec3& wi,
+        const glm::vec3& wo,
+        const Intersection&) const = 0;
 
     virtual glm::vec3 sample_f(
-        FastRand&, const glm::vec3& wi, glm::vec3& wo, const Intersection&, float& pdf) const = 0;
+        FastRand&,
+        const glm::vec3& wi,
+        glm::vec3& wo,
+        const Intersection&,
+        float& pdf) const = 0;
 };
 
 /**
@@ -32,8 +39,17 @@ class DiffuseMaterial : public Material {
     glm::vec3 m_reflectance;
     Texture* m_reflectanceMap;
 
-    virtual glm::vec3 f(const glm::vec3&, const glm::vec3&, const Intersection&) const;
-    virtual glm::vec3 sample_f(FastRand&, const glm::vec3&, glm::vec3&, const Intersection&, float&) const;
+    virtual glm::vec3 f(
+        const glm::vec3&,
+        const glm::vec3&,
+        const Intersection&) const;
+
+    virtual glm::vec3 sample_f(
+        FastRand&,
+        const glm::vec3&,
+        glm::vec3&,
+        const Intersection&,
+        float&) const;
 };
 
 /**
@@ -49,8 +65,17 @@ class SpecularReflectionMaterial : public Material {
     // The reflectance (color) of the specular reflection
     glm::vec3 m_reflectance;
 
-    virtual glm::vec3 f(const glm::vec3&, const glm::vec3&, const Intersection&) const;
-    virtual glm::vec3 sample_f(FastRand&, const glm::vec3&, glm::vec3&, const Intersection&, float&) const;
+    virtual glm::vec3 f(
+        const glm::vec3&,
+        const glm::vec3&,
+        const Intersection&) const;
+
+    virtual glm::vec3 sample_f(
+        FastRand&,
+        const glm::vec3&,
+        glm::vec3&,
+        const Intersection&,
+        float&) const;
 };
 
 /**
@@ -66,8 +91,16 @@ class SpecularRefractionMaterial : public Material {
     // Index of refraction
     float m_ior;
 
-    virtual glm::vec3 f(const glm::vec3&, const glm::vec3&, const Intersection&) const;
-    virtual glm::vec3 sample_f(FastRand&, const glm::vec3&, glm::vec3&, const Intersection&, float&) const;
+    virtual glm::vec3 f(
+        const glm::vec3&,
+        const glm::vec3&,
+        const Intersection&) const;
+
+    virtual glm::vec3 sample_f(
+        FastRand&,
+        const glm::vec3&,
+        glm::vec3&,
+        const Intersection&, float&) const;
 };
 
 /**
@@ -84,23 +117,41 @@ class FresnelBlendMaterial : public Material {
     float m_R0;
     float R(const glm::vec3& i, const glm::vec3& n) const;
 
-    virtual glm::vec3 f(const glm::vec3&, const glm::vec3&, const Intersection&) const;
-    virtual glm::vec3 sample_f(FastRand&, const glm::vec3&, glm::vec3&, const Intersection&, float&) const;
+    virtual glm::vec3 f(
+        const glm::vec3&,
+        const glm::vec3&,
+        const Intersection&) const;
+
+    virtual glm::vec3 sample_f(
+        FastRand&,
+        const glm::vec3&,
+        glm::vec3&,
+        const Intersection&,
+        float&) const;
 };
 
 /**
  * Linear blending
  *
- * This Material combines two bxdfs linearly as: w*M1 + (1.0-w)*M2
+ * This Material combines two brdfs linearly as: w*M1 + (1.0-w)*M2
  */
 class BlendMaterial : public Material {
   public:
-    Material *m_firstMaterial;
-    Material *m_secondMaterial;
+    Material* m_firstMaterial;
+    Material* m_secondMaterial;
     float m_w;
 
-    virtual glm::vec3 f(const glm::vec3&, const glm::vec3&, const Intersection&) const;
-    virtual glm::vec3 sample_f(FastRand&, const glm::vec3&, glm::vec3&, const Intersection&, float&) const;
+    virtual glm::vec3 f(
+        const glm::vec3&,
+        const glm::vec3&,
+        const Intersection&) const;
+
+    virtual glm::vec3 sample_f(
+        FastRand&,
+        const glm::vec3&,
+        glm::vec3&,
+        const Intersection&,
+        float&) const;
 };
 
 #endif /* end of include guard: MATERIAL_HPP_FNROXKUG */

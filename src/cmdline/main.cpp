@@ -28,7 +28,7 @@ void program(const string& objFile, const string& output, size_t w, size_t h, si
   OBJModel model;
   model.load(objFile);
 
-  Scene scene(model);
+  const Scene scene(model);
 
   Pathtracer pt1(w, h, scene, camera);
   Pathtracer pt2(w, h, scene, camera);

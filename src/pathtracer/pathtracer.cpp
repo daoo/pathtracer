@@ -79,7 +79,7 @@ vec3 Pathtracer::Li(const Ray& primaryRay, const Intersection& primaryIsect) {
   Intersection isect(primaryIsect);
 
   for (size_t i = 0; i < PT_MAX_BOUNCES; ++i) {
-    const Material& mat = *isect.m_material;
+    const Material* mat = isect.m_material;
     const vec3 wi       = -current_ray.direction;
 
     const vec3 offsetInNormalDir = PT_EPSILON * isect.m_normal;
@@ -94,13 +94,13 @@ vec3 Pathtracer::Li(const Ray& primaryRay, const Intersection& primaryIsect) {
         const vec3 wo = normalize(directionToLight);
         const vec3 li = Le(light, isect.m_position);
 
-        L += path_tp * mat.f(wi, wo, isect) * li * abs(dot(wo, isect.m_normal));
+        L += path_tp * mat->f(wi, wo, isect) * li * abs(dot(wo, isect.m_normal));
       }
     }
 
     float pdf;
     vec3 wo;
-    const vec3 brdf = mat.sample_f(m_fastrand, wi, wo, isect, pdf);
+    const vec3 brdf = mat->sample_f(m_fastrand, wi, wo, isect, pdf);
 
     if (pdf < PT_EPSILON) {
       return L;
