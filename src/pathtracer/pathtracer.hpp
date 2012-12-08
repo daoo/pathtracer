@@ -2,13 +2,9 @@
 #define PATHTRACER_HPP_NVGMZUSY
 
 #include "math/ray.hpp"
-#include "mcsampling.hpp"
 #include "scene.hpp"
 
 #include <glm/glm.hpp>
-
-constexpr size_t PT_MAX_BOUNCES = 16;
-constexpr float PT_EPSILON      = 0.00001f;
 
 class Pathtracer {
   public:

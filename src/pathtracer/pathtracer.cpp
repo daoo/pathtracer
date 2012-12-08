@@ -4,11 +4,15 @@
 #include "math/ray.hpp"
 
 #include <glm/gtx/constants.hpp>
-#include <iostream>
 
 using namespace glm;
 using namespace math;
 using namespace std;
+
+namespace {
+  constexpr size_t PT_MAX_BOUNCES = 16;
+  constexpr float PT_EPSILON      = 0.00001f;
+}
 
 Pathtracer::Pathtracer(size_t w, size_t h, const Scene& scene, size_t camera_index)
   : m_buffer(w * h),
