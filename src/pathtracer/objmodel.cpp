@@ -9,258 +9,234 @@
 using namespace glm;
 using namespace std;
 
-void OBJModel::load(const string& fileName) {
-  ifstream file;
+namespace {
+  struct ObjTri {
+    int v[3];
+    int t[3];
+    int n[3];
+  };
 
-  file.open(fileName.c_str(), ios::binary);
-  if (!file) {
-    stringstream ss;
-    ss << "Error in openening file '" << fileName << "'\n";
-    throw ss.str();
-  }
-  cout << "Loading OBJ file: '" << fileName << "'...\n";
+  // The next step is to create a dedicated lexer (flex takes about 40% of total), where we can make
+  // use of the line by line structure of the file to optimize.
+  class ObjLexer {
+    public:
+      enum { s_bufferLength = 512 };
 
-  string basePath = fileName.substr(0, fileName.find_last_of('/')) + "/";
-  loadOBJ(file, basePath);
-
-  cout << " vertex count: " << getNumVerts() << "\n";
-}
-
-size_t OBJModel::getNumVerts() const {
-  size_t result = 0;
-  for (size_t i = 0; i < m_chunks.size(); ++i) {
-    const Chunk& chunk = m_chunks[i];
-    result += chunk.m_positions.size();
-  }
-  return result;
-}
-
-struct ObjTri {
-  int v[3];
-  int t[3];
-  int n[3];
-};
-
-// The next step is to create a dedicated lexer (flex takes about 40% of total), where we can make
-// use of the line by line structure of the file to optimize.
-class ObjLexer {
-  public:
-    enum { s_bufferLength = 512 };
-
-    ObjLexer(istream* input) :
-      m_input(input),
-      m_bufferPos(0),
-      m_bufferEnd(0)
-  {
-  }
-
-    enum Tokens
+      ObjLexer(istream* input) :
+        m_input(input),
+        m_bufferPos(0),
+        m_bufferEnd(0)
     {
-      T_Eof      = 0,
-      T_MtlLib   = 'm' << 8 | 't',
-      T_UseMtl   = 'u' << 8 | 's',
-      T_Face     = 'f' << 8 | ' ', // line starts with 'f' followed by ' '
-      T_Face2    = 'f' << 8 | '\t', // line starts with 'f' followed by '\t'
-      T_Vertex   = 'v' << 8 | ' ', // line starts with 'v' followed by ' '
-      T_Vertex2  = 'v' << 8 | '\t', // line starts with 'v' followed by '\t'
-      T_Normal   = 'v' << 8 | 'n',
-      T_TexCoord = 'v' << 8 | 't',
-    };
-
-    inline int fillBuffer()
-    {
-      if (m_bufferPos >= m_bufferEnd)
-      {
-        m_input->read(m_buffer, s_bufferLength);
-        m_bufferEnd = int(m_input->gcount());
-        m_bufferPos = 0;
-      }
-      return m_bufferEnd != 0;
     }
 
-    inline int nextChar()
-    {
-      if (fillBuffer())
+      enum Tokens
       {
-        return m_buffer[m_bufferPos++];
-      }
-      return 0;
-    }
+        T_Eof      = 0,
+        T_MtlLib   = 'm' << 8 | 't',
+        T_UseMtl   = 'u' << 8 | 's',
+        T_Face     = 'f' << 8 | ' ', // line starts with 'f' followed by ' '
+        T_Face2    = 'f' << 8 | '\t', // line starts with 'f' followed by '\t'
+        T_Vertex   = 'v' << 8 | ' ', // line starts with 'v' followed by ' '
+        T_Vertex2  = 'v' << 8 | '\t', // line starts with 'v' followed by '\t'
+        T_Normal   = 'v' << 8 | 'n',
+        T_TexCoord = 'v' << 8 | 't',
+      };
 
-    int firstLine()
-    {
-      // read the first line token.
-      return nextChar() << 8 | nextChar();
-    }
-
-    inline int nextLine()
-    {
-      // scan to end of line...
-      while('\n' != nextChar())
+      inline int fillBuffer()
       {
-      }
-      while(matchChar('\n') || matchChar('\r'))
-      {
-      }
-      // Or: convert next 2 chars to token (16 bit), can be mt, us, vn, vt, v , v\t, f , f\t, unknown
-      return nextChar() << 8 | nextChar();
-
-      /*    switch()
-            {
-            case 'm':
-            return (match("tllib") && matchWs()) ? OT_MtlLib : OT_Unknown;
-            case 'u':
-            return (match("semtl") && matchWs()) ? OT_UseMtl : OT_Unknown;
-            case 'f':
-            return matchWs() ? OT_Face : OT_Unknown;
-            case 'v':
-            if (matchWs())
-            return OT_Vertex;
-            if (match("n") && matchWs())
-            return OT_Normal;
-            if (match("t") && matchWs())
-            return OT_TexCoord;
-            break;
-            default:
-            break;
-            };
-            return OT_Unknown;*/
-    }
-
-
-    inline bool match(const char s[], const size_t l)
-    {
-      for (int i = 0; fillBuffer() && i < int(l) - 1; ++i)
-      {
-        if (s[i] != m_buffer[m_bufferPos])
+        if (m_bufferPos >= m_bufferEnd)
         {
-          return false;
+          m_input->read(m_buffer, s_bufferLength);
+          m_bufferEnd = int(m_input->gcount());
+          m_bufferPos = 0;
         }
-        else
-        {
-          ++m_bufferPos;
-        }
+        return m_bufferEnd != 0;
       }
-      return true;
-    }
-    inline bool matchString(string &str)
-    {
-      while (fillBuffer() && !isspace(m_buffer[m_bufferPos]))
-      {
-        str.push_back(m_buffer[m_bufferPos++]);
-      }
-      return !str.empty();
-    }
 
-    inline bool matchFloat(float &result)
-    {
-      bool found = false;
-      result = 0.0f;
-      float sign = 1.0f;
-      if (matchChar('-'))
+      inline int nextChar()
       {
-        sign = -1.0f;
-        found = true;
-      }
-      char c;
-      while (fillBuffer() && myIsDigit(c = m_buffer[m_bufferPos]))
-      {
-        result = result * 10.0f + float(c - '0');
-        ++m_bufferPos;
-        found = true;
-      }
-      float frac = 0.1f;
-      if (matchChar('.'))
-      {
-        char c2;
-        while (fillBuffer() && myIsDigit(c2 = m_buffer[m_bufferPos]))
+        if (fillBuffer())
         {
-          result += frac * float(c2 - '0');
-          ++m_bufferPos;
-          frac *= 0.1f;
+          return m_buffer[m_bufferPos++];
         }
-        found = true;
+        return 0;
       }
-      if (matchChar('e') || matchChar('E'))
+
+      int firstLine()
       {
-        float expSign = matchChar('-') ? -1.0f : 1.0f;
-        int exp = 0;
-        if (matchInt(exp))
+        // read the first line token.
+        return nextChar() << 8 | nextChar();
+      }
+
+      inline int nextLine()
+      {
+        // scan to end of line...
+        while('\n' != nextChar())
         {
-          result = result * powf(10.0f, float(exp) * expSign);
         }
-      }
-      result *= sign;
-      return found;
-    }
+        while(matchChar('\n') || matchChar('\r'))
+        {
+        }
+        // Or: convert next 2 chars to token (16 bit), can be mt, us, vn, vt, v , v\t, f , f\t, unknown
+        return nextChar() << 8 | nextChar();
 
-    inline bool myIsDigit(char c)
-    {
-      return ((unsigned int)(c) - (unsigned int)('0') < 10U);
-    }
-
-    inline bool matchInt(int &result)
-    {
-      bool found = false;
-      result = 0;
-      char c;
-      while (fillBuffer() && myIsDigit(c = m_buffer[m_bufferPos]))// isdigit(m_buffer[m_bufferPos]))
-      {
-        result = result * 10 + int(c - '0');
-        ++m_bufferPos;
-        found = true;
+        /*    switch()
+              {
+              case 'm':
+              return (match("tllib") && matchWs()) ? OT_MtlLib : OT_Unknown;
+              case 'u':
+              return (match("semtl") && matchWs()) ? OT_UseMtl : OT_Unknown;
+              case 'f':
+              return matchWs() ? OT_Face : OT_Unknown;
+              case 'v':
+              if (matchWs())
+              return OT_Vertex;
+              if (match("n") && matchWs())
+              return OT_Normal;
+              if (match("t") && matchWs())
+              return OT_TexCoord;
+              break;
+              default:
+              break;
+              };
+              return OT_Unknown;*/
       }
-      return found;
-    }
-    inline bool matchChar(int matchTo)
-    {
-      if (fillBuffer() && m_buffer[m_bufferPos] == matchTo)
+
+
+      inline bool match(const char s[], const size_t l)
       {
-        m_bufferPos++;
+        for (int i = 0; fillBuffer() && i < int(l) - 1; ++i)
+        {
+          if (s[i] != m_buffer[m_bufferPos])
+          {
+            return false;
+          }
+          else
+          {
+            ++m_bufferPos;
+          }
+        }
         return true;
       }
-      return false;
-    }
-
-    inline bool matchWs(bool optional = false)
-    {
-      bool found = false;
-      while (fillBuffer() &&
-          (m_buffer[m_bufferPos] == ' ' || m_buffer[m_bufferPos] == '\t'))
+      inline bool matchString(string &str)
       {
-        found = true;
-        m_bufferPos++;
+        while (fillBuffer() && !isspace(m_buffer[m_bufferPos]))
+        {
+          str.push_back(m_buffer[m_bufferPos++]);
+        }
+        return !str.empty();
       }
-      return found || optional;
+
+      inline bool matchFloat(float &result)
+      {
+        bool found = false;
+        result = 0.0f;
+        float sign = 1.0f;
+        if (matchChar('-'))
+        {
+          sign = -1.0f;
+          found = true;
+        }
+        char c;
+        while (fillBuffer() && myIsDigit(c = m_buffer[m_bufferPos]))
+        {
+          result = result * 10.0f + float(c - '0');
+          ++m_bufferPos;
+          found = true;
+        }
+        float frac = 0.1f;
+        if (matchChar('.'))
+        {
+          char c2;
+          while (fillBuffer() && myIsDigit(c2 = m_buffer[m_bufferPos]))
+          {
+            result += frac * float(c2 - '0');
+            ++m_bufferPos;
+            frac *= 0.1f;
+          }
+          found = true;
+        }
+        if (matchChar('e') || matchChar('E'))
+        {
+          float expSign = matchChar('-') ? -1.0f : 1.0f;
+          int exp = 0;
+          if (matchInt(exp))
+          {
+            result = result * powf(10.0f, float(exp) * expSign);
+          }
+        }
+        result *= sign;
+        return found;
+      }
+
+      inline bool myIsDigit(char c)
+      {
+        return ((unsigned int)(c) - (unsigned int)('0') < 10U);
+      }
+
+      inline bool matchInt(int &result)
+      {
+        bool found = false;
+        result = 0;
+        char c;
+        while (fillBuffer() && myIsDigit(c = m_buffer[m_bufferPos]))// isdigit(m_buffer[m_bufferPos]))
+        {
+          result = result * 10 + int(c - '0');
+          ++m_bufferPos;
+          found = true;
+        }
+        return found;
+      }
+      inline bool matchChar(int matchTo)
+      {
+        if (fillBuffer() && m_buffer[m_bufferPos] == matchTo)
+        {
+          m_bufferPos++;
+          return true;
+        }
+        return false;
+      }
+
+      inline bool matchWs(bool optional = false)
+      {
+        bool found = false;
+        while (fillBuffer() &&
+            (m_buffer[m_bufferPos] == ' ' || m_buffer[m_bufferPos] == '\t'))
+        {
+          found = true;
+          m_bufferPos++;
+        }
+        return found || optional;
+      }
+      istream* m_input;
+      char m_buffer[s_bufferLength];
+      int m_bufferPos;
+      int m_bufferEnd;
+  };
+
+  inline static bool parseFaceIndSet(ObjLexer &lexer, ObjTri &t, int v) {
+    t.v[v] = -1;
+    t.t[v] = -1;
+    t.n[v] = -1;
+
+    if(lexer.matchWs(true)
+        && lexer.matchInt(t.v[v])
+        &&   lexer.matchChar('/')
+        &&   (lexer.matchInt(t.t[v]) || true)  // The middle index is optional!
+        &&   lexer.matchChar('/')
+        &&   lexer.matchInt(t.n[v]))
+    {
+      // need to adjust for silly obj 1 based indexing
+      t.v[v] -= 1;
+      t.t[v] -= 1;
+      t.n[v] -= 1;
+      return true;
     }
-    istream* m_input;
-    char m_buffer[s_bufferLength];
-    int m_bufferPos;
-    int m_bufferEnd;
-};
-
-inline static bool parseFaceIndSet(ObjLexer &lexer, ObjTri &t, int v) {
-  t.v[v] = -1;
-  t.t[v] = -1;
-  t.n[v] = -1;
-
-  if(lexer.matchWs(true)
-      && lexer.matchInt(t.v[v])
-      &&   lexer.matchChar('/')
-      &&   (lexer.matchInt(t.t[v]) || true)  // The middle index is optional!
-      &&   lexer.matchChar('/')
-      &&   lexer.matchInt(t.n[v]))
-  {
-    // need to adjust for silly obj 1 based indexing
-    t.v[v] -= 1;
-    t.t[v] -= 1;
-    t.n[v] -= 1;
-    return true;
+    return false;
   }
-  return false;
 }
 
-void inline OBJModel::loadOBJ(ifstream &file, const string& basePath) {
+void inline OBJModel::loadOBJ(ifstream& file, const string& basePath) {
   vector<vec3> positions;
   vector<vec3> normals;
   vector<vec2> uvs;
@@ -579,4 +555,18 @@ void OBJModel::loadMaterials(const string& fileName, const string&) {
     }
 
   }
+}
+
+void OBJModel::load(const string& fileName) {
+  ifstream file;
+
+  file.open(fileName.c_str(), ios::binary);
+  if (!file) {
+    stringstream ss;
+    ss << "Error in openening file '" << fileName << "'\n";
+    throw ss.str();
+  }
+
+  string basePath = fileName.substr(0, fileName.find_last_of('/')) + "/";
+  loadOBJ(file, basePath);
 }
