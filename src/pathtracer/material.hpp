@@ -1,7 +1,6 @@
 #ifndef MATERIAL_HPP_FNROXKUG
 #define MATERIAL_HPP_FNROXKUG
 
-#include "intersection.hpp"
 #include "texture.hpp"
 #include "util/fastrand.hpp"
 
@@ -17,13 +16,13 @@ class Material {
     virtual glm::vec3 f(
         const glm::vec3& wi,
         const glm::vec3& wo,
-        const Intersection&) const = 0;
+        const glm::vec3& normal) const = 0;
 
     virtual glm::vec3 sample_f(
         FastRand&,
         const glm::vec3& wi,
         glm::vec3& wo,
-        const Intersection&,
+        const glm::vec3& normal,
         float& pdf) const = 0;
 };
 
@@ -40,13 +39,13 @@ class DiffuseMaterial : public Material {
     virtual glm::vec3 f(
         const glm::vec3&,
         const glm::vec3&,
-        const Intersection&) const;
+        const glm::vec3&) const;
 
     virtual glm::vec3 sample_f(
         FastRand&,
         const glm::vec3&,
         glm::vec3&,
-        const Intersection&,
+        const glm::vec3&,
         float&) const;
 
   private:
@@ -70,13 +69,13 @@ class SpecularReflectionMaterial : public Material {
     virtual glm::vec3 f(
         const glm::vec3&,
         const glm::vec3&,
-        const Intersection&) const;
+        const glm::vec3&) const;
 
     virtual glm::vec3 sample_f(
         FastRand&,
         const glm::vec3&,
         glm::vec3&,
-        const Intersection&,
+        const glm::vec3&,
         float&) const;
 
   private:
@@ -99,13 +98,14 @@ class SpecularRefractionMaterial : public Material {
     virtual glm::vec3 f(
         const glm::vec3&,
         const glm::vec3&,
-        const Intersection&) const;
+        const glm::vec3&) const;
 
     virtual glm::vec3 sample_f(
         FastRand&,
         const glm::vec3&,
         glm::vec3&,
-        const Intersection&, float&) const;
+        const glm::vec3&,
+        float&) const;
 
   private:
     // Index of refraction
@@ -128,13 +128,13 @@ class FresnelBlendMaterial : public Material {
     virtual glm::vec3 f(
         const glm::vec3&,
         const glm::vec3&,
-        const Intersection&) const;
+        const glm::vec3&) const;
 
     virtual glm::vec3 sample_f(
         FastRand&,
         const glm::vec3&,
         glm::vec3&,
-        const Intersection&,
+        const glm::vec3&,
         float&) const;
 
   private:
@@ -157,13 +157,13 @@ class BlendMaterial : public Material {
     virtual glm::vec3 f(
         const glm::vec3&,
         const glm::vec3&,
-        const Intersection&) const;
+        const glm::vec3&) const;
 
     virtual glm::vec3 sample_f(
         FastRand&,
         const glm::vec3&,
         glm::vec3&,
-        const Intersection&,
+        const glm::vec3&,
         float&) const;
 
   private:

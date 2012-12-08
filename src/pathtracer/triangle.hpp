@@ -1,8 +1,9 @@
 #ifndef TRIANGLE_HPP_N4FJV8PZ
 #define TRIANGLE_HPP_N4FJV8PZ
 
-#include "math/ray.hpp"
+#include "intersection.hpp"
 #include "material.hpp"
+#include "math/ray.hpp"
 #include <glm/glm.hpp>
 
 class Triangle {
