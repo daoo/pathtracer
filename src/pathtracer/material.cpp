@@ -1,5 +1,4 @@
 #include "material.hpp"
-#include "mcsampling.hpp"
 
 using namespace glm;
 
@@ -25,12 +24,12 @@ vec3 DiffuseMaterial::f(const vec3&, const vec3&, const Intersection&) const {
   return m_reflectance * one_over_pi<float>();
 }
 
-vec3 DiffuseMaterial::sample_f(const vec3& i, vec3& o, const Intersection& isect, float& pdf) const {
+vec3 DiffuseMaterial::sample_f(FastRand& rand, const vec3& i, vec3& o, const Intersection& isect, float& pdf) const {
   const vec3& n = isect.m_normal;
 
   vec3 tangent   = normalize(perpendicular(n));
   vec3 bitangent = cross(n, tangent);
-  vec3 s         = cosineSampleHemisphere();
+  vec3 s         = cosineSampleHemisphere(rand);
 
   o   = normalize(s.x * tangent + s.y * bitangent + s.z * n);
   pdf = length(s);
@@ -41,7 +40,7 @@ vec3 SpecularReflectionMaterial::f(const vec3&, const vec3&, const Intersection&
   return zero<vec3>();
 }
 
-vec3 SpecularReflectionMaterial::sample_f(const vec3& i, vec3& o, const Intersection& isect, float& pdf) const {
+vec3 SpecularReflectionMaterial::sample_f(FastRand&, const vec3& i, vec3& o, const Intersection& isect, float& pdf) const {
   const vec3& n = isect.m_normal;
   o = normalize(2.0f * abs(dot(i,n)) * n - i);
   pdf = sameHemisphere(i, o, n) ? abs(dot(o, n)) : 0.0f;
@@ -52,7 +51,7 @@ vec3 SpecularRefractionMaterial::f(const vec3&, const vec3&, const Intersection&
   return zero<vec3>();
 }
 
-vec3 SpecularRefractionMaterial::sample_f(const vec3& i, vec3& o, const Intersection& isect, float& pdf) const {
+vec3 SpecularRefractionMaterial::sample_f(FastRand& rand, const vec3& i, vec3& o, const Intersection& isect, float& pdf) const {
   const vec3& n = isect.m_normal;
   float eta;
   if(dot(-i, n) < 0.0f) eta = 1.0f/m_ior;
@@ -68,7 +67,7 @@ vec3 SpecularRefractionMaterial::sample_f(const vec3& i, vec3& o, const Intersec
     refMat.m_reflectance = one<vec3>();
     Intersection newIntersection = isect;
     newIntersection.m_normal = N;
-    return refMat.sample_f(i, o, newIntersection, pdf);
+    return refMat.sample_f(rand, i, o, newIntersection, pdf);
   }
 
   k   = sqrt(k);
@@ -88,21 +87,21 @@ vec3 FresnelBlendMaterial::f(const vec3& wo, const vec3& wi, const Intersection&
     (1.0f - _R) * m_onRefractionMaterial->f(wo, wi, isect);
 }
 
-vec3 FresnelBlendMaterial::sample_f(const vec3& wo, vec3& wi, const Intersection& isect, float& pdf) const {
+vec3 FresnelBlendMaterial::sample_f(FastRand& rand, const vec3& wo, vec3& wi, const Intersection& isect, float& pdf) const {
   const vec3& n = isect.m_normal;
-  if(randf() < R(wo, n))
-    return m_onReflectionMaterial->sample_f(wo, wi, isect, pdf);
+  if (rand() < R(wo, n))
+    return m_onReflectionMaterial->sample_f(rand, wo, wi, isect, pdf);
   else
-    return m_onRefractionMaterial->sample_f(wo, wi, isect, pdf);
+    return m_onRefractionMaterial->sample_f(rand, wo, wi, isect, pdf);
 }
 
 vec3 BlendMaterial::f(const vec3& wo, const vec3& wi, const Intersection& isect) const {
   return m_w * m_firstMaterial->f(wo, wi, isect) + (1.0f - m_w) * m_secondMaterial->f(wo, wi, isect);
 }
 
-vec3 BlendMaterial::sample_f(const vec3& wo, vec3& wi, const Intersection& isect, float& pdf) const {
-  if(randf() < m_w)
-    return m_firstMaterial->sample_f(wo, wi, isect, pdf);
+vec3 BlendMaterial::sample_f(FastRand& rand, const vec3& wo, vec3& wi, const Intersection& isect, float& pdf) const {
+  if (rand() < m_w)
+    return m_firstMaterial->sample_f(rand, wo, wi, isect, pdf);
   else
-    return m_secondMaterial->sample_f(wo, wi, isect, pdf);
+    return m_secondMaterial->sample_f(rand, wo, wi, isect, pdf);
 }

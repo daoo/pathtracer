@@ -5,15 +5,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/constants.hpp>
 #include <iostream>
-#include <random>
 
-inline float randf() {
-  return rand() / float(RAND_MAX);
-}
+#include "util/fastrand.hpp"
 
-inline glm::vec3 uniformSampleHemisphere() {
-  float r1 = randf();
-  float r2 = randf();
+inline glm::vec3 uniformSampleHemisphere(FastRand& rand) {
+  float r1 = rand();
+  float r2 = rand();
 
   float a = sqrtf(r2 * (1.0f - r2));
   return glm::vec3(
@@ -22,10 +19,10 @@ inline glm::vec3 uniformSampleHemisphere() {
       std::fabs(1.0f - 2.0f * r2));
 }
 
-inline void concentricSampleDisk(float& dx, float& dy) {
+inline void concentricSampleDisk(FastRand& rand, float& dx, float& dy) {
   float r, theta;
-  float u1 = randf();
-  float u2 = randf();
+  float u1 = rand();
+  float u2 = rand();
   // Map uniform random numbers to $[-1,1]^2$
   float sx = 2 * u1 - 1;
   float sy = 2 * u2 - 1;
@@ -65,9 +62,10 @@ inline void concentricSampleDisk(float& dx, float& dy) {
   dy = r * sinf(theta);
 }
 
-inline glm::vec3 cosineSampleHemisphere() {
+template <typename RandomEngine>
+inline glm::vec3 cosineSampleHemisphere(RandomEngine& engine) {
   glm::vec3 ret;
-  concentricSampleDisk(ret.x, ret.y);
+  concentricSampleDisk(engine, ret.x, ret.y);
   ret.z = sqrtf(std::max(0.f, 1.f - ret.x*ret.x - ret.y*ret.y));
   return ret;
 }
