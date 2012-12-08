@@ -94,7 +94,7 @@ void printString(int x, int y, const string& str) {
 
 void display() {
   int t1 = glutGet(GLUT_ELAPSED_TIME);
-  if (g_pathtracer->m_frameBufferSamples < MAX_SAMPLES_PER_PIXEL)
+  if (g_pathtracer->samples() < MAX_SAMPLES_PER_PIXEL)
     g_pathtracer->tracePrimaryRays();
   int t2 = glutGet(GLUT_ELAPSED_TIME);
 
@@ -102,12 +102,12 @@ void display() {
 
   // Create and upload raytracer framebuffer as a texture
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
-      g_pathtracer->m_frameBufferWidth,
-      g_pathtracer->m_frameBufferHeight,
-      0, GL_RGB, GL_FLOAT, g_pathtracer->m_frameBuffer.data());
+      g_pathtracer->width(),
+      g_pathtracer->height(),
+      0, GL_RGB, GL_FLOAT, g_pathtracer->buffer().data());
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glUniform1i(uniformFramebufferSamples, g_pathtracer->m_frameBufferSamples);
+  glUniform1i(uniformFramebufferSamples, g_pathtracer->samples());
 
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -124,7 +124,7 @@ void display() {
   }
   {
     stringstream ss;
-    ss << "Samples per pixel: " << g_pathtracer->m_frameBufferSamples;
+    ss << "Samples per pixel: " << g_pathtracer->samples();
     printString(10, 10+14, ss.str());
   }
   {
@@ -142,15 +142,14 @@ void restart(size_t w, size_t h, size_t camera) {
   glViewport(0, 0, w, h);
 
   delete g_pathtracer;
-  g_pathtracer = new Pathtracer(w / g_subsample, h / g_subsample, *g_scene);
-  g_pathtracer->m_selectedCamera = camera;
+  g_pathtracer = new Pathtracer(w / g_subsample, h / g_subsample, *g_scene, camera);
 }
 
 void reshape(int w, int h) {
   width  = w;
   height = h;
 
-  restart(width, height, g_pathtracer->m_selectedCamera);
+  restart(width, height, 0);
 }
 
 void idle() {
@@ -161,18 +160,19 @@ void handleKeys(unsigned char key, int, int) {
   if (key == 27 || key == 'q') {
     exit(0);
   } else if (key == 'c') {
-    restart(width, height, g_pathtracer->m_selectedCamera + 1);
+    restart(width, height, 0);
   } else if (key == 's') {
     g_subsample += 1;
-    restart(width, height, g_pathtracer->m_selectedCamera);
+    restart(width, height, 0);
   } else if (key == 'S') {
     g_subsample = max(1, g_subsample - 1);
-    restart(width, height, g_pathtracer->m_selectedCamera);
+    restart(width, height, 0);
   } else if (key == 'p') {
     writeImage("screenshot.png",
-        width, height,
-        g_pathtracer->m_frameBufferSamples,
-        g_pathtracer->m_frameBuffer);
+        g_pathtracer->width(),
+        g_pathtracer->height(),
+        g_pathtracer->samples(),
+        g_pathtracer->buffer());
   }
 }
 

@@ -15,23 +15,21 @@ void program(const string& objFile, const string& output, size_t w, size_t h, si
 
   Scene scene(model);
 
-  Pathtracer pt(w, h, scene);
-  pt.m_selectedCamera = camera;
+  Pathtracer pt(w, h, scene, camera);
 
   typedef high_resolution_clock clock;
   typedef clock::duration time;
 
-  while (pt.m_frameBufferSamples < samples) {
+  while (pt.samples() < samples) {
     time t1 = clock::now().time_since_epoch();
     pt.tracePrimaryRays();
     time t2 = clock::now().time_since_epoch();
 
-    cout << "Sample " << pt.m_frameBufferSamples
+    cout << "Sample " << pt.samples()
          << ", in " << duration_cast<duration<double, ratio<1>>>(t2 - t1).count() << " seconds\n";
   }
 
-  writeImage(output, pt.m_frameBufferWidth, pt.m_frameBufferHeight,
-      pt.m_frameBufferSamples, pt.m_frameBuffer);
+  writeImage(output, pt.width(), pt.height(), pt.samples(), pt.buffer());
 }
 
 int main(int argc, char* argv[]) {

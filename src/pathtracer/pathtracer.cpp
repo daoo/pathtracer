@@ -10,69 +10,66 @@ using namespace glm;
 using namespace math;
 using namespace std;
 
-Pathtracer::Pathtracer(size_t w, size_t h, const Scene& scene)
-  : m_frameBufferWidth(w), m_frameBufferHeight(h),
-    m_frameBufferSamples(0), m_frameBuffer(w * h), m_scene(scene) {
+Pathtracer::Pathtracer(size_t w, size_t h, const Scene& scene, size_t camera_index)
+  : m_buffer(w * h),
+    m_samples(0),
+
+    m_iwidth(w), m_iheight(h),
+    m_fwidth(static_cast<float>(w)), m_fheight(static_cast<float>(h)),
+
+    m_scene(scene) {
   assert(!scene.cameras().empty());
+
+  // Initialize selected camera
+  const Camera& camera = m_scene.cameras()[camera_index % m_scene.cameras().size()];
+
+  m_camera_pos = camera.m_position;
+
+  vec3 camera_dir   = camera.m_direction;
+  vec3 camera_right = normalize(cross(camera_dir, camera.m_up));
+  vec3 camera_up    = normalize(cross(camera_right, camera_dir));
+
+  float camera_fov         = camera.m_fov;
+  float camera_aspectRatio = m_fwidth / m_fheight;
+
+  float camera_fov_half = camera_fov / 2.0f;
+
+  vec3 Z = camera_dir   * cos(radians(camera_fov_half));
+  vec3 X = camera_up    * sin(radians(camera_fov_half));
+  vec3 Y = camera_right * sin(radians(camera_fov_half))  * camera_aspectRatio;
+
+  m_min_d = Z - Y - X;
+
+  m_dx = 2.0f * ((Z - X) - m_min_d);
+  m_dy = 2.0f * ((Z - Y) - m_min_d);
 }
 
 Pathtracer::~Pathtracer() { }
 
-// -----------------------------------------------------------------------
-// Create and trace a ray per pixel
 void Pathtracer::tracePrimaryRays() {
-  const float width  = static_cast<float>(m_frameBufferWidth);
-  const float height = static_cast<float>(m_frameBufferHeight);
-
-  // Initialize selected camera
-  const Camera& camera = m_scene.cameras()[m_selectedCamera % m_scene.cameras().size()];
-
-  const vec3 camera_pos   = camera.m_position;
-  const vec3 camera_dir   = camera.m_direction;
-  const vec3 camera_right = normalize(cross(camera_dir, camera.m_up));
-  const vec3 camera_up    = normalize(cross(camera_right, camera_dir));
-
-  const float camera_fov         = camera.m_fov;
-  const float camera_aspectRatio = width / height;
-
-  const float camera_fov_half = camera_fov / 2.0f;
-
-  const vec3 Z = camera_dir   * cos(radians(camera_fov_half));
-  const vec3 X = camera_up    * sin(radians(camera_fov_half));
-  const vec3 Y = camera_right * sin(radians(camera_fov_half))  * camera_aspectRatio;
-
-  const vec3 min_d = Z - Y - X;
-
-  const vec3 dX = 2.0f * ((Z - X) - min_d);
-  const vec3 dY = 2.0f * ((Z - Y) - min_d);
-
-  //#pragma omp parallel for
-  for (size_t y = 0; y < m_frameBufferHeight; ++y) {
-    for (size_t x = 0; x < m_frameBufferWidth; ++x) {
+  for (size_t y = 0; y < m_iheight; ++y) {
+    for (size_t x = 0; x < m_iwidth; ++x) {
       const vec2 screenCoord = vec2(
-          (static_cast<float>(x) + randf()) / width,
-          (static_cast<float>(y) + randf()) / height
+          (static_cast<float>(x) + randf()) / m_fwidth,
+          (static_cast<float>(y) + randf()) / m_fheight
       );
 
-      Ray primaryRay(camera_pos,
-          normalize(min_d + screenCoord.x * dX + screenCoord.y * dY),
+      Ray primaryRay(m_camera_pos,
+          normalize(m_min_d + screenCoord.x * m_dx + screenCoord.y * m_dy),
           0.0f, FLT_MAX);
 
       Intersection isect;
       if (m_scene.allIntersection(primaryRay, isect)) {
-        m_frameBuffer[y * m_frameBufferWidth + x] += Li(primaryRay, isect);
+        m_buffer[y * m_iwidth + x] += Li(primaryRay, isect);
       } else {
-        m_frameBuffer[y * m_frameBufferWidth + x] += Lenvironment(primaryRay);
+        m_buffer[y * m_iwidth + x] += Lenvironment(primaryRay);
       }
     }
   }
 
-  m_frameBufferSamples += 1;
+  m_samples += 1;
 }
 
-// -----------------------------------------------------------------------
-// Evaluate the outgoing radiance from the first intersection point of
-// a primary ray.
 vec3 Pathtracer::Li(const Ray& primaryRay, const Intersection& primaryIsect) {
   vec3 L       = zero<vec3>();
   vec3 path_tp = one<vec3>();
