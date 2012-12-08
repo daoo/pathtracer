@@ -1,6 +1,7 @@
 #ifndef PRINT_HPP_HABMENIW
 #define PRINT_HPP_HABMENIW
 
+#include <cassert>
 #include <ostream>
 
 namespace kdtree {
@@ -23,6 +24,8 @@ namespace kdtree {
         out << "Split: " << label << ", " << AXIS[iter.axis()] << ", " << iter.split() << "\n";
         printHelper(out, "left", iter.left(), depth + 1);
         printHelper(out, "right", iter.right(), depth + 1);
+      } else {
+        assert(false && "Node not leaf or split");
       }
     }
   }
