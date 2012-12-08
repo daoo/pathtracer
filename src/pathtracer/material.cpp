@@ -21,6 +21,9 @@ namespace {
   }
 }
 
+DiffuseMaterial::DiffuseMaterial(const vec3& reflectance, Texture* reflectanceMap)
+  : m_reflectance(reflectance), m_reflectanceMap(reflectanceMap) { }
+
 vec3 DiffuseMaterial::f(
     const vec3&,
     const vec3&,
@@ -47,6 +50,9 @@ vec3 DiffuseMaterial::sample_f(
   return f(i, o, isect);
 }
 
+SpecularReflectionMaterial::SpecularReflectionMaterial(const vec3& reflectance)
+  : m_reflectance(reflectance) { }
+
 vec3 SpecularReflectionMaterial::f(
     const vec3&,
     const vec3&,
@@ -68,6 +74,9 @@ vec3 SpecularReflectionMaterial::sample_f(
   pdf = sameHemisphere(i, o, n) ? abs(dot(o, n)) : 0.0f;
   return m_reflectance;
 }
+
+SpecularRefractionMaterial::SpecularRefractionMaterial(float ior)
+  : m_ior(ior), m_refmat(one<vec3>()) { }
 
 vec3 SpecularRefractionMaterial::f(
     const vec3&,
@@ -95,11 +104,9 @@ vec3 SpecularRefractionMaterial::sample_f(
   float k = 1.0f + (w-eta)*(w+eta);
   if (k < 0.0f) {
     // Total internal reflection
-    SpecularReflectionMaterial refMat;
-    refMat.m_reflectance = one<vec3>();
     Intersection newIntersection = isect;
     newIntersection.m_normal = N;
-    return refMat.sample_f(rand, i, o, newIntersection, pdf);
+    return m_refmat.sample_f(rand, i, o, newIntersection, pdf);
   }
 
   k   = sqrt(k);
@@ -107,6 +114,9 @@ vec3 SpecularRefractionMaterial::sample_f(
   pdf = 1.0;
   return one<vec3>();
 }
+
+FresnelBlendMaterial::FresnelBlendMaterial(const Material* reflection, const Material* refraction, float r0)
+  : m_onReflectionMaterial(reflection), m_onRefractionMaterial(refraction), m_R0(r0) { }
 
 float FresnelBlendMaterial::R(
     const vec3& wo,
@@ -138,6 +148,9 @@ vec3 FresnelBlendMaterial::sample_f(
   else
     return m_onRefractionMaterial->sample_f(rand, wo, wi, isect, pdf);
 }
+
+BlendMaterial::BlendMaterial(const Material* first, const Material* second, float w)
+  : m_firstMaterial(first), m_secondMaterial(second), m_w(w) { }
 
 vec3 BlendMaterial::f(
     const vec3& wo,

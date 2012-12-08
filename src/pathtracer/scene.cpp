@@ -27,39 +27,29 @@ namespace {
 
     for (size_t i = 0; i < model.m_chunks.size(); ++i) {
       const OBJModel::Chunk& chunk = model.m_chunks[i];
-      Material* material;
 
-      DiffuseMaterial* diffuse = new DiffuseMaterial;
-      diffuse->m_reflectance   = chunk.material->diffuseReflectance;
+      Texture* reflectanceMap = nullptr;
       if (!chunk.material->diffuseReflectanceMap.empty()) {
-        diffuse->m_reflectanceMap = new Texture;
-        diffuse->m_reflectanceMap->load(chunk.material->diffuseReflectanceMap);
-      } else {
-        diffuse->m_reflectanceMap = nullptr;
+        reflectanceMap = new Texture;
+        reflectanceMap->load(chunk.material->diffuseReflectanceMap);
       }
+      DiffuseMaterial* diffuse =
+        new DiffuseMaterial(chunk.material->diffuseReflectance, reflectanceMap);
 
-      SpecularReflectionMaterial* specularReflection = new SpecularReflectionMaterial;
-      specularReflection->m_reflectance              = chunk.material->specularReflectance;
+      SpecularReflectionMaterial* specularReflection =
+        new SpecularReflectionMaterial(chunk.material->specularReflectance);
 
-      SpecularRefractionMaterial* specularRefraction = new SpecularRefractionMaterial;
-      specularRefraction->m_ior                      = chunk.material->indexOfRefraction;
+      SpecularRefractionMaterial* specularRefraction =
+        new SpecularRefractionMaterial(chunk.material->indexOfRefraction);
 
-      BlendMaterial* blend1    = new BlendMaterial;
-      blend1->m_w              = chunk.material->transparency;
-      blend1->m_firstMaterial  = specularRefraction;
-      blend1->m_secondMaterial = diffuse;
+      BlendMaterial* blend1 =
+        new BlendMaterial(specularRefraction, diffuse, chunk.material->transparency);
 
-      FresnelBlendMaterial* fresnel   = new FresnelBlendMaterial;
-      fresnel->m_R0                   = chunk.material->reflAt0Deg;
-      fresnel->m_onReflectionMaterial = specularReflection;
-      fresnel->m_onRefractionMaterial = blend1;
+      FresnelBlendMaterial* fresnel =
+        new FresnelBlendMaterial(specularReflection, blend1, chunk.material->reflAt0Deg);
 
-      BlendMaterial* blend0    = new BlendMaterial;
-      blend0->m_w              = chunk.material->reflAt90Deg;
-      blend0->m_firstMaterial  = fresnel;
-      blend0->m_secondMaterial = blend1;
-
-      material = blend0;
+      BlendMaterial* blend0 =
+        new BlendMaterial(fresnel, blend1, chunk.material->reflAt90Deg);
 
       for (size_t j = 0; j < chunk.m_positions.size() / 3; ++j) {
         Triangle triangle;
@@ -74,7 +64,7 @@ namespace {
         triangle.uv1 = chunk.m_uvs[j*3+1];
         triangle.uv2 = chunk.m_uvs[j*3+2];
 
-        triangle.m_material = material;
+        triangle.m_material = blend0;
 
         triangles.push_back(triangle);
       }

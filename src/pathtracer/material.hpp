@@ -35,9 +35,7 @@ class Material {
  */
 class DiffuseMaterial : public Material {
   public:
-    // The reflectance (color) of the material
-    glm::vec3 m_reflectance;
-    Texture* m_reflectanceMap;
+    DiffuseMaterial(const glm::vec3&, Texture*);
 
     virtual glm::vec3 f(
         const glm::vec3&,
@@ -50,6 +48,11 @@ class DiffuseMaterial : public Material {
         glm::vec3&,
         const Intersection&,
         float&) const;
+
+  private:
+    // The reflectance (color) of the material
+    glm::vec3 m_reflectance;
+    Texture* m_reflectanceMap;
 };
 
 /**
@@ -62,8 +65,7 @@ class DiffuseMaterial : public Material {
  */
 class SpecularReflectionMaterial : public Material {
   public:
-    // The reflectance (color) of the specular reflection
-    glm::vec3 m_reflectance;
+    SpecularReflectionMaterial(const glm::vec3&);
 
     virtual glm::vec3 f(
         const glm::vec3&,
@@ -76,6 +78,10 @@ class SpecularReflectionMaterial : public Material {
         glm::vec3&,
         const Intersection&,
         float&) const;
+
+  private:
+    // The reflectance (color) of the specular reflection
+    glm::vec3 m_reflectance;
 };
 
 /**
@@ -88,8 +94,7 @@ class SpecularReflectionMaterial : public Material {
  */
 class SpecularRefractionMaterial : public Material {
   public:
-    // Index of refraction
-    float m_ior;
+    SpecularRefractionMaterial(float);
 
     virtual glm::vec3 f(
         const glm::vec3&,
@@ -101,21 +106,24 @@ class SpecularRefractionMaterial : public Material {
         const glm::vec3&,
         glm::vec3&,
         const Intersection&, float&) const;
+
+  private:
+    // Index of refraction
+    float m_ior;
+
+    SpecularReflectionMaterial m_refmat;
 };
 
 /**
  * Fresnel blending
  *
- * This Material actually combines two bxdfs oth a view dependent fresnel
+ * This Material actually combines two brdfs oth a view dependent fresnel
  * term. We use the Schlick approximation to the real fresnel equations,
  * which irks quite well for conductors.
  */
 class FresnelBlendMaterial : public Material {
   public:
-    Material *m_onReflectionMaterial;
-    Material *m_onRefractionMaterial;
-    float m_R0;
-    float R(const glm::vec3& i, const glm::vec3& n) const;
+    FresnelBlendMaterial(const Material*, const Material*, float);
 
     virtual glm::vec3 f(
         const glm::vec3&,
@@ -128,6 +136,13 @@ class FresnelBlendMaterial : public Material {
         glm::vec3&,
         const Intersection&,
         float&) const;
+
+  private:
+    const Material* m_onReflectionMaterial;
+    const Material* m_onRefractionMaterial;
+    float m_R0;
+
+    float R(const glm::vec3& i, const glm::vec3& n) const;
 };
 
 /**
@@ -137,9 +152,7 @@ class FresnelBlendMaterial : public Material {
  */
 class BlendMaterial : public Material {
   public:
-    Material* m_firstMaterial;
-    Material* m_secondMaterial;
-    float m_w;
+    BlendMaterial(const Material*, const Material*, float);
 
     virtual glm::vec3 f(
         const glm::vec3&,
@@ -152,6 +165,11 @@ class BlendMaterial : public Material {
         glm::vec3&,
         const Intersection&,
         float&) const;
+
+  private:
+    const Material* m_firstMaterial;
+    const Material* m_secondMaterial;
+    float m_w;
 };
 
 #endif /* end of include guard: MATERIAL_HPP_FNROXKUG */
