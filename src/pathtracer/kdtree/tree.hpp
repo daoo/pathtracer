@@ -8,7 +8,13 @@
 #include "pathtracer/math/ray.hpp"
 
 namespace kdtree {
+#if defined(ARRAY_TREE)
   typedef KdTreeArray KdTree;
+#elif defined(POINTER_TREE)
+  typedef KdTreeLinked KdTree;
+#else
+  typedef KdTreeArray KdTree;
+#endif
 
   template <typename Tree>
   void buildTree(Tree& tree, const std::vector<Triangle>& triangles) {
