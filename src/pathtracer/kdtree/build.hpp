@@ -43,6 +43,7 @@ namespace kdtree {
       math::Aabb right_bounding({ bounding.center + offset, new_size + epsilon });
 
       std::vector<Triangle> left_triangles, right_triangles;
+
       for (const Triangle& tri : triangles) {
         if (triBoxOverlap(left_bounding, tri.v0, tri.v1, tri.v2)) {
           left_triangles.push_back(tri);

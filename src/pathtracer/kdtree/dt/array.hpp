@@ -59,13 +59,8 @@ namespace kdtree {
           BuildIter(KdTreeArray& tree) :
             m_nodes(tree.m_nodes), m_index(0), m_depth(0), m_axis(X) { }
 
-          Axis axis() {
-            return m_axis;
-          }
-
-          size_t depth() {
-            return m_depth;
-          }
+          Axis axis() const { return m_axis; }
+          size_t depth() const { return m_depth; }
 
           /**
            * Create a split node.
@@ -78,26 +73,15 @@ namespace kdtree {
            * Create a leaf node.
            */
           void leaf(const std::vector<Triangle>& triangles) {
-            std::vector<Triangle>* ts;
-            if (triangles.empty()) {
-              ts = nullptr;
-            } else {
-              ts = new std::vector<Triangle>();
-              for (const Triangle& tri : triangles) {
-                ts->push_back(tri);
-              }
-            }
+            std::vector<Triangle>* ts = triangles.empty()
+              ? nullptr
+              : new std::vector<Triangle>(triangles);
 
             setNode(Node::LeafNode{ts});
           }
 
-          BuildIter left() {
-            return BuildIter(m_nodes, (m_index << 1) + 1, m_depth + 1, next(m_axis));
-          }
-
-          BuildIter right() {
-            return BuildIter(m_nodes, (m_index << 1) + 2, m_depth + 1, next(m_axis));
-          }
+          BuildIter left()  { return BuildIter(m_nodes, leftChild(m_index), m_depth + 1, next(m_axis)); }
+          BuildIter right() { return BuildIter(m_nodes, rightChild(m_index), m_depth + 1, next(m_axis)); }
 
         private:
           std::vector<Node>& m_nodes;
@@ -201,6 +185,14 @@ namespace kdtree {
 
       static Axis next(Axis axis) {
         return static_cast<Axis>((static_cast<size_t>(axis) + 1) % 3);
+      }
+
+      static size_t leftChild(size_t index) {
+        return (index << 1) + 1;
+      }
+
+      static size_t rightChild(size_t index) {
+        return (index << 1) + 2;
       }
   };
 }

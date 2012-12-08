@@ -69,28 +69,19 @@ namespace kdtree {
           void leaf(const std::vector<Triangle>& triangles) {
             m_node->m_type = Node::Leaf;
 
-            if (triangles.empty()) {
-              m_node->m_leaf.m_triangles = nullptr;
-            } else {
-              m_node->m_leaf.m_triangles = new std::vector<Triangle>();
-              for (const Triangle& tri : triangles) {
-                m_node->m_leaf.m_triangles->push_back(tri);
-              }
-            }
+            m_node->m_leaf.m_triangles = triangles.empty()
+              ? nullptr
+              : new std::vector<Triangle>(triangles);
           }
 
           BuildIter left() {
-            constexpr std::array<Axis, 3> NEXT = {{ Y, Z, X }};
-
             m_node->m_split.m_left = new Node;
-            return BuildIter(m_node->m_split.m_left, m_depth + 1, NEXT[m_axis]);
+            return BuildIter(m_node->m_split.m_left, m_depth + 1, next(m_axis));
           }
 
           BuildIter right() {
-            constexpr std::array<Axis, 3> NEXT = {{ Y, Z, X }};
-
             m_node->m_split.m_right = new Node;
-            return BuildIter(m_node->m_split.m_right, m_depth + 1, NEXT[m_axis]);
+            return BuildIter(m_node->m_split.m_right, m_depth + 1, next(m_axis));
           }
 
         private:
@@ -160,6 +151,10 @@ namespace kdtree {
 
       KdTreeLinked(const KdTreeLinked&);
       KdTreeLinked& operator=(const KdTreeLinked&);
+
+      static Axis next(Axis axis) {
+        return static_cast<Axis>((static_cast<size_t>(axis) + 1) % 3);
+      }
   };
 }
 
