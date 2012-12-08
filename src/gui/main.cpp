@@ -83,15 +83,6 @@ void initGL() {
   CHECK_GL_ERROR();
 }
 
-void printString(int x, int y, const string& str) {
-  int currentx = x;
-  for (size_t i = 0; i < str.size(); ++i) {
-    glWindowPos2i(currentx, y);
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, str[i]);
-    currentx += glutBitmapWidth(GLUT_BITMAP_HELVETICA_12, str[i]);
-  }
-}
-
 void display() {
   int t1 = glutGet(GLUT_ELAPSED_TIME);
   if (g_pathtracer->samples() < MAX_SAMPLES_PER_PIXEL)
@@ -115,23 +106,11 @@ void display() {
 
   CHECK_GL_ERROR();
 
-  // ----------------------------------------------------------------------
   // Print some useful information
-  {
-    stringstream ss;
-    ss << "Seconds per frame: " << 0.001 * float(t2 - t1);
-    printString(10, 10+14+14, ss.str());
-  }
-  {
-    stringstream ss;
-    ss << "Samples per pixel: " << g_pathtracer->samples();
-    printString(10, 10+14, ss.str());
-  }
-  {
-    stringstream ss;
-    ss << "Subsampling: " << 1.0f / float(g_subsample);
-    printString(10, 10+0, ss.str());
-  }
+  cout << "Seconds per frame: " << 0.001 * float(t2 - t1) << "\n"
+       << "Samples per pixel: " << g_pathtracer->samples() << "\n"
+       << "Subsampling: " << 1.0f / float(g_subsample) << "\n"
+       << "\n";
 
   glutSwapBuffers();
 }
