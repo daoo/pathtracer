@@ -135,3 +135,20 @@ vec3 Pathtracer::Lenvironment(const Ray& ray) {
   else
     return vec3(0.05f, 0.025f, 0.001f);
 }
+
+Pathtracer merge(const Pathtracer& a, const Pathtracer& b) {
+  assert(a.width() == b.width());
+  assert(a.height() == b.height());
+  assert(&a.m_scene == &b.m_scene);
+
+  Pathtracer pt(a);
+  pt.m_samples = a.m_samples + b.m_samples;
+
+  auto iter = pt.m_buffer.begin();
+  for (const glm::vec3& color : b.buffer()) {
+    *iter += color;
+    ++iter;
+  }
+
+  return pt;
+}

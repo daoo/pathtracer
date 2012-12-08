@@ -10,6 +10,8 @@
 
 class Pathtracer {
   public:
+    Pathtracer(const Pathtracer&) = default;
+
     Pathtracer(size_t, size_t, const Scene&, size_t);
     ~Pathtracer();
 
@@ -26,6 +28,8 @@ class Pathtracer {
       return m_buffer;
     }
 
+    friend Pathtracer merge(const Pathtracer&, const Pathtracer&);
+
   private:
     std::vector<glm::vec3> m_buffer;
 
@@ -41,5 +45,7 @@ class Pathtracer {
 
     FastRand m_fastrand;
 };
+
+Pathtracer merge(const Pathtracer& a, const Pathtracer& b);
 
 #endif /* end of include guard: PATHTRACER_HPP_NVGMZUSY */

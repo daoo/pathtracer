@@ -8,6 +8,7 @@ find_package(GLEW REQUIRED)
 find_package(GLM REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(Threads REQUIRED)
 
 #find_package(OpenMP)
 #if(OPENMP_FOUND)

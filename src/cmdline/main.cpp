@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include <sstream>
+#include <thread>
 
 #include "pathtracer/pathtracer.hpp"
 #include "util/image.hpp"
@@ -9,14 +10,7 @@
 using namespace std::chrono;
 using namespace std;
 
-void program(const string& objFile, const string& output, size_t w, size_t h, size_t camera, size_t samples) {
-  OBJModel model;
-  model.load(objFile);
-
-  Scene scene(model);
-
-  Pathtracer pt(w, h, scene, camera);
-
+void trace(Pathtracer& pt, size_t samples) {
   typedef high_resolution_clock clock;
   typedef clock::duration time;
 
@@ -28,7 +22,24 @@ void program(const string& objFile, const string& output, size_t w, size_t h, si
     cout << "Sample " << pt.samples()
          << ", in " << duration_cast<duration<double, ratio<1>>>(t2 - t1).count() << " seconds\n";
   }
+}
 
+void program(const string& objFile, const string& output, size_t w, size_t h, size_t camera, size_t samples) {
+  OBJModel model;
+  model.load(objFile);
+
+  Scene scene(model);
+
+  Pathtracer pt1(w, h, scene, camera);
+  Pathtracer pt2(w, h, scene, camera);
+
+  thread t1(trace, ref(pt1), samples / 2);
+  thread t2(trace, ref(pt2), samples / 2);
+
+  t1.join();
+  t2.join();
+
+  Pathtracer pt(merge(pt1, pt2));
   writeImage(output, pt.width(), pt.height(), pt.samples(), pt.buffer());
 }
 
