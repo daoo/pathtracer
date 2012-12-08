@@ -43,7 +43,7 @@ namespace kdtree {
           static constexpr int32_t MASK_TYPE = 0x1;
           static constexpr int32_t MASK_DATA = ~MASK_TYPE;
 
-          static constexpr int32_t EMPTY_LEAF = std::numeric_limits<int32_t>::max() & MASK_TYPE;
+          static constexpr int32_t EMPTY_LEAF = std::numeric_limits<int32_t>::max() & MASK_DATA;
 
           static constexpr int32_t TYPE_LEAF = 0;
           static constexpr int32_t TYPE_SPLIT = 1;
@@ -68,15 +68,12 @@ namespace kdtree {
            * Create a leaf node.
            */
           void leaf(const std::vector<Triangle>& triangles) {
-            int32_t index = m_tree.m_leaf_store.size();
-
             if (triangles.empty()) {
-              index = std::numeric_limits<int32_t>::max();
+              setNode(Node());
             } else {
               m_tree.m_leaf_store.push_back(std::vector<Triangle>(triangles));
+              setNode(Node(static_cast<int32_t>(m_tree.m_leaf_store.size() - 1)));
             }
-
-            setNode(Node(index));
           }
 
           BuildIter left()  { return BuildIter(m_tree, leftChild(m_index), m_depth + 1, next(m_axis)); }
