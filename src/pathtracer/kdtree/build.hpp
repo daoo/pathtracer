@@ -15,7 +15,7 @@ namespace kdtree {
     constexpr float epsilon = 0.0000001f;
     const glm::vec3 vec_epsilon(epsilon);
 
-    if (iter.depth() >= 12 || triangles.size() <= 10) {
+    if (iter.depth() >= 13 || triangles.size() <= 10) {
       iter.leaf(triangles);
     } else {
       glm::vec3 new_size = bounding.half;
