@@ -12,17 +12,16 @@ namespace kdtree {
   class KdTreeArray {
     public:
       KdTreeArray() : m_nodes() { }
-      ~KdTreeArray() { }
+      ~KdTreeArray() {
+        for (Node node : m_nodes) {
+          if (node.m_type == Node::Leaf) {
+            delete node.m_leaf.m_triangles;
+          }
+        }
+      }
 
       class Node {
         public:
-          Node() { }
-          ~Node() {
-            if (m_type == Leaf) {
-              delete m_leaf.m_triangles;
-            }
-          }
-
           enum NodeType { Split, Leaf };
 
           struct SplitNode {
@@ -38,6 +37,15 @@ namespace kdtree {
              */
             std::vector<Triangle>* m_triangles;
           };
+
+          Node() { }
+          Node(LeafNode&& data) : m_type(Leaf), m_leaf(data) {
+            data.m_triangles = nullptr;
+          }
+
+          Node(SplitNode&& data) : m_type(Split), m_split(data) { }
+
+          ~Node() { }
 
           NodeType m_type;
 
@@ -64,31 +72,24 @@ namespace kdtree {
            * Create a split node.
            */
           void split(float d) {
-            Node node;
-            node.m_type             = Node::Split;
-            node.m_split.m_axis     = m_axis;
-            node.m_split.m_distance = d;
-
-            setNode(node);
+            setNode(Node({m_axis, d}));
           }
 
           /**
            * Create a leaf node.
            */
           void leaf(const std::vector<Triangle>& triangles) {
-            Node node;
-            node.m_type = Node::Leaf;
-
+            std::vector<Triangle>* ts;
             if (triangles.empty()) {
-              node.m_leaf.m_triangles = nullptr;
+              ts = nullptr;
             } else {
-              node.m_leaf.m_triangles = new std::vector<Triangle>();
+              ts = new std::vector<Triangle>();
               for (const Triangle& tri : triangles) {
-                node.m_leaf.m_triangles->push_back(tri);
+                ts->push_back(tri);
               }
             }
 
-            setNode(node);
+            setNode(Node::LeafNode{ts});
           }
 
           BuildIter left() {
@@ -114,11 +115,15 @@ namespace kdtree {
           /**
            * Set the current node.
            */
-          void setNode(const Node& node) {
+          void setNode(Node&& node) {
             // When a build iter is created for some node, that node does not
             // acctually exists in the underlying vector.
 
-            m_nodes[m_index] = node;
+            if (m_index >= m_nodes.size()) {
+              m_nodes.resize(m_index + 1);
+            }
+
+            m_nodes.at(m_index) = node;
           }
       };
 
