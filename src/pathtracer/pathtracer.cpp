@@ -24,23 +24,19 @@ Pathtracer::Pathtracer(size_t w, size_t h, const Scene& scene, size_t camera_ind
     m_scene(scene) {
   assert(!scene.cameras().empty());
 
-  // Initialize selected camera
   const Camera& camera = m_scene.cameras()[camera_index % m_scene.cameras().size()];
 
+  vec3 camera_right = normalize(cross(camera.m_direction, camera.m_up));
+  vec3 camera_up    = normalize(cross(camera_right, camera.m_direction));
+
+  float aspect   = m_fwidth / m_fheight;
+  float fov_half = camera.m_fov / 2.0f;
+
+  vec3 Z = camera.m_direction * cos(radians(fov_half));
+  vec3 X = camera_up          * sin(radians(fov_half));
+  vec3 Y = camera_right       * sin(radians(fov_half)) * aspect;
+
   m_camera_pos = camera.m_position;
-
-  vec3 camera_dir   = camera.m_direction;
-  vec3 camera_right = normalize(cross(camera_dir, camera.m_up));
-  vec3 camera_up    = normalize(cross(camera_right, camera_dir));
-
-  float camera_fov         = camera.m_fov;
-  float camera_aspectRatio = m_fwidth / m_fheight;
-
-  float camera_fov_half = camera_fov / 2.0f;
-
-  vec3 Z = camera_dir   * cos(radians(camera_fov_half));
-  vec3 X = camera_up    * sin(radians(camera_fov_half));
-  vec3 Y = camera_right * sin(radians(camera_fov_half))  * camera_aspectRatio;
 
   m_min_d = Z - Y - X;
 
