@@ -32,7 +32,7 @@ namespace kdtree {
           int32_t getIndex() const { return m_data >> 1; }
           float getDistance() const { return m_distance; }
 
-          bool hasTriangles() const { return m_data == EMPTY_LEAF; }
+          bool hasTriangles() const { return m_data != EMPTY_LEAF; }
 
         private:
           union {
