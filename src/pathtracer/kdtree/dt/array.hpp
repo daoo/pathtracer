@@ -11,7 +11,7 @@
 namespace kdtree {
   class KdTreeArray {
     public:
-      KdTreeArray() : m_nodes() { }
+      KdTreeArray() : m_nodes(), m_starting_axis(X) { }
       ~KdTreeArray() {
         for (Node node : m_nodes) {
           if (node.m_type == Node::Leaf) {
@@ -20,12 +20,12 @@ namespace kdtree {
         }
       }
 
+
       class Node {
         public:
           enum NodeType { Split, Leaf };
 
           struct SplitNode {
-            Axis m_axis;
             float m_distance;
           };
 
@@ -72,7 +72,7 @@ namespace kdtree {
            * Create a split node.
            */
           void split(float d) {
-            setNode(Node({m_axis, d}));
+            setNode(Node({d}));
           }
 
           /**
@@ -93,13 +93,11 @@ namespace kdtree {
           }
 
           BuildIter left() {
-            constexpr std::array<Axis, 3> NEXT = {{ Y, Z, X }};
-            return BuildIter(m_nodes, (m_index << 1) + 1, m_depth + 1, NEXT[m_axis]);
+            return BuildIter(m_nodes, (m_index << 1) + 1, m_depth + 1, next(m_axis));
           }
 
           BuildIter right() {
-            constexpr std::array<Axis, 3> NEXT = {{ Y, Z, X }};
-            return BuildIter(m_nodes, (m_index << 1) + 2, m_depth + 1, NEXT[m_axis]);
+            return BuildIter(m_nodes, (m_index << 1) + 2, m_depth + 1, next(m_axis));
           }
 
         private:
@@ -130,16 +128,18 @@ namespace kdtree {
       class TraverseIter {
         public:
           TraverseIter(const KdTreeArray& tree) :
-            m_nodes(tree.m_nodes), m_node(&tree.m_nodes[0]), m_index(0) { }
+            m_nodes(tree.m_nodes), m_node(&tree.m_nodes[0]), m_index(0),
+            m_axis(tree.m_starting_axis) { }
 
           TraverseIter& operator=(const TraverseIter& iter) {
             assert(this != &iter);
 
-            // Note that we do not allow an iterator to change the tree it iterates
+            // We do not allow an iterator to change the tree it iterates
             assert(&m_nodes == &iter.m_nodes);
 
             m_node  = iter.m_node;
             m_index = iter.m_index;
+            m_axis  = iter.m_axis;
 
             return *this;
           }
@@ -159,7 +159,7 @@ namespace kdtree {
 
           Axis axis() const {
             assert(m_node->m_type == Node::Split);
-            return m_node->m_split.m_axis;
+            return m_axis;
           }
 
           float split() const {
@@ -169,12 +169,12 @@ namespace kdtree {
 
           TraverseIter left() const {
             assert(m_node->m_type == Node::Split);
-            return TraverseIter(m_nodes, (m_index << 1) + 1);
+            return TraverseIter(m_nodes, (m_index << 1) + 1, next(m_axis));
           }
 
           TraverseIter right() const {
             assert(m_node->m_type == Node::Split);
-            return TraverseIter(m_nodes, (m_index << 1) + 2);
+            return TraverseIter(m_nodes, (m_index << 1) + 2, next(m_axis));
           }
 
           const std::vector<Triangle>& triangles() const {
@@ -186,16 +186,23 @@ namespace kdtree {
           const std::vector<Node>& m_nodes;
           const Node* m_node;
           size_t m_index;
+          Axis m_axis;
 
-          TraverseIter(const std::vector<Node>& nodes, size_t index) :
-              m_nodes(nodes), m_node(&nodes[index]), m_index(index) { }
+          TraverseIter(const std::vector<Node>& nodes, size_t index, Axis axis) :
+              m_nodes(nodes), m_node(&nodes[index]), m_index(index),
+              m_axis(axis) { }
       };
 
     private:
       std::vector<Node> m_nodes;
+      Axis m_starting_axis;
 
       KdTreeArray(const KdTreeArray&);
       KdTreeArray& operator=(const KdTreeArray&);
+
+      static Axis next(Axis axis) {
+        return static_cast<Axis>((static_cast<size_t>(axis) + 1) % 3);
+      }
   };
 }
 
