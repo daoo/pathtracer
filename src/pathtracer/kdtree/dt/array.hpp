@@ -20,7 +20,6 @@ namespace kdtree {
         }
       }
 
-
       class Node {
         public:
           enum NodeType { Split, Leaf };
