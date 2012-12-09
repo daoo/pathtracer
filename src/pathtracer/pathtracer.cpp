@@ -14,10 +14,8 @@ namespace {
   constexpr float PT_EPSILON      = 0.00001f;
 }
 
-Pathtracer::Pathtracer(size_t w, size_t h, const Scene& scene, size_t camera_index)
-  : m_buffer(w, h),
-    m_fwidth(static_cast<float>(w)), m_fheight(static_cast<float>(h)),
-    m_scene(scene), m_fastrand() {
+Pathtracer::Pathtracer(const Scene& scene, size_t camera_index, size_t width, size_t height)
+  : m_scene(scene), m_fwidth(static_cast<float>(width)), m_fheight(static_cast<float>(height)) {
   assert(!scene.cameras().empty());
 
   const Camera& camera = m_scene.cameras()[camera_index % m_scene.cameras().size()];
@@ -42,12 +40,15 @@ Pathtracer::Pathtracer(size_t w, size_t h, const Scene& scene, size_t camera_ind
 
 Pathtracer::~Pathtracer() { }
 
-void Pathtracer::tracePrimaryRays() {
-  for (size_t y = 0; y < m_buffer.height(); ++y) {
-    for (size_t x = 0; x < m_buffer.width(); ++x) {
+void Pathtracer::tracePrimaryRays(FastRand& rand, util::SampleBuffer& buffer) {
+  float fw = static_cast<float>(buffer.width());
+  float fh = static_cast<float>(buffer.height());
+
+  for (size_t y = 0; y < buffer.height(); ++y) {
+    for (size_t x = 0; x < buffer.width(); ++x) {
       const vec2 screenCoord = vec2(
-          (static_cast<float>(x) + m_fastrand()) / m_fwidth,
-          (static_cast<float>(y) + m_fastrand()) / m_fheight
+          (static_cast<float>(x) + rand()) / fw,
+          (static_cast<float>(y) + rand()) / fh
       );
 
       Ray primaryRay(m_camera_pos,
@@ -56,17 +57,17 @@ void Pathtracer::tracePrimaryRays() {
 
       Intersection isect;
       if (m_scene.allIntersection(primaryRay, isect)) {
-        m_buffer.add(x, y, Li(primaryRay, isect));
+        buffer.add(x, y, Li(rand, primaryRay, isect));
       } else {
-        m_buffer.add(x, y, Lenvironment(primaryRay));
+        buffer.add(x, y, Lenvironment(primaryRay));
       }
     }
   }
 
-  m_buffer.increaseSamples();
+  buffer.increaseSamples();
 }
 
-vec3 Pathtracer::Li(const Ray& primaryRay, const Intersection& primaryIsect) {
+vec3 Pathtracer::Li(FastRand& rand, const Ray& primaryRay, const Intersection& primaryIsect) {
   vec3 L       = zero<vec3>();
   vec3 path_tp = one<vec3>();
 
@@ -95,7 +96,7 @@ vec3 Pathtracer::Li(const Ray& primaryRay, const Intersection& primaryIsect) {
 
     float pdf;
     vec3 wo;
-    const vec3 brdf = mat->sample_f(m_fastrand, wi, wo, isect.m_normal, pdf);
+    const vec3 brdf = mat->sample_f(rand, wi, wo, isect.m_normal, pdf);
 
     if (pdf < PT_EPSILON) {
       return L;

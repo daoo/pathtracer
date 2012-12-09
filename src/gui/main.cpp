@@ -10,8 +10,11 @@
 #include "util/samplebuffer.hpp"
 
 using namespace std;
+using namespace util;
 
+FastRand g_rand;
 Pathtracer* g_pathtracer;
+SampleBuffer* g_buffer;
 Scene* g_scene;
 
 size_t width, height;
@@ -85,22 +88,22 @@ void initGL() {
 }
 
 void display() {
-  util::Clock clock;
+  Clock clock;
   clock.start();
-  if (g_pathtracer->samples() < MAX_SAMPLES_PER_PIXEL)
-    g_pathtracer->tracePrimaryRays();
+  if (g_buffer->samples() < MAX_SAMPLES_PER_PIXEL)
+    g_pathtracer->tracePrimaryRays(g_rand, *g_buffer);
   clock.stop();
 
   glUseProgram(shaderProgram);
 
   // Create and upload raytracer framebuffer as a texture
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
-      g_pathtracer->width(),
-      g_pathtracer->height(),
-      0, GL_RGB, GL_FLOAT, g_pathtracer->buffer().data());
+      g_buffer->width(),
+      g_buffer->height(),
+      0, GL_RGB, GL_FLOAT, g_buffer->data());
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glUniform1i(uniformFramebufferSamples, g_pathtracer->samples());
+  glUniform1i(uniformFramebufferSamples, g_buffer->samples());
 
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -110,7 +113,7 @@ void display() {
 
   // Print some useful information
   cout << "Seconds per frame: " << clock.length<float, ratio<1>>() << "\n"
-       << "Samples per pixel: " << g_pathtracer->samples() << "\n"
+       << "Samples per pixel: " << g_buffer->samples() << "\n"
        << "Subsampling: " << g_subsample << "\n"
        << "\n";
 
@@ -122,8 +125,13 @@ void restart(size_t w, size_t h, size_t camera) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0, 0, w, h);
 
+  size_t nw = w / g_subsample;
+  size_t nh = h / g_subsample;
+
   delete g_pathtracer;
-  g_pathtracer = new Pathtracer(w / g_subsample, h / g_subsample, *g_scene, camera);
+  g_pathtracer = new Pathtracer(*g_scene, camera, nw, nh);
+  delete g_buffer;
+  g_buffer = new SampleBuffer(nw, nh);
 }
 
 void reshape(int w, int h) {
@@ -149,7 +157,7 @@ void handleKeys(unsigned char key, int, int) {
     g_subsample = max(1, g_subsample - 1);
     restart(width, height, 0);
   } else if (key == 'p') {
-    writeImage("screenshot.png", g_pathtracer->buffer());
+    writeImage("screenshot.png", *g_buffer);
   }
 }
 

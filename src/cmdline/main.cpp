@@ -3,22 +3,25 @@
 
 #include "pathtracer/pathtracer.hpp"
 #include "util/clock.hpp"
+#include "util/fastrand.hpp"
 #include "util/samplebuffer.hpp"
 #include "util/strings.hpp"
 
 using namespace std::chrono;
 using namespace std;
+using namespace util;
 
-void trace(Pathtracer& pt, size_t samples) {
+void trace(Pathtracer& pt, SampleBuffer& buffer, size_t samples) {
   assert(samples > 0);
+  FastRand rand;
 
-  util::Clock clock;
-  while (pt.samples() < samples) {
+  Clock clock;
+  while (buffer.samples() < samples) {
     clock.start();
-    pt.tracePrimaryRays();
+    pt.tracePrimaryRays(rand, buffer);
     clock.stop();
 
-    cout << "Sample " << pt.samples()
+    cout << "Sample " << buffer.samples()
          << ", in " << clock.length<float, ratio<1>>() << " seconds\n";
   }
 }
@@ -38,25 +41,27 @@ void program(const string& objFile, const string& outFile, size_t w, size_t h,
 
   size_t samples_thread = sampleCount / threadCount;
 
-  std::vector<Pathtracer> tracers;
+  Pathtracer pt(scene, camera, w, h);
+
+  std::vector<SampleBuffer> buffers;
   for (size_t i = 0; i < threadCount; ++i) {
-    tracers.push_back(Pathtracer(w, h, scene, camera));
+    buffers.push_back(SampleBuffer(w, h));
   }
 
   std::vector<thread> threads;
-  for (Pathtracer& tracer : tracers) {
-    threads.push_back(thread(trace, ref(tracer), samples_thread));
+  for (SampleBuffer& buffer : buffers) {
+    threads.push_back(thread(trace, ref(pt), ref(buffer), samples_thread));
   }
 
   for (thread& th : threads) {
     th.join();
   }
 
-  util::SampleBuffer result(w, h);
-  for (const Pathtracer& tracer : tracers) {
-    result.append(tracer.buffer());
+  SampleBuffer result(w, h);
+  for (const SampleBuffer& buffer : buffers) {
+    result.append(buffer);
   }
-  util::writeImage(outFile, result);
+  writeImage(outFile, result);
 }
 
 int main(int argc, char* argv[]) {
