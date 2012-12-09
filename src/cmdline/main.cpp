@@ -39,10 +39,13 @@ void program(const string& objFile, const string& outFile, size_t w, size_t h,
   size_t samples_thread = sampleCount / threadCount;
 
   std::vector<Pathtracer> tracers;
-  std::vector<thread> threads;
   for (size_t i = 0; i < threadCount; ++i) {
     tracers.push_back(Pathtracer(w, h, scene, camera));
-    threads.push_back(thread(trace, ref(tracers.back()), samples_thread));
+  }
+
+  std::vector<thread> threads;
+  for (Pathtracer& tracer : tracers) {
+    threads.push_back(thread(trace, ref(tracer), samples_thread));
   }
 
   for (thread& th : threads) {
