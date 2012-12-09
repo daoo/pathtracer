@@ -11,6 +11,7 @@
 class Scene {
   public:
     Scene(const OBJModel& model);
+    ~Scene();
 
     bool allIntersection(math::Ray& r, Intersection& isect) const;
     bool anyIntersection(const math::Ray& r) const;
@@ -31,6 +32,9 @@ class Scene {
     std::vector<Light> m_lights;
     std::vector<Camera> m_cameras;
     kdtree::KdTree m_kdtree;
+
+    Scene(const Scene&);
+    Scene& operator=(const Scene&);
 };
 
 #endif /* end of include guard: SCENE_HPP_BOFJZX4D */

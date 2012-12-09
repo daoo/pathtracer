@@ -51,7 +51,7 @@ class DiffuseMaterial : public Material {
   private:
     // The reflectance (color) of the material
     glm::vec3 m_reflectance;
-    Texture* m_reflectanceMap;
+    Texture* m_reflectance_map;
 };
 
 /**

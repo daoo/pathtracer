@@ -80,6 +80,8 @@ Scene::Scene(const OBJModel& model) {
   kdtree::buildTree(m_kdtree, triangles);
 }
 
+Scene::~Scene() { }
+
 bool Scene::allIntersection(Ray& ray, Intersection& isect) const {
   return kdtree::intersects(m_kdtree, ray, isect);
 }

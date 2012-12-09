@@ -21,8 +21,8 @@ namespace {
   }
 }
 
-DiffuseMaterial::DiffuseMaterial(const vec3& reflectance, Texture* reflectanceMap)
-  : m_reflectance(reflectance), m_reflectanceMap(reflectanceMap) { }
+DiffuseMaterial::DiffuseMaterial(const vec3& reflectance, Texture* map)
+  : m_reflectance(reflectance), m_reflectance_map(map) { }
 
 vec3 DiffuseMaterial::f(
     const vec3&,
