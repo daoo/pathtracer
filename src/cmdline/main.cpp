@@ -1,5 +1,4 @@
 #include <iostream>
-#include <sstream>
 #include <thread>
 
 #include "pathtracer/pathtracer.hpp"
