@@ -1,8 +1,8 @@
 #ifndef LINKED_HPP_DGVBYSLC
 #define LINKED_HPP_DGVBYSLC
 
+#include "math/ray.hpp"
 #include "pathtracer/kdtree/util.hpp"
-#include "pathtracer/math/ray.hpp"
 #include "pathtracer/triangle.hpp"
 
 #include <vector>

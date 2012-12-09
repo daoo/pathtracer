@@ -1,9 +1,9 @@
 #ifndef TRAVERSE_HPP_IJFE6LBZ
 #define TRAVERSE_HPP_IJFE6LBZ
 
+#include "math/ray.hpp"
 #include "pathtracer/intersection.hpp"
 #include "pathtracer/kdtree/util.hpp"
-#include "pathtracer/math/ray.hpp"
 #include "pathtracer/triangle.hpp"
 
 namespace kdtree {

@@ -1,11 +1,11 @@
 #ifndef TREE_HPP_47RCBESP
 #define TREE_HPP_47RCBESP
 
+#include "math/ray.hpp"
 #include "pathtracer/kdtree/build.hpp"
 #include "pathtracer/kdtree/dt/array.hpp"
 #include "pathtracer/kdtree/dt/linked.hpp"
 #include "pathtracer/kdtree/traverse.hpp"
-#include "pathtracer/math/ray.hpp"
 
 namespace kdtree {
 #if defined(ARRAY_TREE)

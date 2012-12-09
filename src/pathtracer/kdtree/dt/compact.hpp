@@ -1,8 +1,8 @@
 #ifndef COMPACT_HPP_PJZBFAY0
 #define COMPACT_HPP_PJZBFAY0
 
+#include "math/ray.hpp"
 #include "pathtracer/kdtree/util.hpp"
-#include "pathtracer/math/ray.hpp"
 #include "pathtracer/triangle.hpp"
 
 #include <vector>
