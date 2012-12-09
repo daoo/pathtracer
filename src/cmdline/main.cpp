@@ -3,7 +3,7 @@
 
 #include "pathtracer/pathtracer.hpp"
 #include "util/clock.hpp"
-#include "util/image.hpp"
+#include "util/samplebuffer.hpp"
 #include "util/strings.hpp"
 
 using namespace std::chrono;
@@ -29,15 +29,26 @@ void program(const string& objFile, const string& output, size_t w, size_t h, si
 
   Pathtracer pt1(w, h, scene, camera);
   Pathtracer pt2(w, h, scene, camera);
+  Pathtracer pt3(w, h, scene, camera);
+  Pathtracer pt4(w, h, scene, camera);
 
-  thread t1(trace, ref(pt1), samples / 2);
-  thread t2(trace, ref(pt2), samples / 2);
+  thread t1(trace, ref(pt1), samples / 4);
+  thread t2(trace, ref(pt2), samples / 4);
+  thread t3(trace, ref(pt3), samples / 4);
+  thread t4(trace, ref(pt4), samples / 4);
 
   t1.join();
   t2.join();
+  t3.join();
+  t4.join();
 
-  Pathtracer pt(merge(pt1, pt2));
-  writeImage(output, pt.width(), pt.height(), pt.samples(), pt.buffer());
+  util::SampleBuffer result(w, h);
+  result.append(pt1.buffer());
+  result.append(pt2.buffer());
+  result.append(pt3.buffer());
+  result.append(pt4.buffer());
+
+  util::writeImage(output, result);
 }
 
 int main(int argc, char* argv[]) {

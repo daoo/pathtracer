@@ -7,7 +7,7 @@
 #include "gl.hpp"
 #include "pathtracer/pathtracer.hpp"
 #include "util/clock.hpp"
-#include "util/image.hpp"
+#include "util/samplebuffer.hpp"
 
 using namespace std;
 
@@ -149,11 +149,7 @@ void handleKeys(unsigned char key, int, int) {
     g_subsample = max(1, g_subsample - 1);
     restart(width, height, 0);
   } else if (key == 'p') {
-    writeImage("screenshot.png",
-        g_pathtracer->width(),
-        g_pathtracer->height(),
-        g_pathtracer->samples(),
-        g_pathtracer->buffer());
+    writeImage("screenshot.png", g_pathtracer->buffer());
   }
 }
 

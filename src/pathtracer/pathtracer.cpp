@@ -15,14 +15,9 @@ namespace {
 }
 
 Pathtracer::Pathtracer(size_t w, size_t h, const Scene& scene, size_t camera_index)
-  : m_buffer(w * h),
-    m_samples(0),
-
-    m_iwidth(w), m_iheight(h),
+  : m_buffer(w, h),
     m_fwidth(static_cast<float>(w)), m_fheight(static_cast<float>(h)),
-
-    m_scene(scene),
-    m_fastrand() {
+    m_scene(scene), m_fastrand() {
   assert(!scene.cameras().empty());
 
   const Camera& camera = m_scene.cameras()[camera_index % m_scene.cameras().size()];
@@ -48,8 +43,8 @@ Pathtracer::Pathtracer(size_t w, size_t h, const Scene& scene, size_t camera_ind
 Pathtracer::~Pathtracer() { }
 
 void Pathtracer::tracePrimaryRays() {
-  for (size_t y = 0; y < m_iheight; ++y) {
-    for (size_t x = 0; x < m_iwidth; ++x) {
+  for (size_t y = 0; y < m_buffer.height(); ++y) {
+    for (size_t x = 0; x < m_buffer.width(); ++x) {
       const vec2 screenCoord = vec2(
           (static_cast<float>(x) + m_fastrand()) / m_fwidth,
           (static_cast<float>(y) + m_fastrand()) / m_fheight
@@ -61,14 +56,14 @@ void Pathtracer::tracePrimaryRays() {
 
       Intersection isect;
       if (m_scene.allIntersection(primaryRay, isect)) {
-        m_buffer[y * m_iwidth + x] += Li(primaryRay, isect);
+        m_buffer.add(x, y, Li(primaryRay, isect));
       } else {
-        m_buffer[y * m_iwidth + x] += Lenvironment(primaryRay);
+        m_buffer.add(x, y, Lenvironment(primaryRay));
       }
     }
   }
 
-  m_samples += 1;
+  m_buffer.increaseSamples();
 }
 
 vec3 Pathtracer::Li(const Ray& primaryRay, const Intersection& primaryIsect) {
@@ -134,21 +129,4 @@ vec3 Pathtracer::Lenvironment(const Ray& ray) {
     return vec3(0.5f, 0.6f, 0.7f);
   else
     return vec3(0.05f, 0.025f, 0.001f);
-}
-
-Pathtracer merge(const Pathtracer& a, const Pathtracer& b) {
-  assert(a.width() == b.width());
-  assert(a.height() == b.height());
-  assert(&a.m_scene == &b.m_scene);
-
-  Pathtracer pt(a);
-  pt.m_samples = a.m_samples + b.m_samples;
-
-  auto iter = pt.m_buffer.begin();
-  for (const glm::vec3& color : b.buffer()) {
-    *iter += color;
-    ++iter;
-  }
-
-  return pt;
 }

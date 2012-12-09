@@ -5,6 +5,7 @@
 #include "mcsampling.hpp"
 #include "scene.hpp"
 #include "util/fastrand.hpp"
+#include "util/samplebuffer.hpp"
 
 #include <glm/glm.hpp>
 
@@ -20,21 +21,19 @@ class Pathtracer {
     glm::vec3 Li(const math::Ray&, const Intersection&);
     glm::vec3 Lenvironment(const math::Ray&);
 
-    size_t samples() const { return m_samples; }
-    size_t width() const { return m_iwidth; }
-    size_t height() const { return m_iheight; }
+    size_t samples() const { return m_buffer.samples(); }
+    size_t width() const { return m_buffer.width(); }
+    size_t height() const { return m_buffer.height(); }
 
-    const std::vector<glm::vec3>& buffer() const {
+    const util::SampleBuffer& buffer() const {
       return m_buffer;
     }
 
     friend Pathtracer merge(const Pathtracer&, const Pathtracer&);
 
   private:
-    std::vector<glm::vec3> m_buffer;
+    util::SampleBuffer m_buffer;
 
-    size_t m_samples;
-    size_t m_iwidth, m_iheight;
     float m_fwidth, m_fheight;
 
     const Scene& m_scene;
@@ -45,7 +44,5 @@ class Pathtracer {
 
     FastRand m_fastrand;
 };
-
-Pathtracer merge(const Pathtracer& a, const Pathtracer& b);
 
 #endif /* end of include guard: PATHTRACER_HPP_NVGMZUSY */
