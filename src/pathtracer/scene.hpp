@@ -31,6 +31,9 @@ class Scene {
   private:
     std::vector<Light> m_lights;
     std::vector<Camera> m_cameras;
+    std::vector<Material*> m_material;
+    std::vector<Texture*> m_textures;
+
     kdtree::KdTree m_kdtree;
 
     Scene(const Scene&);

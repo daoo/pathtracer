@@ -6,8 +6,10 @@ using namespace math;
 using namespace std;
 
 namespace {
-  void buildFromObj(vector<Light>& lights, vector<Camera>& cameras,
-      vector<Triangle>& triangles, const OBJModel& model) {
+  void buildFromObj(const OBJModel& model,
+      vector<Light>& lights, vector<Camera>& cameras,
+      vector<Material*>& materials, vector<Texture*> textures,
+      vector<Triangle>& triangles) {
     for (auto kv : model.m_lights) {
       lights.push_back(
           { kv.second.radius
@@ -51,18 +53,26 @@ namespace {
       BlendMaterial* blend0 =
         new BlendMaterial(fresnel, blend1, chunk.material->reflAt90Deg);
 
-      for (size_t j = 0; j < chunk.m_positions.size() / 3; ++j) {
+      textures.push_back(reflectanceMap);
+      materials.push_back(diffuse);
+      materials.push_back(specularReflection);
+      materials.push_back(specularRefraction);
+      materials.push_back(fresnel);
+      materials.push_back(blend0);
+      materials.push_back(blend1);
+
+      for (size_t j = 0; j < chunk.m_positions.size(); j += 3) {
         Triangle triangle;
 
-        triangle.v0  = chunk.m_positions[j*3 + 0];
-        triangle.v1  = chunk.m_positions[j*3 + 1];
-        triangle.v2  = chunk.m_positions[j*3 + 2];
-        triangle.n0  = chunk.m_normals[j*3 + 0];
-        triangle.n1  = chunk.m_normals[j*3 + 1];
-        triangle.n2  = chunk.m_normals[j*3 + 2];
-        triangle.uv0 = chunk.m_uvs[j*3+0];
-        triangle.uv1 = chunk.m_uvs[j*3+1];
-        triangle.uv2 = chunk.m_uvs[j*3+2];
+        triangle.v0  = chunk.m_positions[j + 0];
+        triangle.v1  = chunk.m_positions[j + 1];
+        triangle.v2  = chunk.m_positions[j + 2];
+        triangle.n0  = chunk.m_normals[j + 0];
+        triangle.n1  = chunk.m_normals[j + 1];
+        triangle.n2  = chunk.m_normals[j + 2];
+        triangle.uv0 = chunk.m_uvs[j + 0];
+        triangle.uv1 = chunk.m_uvs[j + 1];
+        triangle.uv2 = chunk.m_uvs[j + 2];
 
         triangle.m_material = blend0;
 
@@ -76,7 +86,7 @@ Scene::Scene(const OBJModel& model) {
   assert(!model.m_cameras.empty());
 
   vector<Triangle> triangles;
-  buildFromObj(m_lights, m_cameras, triangles, model);
+  buildFromObj(model, m_lights, m_cameras, m_material, m_textures, triangles);
   kdtree::buildTree(m_kdtree, triangles);
 }
 
