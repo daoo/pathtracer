@@ -1,9 +1,9 @@
-#include <chrono>
 #include <iostream>
 #include <sstream>
 #include <thread>
 
 #include "pathtracer/pathtracer.hpp"
+#include "util/clock.hpp"
 #include "util/image.hpp"
 #include "util/strings.hpp"
 
@@ -11,16 +11,14 @@ using namespace std::chrono;
 using namespace std;
 
 void trace(Pathtracer& pt, size_t samples) {
-  typedef high_resolution_clock clock;
-  typedef clock::duration time;
-
+  util::Clock clock;
   while (pt.samples() < samples) {
-    time t1 = clock::now().time_since_epoch();
+    clock.start();
     pt.tracePrimaryRays();
-    time t2 = clock::now().time_since_epoch();
+    clock.stop();
 
     cout << "Sample " << pt.samples()
-         << ", in " << duration_cast<duration<double, ratio<1>>>(t2 - t1).count() << " seconds\n";
+         << ", in " << clock.length<float, ratio<1>>() << " seconds\n";
   }
 }
 

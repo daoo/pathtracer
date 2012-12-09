@@ -6,6 +6,7 @@
 
 #include "gl.hpp"
 #include "pathtracer/pathtracer.hpp"
+#include "util/clock.hpp"
 #include "util/image.hpp"
 
 using namespace std;
@@ -84,10 +85,11 @@ void initGL() {
 }
 
 void display() {
-  int t1 = glutGet(GLUT_ELAPSED_TIME);
+  util::Clock clock;
+  clock.start();
   if (g_pathtracer->samples() < MAX_SAMPLES_PER_PIXEL)
     g_pathtracer->tracePrimaryRays();
-  int t2 = glutGet(GLUT_ELAPSED_TIME);
+  clock.stop();
 
   glUseProgram(shaderProgram);
 
@@ -107,9 +109,9 @@ void display() {
   CHECK_GL_ERROR();
 
   // Print some useful information
-  cout << "Seconds per frame: " << 0.001 * float(t2 - t1) << "\n"
+  cout << "Seconds per frame: " << clock.length<float, ratio<1>>() << "\n"
        << "Samples per pixel: " << g_pathtracer->samples() << "\n"
-       << "Subsampling: " << 1.0f / float(g_subsample) << "\n"
+       << "Subsampling: " << g_subsample << "\n"
        << "\n";
 
   glutSwapBuffers();
