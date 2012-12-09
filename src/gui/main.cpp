@@ -6,6 +6,7 @@
 
 #include "gl.hpp"
 #include "pathtracer/pathtracer.hpp"
+#include "shaders.hpp"
 #include "util/clock.hpp"
 #include "util/samplebuffer.hpp"
 
@@ -60,7 +61,7 @@ void initGL() {
 
   // ----------------------------------------------------------------------
   // Create shader
-  shaderProgram = loadShaderProgram("data/simple.vert", "data/simple.frag");
+  shaderProgram = loadShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER);
   glBindAttribLocation(shaderProgram, 0, "position");
   glBindFragDataLocation(shaderProgram, 0, "fragmentColor");
 
