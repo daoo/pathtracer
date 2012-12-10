@@ -31,6 +31,46 @@ namespace kdtree {
       }
     }
 
+    inline void triangleExtremes(const Triangle& tri, Axis axis, float& min, float& max) {
+      float a = swizzle(tri.v0, axis);
+      float b = swizzle(tri.v1, axis);
+      float c = swizzle(tri.v2, axis);
+
+      min = glm::min(glm::min(a, b), c);
+      max = glm::max(glm::max(a, b), c);
+    }
+
+    inline void aabbFromSplit(const math::Aabb& box, Axis axis, float split, math::Aabb& left, math::Aabb& right) {
+      left  = box;
+      right = box;
+
+      if (axis == X) {
+        float lh = (split - (box.center.x - box.half.x)) / 2.0f;
+        left.half.x   = lh;
+        left.center.x = split - lh;
+
+        float rh = ((box.center.x + box.half.x) - split) / 2.0f;
+        right.half.x   = rh;
+        right.center.x = split + rh;
+      } else if (axis == Y) {
+        float lh = (split - (box.center.y - box.half.y)) / 2.0f;
+        left.half.y   = lh;
+        left.center.y = split - lh;
+
+        float rh = ((box.center.y + box.half.y) - split) / 2.0f;
+        right.half.y   = rh;
+        right.center.y = split + rh;
+      } else if (axis == Z) {
+        float lh = (split - (box.center.z - box.half.z)) / 2.0f;
+        left.half.z   = lh;
+        left.center.z = split - lh;
+
+        float rh = ((box.center.z + box.half.z) - split) / 2.0f;
+        right.half.z   = rh;
+        right.center.z = split + rh;
+      }
+    }
+
     inline math::Aabb findBounding(const std::vector<Triangle>& triangles) {
       glm::vec3 min, max;
 

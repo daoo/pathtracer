@@ -5,6 +5,7 @@
 #include "pathtracer/kdtree/build.hpp"
 #include "pathtracer/kdtree/dt/array.hpp"
 #include "pathtracer/kdtree/dt/linked.hpp"
+#include "pathtracer/kdtree/sah.hpp"
 #include "pathtracer/kdtree/traverse.hpp"
 
 namespace kdtree {
@@ -18,7 +19,7 @@ namespace kdtree {
 
   template <typename Tree>
   void buildTree(Tree& tree, const std::vector<Triangle>& triangles) {
-    buildTree(typename Tree::BuildIter(tree),
+    buildTreeSAH(typename Tree::BuildIter(tree),
         helpers::findBounding(triangles), triangles);
   }
 

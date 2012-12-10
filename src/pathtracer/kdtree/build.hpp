@@ -11,36 +11,23 @@
 
 namespace kdtree {
   template <typename Iter>
-  void buildTree(Iter iter, const math::Aabb& bounding, const std::vector<Triangle>& triangles) {
+  void buildTree(Iter iter, const math::Aabb& bounding,
+      const std::vector<Triangle>& triangles) {
     constexpr float epsilon = 0.0000001f;
     const glm::vec3 vec_epsilon(epsilon);
 
     if (iter.depth() >= 20 || triangles.size() <= 10) {
       iter.leaf(triangles);
     } else {
-      glm::vec3 new_size = bounding.half;
       glm::vec3 offset(0, 0, 0);
-      float d;
 
-      if (iter.axis() == X) {
-        d = bounding.center.x;
+      float d = helpers::swizzle(bounding.center, iter.axis());
 
-        new_size.x /= 2.0f;
-        offset.x = new_size.x;
-      } else if (iter.axis() == Y) {
-        d = bounding.center.y;
+      math::Aabb left_bounding;
+      math::Aabb right_bounding;
 
-        new_size.y /= 2.0f;
-        offset.y = new_size.y;
-      } else if (iter.axis() == Z) {
-        d = bounding.center.z;
-
-        new_size.z /= 2.0f;
-        offset.z = new_size.z;
-      }
-
-      math::Aabb left_bounding({ bounding.center - offset, new_size + epsilon });
-      math::Aabb right_bounding({ bounding.center + offset, new_size + epsilon });
+      helpers::aabbFromSplit(bounding, iter.axis(), d,
+          left_bounding, right_bounding);
 
       std::vector<Triangle> left_triangles, right_triangles;
 
