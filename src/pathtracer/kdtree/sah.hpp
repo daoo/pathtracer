@@ -64,7 +64,7 @@ namespace kdtree {
         float& bestCost, float& bestSplit,
         math::Aabb& bestLeftBox, math::Aabb& bestRightBox,
         std::vector<Triangle>& bestLeftTriangles,
-        std::vector<Triangle> bestRightTriangles) {
+        std::vector<Triangle>& bestRightTriangles) {
       math::Aabb left_box, right_box;
       helpers::aabbFromSplit(box, axis, split, left_box, right_box);
 
@@ -83,6 +83,8 @@ namespace kdtree {
 
         bestLeftTriangles  = left_triangles;
         bestRightTriangles = right_triangles;
+
+        assert(bestLeftTriangles.size() + bestRightTriangles.size() >= triangles.size());
       }
     }
 
@@ -120,8 +122,8 @@ namespace kdtree {
       iter.leaf(triangles);
     } else {
       iter.split(split);
-      buildTree(iter.left(), left_box, left_triangles);
-      buildTree(iter.right(), right_box, right_triangles);
+      buildTreeSAH(iter.left(), left_box, left_triangles);
+      buildTreeSAH(iter.right(), right_box, right_triangles);
     }
   }
 }

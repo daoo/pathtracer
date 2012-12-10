@@ -44,30 +44,44 @@ namespace kdtree {
       left  = box;
       right = box;
 
+      float splitClamped = glm::clamp(
+          split,
+          swizzle(box.center, axis) - swizzle(box.half, axis),
+          swizzle(box.center, axis) + swizzle(box.half, axis));
+
       if (axis == X) {
-        float lh = (split - (box.center.x - box.half.x)) / 2.0f;
+        float min = box.center.x - box.half.x;
+        float max = box.center.x + box.half.x;
+
+        float lh = (splitClamped - min) / 2.0f;
         left.half.x   = lh;
-        left.center.x = split - lh;
+        left.center.x = splitClamped - lh;
 
-        float rh = ((box.center.x + box.half.x) - split) / 2.0f;
+        float rh = (max - splitClamped) / 2.0f;
         right.half.x   = rh;
-        right.center.x = split + rh;
+        right.center.x = splitClamped + rh;
       } else if (axis == Y) {
-        float lh = (split - (box.center.y - box.half.y)) / 2.0f;
+        float min = box.center.y - box.half.y;
+        float max = box.center.y + box.half.y;
+
+        float lh = (splitClamped - min) / 2.0f;
         left.half.y   = lh;
-        left.center.y = split - lh;
+        left.center.y = splitClamped - lh;
 
-        float rh = ((box.center.y + box.half.y) - split) / 2.0f;
+        float rh = (max - splitClamped) / 2.0f;
         right.half.y   = rh;
-        right.center.y = split + rh;
+        right.center.y = splitClamped + rh;
       } else if (axis == Z) {
-        float lh = (split - (box.center.z - box.half.z)) / 2.0f;
-        left.half.z   = lh;
-        left.center.z = split - lh;
+        float min = box.center.z - box.half.z;
+        float max = box.center.z + box.half.z;
 
-        float rh = ((box.center.z + box.half.z) - split) / 2.0f;
+        float lh = (splitClamped - min) / 2.0f;
+        left.half.z   = lh;
+        left.center.z = splitClamped - lh;
+
+        float rh = (max - splitClamped) / 2.0f;
         right.half.z   = rh;
-        right.center.z = split + rh;
+        right.center.z = splitClamped + rh;
       }
     }
 
