@@ -108,6 +108,8 @@ namespace kdtree {
 
   void buildTreeSAH(KdTreeLinked::Node* node, size_t depth, Axis axis, const Aabb& box,
       const vector<const Triangle*>& triangles) {
+    assert(node != nullptr);
+
     float cost, split;
     vector<const Triangle*> left_triangles, right_triangles;
     Aabb left_box, right_box;
@@ -127,13 +129,15 @@ namespace kdtree {
 
       buildTreeSAH(node->m_split.m_left, depth + 1, next(axis),
           left_box, left_triangles);
-      buildTreeSAH(node->m_split.m_left, depth + 1, next(axis),
+      buildTreeSAH(node->m_split.m_right, depth + 1, next(axis),
           right_box, right_triangles);
     }
   }
 
   void buildTreeNaive(KdTreeLinked::Node* node, size_t depth, Axis axis, const Aabb& box,
       const vector<const Triangle*>& triangles) {
+    assert(node != nullptr);
+
     if (depth >= 20 || triangles.size() <= 10) {
       node->m_type             = KdTreeLinked::Node::Leaf;
       node->m_leaf.m_triangles = new vector<const Triangle*>(triangles);

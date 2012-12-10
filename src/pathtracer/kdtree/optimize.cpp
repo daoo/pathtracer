@@ -21,6 +21,8 @@ namespace kdtree {
     }
 
     void helper(KdTreeArray& result, size_t index, KdTreeLinked::Node* node) {
+      assert(node != nullptr);
+
       if (node->isLeaf()) {
         if (node->hasTriangles()) {
           uint32_t i = static_cast<uint32_t>(result.m_leaf_store.size());
@@ -31,8 +33,11 @@ namespace kdtree {
           set(result.m_nodes, index, KdTreeArray::Node());
         }
       } else if (node->isSplit()) {
-        KdTreeLinked::Node* left = node->m_split.m_left;
+        KdTreeLinked::Node* left  = node->m_split.m_left;
         KdTreeLinked::Node* right = node->m_split.m_right;
+
+        assert(left != nullptr);
+        assert(right != nullptr);
 
         bool equalChildren = true;
         if (left->isLeaf() && right->isLeaf() &&
