@@ -2,9 +2,9 @@
 #define TREE_HPP_47RCBESP
 
 #include "math/ray.hpp"
+#include "pathtracer/kdtree/array.hpp"
 #include "pathtracer/kdtree/build.hpp"
-#include "pathtracer/kdtree/dt/array.hpp"
-#include "pathtracer/kdtree/dt/linked.hpp"
+#include "pathtracer/kdtree/linked.hpp"
 #include "pathtracer/kdtree/sah.hpp"
 #include "pathtracer/kdtree/traverse.hpp"
 

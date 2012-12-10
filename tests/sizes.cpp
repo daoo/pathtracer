@@ -1,8 +1,8 @@
 #include <iostream>
 
-#include "pathtracer/kdtree/dt/array.hpp"
-#include "pathtracer/kdtree/dt/compact.hpp"
-#include "pathtracer/kdtree/dt/linked.hpp"
+#include "pathtracer/kdtree/array.hpp"
+#include "pathtracer/kdtree/compact.hpp"
+#include "pathtracer/kdtree/linked.hpp"
 
 using namespace kdtree;
 using namespace std;
