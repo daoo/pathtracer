@@ -41,6 +41,8 @@ namespace kdtree {
     }
 
     inline void aabbFromSplit(const math::Aabb& box, Axis axis, float split, math::Aabb& left, math::Aabb& right) {
+      constexpr float EPSILON = 0.000001f;
+
       left  = box;
       right = box;
 
@@ -53,33 +55,33 @@ namespace kdtree {
         float min = box.center.x - box.half.x;
         float max = box.center.x + box.half.x;
 
-        float lh = (splitClamped - min) / 2.0f;
+        float lh = (splitClamped - min) / 2.0f + EPSILON;
         left.half.x   = lh;
         left.center.x = splitClamped - lh;
 
-        float rh = (max - splitClamped) / 2.0f;
+        float rh = (max - splitClamped) / 2.0f + EPSILON;
         right.half.x   = rh;
         right.center.x = splitClamped + rh;
       } else if (axis == Y) {
         float min = box.center.y - box.half.y;
         float max = box.center.y + box.half.y;
 
-        float lh = (splitClamped - min) / 2.0f;
+        float lh = (splitClamped - min) / 2.0f + EPSILON;
         left.half.y   = lh;
         left.center.y = splitClamped - lh;
 
-        float rh = (max - splitClamped) / 2.0f;
+        float rh = (max - splitClamped) / 2.0f + EPSILON;
         right.half.y   = rh;
         right.center.y = splitClamped + rh;
       } else if (axis == Z) {
         float min = box.center.z - box.half.z;
         float max = box.center.z + box.half.z;
 
-        float lh = (splitClamped - min) / 2.0f;
+        float lh = (splitClamped - min) / 2.0f + EPSILON;
         left.half.z   = lh;
         left.center.z = splitClamped - lh;
 
-        float rh = (max - splitClamped) / 2.0f;
+        float rh = (max - splitClamped) / 2.0f + EPSILON;
         right.half.z   = rh;
         right.center.z = splitClamped + rh;
       }
