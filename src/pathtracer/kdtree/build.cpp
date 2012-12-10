@@ -8,6 +8,10 @@ using namespace std;
 
 namespace kdtree {
   namespace {
+    Axis next(Axis axis) {
+      return static_cast<Axis>((static_cast<size_t>(axis) + 1) % 3);
+    }
+
     constexpr float COST_TRAVERSE  = 0.3f;
     constexpr float COST_INTERSECT = 1.0f;
 
@@ -102,36 +106,35 @@ namespace kdtree {
     }
   }
 
-  void buildTreeSAH(KdTreeLinked::BuildIter iter, const Aabb& box,
+  void buildTreeSAH(KdTreeLinked::BuildIter iter, size_t depth, Axis axis, const Aabb& box,
       const vector<const Triangle*>& triangles) {
     float cost, split;
     vector<const Triangle*> left_triangles, right_triangles;
     Aabb left_box, right_box;
 
-    findSplit(box, iter.axis(), triangles, cost, split,
+    findSplit(box, axis, triangles, cost, split,
         left_box, right_box, left_triangles, right_triangles);
 
-    if (iter.depth() > 20 || cost > COST_INTERSECT * triangles.size()) {
+    if (depth > 20 || cost > COST_INTERSECT * triangles.size()) {
       iter.leaf(triangles);
     } else {
       iter.split(split);
-      buildTreeSAH(iter.left(), left_box, left_triangles);
-      buildTreeSAH(iter.right(), right_box, right_triangles);
+      buildTreeSAH(iter.left(), depth + 1, next(axis), left_box, left_triangles);
+      buildTreeSAH(iter.right(), depth + 1, next(axis), right_box, right_triangles);
     }
   }
 
-  void buildTreeNaive(KdTreeLinked::BuildIter iter, const Aabb& box,
+  void buildTreeNaive(KdTreeLinked::BuildIter iter, size_t depth, Axis axis, const Aabb& box,
       const vector<const Triangle*>& triangles) {
-    if (iter.depth() >= 20 || triangles.size() <= 10) {
+    if (depth >= 20 || triangles.size() <= 10) {
       iter.leaf(triangles);
     } else {
-      float d = helpers::swizzle(box.center, iter.axis());
+      float d = helpers::swizzle(box.center, axis);
 
       Aabb left_box;
       Aabb right_box;
 
-      helpers::aabbFromSplit(box, iter.axis(), d,
-          left_box, right_box);
+      helpers::aabbFromSplit(box, axis, d, left_box, right_box);
 
       vector<const Triangle*> left_triangles, right_triangles;
 
@@ -140,8 +143,8 @@ namespace kdtree {
 
       iter.split(d);
 
-      buildTreeNaive(iter.left(), left_box, left_triangles);
-      buildTreeNaive(iter.right(), right_box, right_triangles);
+      buildTreeNaive(iter.left(), depth + 1, next(axis), left_box, left_triangles);
+      buildTreeNaive(iter.right(), depth + 1, next(axis), right_box, right_triangles);
     }
   }
 }

@@ -52,14 +52,6 @@ namespace kdtree {
           BuildIter(KdTreeLinked& tree) :
             m_node(tree.m_root), m_depth(0), m_axis(X) { }
 
-          Axis axis() {
-            return m_axis;
-          }
-
-          size_t depth() {
-            return m_depth;
-          }
-
           void split(float d) {
             m_node->m_type = Node::Split;
             m_node->m_split.m_axis = m_axis;

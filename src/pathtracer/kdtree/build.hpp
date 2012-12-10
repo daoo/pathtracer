@@ -8,10 +8,12 @@
 #include <vector>
 
 namespace kdtree {
-  void buildTreeSAH(KdTreeLinked::BuildIter iter, const math::Aabb& bounding,
+  void buildTreeSAH(KdTreeLinked::BuildIter iter, size_t, Axis,
+      const math::Aabb& bounding,
       const std::vector<const Triangle*>& triangles);
 
-  void buildTreeNaive(KdTreeLinked::BuildIter iter, const math::Aabb& box,
+  void buildTreeNaive(KdTreeLinked::BuildIter iter, size_t, Axis,
+      const math::Aabb& box,
       const std::vector<const Triangle*>& triangles);
 }
 
