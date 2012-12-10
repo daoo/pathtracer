@@ -10,7 +10,7 @@
 namespace kdtree {
   class KdTreeLinked {
     public:
-      KdTreeLinked() : m_root(new Node) { }
+      KdTreeLinked() : m_root(nullptr) { }
       ~KdTreeLinked() { delete m_root; }
 
       class Node {
@@ -45,46 +45,6 @@ namespace kdtree {
             LeafNode m_leaf;
             SplitNode m_split;
           };
-      };
-
-      class BuildIter {
-        public:
-          BuildIter(KdTreeLinked& tree) :
-            m_node(tree.m_root), m_depth(0), m_axis(X) { }
-
-          void split(float d) {
-            m_node->m_type = Node::Split;
-            m_node->m_split.m_axis = m_axis;
-            m_node->m_split.m_distance = d;
-          }
-
-          void leaf(const std::vector<const Triangle*>& triangles) {
-            m_node->m_type = Node::Leaf;
-
-            m_node->m_leaf.m_triangles = triangles.empty()
-              ? nullptr
-              : new std::vector<const Triangle*>(triangles);
-          }
-
-          BuildIter left() {
-            m_node->m_split.m_left = new Node;
-            return BuildIter(m_node->m_split.m_left, m_depth + 1, next(m_axis));
-          }
-
-          BuildIter right() {
-            m_node->m_split.m_right = new Node;
-            return BuildIter(m_node->m_split.m_right, m_depth + 1, next(m_axis));
-          }
-
-        private:
-          Node* m_node;
-          size_t m_depth;
-          Axis m_axis;
-
-          BuildIter(Node* node, size_t depth, Axis axis) :
-              m_node(node), m_depth(depth), m_axis(axis) {
-            assert(node != nullptr);
-          }
       };
 
       class TraverseIter {
@@ -138,15 +98,11 @@ namespace kdtree {
           }
       };
 
-    private:
       Node* m_root;
 
+    private:
       KdTreeLinked(const KdTreeLinked&);
       KdTreeLinked& operator=(const KdTreeLinked&);
-
-      static Axis next(Axis axis) {
-        return static_cast<Axis>((static_cast<size_t>(axis) + 1) % 3);
-      }
   };
 }
 

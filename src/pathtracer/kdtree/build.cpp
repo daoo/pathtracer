@@ -106,7 +106,7 @@ namespace kdtree {
     }
   }
 
-  void buildTreeSAH(KdTreeLinked::BuildIter iter, size_t depth, Axis axis, const Aabb& box,
+  void buildTreeSAH(KdTreeLinked::Node* node, size_t depth, Axis axis, const Aabb& box,
       const vector<const Triangle*>& triangles) {
     float cost, split;
     vector<const Triangle*> left_triangles, right_triangles;
@@ -116,35 +116,50 @@ namespace kdtree {
         left_box, right_box, left_triangles, right_triangles);
 
     if (depth > 20 || cost > COST_INTERSECT * triangles.size()) {
-      iter.leaf(triangles);
+      node->m_type             = KdTreeLinked::Node::Leaf;
+      node->m_leaf.m_triangles = new vector<const Triangle*>(triangles);
     } else {
-      iter.split(split);
-      buildTreeSAH(iter.left(), depth + 1, next(axis), left_box, left_triangles);
-      buildTreeSAH(iter.right(), depth + 1, next(axis), right_box, right_triangles);
+      node->m_type             = KdTreeLinked::Node::Split;
+      node->m_split.m_axis     = axis;
+      node->m_split.m_distance = split;
+      node->m_split.m_left     = new KdTreeLinked::Node;
+      node->m_split.m_right    = new KdTreeLinked::Node;
+
+      buildTreeSAH(node->m_split.m_left, depth + 1, next(axis),
+          left_box, left_triangles);
+      buildTreeSAH(node->m_split.m_left, depth + 1, next(axis),
+          right_box, right_triangles);
     }
   }
 
-  void buildTreeNaive(KdTreeLinked::BuildIter iter, size_t depth, Axis axis, const Aabb& box,
+  void buildTreeNaive(KdTreeLinked::Node* node, size_t depth, Axis axis, const Aabb& box,
       const vector<const Triangle*>& triangles) {
     if (depth >= 20 || triangles.size() <= 10) {
-      iter.leaf(triangles);
+      node->m_type             = KdTreeLinked::Node::Leaf;
+      node->m_leaf.m_triangles = new vector<const Triangle*>(triangles);
     } else {
-      float d = helpers::swizzle(box.center, axis);
+      float split = helpers::swizzle(box.center, axis);
 
       Aabb left_box;
       Aabb right_box;
 
-      helpers::aabbFromSplit(box, axis, d, left_box, right_box);
+      helpers::aabbFromSplit(box, axis, split, left_box, right_box);
 
       vector<const Triangle*> left_triangles, right_triangles;
 
       intersectTest(left_box, right_box, triangles,
           left_triangles, right_triangles);
 
-      iter.split(d);
+      node->m_type             = KdTreeLinked::Node::Split;
+      node->m_split.m_axis     = axis;
+      node->m_split.m_distance = split;
+      node->m_split.m_left     = new KdTreeLinked::Node;
+      node->m_split.m_right    = new KdTreeLinked::Node;
 
-      buildTreeNaive(iter.left(), depth + 1, next(axis), left_box, left_triangles);
-      buildTreeNaive(iter.right(), depth + 1, next(axis), right_box, right_triangles);
+      buildTreeNaive(node->m_split.m_left, depth + 1, next(axis),
+          left_box, left_triangles);
+      buildTreeNaive(node->m_split.m_right, depth + 1, next(axis),
+          right_box, right_triangles);
     }
   }
 }

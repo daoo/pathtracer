@@ -49,61 +49,6 @@ namespace kdtree {
           static constexpr uint32_t TYPE_SPLIT = 1;
       };
 
-      class BuildIter {
-        public:
-          BuildIter(KdTreeArray& tree) :
-            m_tree(tree), m_index(0), m_depth(0), m_axis(X) { }
-
-          Axis axis() const { return m_axis; }
-          size_t depth() const { return m_depth; }
-
-          /**
-           * Create a split node.
-           */
-          void split(float d) {
-            setNode(Node({d}));
-          }
-
-          /**
-           * Create a leaf node.
-           */
-          void leaf(const std::vector<Triangle>& triangles) {
-            if (triangles.empty()) {
-              setNode(Node());
-            } else {
-              m_tree.m_leaf_store.push_back(std::vector<Triangle>(triangles));
-              setNode(Node(static_cast<uint32_t>(m_tree.m_leaf_store.size() - 1)));
-            }
-          }
-
-          BuildIter left()  { return BuildIter(m_tree, leftChild(m_index), m_depth + 1, next(m_axis)); }
-          BuildIter right() { return BuildIter(m_tree, rightChild(m_index), m_depth + 1, next(m_axis)); }
-
-        private:
-          KdTreeArray& m_tree;
-
-          size_t m_index;
-          size_t m_depth;
-          Axis m_axis;
-
-          BuildIter(KdTreeArray& tree, size_t index, size_t depth, Axis axis) :
-              m_tree(tree), m_index(index), m_depth(depth), m_axis(axis) { }
-
-          /**
-           * Set the current node.
-           */
-          void setNode(Node&& node) {
-            // When a build iter is created for some node, that node does not
-            // acctually exists in the underlying vector.
-
-            if (m_index >= m_tree.m_nodes.size()) {
-              m_tree.m_nodes.resize(m_index + 1);
-            }
-
-            m_tree.m_nodes.at(m_index) = node;
-          }
-      };
-
       class TraverseIter {
         public:
           TraverseIter(const KdTreeArray& tree) :

@@ -62,35 +62,6 @@ namespace kdtree {
           };
       };
 
-      class BuildIter {
-        public:
-          BuildIter(KdTreeCompact&) { }
-
-          Axis axis() {
-            throw std::string("Not implemented");
-          }
-
-          size_t depth() {
-            throw std::string("Not implemented");
-          }
-
-          void split(float) {
-            throw std::string("Not implemented");
-          }
-
-          void leaf(const std::vector<Triangle>&) {
-            throw std::string("Not implemented");
-          }
-
-          BuildIter left() {
-            throw std::string("Not implemented");
-          }
-
-          BuildIter right() {
-            throw std::string("Not implemented");
-          }
-      };
-
       class TraverseIter {
         public:
           TraverseIter(const KdTreeCompact&) { }

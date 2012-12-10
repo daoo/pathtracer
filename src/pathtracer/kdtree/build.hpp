@@ -8,13 +8,11 @@
 #include <vector>
 
 namespace kdtree {
-  void buildTreeSAH(KdTreeLinked::BuildIter iter, size_t, Axis,
-      const math::Aabb& bounding,
-      const std::vector<const Triangle*>& triangles);
+  void buildTreeSAH(KdTreeLinked::Node*, size_t, Axis,
+      const math::Aabb&, const std::vector<const Triangle*>& triangles);
 
-  void buildTreeNaive(KdTreeLinked::BuildIter iter, size_t, Axis,
-      const math::Aabb& box,
-      const std::vector<const Triangle*>& triangles);
+  void buildTreeNaive(KdTreeLinked::Node*, size_t, Axis,
+      const math::Aabb&, const std::vector<const Triangle*>& triangles);
 }
 
 #endif /* end of include guard: BUILD_HPP_BTVASI2S */

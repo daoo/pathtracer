@@ -16,7 +16,8 @@ namespace kdtree {
       ptrs.push_back(&tri);
     }
 
-    buildTreeNaive(KdTreeLinked::BuildIter(tree), 0, X, helpers::findBounding(triangles), ptrs);
+    tree.m_root = new KdTreeLinked::Node;
+    buildTreeNaive(tree.m_root, 0, X, helpers::findBounding(triangles), ptrs);
   }
 
   template <typename Tree>
