@@ -68,42 +68,12 @@ namespace kdtree {
             return *this;
           }
 
-          bool isLeaf() const {
-            return m_node->isLeaf();
-          }
-
-          bool hasTriangles() const {
-            assert(isLeaf());
-            return m_node->hasTriangles();
-          }
-
-          bool isSplit() const {
-            return m_node->isSplit();
-          }
-
-          Axis axis() const {
-            assert(isSplit());
-            return m_axis;
-          }
-
-          float split() const {
-            assert(isSplit());
-            return m_node->getDistance();
-          }
-
           TraverseIter left() const {
-            assert(isSplit());
             return TraverseIter(m_tree, leftChild(m_index), next(m_axis));
           }
 
           TraverseIter right() const {
-            assert(isSplit());
             return TraverseIter(m_tree, rightChild(m_index), next(m_axis));
-          }
-
-          const std::vector<Triangle>& triangles() const {
-            assert(isLeaf() && hasTriangles());
-            return m_tree.m_leaf_store[m_node->getIndex()];
           }
 
         private:
