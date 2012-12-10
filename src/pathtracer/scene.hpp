@@ -33,6 +33,7 @@ class Scene {
     std::vector<Camera> m_cameras;
     std::vector<Material*> m_material;
     std::vector<Texture*> m_textures;
+    std::vector<Triangle> m_triangles;
 
     kdtree::KdTree m_kdtree;
 

@@ -16,7 +16,7 @@ namespace kdtree {
 
       if (iter.isLeaf()) {
         if (iter.hasTriangles()) {
-          out << "Leaf: " << iter.triangles().size() << "\n";
+          out << "Leaf: " << iter.triangles()->size() << "\n";
         } else {
           out << "Leaf: 0\n";
         }
@@ -37,4 +37,3 @@ namespace kdtree {
 }
 
 #endif /* end of include guard: PRINT_HPP_HABMENIW */
-

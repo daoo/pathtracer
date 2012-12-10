@@ -5,22 +5,19 @@
 #include "pathtracer/kdtree/array.hpp"
 #include "pathtracer/kdtree/build.hpp"
 #include "pathtracer/kdtree/linked.hpp"
-#include "pathtracer/kdtree/sah.hpp"
 #include "pathtracer/kdtree/traverse.hpp"
 
 namespace kdtree {
-#if defined(ARRAY_TREE)
-  typedef KdTreeArray KdTree;
-#elif defined(POINTER_TREE)
   typedef KdTreeLinked KdTree;
-#else
-  typedef KdTreeArray KdTree;
-#endif
 
-  template <typename Tree>
-  void buildTree(Tree& tree, const std::vector<Triangle>& triangles) {
-    buildTreeSAH(typename Tree::BuildIter(tree),
-        helpers::findBounding(triangles), triangles);
+  inline void buildTree(KdTreeLinked& tree, const std::vector<Triangle>& triangles) {
+    std::vector<const Triangle*> ptrs;
+    for (const Triangle& tri : triangles) {
+      ptrs.push_back(&tri);
+    }
+
+    buildTreeNaive(KdTreeLinked::BuildIter(tree),
+        helpers::findBounding(triangles), ptrs);
   }
 
   template <typename Tree>

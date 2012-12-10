@@ -85,9 +85,8 @@ namespace {
 Scene::Scene(const OBJModel& model) {
   assert(!model.m_cameras.empty());
 
-  vector<Triangle> triangles;
-  buildFromObj(model, m_lights, m_cameras, m_material, m_textures, triangles);
-  kdtree::buildTree(m_kdtree, triangles);
+  buildFromObj(model, m_lights, m_cameras, m_material, m_textures, m_triangles);
+  kdtree::buildTree(m_kdtree, m_triangles);
 }
 
 Scene::~Scene() { }

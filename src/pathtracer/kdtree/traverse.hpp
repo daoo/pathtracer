@@ -6,6 +6,8 @@
 #include "pathtracer/kdtree/util.hpp"
 #include "pathtracer/triangle.hpp"
 
+#include <iostream>
+
 namespace kdtree {
   template <typename Tree>
   bool searchTree(const Tree& tree, math::Ray& ray, Intersection& isect) {
@@ -20,8 +22,8 @@ namespace kdtree {
       if (iter.isLeaf()) {
         bool hit = false;
         if (iter.hasTriangles()) {
-          for (const Triangle& tri : iter.triangles()) {
-            hit |= intersects(tri, ray, isect);
+          for (const Triangle* tri : *iter.triangles()) {
+            hit |= intersects(*tri, ray, isect);
           }
         }
 

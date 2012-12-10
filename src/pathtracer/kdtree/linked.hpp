@@ -36,7 +36,7 @@ namespace kdtree {
           };
 
           struct LeafNode {
-            std::vector<Triangle>* m_triangles;
+            std::vector<const Triangle*>* m_triangles;
           };
 
           NodeType m_type;
@@ -66,12 +66,12 @@ namespace kdtree {
             m_node->m_split.m_distance = d;
           }
 
-          void leaf(const std::vector<Triangle>& triangles) {
+          void leaf(const std::vector<const Triangle*>& triangles) {
             m_node->m_type = Node::Leaf;
 
             m_node->m_leaf.m_triangles = triangles.empty()
               ? nullptr
-              : new std::vector<Triangle>(triangles);
+              : new std::vector<const Triangle*>(triangles);
           }
 
           BuildIter left() {
@@ -108,10 +108,10 @@ namespace kdtree {
             return m_node->m_leaf.m_triangles != nullptr;
           }
 
-          const std::vector<Triangle>& triangles() const {
+          const std::vector<const Triangle*>* triangles() const {
             assert(isLeaf());
-            assert(m_node->m_leaf.m_triangles != nullptr);
-            return *m_node->m_leaf.m_triangles;
+            assert(hasTriangles());
+            return m_node->m_leaf.m_triangles;
           }
 
           bool isSplit() const {
