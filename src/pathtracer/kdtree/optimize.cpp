@@ -34,12 +34,12 @@ namespace kdtree {
         KdTreeLinked::Node* left = node->m_split.m_left;
         KdTreeLinked::Node* right = node->m_split.m_right;
 
-        /*bool equalChildren = true;
+        bool equalChildren = true;
         if (left->isLeaf() && right->isLeaf() &&
             left->hasTriangles() && right->hasTriangles() &&
             left->triangles()->size() == right->triangles()->size()) {
           auto itl = left->triangles()->cbegin();
-          auto itr = right->triangle()->cbegin();
+          auto itr = right->triangles()->cbegin();
 
           while (itl < left->triangles()->cend()) {
             if (*itl != *itr) {
@@ -54,12 +54,13 @@ namespace kdtree {
         }
 
         if (equalChildren) {
-          size_t i = static_cast<uint32_t>(result.m_leaf_store.size());
-          result.m_leaf_store.push_back(std::vector<Triangle>(left->triangles()));
-          set(reselt.m_nodes, index, Node(i));
-        } else {*/
+          uint32_t i = static_cast<uint32_t>(result.m_leaf_store.size());
+          result.m_leaf_store.push_back(vector<Triangle>());
+          copy(result.m_leaf_store[i], *node->triangles());
+          set(result.m_nodes, index, KdTreeArray::Node(i));
+        } else {
           set(result.m_nodes, index, KdTreeArray::Node(node->m_split.m_distance));
-        //}
+        }
 
         helper(result, KdTreeArray::leftChild(index), left);
         helper(result, KdTreeArray::rightChild(index), right);
