@@ -19,8 +19,6 @@ namespace kdtree {
     if (iter.depth() >= 20 || triangles.size() <= 10) {
       iter.leaf(triangles);
     } else {
-      glm::vec3 offset(0, 0, 0);
-
       float d = helpers::swizzle(bounding.center, iter.axis());
 
       math::Aabb left_bounding;

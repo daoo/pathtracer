@@ -53,6 +53,8 @@ namespace kdtree {
         }
       }
 
+      assert(leftTriangles.size() + rightTriangles.size() >= triangles.size());
+
       leftTriangles.shrink_to_fit();
       rightTriangles.shrink_to_fit();
     }
