@@ -22,8 +22,8 @@ namespace kdtree {
       if (iter.isLeaf()) {
         bool hit = false;
         if (iter.hasTriangles()) {
-          for (const Triangle* tri : *iter.triangles()) {
-            hit |= intersects(*tri, ray, isect);
+          for (const Triangle& tri : iter.triangles()) {
+            hit |= intersects(tri, ray, isect);
           }
         }
 
