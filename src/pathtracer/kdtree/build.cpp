@@ -152,6 +152,8 @@ namespace kdtree {
       cost  = FLT_MAX;
       split = 0;
       for (const Triangle* triangle : triangles) {
+        assert(triangle != nullptr);
+
         float min, max;
         triangleExtremes(*triangle, axis, min, max);
         min -= EPSILON;
