@@ -16,12 +16,12 @@ namespace kdtree {
     Axis axis = X;
 
     while (true) {
-      const KdTreeArray::Node* node = &tree.m_nodes[index];
+      const KdTreeArray::Node& node = tree.m_nodes[index];
 
-      if (node->isLeaf()) {
+      if (node.isLeaf()) {
         bool hit = false;
-        if (node->hasTriangles()) {
-          for (const Triangle& tri : tree.m_leaf_store[node->getIndex()]) {
+        if (node.hasTriangles()) {
+          for (const Triangle& tri : tree.m_leaf_store[node.getIndex()]) {
             hit |= intersects(tri, ray, isect);
           }
         }
@@ -34,31 +34,31 @@ namespace kdtree {
           index = 0;
           axis  = X;
 
-          mint  = maxt;
-          maxt  = initial_maxt;
+          mint = maxt;
+          maxt = initial_maxt;
         }
-      } else if (node->isSplit()) {
-        float p = node->getDistance();
+      } else {
+        float p = node.getDistance();
 
         float o = swizzle(ray.origin, axis);
         float d = swizzle(ray.direction, axis);
 
         float t = (p - o) / d;
 
-        size_t first = KdTreeArray::leftChild(index);
-        size_t second = KdTreeArray::rightChild(index);
-        order(d, first, second);
+        size_t first  = d >= 0 ? KdTreeArray::leftChild(index) : KdTreeArray::rightChild(index);
+        size_t second = d >= 0 ? KdTreeArray::rightChild(index) : KdTreeArray::leftChild(index);
 
         if (t >= maxt) {
+          axis  = nextAxis(axis);
           index = first;
         } else if (t <= mint) {
+          axis  = nextAxis(axis);
           index = second;
         } else {
+          axis  = nextAxis(axis);
           index = first;
           maxt  = t;
         }
-
-        axis = KdTreeArray::next(axis);
       }
     }
 

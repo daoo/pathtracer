@@ -69,11 +69,11 @@ namespace kdtree {
           }
 
           TraverseIter left() const {
-            return TraverseIter(m_tree, leftChild(m_index), next(m_axis));
+            return TraverseIter(m_tree, leftChild(m_index), nextAxis(m_axis));
           }
 
           TraverseIter right() const {
-            return TraverseIter(m_tree, rightChild(m_index), next(m_axis));
+            return TraverseIter(m_tree, rightChild(m_index), nextAxis(m_axis));
           }
 
         private:
@@ -86,10 +86,6 @@ namespace kdtree {
               m_tree(tree), m_node(&m_tree.m_nodes[index]), m_index(index),
               m_axis(axis) { }
       };
-
-      static Axis next(Axis axis) {
-        return static_cast<Axis>((static_cast<size_t>(axis) + 1) % 3);
-      }
 
       static size_t leftChild(size_t index) {
         return (index << 1) + 1;

@@ -8,6 +8,8 @@
 #include <vector>
 
 namespace kdtree {
+  math::Aabb findBounding(const std::vector<Triangle>&);
+
   void buildTreeSAH(KdTreeLinked::Node*, size_t, Axis,
       const math::Aabb&, const std::vector<const Triangle*>& triangles);
 

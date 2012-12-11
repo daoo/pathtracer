@@ -24,8 +24,8 @@ namespace kdtree {
         }
       } else if (node.isSplit()) {
         out << "Split: " << label << ", " << AXIS[axis] << ", " << node.getDistance() << "\n";
-        helper(out, "left", tree, KdTreeArray::leftChild(index), KdTreeArray::next(axis), depth + 1);
-        helper(out, "right", tree, KdTreeArray::rightChild(index), KdTreeArray::next(axis), depth + 1);
+        helper(out, "left", tree, KdTreeArray::leftChild(index), nextAxis(axis), depth + 1);
+        helper(out, "right", tree, KdTreeArray::rightChild(index), nextAxis(axis), depth + 1);
       } else {
         assert(false && "Node not leaf or split");
       }
