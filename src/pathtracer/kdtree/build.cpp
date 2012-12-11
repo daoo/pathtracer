@@ -68,6 +68,7 @@ namespace kdtree {
       }
     }
 
+    constexpr float EPSILON        = 0.00001f;
     constexpr float COST_TRAVERSE  = 0.3f;
     constexpr float COST_INTERSECT = 1.0f;
 
@@ -153,6 +154,8 @@ namespace kdtree {
       for (const Triangle* triangle : triangles) {
         float min, max;
         triangleExtremes(*triangle, axis, min, max);
+        min -= EPSILON;
+        max += EPSILON;
 
         best(box, axis, min, triangles, cost, split, leftBox, rightBox,
             leftTriangles, rightTriangles);
