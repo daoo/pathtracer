@@ -1,0 +1,29 @@
+newlight Light01
+	lightposition 4.0 7.0 6.0
+	lightcolor 1.0 1.0 1.0
+	lightradius 100.0
+	lightintensity 20.0
+
+newlight Light02
+	lightposition -10.0 10.0 0.0
+	lightcolor 1.0 1.0 1.0
+	lightradius 1.0
+	lightintensity 20.0
+
+newcamera Camera01
+	cameraposition 13.0 10.0 7.0
+	cameratarget 0.0 0.0 0.0
+	cameraup 0.0 1.0 0.0
+	camerafov 45.0
+
+newmtl White
+	diffuseReflectance 1.0 1.0 1.0
+	specularReflectance 1.0 1.0 1.0
+	reflat0deg 0.3
+	reflAt90Deg 1.0
+	indexOfRefraction 1.55
+	transparency 0.0
+	specularroughness 0.0001
+
+newmtl Red
+	diffuseReflectance 1.0 0.0 0.0
