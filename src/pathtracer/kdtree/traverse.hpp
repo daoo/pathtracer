@@ -40,14 +40,14 @@ namespace kdtree {
       } else if (node->isSplit()) {
         float p = node->getDistance();
 
-        float o = helpers::swizzle(ray.origin, axis);
-        float d = helpers::swizzle(ray.direction, axis);
+        float o = swizzle(ray.origin, axis);
+        float d = swizzle(ray.direction, axis);
 
         float t = (p - o) / d;
 
         size_t first = KdTreeArray::leftChild(index);
         size_t second = KdTreeArray::rightChild(index);
-        helpers::order(d, first, second);
+        order(d, first, second);
 
         if (t >= maxt) {
           index = first;

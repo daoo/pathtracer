@@ -19,7 +19,7 @@ namespace kdtree {
 
     KdTreeLinked tmp;
     tmp.m_root = new KdTreeLinked::Node;
-    buildTreeNaive(tmp.m_root, 0, X, helpers::findBounding(triangles), ptrs);
+    buildTreeNaive(tmp.m_root, 0, X, findBounding(triangles), ptrs);
 
     optimize(tree, tmp);
   }

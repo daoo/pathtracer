@@ -66,7 +66,7 @@ namespace kdtree {
         vector<const Triangle*>& bestLeftTriangles,
         vector<const Triangle*>& bestRightTriangles) {
       Aabb left_box, right_box;
-      helpers::aabbFromSplit(box, axis, split, left_box, right_box);
+      aabbFromSplit(box, axis, split, left_box, right_box);
 
       vector<const Triangle*> left_triangles, right_triangles;
       intersectTest(left_box, right_box, triangles,
@@ -96,7 +96,7 @@ namespace kdtree {
       split = 0;
       for (const Triangle* triangle : triangles) {
         float min, max;
-        helpers::triangleExtremes(*triangle, axis, min, max);
+        triangleExtremes(*triangle, axis, min, max);
 
         best(box, axis, min, triangles, cost, split, leftBox, rightBox,
             leftTriangles, rightTriangles);
@@ -142,12 +142,12 @@ namespace kdtree {
       node->m_type             = KdTreeLinked::Node::Leaf;
       node->m_leaf.m_triangles = new vector<const Triangle*>(triangles);
     } else {
-      float split = helpers::swizzle(box.center, axis);
+      float split = swizzle(box.center, axis);
 
       Aabb left_box;
       Aabb right_box;
 
-      helpers::aabbFromSplit(box, axis, split, left_box, right_box);
+      aabbFromSplit(box, axis, split, left_box, right_box);
 
       vector<const Triangle*> left_triangles, right_triangles;
 
