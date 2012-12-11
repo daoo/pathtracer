@@ -39,9 +39,18 @@ namespace kdtree {
         }
       } else {
         float p = node.getDistance();
-
-        float o = swizzle(ray.origin, axis);
-        float d = swizzle(ray.direction, axis);
+        float o, d;
+        if (axis == X) {
+          o = ray.origin.x;
+          d = ray.direction.x;
+        } else if (axis == Y) {
+          o = ray.origin.y;
+          d = ray.direction.y;
+        } else {
+          assert(axis == Z);
+          o = ray.origin.z;
+          d = ray.direction.z;
+        }
 
         float t = (p - o) / d;
 
