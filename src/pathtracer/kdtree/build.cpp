@@ -190,7 +190,7 @@ namespace kdtree {
     findSplit(box, axis, triangles, cost, split,
         left_box, right_box, left_triangles, right_triangles);
 
-    if (depth > 20 || cost > COST_INTERSECT * triangles.size()) {
+    if (depth >= 20 || cost > COST_INTERSECT * triangles.size()) {
       node->m_type             = KdTreeLinked::Node::Leaf;
       node->m_leaf.m_triangles = new vector<const Triangle*>(triangles);
     } else {
