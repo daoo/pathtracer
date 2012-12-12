@@ -26,12 +26,6 @@ glm::vec3 Le(const Light&, const glm::vec3&);
  * a better way.
  */
 inline glm::vec3 sample(const Light& light) {
-  //glm::vec3 p(2.0f, 0.0f, 0.0f);
-  //while (glm::length(p) > 1.0) {
-    //p = 2.0f * glm::vec3(randf(), randf(), randf()) - glm::one<glm::vec3>();
-  //}
-  //return light.m_radius * p + light.m_position;
-
   return light.m_position + glm::sphericalRand(light.m_radius);
 }
 
