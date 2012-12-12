@@ -11,97 +11,80 @@
 #include <vector>
 
 namespace kdtree {
-  class KdTreeArray {
-    public:
-      KdTreeArray() : m_nodes(), m_leaf_store() { }
-      ~KdTreeArray() { }
+  struct KdTreeArray {
+    struct Node {
+      Node() : m_data(EMPTY_LEAF) { }
+      Node(uint32_t index) : m_data((index << 1) & MASK_DATA) { }
+      Node(float distance) : m_distance(distance) { m_data |= MASK_TYPE; }
 
-      class Node {
-        public:
-          enum NodeType { Split, Leaf };
+      enum NodeType { Split, Leaf };
 
-          ~Node() { }
-
-          Node() : m_data(EMPTY_LEAF) { }
-          Node(uint32_t index) : m_data((index << 1) & MASK_DATA) { }
-          Node(float distance) : m_distance(distance) { m_data |= MASK_TYPE; }
-
-          bool isLeaf() const { return (m_data & MASK_TYPE) == TYPE_LEAF; }
-          bool isSplit() const { return (m_data & MASK_TYPE) == TYPE_SPLIT; }
-
-          uint32_t getIndex() const { return m_data >> 1; }
-          float getDistance() const { return m_distance; }
-
-          bool hasTriangles() const { return m_data != EMPTY_LEAF; }
-
-        private:
-          union {
-            uint32_t m_data;
-            float m_distance;
-          };
-
-          static constexpr uint32_t MASK_TYPE = 0x1;
-          static constexpr uint32_t MASK_DATA = ~MASK_TYPE;
-
-          static constexpr uint32_t EMPTY_LEAF = std::numeric_limits<uint32_t>::max() & MASK_DATA;
-
-          static constexpr uint32_t TYPE_LEAF = 0;
-          static constexpr uint32_t TYPE_SPLIT = 1;
+      union {
+        uint32_t m_data;
+        float m_distance;
       };
 
-      class TraverseIter {
-        public:
-          TraverseIter(const KdTreeArray& tree) :
-            m_tree(tree), m_node(&tree.m_nodes[0]), m_index(0),
-            m_axis(X) { }
+      static constexpr uint32_t MASK_TYPE = 0x1;
+      static constexpr uint32_t MASK_DATA = ~MASK_TYPE;
 
-          TraverseIter& operator=(const TraverseIter& iter) {
-            assert(this != &iter);
+      static constexpr uint32_t EMPTY_LEAF =
+        std::numeric_limits<uint32_t>::max() & MASK_DATA;
 
-            // We do not allow an iterator to change the tree it iterates
-            assert(&m_tree == &iter.m_tree);
+      static constexpr uint32_t TYPE_LEAF = 0;
+      static constexpr uint32_t TYPE_SPLIT = 1;
+    };
 
-            m_node  = iter.m_node;
-            m_index = iter.m_index;
-            m_axis  = iter.m_axis;
+    static size_t leftChild(size_t index) {
+      return (index << 1) + 1;
+    }
 
-            return *this;
-          }
+    static size_t rightChild(size_t index) {
+      return (index << 1) + 2;
+    }
 
-          TraverseIter left() const {
-            return TraverseIter(m_tree, leftChild(m_index), nextAxis(m_axis));
-          }
-
-          TraverseIter right() const {
-            return TraverseIter(m_tree, rightChild(m_index), nextAxis(m_axis));
-          }
-
-        private:
-          const KdTreeArray& m_tree;
-          const Node* m_node;
-          size_t m_index;
-          Axis m_axis;
-
-          TraverseIter(const KdTreeArray& tree, size_t index, Axis axis) :
-              m_tree(tree), m_node(&m_tree.m_nodes[index]), m_index(index),
-              m_axis(axis) { }
-      };
-
-      static size_t leftChild(size_t index) {
-        return (index << 1) + 1;
-      }
-
-      static size_t rightChild(size_t index) {
-        return (index << 1) + 2;
-      }
-
-      std::vector<Node> m_nodes;
-      std::vector<std::vector<Triangle>> m_leaf_store;
-
-    private:
-      KdTreeArray(const KdTreeArray&);
-      KdTreeArray& operator=(const KdTreeArray&);
+    std::vector<Node> m_nodes;
+    std::vector<std::vector<Triangle>> m_leaf_store;
   };
+
+  bool isLeaf(const KdTreeArray::Node& node);
+  bool hasTriangles(const KdTreeArray::Node& node);
+  const std::vector<Triangle>& getTriangles(
+      const KdTreeArray& tree, const KdTreeArray::Node& node);
+  bool isSplit(const KdTreeArray::Node& node);
+  uint32_t getIndex(const KdTreeArray::Node& node);
+  float getSplit(const KdTreeArray::Node& node);
+
+
+  inline bool isLeaf(const KdTreeArray::Node& node) {
+    return (node.m_data & KdTreeArray::Node::MASK_TYPE) ==
+      KdTreeArray::Node::TYPE_LEAF;
+  }
+
+  inline bool hasTriangles(const KdTreeArray::Node& node) {
+    assert(isLeaf(node));
+    return node.m_data != KdTreeArray::Node::EMPTY_LEAF;
+  }
+
+  inline uint32_t getIndex(const KdTreeArray::Node& node) {
+    assert(isLeaf(node));
+    return node.m_data >> 1;
+  }
+
+  inline const std::vector<Triangle>& getTriangles(
+      const KdTreeArray& tree, const KdTreeArray::Node& node) {
+    assert(isLeaf(node));
+    return tree.m_leaf_store[getIndex(node)];
+  }
+
+  inline bool isSplit(const KdTreeArray::Node& node) {
+    return (node.m_data & KdTreeArray::Node::MASK_TYPE) ==
+      KdTreeArray::Node::TYPE_SPLIT;
+  }
+
+  inline float getSplit(const KdTreeArray::Node& node) {
+    assert(isSplit(node));
+    return node.m_distance;
+  }
 }
 
 #endif /* end of include guard: ARRAY_HPP_BBXOECNY */

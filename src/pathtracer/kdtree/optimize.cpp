@@ -24,17 +24,17 @@ namespace kdtree {
     void helper(KdTreeArray& result, size_t index, KdTreeLinked::Node* node) {
       assert(node != nullptr);
 
-      if (node->isLeaf()) {
-        if (node->hasTriangles()) {
+      if (isLeaf(*node)) {
+        if (hasTriangles(*node)) {
           uint32_t i = static_cast<uint32_t>(result.m_leaf_store.size());
           result.m_leaf_store.push_back(vector<Triangle>());
-          copy(result.m_leaf_store[i], *node->triangles());
+          copy(result.m_leaf_store[i], getTriangles(*node));
           set(result.m_nodes, index, KdTreeArray::Node(i));
         } else {
           set(result.m_nodes, index, KdTreeArray::Node());
         }
       } else {
-        assert(node->isSplit());
+        assert(isSplit(*node));
 
         KdTreeLinked::Node* left  = node->m_split.m_left;
         KdTreeLinked::Node* right = node->m_split.m_right;

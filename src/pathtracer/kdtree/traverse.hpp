@@ -17,12 +17,14 @@ namespace kdtree {
     Axis axis = X;
 
     while (true) {
+      assert(index < tree.m_nodes.size());
+
       const KdTreeArray::Node& node = tree.m_nodes[index];
 
-      if (node.isLeaf()) {
+      if (isLeaf(node)) {
         bool hit = false;
-        if (node.hasTriangles()) {
-          for (const Triangle& tri : tree.m_leaf_store[node.getIndex()]) {
+        if (hasTriangles(node)) {
+          for (const Triangle& tri : getTriangles(tree, node)) {
             hit |= intersects(tri, ray, isect);
           }
         }
@@ -39,7 +41,7 @@ namespace kdtree {
           maxt = initial_maxt;
         }
       } else {
-        float p = node.getDistance();
+        float p = getSplit(node);
         float o, d;
         if (axis == X) {
           o = ray.origin.x;
