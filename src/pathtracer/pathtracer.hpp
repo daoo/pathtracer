@@ -16,9 +16,6 @@ class Pathtracer {
 
     void tracePrimaryRays(FastRand&, util::SampleBuffer&);
 
-    glm::vec3 Li(FastRand&, const math::Ray&, const Intersection&);
-    glm::vec3 Lenvironment(const math::Ray&);
-
   private:
     const Scene& m_scene;
     float m_fwidth, m_fheight;
@@ -26,6 +23,9 @@ class Pathtracer {
     glm::vec3 m_camera_pos;
     glm::vec3 m_min_d;
     glm::vec3 m_dx, m_dy;
+
+    glm::vec3 incomingLight(FastRand&, const math::Ray&, const Intersection&);
+    glm::vec3 environmentLight(const math::Ray&);
 };
 
 #endif /* end of include guard: PATHTRACER_HPP_NVGMZUSY */

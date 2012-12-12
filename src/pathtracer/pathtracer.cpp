@@ -51,15 +51,18 @@ void Pathtracer::tracePrimaryRays(FastRand& rand, util::SampleBuffer& buffer) {
           (static_cast<float>(y) + rand()) / fh
       );
 
-      Ray primaryRay(m_camera_pos,
-          normalize(m_min_d + screenCoord.x * m_dx + screenCoord.y * m_dy),
-          0.0f, FLT_MAX);
+      Ray primaryRay
+        { m_camera_pos
+        , normalize(m_min_d + screenCoord.x * m_dx + screenCoord.y * m_dy)
+        , 0.0f
+        , FLT_MAX
+        };
 
       Intersection isect;
       if (m_scene.allIntersection(primaryRay, isect)) {
-        buffer.add(x, y, Li(rand, primaryRay, isect));
+        buffer.add(x, y, incomingLight(rand, primaryRay, isect));
       } else {
-        buffer.add(x, y, Lenvironment(primaryRay));
+        buffer.add(x, y, environmentLight(primaryRay));
       }
     }
   }
@@ -67,7 +70,10 @@ void Pathtracer::tracePrimaryRays(FastRand& rand, util::SampleBuffer& buffer) {
   buffer.increaseSamples();
 }
 
-vec3 Pathtracer::Li(FastRand& rand, const Ray& primaryRay, const Intersection& primaryIsect) {
+vec3 Pathtracer::incomingLight(
+    FastRand& rand,
+    const Ray& primaryRay,
+    const Intersection& primaryIsect) {
   vec3 L       = zero<vec3>();
   vec3 path_tp = one<vec3>();
 
@@ -85,7 +91,13 @@ vec3 Pathtracer::Li(FastRand& rand, const Ray& primaryRay, const Intersection& p
       const vec3 lightSamplePos   = lightSample(light);
       const vec3 directionToLight = lightSamplePos - isectPosition;
 
-      const Ray shadow_ray(isectPosition, directionToLight, 0.0f, 1.0f);
+      const Ray shadow_ray
+        { isectPosition
+        , directionToLight
+        , 0.0f
+        , 1.0f
+        };
+
       if (!m_scene.anyIntersection(shadow_ray)) {
         const vec3 wo = normalize(directionToLight);
         const vec3 li = lightEmitted(light, isect.m_position);
@@ -110,13 +122,13 @@ vec3 Pathtracer::Li(FastRand& rand, const Ray& primaryRay, const Intersection& p
     }
 
     if (dot(wo, isect.m_normal) >= 0) {
-      current_ray = Ray(isect.m_position + offsetInNormalDir, wo, 0.0f, FLT_MAX);
+      current_ray = Ray { isect.m_position + offsetInNormalDir, wo, 0.0f, FLT_MAX };
     } else {
-      current_ray = Ray(isect.m_position - offsetInNormalDir, wo, 0.0f, FLT_MAX);
+      current_ray = Ray { isect.m_position - offsetInNormalDir, wo, 0.0f, FLT_MAX };
     }
 
     if (!m_scene.allIntersection(current_ray, isect)) {
-      return L + path_tp * Lenvironment(current_ray);
+      return L + path_tp * environmentLight(current_ray);
     }
   }
 
@@ -125,6 +137,6 @@ vec3 Pathtracer::Li(FastRand& rand, const Ray& primaryRay, const Intersection& p
 
 // -----------------------------------------------------------------------
 // Evaluate the outgoing radiance from the environment
-vec3 Pathtracer::Lenvironment(const Ray&) {
+vec3 Pathtracer::environmentLight(const Ray&) {
   return vec3(0.8f, 0.8f, 0.8f);
 }
