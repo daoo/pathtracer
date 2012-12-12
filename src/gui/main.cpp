@@ -168,7 +168,7 @@ void handleKeys(unsigned char key, int, int)
 
 int main(int argc, char *argv[])
 {
-  if (argc >= 2) {
+  if (argc >= 3) {
     try {
       glutInit(&argc, argv);
       glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
