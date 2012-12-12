@@ -7,7 +7,8 @@
 using namespace std::chrono;
 using namespace std;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
   typedef high_resolution_clock clock;
   typedef clock::duration time;
 

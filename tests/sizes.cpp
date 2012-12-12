@@ -6,7 +6,8 @@
 using namespace kdtree;
 using namespace std;
 
-int main() {
+int main()
+{
   cout << "KdTreeLinked::Node\t\t"  << sizeof(KdTreeLinked::Node)  << " bytes\n";
   cout << "KdTreeArray::Node\t\t"   << sizeof(KdTreeArray::Node)   << " bytes\n";
 
