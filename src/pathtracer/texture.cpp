@@ -7,8 +7,8 @@
 using namespace glm;
 using namespace std;
 
-void Texture::load(const string& filename) {
-  FIBITMAP *bitmap = FreeImage_Load(FIF_PNG, filename.c_str());
+Texture textureLoad(Texture& texture, const string& filename) {
+  FIBITMAP* bitmap = FreeImage_Load(FIF_PNG, filename.c_str());
 
   if (!bitmap) {
     cout << "Failed to load texture " << filename << endl;
@@ -17,27 +17,28 @@ void Texture::load(const string& filename) {
   FIBITMAP *rgbabitmap = FreeImage_ConvertTo32Bits(bitmap);
   FreeImage_Unload(bitmap);
 
-  m_width  = FreeImage_GetWidth(rgbabitmap);
-  m_height = FreeImage_GetHeight(rgbabitmap);
+  texture.m_width  = FreeImage_GetWidth(rgbabitmap);
+  texture.m_height = FreeImage_GetHeight(rgbabitmap);
 
   //int scan_width = FreeImage_GetPitch(rgbabitmap);
   //BYTE* data     = new BYTE[m_height*scan_width];
 
-  if (m_image != NULL) delete[] m_image;
+  texture.m_image.reserve(texture.m_width * texture.m_height);
 
-  m_image     = new vec3[m_width * m_height];
-  int bytespp = FreeImage_GetLine(rgbabitmap) / FreeImage_GetWidth(rgbabitmap);
-
-  for (int y = 0; y<m_height; y++){
+  size_t bytespp = FreeImage_GetLine(rgbabitmap) / FreeImage_GetWidth(rgbabitmap);
+  for (size_t y = 0; y < texture.m_height; ++y){
     BYTE* bits = FreeImage_GetScanLine(rgbabitmap, y);
-    for (int x = 0; x<m_width; x++){
-      m_image[y*m_width+x].x = float(bits[FI_RGBA_RED])/255.0f;
-      m_image[y*m_width+x].y = float(bits[FI_RGBA_GREEN])/255.0f;
-      m_image[y*m_width+x].z = float(bits[FI_RGBA_BLUE])/255.0f;
+    for (size_t x = 0; x < texture.m_width; ++x){
+      size_t i = y * texture.m_width + x;
+      texture.m_image[i].x = static_cast<float>(bits[FI_RGBA_RED])   / 255.0f;
+      texture.m_image[i].y = static_cast<float>(bits[FI_RGBA_GREEN]) / 255.0f;
+      texture.m_image[i].z = static_cast<float>(bits[FI_RGBA_BLUE])  / 255.0f;
       bits += bytespp;
     }
   }
 
   FreeImage_Unload(rgbabitmap);
+
+  return texture;
 }
 

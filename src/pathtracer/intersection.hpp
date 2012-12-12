@@ -1,9 +1,9 @@
 #ifndef INTERSECTION_HPP_B7YTSMBV
 #define INTERSECTION_HPP_B7YTSMBV
 
-#include <glm/glm.hpp>
+#include "pathtracer/material.hpp"
 
-class Material;
+#include <glm/glm.hpp>
 
 struct Intersection {
   glm::vec3 m_position;

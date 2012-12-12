@@ -80,15 +80,15 @@ vec3 Pathtracer::Li(FastRand& rand, const Ray& primaryRay, const Intersection& p
 
     const vec3 offsetInNormalDir = PT_EPSILON * isect.m_normal;
 
-    for (const Light& light : m_scene.lights()) {
+    for (const SphereLight& light : m_scene.lights()) {
       const vec3 isectPosition    = isect.m_position + offsetInNormalDir;
-      const vec3 lightSamplePos   = sample(light);
+      const vec3 lightSamplePos   = lightSample(light);
       const vec3 directionToLight = lightSamplePos - isectPosition;
 
       const Ray shadow_ray(isectPosition, directionToLight, 0.0f, 1.0f);
       if (!m_scene.anyIntersection(shadow_ray)) {
         const vec3 wo = normalize(directionToLight);
-        const vec3 li = Le(light, isect.m_position);
+        const vec3 li = lightEmitted(light, isect.m_position);
 
         L += path_tp * mat->f(wi, wo, isect.m_normal) * li * abs(dot(wo, isect.m_normal));
       }
@@ -125,9 +125,6 @@ vec3 Pathtracer::Li(FastRand& rand, const Ray& primaryRay, const Intersection& p
 
 // -----------------------------------------------------------------------
 // Evaluate the outgoing radiance from the environment
-vec3 Pathtracer::Lenvironment(const Ray& ray) {
-  if (ray.direction.y > 0.0)
-    return vec3(0.5f, 0.6f, 0.7f);
-  else
-    return vec3(0.05f, 0.025f, 0.001f);
+vec3 Pathtracer::Lenvironment(const Ray&) {
+  return vec3(0.8f, 0.8f, 0.8f);
 }

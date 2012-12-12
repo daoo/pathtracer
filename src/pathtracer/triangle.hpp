@@ -6,13 +6,12 @@
 #include "math/ray.hpp"
 #include <glm/glm.hpp>
 
-class Triangle {
-  public:
-    glm::vec3 v0, v1, v2;
-    glm::vec3 n0, n1, n2;
-    glm::vec2 uv0, uv1, uv2;
+struct Triangle {
+  glm::vec3 v0, v1, v2;
+  glm::vec3 n0, n1, n2;
+  glm::vec2 uv0, uv1, uv2;
 
-    const Material* m_material;
+  const Material* m_material;
 };
 
 bool intersects(const Triangle& tri, math::Ray& r, Intersection& i);

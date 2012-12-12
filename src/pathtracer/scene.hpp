@@ -20,7 +20,7 @@ class Scene {
       return m_cameras;
     }
 
-    const std::vector<Light>& lights() const {
+    const std::vector<SphereLight>& lights() const {
       return m_lights;
     }
 
@@ -29,7 +29,7 @@ class Scene {
     }
 
   private:
-    std::vector<Light> m_lights;
+    std::vector<SphereLight> m_lights;
     std::vector<Camera> m_cameras;
     std::vector<Material*> m_material;
     std::vector<Texture*> m_textures;

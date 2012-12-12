@@ -7,7 +7,7 @@ using namespace std;
 
 namespace {
   void buildFromObj(const OBJModel& model,
-      vector<Light>& lights, vector<Camera>& cameras,
+      vector<SphereLight>& lights, vector<Camera>& cameras,
       vector<Material*>& materials, vector<Texture*> textures,
       vector<Triangle>& triangles) {
     for (auto kv : model.m_lights) {
@@ -33,7 +33,7 @@ namespace {
       Texture* reflectanceMap = nullptr;
       if (!chunk.material->diffuseReflectanceMap.empty()) {
         reflectanceMap = new Texture;
-        reflectanceMap->load(chunk.material->diffuseReflectanceMap);
+        textureLoad(*reflectanceMap, chunk.material->diffuseReflectanceMap);
       }
       DiffuseMaterial* diffuse =
         new DiffuseMaterial(chunk.material->diffuseReflectance, reflectanceMap);
