@@ -8,7 +8,8 @@
 #include "math/ray.hpp"
 #include "objmodel.hpp"
 
-class Scene {
+class Scene
+{
   public:
     Scene(const OBJModel& model);
     ~Scene();
@@ -16,15 +17,18 @@ class Scene {
     bool allIntersection(math::Ray& r, Intersection& isect) const;
     bool anyIntersection(const math::Ray& r) const;
 
-    const std::vector<Camera>& cameras() const {
+    const std::vector<Camera>& cameras() const
+    {
       return m_cameras;
     }
 
-    const std::vector<SphereLight>& lights() const {
+    const std::vector<SphereLight>& lights() const
+    {
       return m_lights;
     }
 
-    const kdtree::KdTree& kdtree() const {
+    const kdtree::KdTree& kdtree() const
+    {
       return m_kdtree;
     }
 

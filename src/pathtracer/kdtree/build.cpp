@@ -8,10 +8,13 @@ using namespace glm;
 using namespace math;
 using namespace std;
 
-namespace kdtree {
-  namespace {
+namespace kdtree
+{
+  namespace
+  {
     inline void triangleExtremes(const Triangle& tri, Axis axis,
-        float& min, float& max) {
+        float& min, float& max)
+    {
       float a = swizzle(tri.v0, axis);
       float b = swizzle(tri.v1, axis);
       float c = swizzle(tri.v2, axis);
@@ -21,7 +24,8 @@ namespace kdtree {
     }
 
     void aabbFromSplit(const math::Aabb& box,
-        Axis axis, float split, math::Aabb& left, math::Aabb& right) {
+        Axis axis, float split, math::Aabb& left, math::Aabb& right)
+    {
       constexpr float EPSILON = 0.000001f;
 
       left  = box;
@@ -76,7 +80,8 @@ namespace kdtree {
         const Aabb& leftBox,
         const Aabb& rightBox,
         const vector<const Triangle*>& leftTriangles,
-        const vector<const Triangle*>& rightTriangles) {
+        const vector<const Triangle*>& rightTriangles)
+    {
       float area = surfaceArea(box);
 
       float left_area  = surfaceArea(leftBox);
@@ -96,7 +101,8 @@ namespace kdtree {
         const Aabb& rightBox,
         const vector<const Triangle*>& triangles,
         vector<const Triangle*>& leftTriangles,
-        vector<const Triangle*>& rightTriangles) {
+        vector<const Triangle*>& rightTriangles)
+    {
 
       leftTriangles.reserve(triangles.size());
       rightTriangles.reserve(triangles.size());
@@ -121,7 +127,8 @@ namespace kdtree {
         float& bestCost, float& bestSplit,
         Aabb& bestLeftBox, Aabb& bestRightBox,
         vector<const Triangle*>& bestLeftTriangles,
-        vector<const Triangle*>& bestRightTriangles) {
+        vector<const Triangle*>& bestRightTriangles)
+    {
       Aabb left_box, right_box;
       aabbFromSplit(box, axis, split, left_box, right_box);
 
@@ -148,7 +155,8 @@ namespace kdtree {
         float& cost, float& split,
         Aabb& leftBox, Aabb& rightBox,
         vector<const Triangle*>& leftTriangles,
-        vector<const Triangle*>& rightTriangles) {
+        vector<const Triangle*>& rightTriangles)
+    {
       cost  = FLT_MAX;
       split = 0;
       for (const Triangle* triangle : triangles) {
@@ -167,7 +175,8 @@ namespace kdtree {
     }
   }
 
-  Aabb findBounding(const std::vector<Triangle>& triangles) {
+  Aabb findBounding(const std::vector<Triangle>& triangles)
+  {
     vec3 min, max;
 
     for (const Triangle& tri : triangles) {
@@ -185,7 +194,8 @@ namespace kdtree {
   }
 
   void buildTreeSAH(KdTreeLinked::Node* node, size_t depth, Axis axis, const Aabb& box,
-      const vector<const Triangle*>& triangles) {
+      const vector<const Triangle*>& triangles)
+  {
     assert(node != nullptr);
 
     float cost, split;
@@ -213,7 +223,8 @@ namespace kdtree {
   }
 
   void buildTreeNaive(KdTreeLinked::Node* node, size_t depth, Axis axis, const Aabb& box,
-      const vector<const Triangle*>& triangles) {
+      const vector<const Triangle*>& triangles)
+  {
     assert(node != nullptr);
 
     if (depth >= 20 || triangles.size() <= 10) {

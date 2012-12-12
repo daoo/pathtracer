@@ -7,11 +7,13 @@
 #include <string>
 #include <vector>
 
-class OBJModel {
+class OBJModel
+{
   public:
     void load(const std::string& fileName);
 
-    struct Light {
+    struct Light
+    {
       glm::vec3 position;
       glm::vec3 color;
       float radius;
@@ -19,7 +21,8 @@ class OBJModel {
     };
     std::map<std::string, Light> m_lights;
 
-    struct Camera {
+    struct Camera
+    {
       glm::vec3 position;
       glm::vec3 target;
       glm::vec3 up;
@@ -27,7 +30,8 @@ class OBJModel {
     };
     std::map<std::string, Camera> m_cameras;
 
-    struct Material {
+    struct Material
+    {
       glm::vec3 diffuseReflectance;
       std::string diffuseReflectanceMap;
       glm::vec3 specularReflectance;
@@ -40,7 +44,8 @@ class OBJModel {
     };
     std::map<std::string, Material> m_materials;
 
-    struct Chunk {
+    struct Chunk
+    {
       Material* material;
 
       // Data on host

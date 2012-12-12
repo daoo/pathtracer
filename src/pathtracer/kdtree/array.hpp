@@ -10,16 +10,20 @@
 #include <limits>
 #include <vector>
 
-namespace kdtree {
-  struct KdTreeArray {
-    struct Node {
+namespace kdtree
+{
+  struct KdTreeArray
+  {
+    struct Node
+    {
       Node() : m_data(EMPTY_LEAF) { }
       Node(uint32_t index) : m_data((index << 1) & MASK_DATA) { }
       Node(float distance) : m_distance(distance) { m_data |= MASK_TYPE; }
 
       enum NodeType { Split, Leaf };
 
-      union {
+      union
+      {
         uint32_t m_data;
         float m_distance;
       };
@@ -34,11 +38,13 @@ namespace kdtree {
       static constexpr uint32_t TYPE_SPLIT = 1;
     };
 
-    static size_t leftChild(size_t index) {
+    static size_t leftChild(size_t index)
+    {
       return (index << 1) + 1;
     }
 
-    static size_t rightChild(size_t index) {
+    static size_t rightChild(size_t index)
+    {
       return (index << 1) + 2;
     }
 
@@ -55,33 +61,39 @@ namespace kdtree {
   float getSplit(const KdTreeArray::Node& node);
 
 
-  inline bool isLeaf(const KdTreeArray::Node& node) {
+  inline bool isLeaf(const KdTreeArray::Node& node)
+  {
     return (node.m_data & KdTreeArray::Node::MASK_TYPE) ==
       KdTreeArray::Node::TYPE_LEAF;
   }
 
-  inline bool hasTriangles(const KdTreeArray::Node& node) {
+  inline bool hasTriangles(const KdTreeArray::Node& node)
+  {
     assert(isLeaf(node));
     return node.m_data != KdTreeArray::Node::EMPTY_LEAF;
   }
 
-  inline uint32_t getIndex(const KdTreeArray::Node& node) {
+  inline uint32_t getIndex(const KdTreeArray::Node& node)
+  {
     assert(isLeaf(node));
     return node.m_data >> 1;
   }
 
   inline const std::vector<Triangle>& getTriangles(
-      const KdTreeArray& tree, const KdTreeArray::Node& node) {
+      const KdTreeArray& tree, const KdTreeArray::Node& node)
+  {
     assert(isLeaf(node));
     return tree.m_leaf_store[getIndex(node)];
   }
 
-  inline bool isSplit(const KdTreeArray::Node& node) {
+  inline bool isSplit(const KdTreeArray::Node& node)
+  {
     return (node.m_data & KdTreeArray::Node::MASK_TYPE) ==
       KdTreeArray::Node::TYPE_SPLIT;
   }
 
-  inline float getSplit(const KdTreeArray::Node& node) {
+  inline float getSplit(const KdTreeArray::Node& node)
+  {
     assert(isSplit(node));
     return node.m_distance;
   }

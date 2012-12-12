@@ -7,7 +7,8 @@
 
 #include "util/fastrand.hpp"
 
-inline glm::vec3 uniformSampleHemisphere(FastRand& rand) {
+inline glm::vec3 uniformSampleHemisphere(FastRand& rand)
+{
   float r1 = rand();
   float r2 = rand();
 
@@ -18,7 +19,8 @@ inline glm::vec3 uniformSampleHemisphere(FastRand& rand) {
       std::fabs(1.0f - 2.0f * r2));
 }
 
-inline void concentricSampleDisk(FastRand& rand, float& dx, float& dy) {
+inline void concentricSampleDisk(FastRand& rand, float& dx, float& dy)
+{
   float r, theta;
   float u1 = rand();
   float u2 = rand();
@@ -62,7 +64,8 @@ inline void concentricSampleDisk(FastRand& rand, float& dx, float& dy) {
 }
 
 template <typename RandomEngine>
-inline glm::vec3 cosineSampleHemisphere(RandomEngine& engine) {
+inline glm::vec3 cosineSampleHemisphere(RandomEngine& engine)
+{
   glm::vec3 ret;
   concentricSampleDisk(engine, ret.x, ret.y);
   ret.z = sqrtf(std::max(0.f, 1.f - ret.x*ret.x - ret.y*ret.y));

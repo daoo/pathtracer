@@ -6,12 +6,15 @@
 using namespace glm;
 using namespace std;
 
-namespace {
+namespace
+{
   constexpr float GAMMA_POWER = 1.0f / 2.2f;
 }
 
-namespace util {
-  void writeImage(const string& file, const SampleBuffer& buffer) {
+namespace util
+{
+  void writeImage(const string& file, const SampleBuffer& buffer)
+  {
     FIBITMAP* dib = FreeImage_Allocate(buffer.width(), buffer.height(),
         32, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
 

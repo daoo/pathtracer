@@ -33,9 +33,9 @@ int g_subsample = 4;
 int g_subsample = 1;
 #endif
 
-void initGL() {
+void initGL()
+{
   glewInit();
-  startupGLDiagnostics();
 
   glDisable(GL_CULL_FACE);
 
@@ -88,7 +88,8 @@ void initGL() {
   CHECK_GL_ERROR();
 }
 
-void display() {
+void display()
+{
   Clock clock;
   clock.start();
   g_pathtracer->tracePrimaryRays(g_rand, *g_buffer);
@@ -120,7 +121,8 @@ void display() {
   glutSwapBuffers();
 }
 
-void restart(size_t w, size_t h, size_t camera) {
+void restart(size_t w, size_t h, size_t camera)
+{
   glClearColor(0.2f, 0.2f, 0.8f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0, 0, w, h);
@@ -134,18 +136,21 @@ void restart(size_t w, size_t h, size_t camera) {
   g_buffer = new SampleBuffer(nw, nh);
 }
 
-void reshape(int w, int h) {
+void reshape(int w, int h)
+{
   width  = w;
   height = h;
 
   restart(width, height, 0);
 }
 
-void idle() {
+void idle()
+{
   glutPostRedisplay();
 }
 
-void handleKeys(unsigned char key, int, int) {
+void handleKeys(unsigned char key, int, int)
+{
   if (key == 27 || key == 'q') {
     exit(0);
   } else if (key == 'c') {
@@ -161,7 +166,8 @@ void handleKeys(unsigned char key, int, int) {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   if (argc >= 2) {
     try {
       glutInit(&argc, argv);

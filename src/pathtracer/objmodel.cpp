@@ -9,8 +9,10 @@
 using namespace glm;
 using namespace std;
 
-namespace {
-  struct ObjTri {
+namespace
+{
+  struct ObjTri
+  {
     int v[3];
     int t[3];
     int n[3];
@@ -18,7 +20,8 @@ namespace {
 
   // The next step is to create a dedicated lexer (flex takes about 40% of total), where we can make
   // use of the line by line structure of the file to optimize.
-  class ObjLexer {
+  class ObjLexer
+  {
     public:
       enum { s_bufferLength = 512 };
 
@@ -214,7 +217,8 @@ namespace {
       int m_bufferEnd;
   };
 
-  inline static bool parseFaceIndSet(ObjLexer &lexer, ObjTri &t, int v) {
+  inline static bool parseFaceIndSet(ObjLexer &lexer, ObjTri &t, int v)
+  {
     t.v[v] = -1;
     t.t[v] = -1;
     t.n[v] = -1;
@@ -236,7 +240,8 @@ namespace {
   }
 }
 
-void inline OBJModel::loadOBJ(ifstream& file, const string& basePath) {
+void inline OBJModel::loadOBJ(ifstream& file, const string& basePath)
+{
   vector<vec3> positions;
   vector<vec3> normals;
   vector<vec2> uvs;
@@ -407,7 +412,8 @@ void inline OBJModel::loadOBJ(ifstream& file, const string& basePath) {
   // lastly we could look out for duplicates and compact the array down again, if we would.
 }
 
-void OBJModel::loadMaterials(const string& fileName, const string&) {
+void OBJModel::loadMaterials(const string& fileName, const string&)
+{
   ifstream file;
   file.open(fileName.c_str());
   if (!file) {
@@ -556,7 +562,8 @@ void OBJModel::loadMaterials(const string& fileName, const string&) {
   }
 }
 
-void OBJModel::load(const string& fileName) {
+void OBJModel::load(const string& fileName)
+{
   ifstream file;
 
   file.open(fileName.c_str(), ios::binary);

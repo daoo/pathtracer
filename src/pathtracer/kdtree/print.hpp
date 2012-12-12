@@ -3,7 +3,8 @@
 
 #include "pathtracer/kdtree/array.hpp"
 
-namespace kdtree {
+namespace kdtree
+{
   void print(std::ostream& out, const KdTreeArray& tree);
 }
 

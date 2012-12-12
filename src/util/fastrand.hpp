@@ -4,11 +4,13 @@
 #include <random>
 #include <type_traits>
 
-class FastRand {
+class FastRand
+{
   public:
     FastRand() : m_engine(std::random_device()()) { }
 
-    float operator()() {
+    float operator()()
+    {
       return std::generate_canonical<float, std::numeric_limits<float>::digits>(m_engine);
     }
 

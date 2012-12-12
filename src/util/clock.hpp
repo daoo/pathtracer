@@ -3,22 +3,27 @@
 
 #include <chrono>
 
-namespace util {
-  class Clock {
+namespace util
+{
+  class Clock
+  {
     public:
       Clock() { }
       ~Clock() { }
 
-      void start() {
+      void start()
+      {
         m_start = clock::now().time_since_epoch();
       }
 
-      void stop() {
+      void stop()
+      {
         m_stop = clock::now().time_since_epoch();
       }
 
       template <typename T, typename Ratio>
-      T length() {
+      T length()
+      {
         return std::chrono::duration_cast<std::chrono::duration<T, Ratio>>(m_stop - m_start).count();
       }
 

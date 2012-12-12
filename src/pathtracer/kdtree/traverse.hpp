@@ -6,8 +6,10 @@
 #include "pathtracer/kdtree/array.hpp"
 #include "pathtracer/triangle.hpp"
 
-namespace kdtree {
-  inline bool searchTree(const KdTreeArray& tree, math::Ray& ray, Intersection& isect) {
+namespace kdtree
+{
+  inline bool searchTree(const KdTreeArray& tree, math::Ray& ray, Intersection& isect)
+  {
     const float initial_maxt = ray.maxt;
 
     float mint = ray.mint;

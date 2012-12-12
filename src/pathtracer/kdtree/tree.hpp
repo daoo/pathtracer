@@ -8,10 +8,12 @@
 #include "pathtracer/kdtree/optimize.hpp"
 #include "pathtracer/kdtree/traverse.hpp"
 
-namespace kdtree {
+namespace kdtree
+{
   typedef KdTreeArray KdTree;
 
-  inline void buildTree(KdTree& tree, const std::vector<Triangle>& triangles) {
+  inline void buildTree(KdTree& tree, const std::vector<Triangle>& triangles)
+  {
     std::vector<const Triangle*> ptrs;
     for (const Triangle& tri : triangles) {
       ptrs.push_back(&tri);
@@ -24,11 +26,13 @@ namespace kdtree {
     optimize(tree, tmp);
   }
 
-  inline bool intersects(const KdTree& tree, math::Ray& ray, Intersection& isect) {
+  inline bool intersects(const KdTree& tree, math::Ray& ray, Intersection& isect)
+  {
     return searchTree(tree, ray, isect);
   }
 
-  inline bool intersects(const KdTree& tree, const math::Ray& ray) {
+  inline bool intersects(const KdTree& tree, const math::Ray& ray)
+  {
     Intersection isect;
     math::Ray raycopy(ray);
     return searchTree(tree, raycopy, isect);

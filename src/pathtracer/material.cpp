@@ -3,16 +3,20 @@
 
 using namespace glm;
 
-namespace {
-  constexpr int sign(float v) {
+namespace
+{
+  constexpr int sign(float v)
+  {
     return v < 0.0f ? -1 : 1;
   }
 
-  bool sameHemisphere(const vec3& i, const vec3& o, const vec3& n) {
+  bool sameHemisphere(const vec3& i, const vec3& o, const vec3& n)
+  {
     return sign(dot(o, n)) == sign(dot(i, n));
   }
 
-  vec3 perpendicular(const vec3& v) {
+  vec3 perpendicular(const vec3& v)
+  {
     if (fabsf(v.x) < fabsf(v.y)) {
       return vec3(0.0f, -v.z, v.y);
     }

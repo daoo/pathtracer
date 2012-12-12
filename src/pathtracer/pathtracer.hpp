@@ -9,7 +9,8 @@
 
 #include <glm/glm.hpp>
 
-class Pathtracer {
+class Pathtracer
+{
   public:
     Pathtracer(const Scene&, size_t, size_t, size_t);
     ~Pathtracer();

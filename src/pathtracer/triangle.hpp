@@ -6,7 +6,8 @@
 #include "math/ray.hpp"
 #include <glm/glm.hpp>
 
-struct Triangle {
+struct Triangle
+{
   glm::vec3 v0, v1, v2;
   glm::vec3 n0, n1, n2;
   glm::vec2 uv0, uv1, uv2;
@@ -16,7 +17,8 @@ struct Triangle {
 
 bool intersects(const Triangle& tri, math::Ray& r, Intersection& i);
 
-inline bool intersects(const Triangle& tri, math::Ray& r, Intersection& i) {
+inline bool intersects(const Triangle& tri, math::Ray& r, Intersection& i)
+{
   constexpr float epsilon = 0.00001f;
 
   const glm::vec3& d = r.direction;

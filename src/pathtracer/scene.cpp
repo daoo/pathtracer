@@ -5,11 +5,13 @@ using namespace glm;
 using namespace math;
 using namespace std;
 
-namespace {
+namespace
+{
   void buildFromObj(const OBJModel& model,
       vector<SphereLight>& lights, vector<Camera>& cameras,
       vector<Material*>& materials, vector<Texture*> textures,
-      vector<Triangle>& triangles) {
+      vector<Triangle>& triangles)
+  {
     for (auto kv : model.m_lights) {
       lights.push_back(
           { kv.second.radius
@@ -82,7 +84,8 @@ namespace {
   }
 }
 
-Scene::Scene(const OBJModel& model) {
+Scene::Scene(const OBJModel& model)
+{
   assert(!model.m_cameras.empty());
 
   buildFromObj(model, m_lights, m_cameras, m_material, m_textures, m_triangles);
@@ -91,10 +94,12 @@ Scene::Scene(const OBJModel& model) {
 
 Scene::~Scene() { }
 
-bool Scene::allIntersection(Ray& ray, Intersection& isect) const {
+bool Scene::allIntersection(Ray& ray, Intersection& isect) const
+{
   return kdtree::intersects(m_kdtree, ray, isect);
 }
 
-bool Scene::anyIntersection(const Ray& ray) const {
+bool Scene::anyIntersection(const Ray& ray) const
+{
   return kdtree::intersects(m_kdtree, ray);
 }

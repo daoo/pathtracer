@@ -25,8 +25,10 @@
 #define Y 1
 #define Z 2
 
-namespace math {
-  namespace detail {
+namespace math
+{
+  namespace detail
+  {
 
 #define CROSS(dest,v1,v2) \
     dest[0]=v1[1]*v2[2]-v1[2]*v2[1]; \
@@ -119,7 +121,8 @@ namespace math {
     if(min>rad || max<-rad) return 0;
   }
 
-  inline bool triBoxOverlap(const Aabb& aabb, const glm::vec3& triv0, const glm::vec3& triv1, const glm::vec3& triv2) {
+  inline bool triBoxOverlap(const Aabb& aabb, const glm::vec3& triv0, const glm::vec3& triv1, const glm::vec3& triv2)
+  {
     /*    use separating axis theorem to test overlap between triangle and box */
     /*    need to test for overlap in these directions: */
     /*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */

@@ -7,7 +7,8 @@
 using namespace glm;
 using namespace std;
 
-Texture textureLoad(Texture& texture, const string& filename) {
+Texture textureLoad(Texture& texture, const string& filename)
+{
   FIBITMAP* bitmap = FreeImage_Load(FIF_PNG, filename.c_str());
 
   if (!bitmap) {

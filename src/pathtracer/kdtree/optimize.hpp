@@ -4,7 +4,8 @@
 #include "pathtracer/kdtree/array.hpp"
 #include "pathtracer/kdtree/linked.hpp"
 
-namespace kdtree {
+namespace kdtree
+{
   void optimize(KdTreeArray&, const KdTreeLinked&);
 }
 

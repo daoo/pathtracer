@@ -5,7 +5,8 @@
 #include <sstream>
 
 template <typename T>
-T parse(const std::string& str) {
+T parse(const std::string& str)
+{
   std::stringstream ss(str);
   T tmp;
   ss >> tmp;

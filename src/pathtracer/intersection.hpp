@@ -5,7 +5,8 @@
 
 #include <glm/glm.hpp>
 
-struct Intersection {
+struct Intersection
+{
   glm::vec3 m_position;
   glm::vec3 m_normal;
   const Material* m_material;

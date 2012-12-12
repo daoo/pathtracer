@@ -9,13 +9,15 @@ using namespace glm;
 using namespace math;
 using namespace std;
 
-namespace {
+namespace
+{
   constexpr size_t PT_MAX_BOUNCES = 16;
   constexpr float PT_EPSILON      = 0.00001f;
 }
 
 Pathtracer::Pathtracer(const Scene& scene, size_t camera_index, size_t width, size_t height)
-  : m_scene(scene), m_fwidth(static_cast<float>(width)), m_fheight(static_cast<float>(height)) {
+  : m_scene(scene), m_fwidth(static_cast<float>(width)), m_fheight(static_cast<float>(height))
+{
   assert(!scene.cameras().empty());
 
   const Camera& camera = m_scene.cameras()[camera_index % m_scene.cameras().size()];
@@ -40,7 +42,8 @@ Pathtracer::Pathtracer(const Scene& scene, size_t camera_index, size_t width, si
 
 Pathtracer::~Pathtracer() { }
 
-void Pathtracer::tracePrimaryRays(FastRand& rand, util::SampleBuffer& buffer) {
+void Pathtracer::tracePrimaryRays(FastRand& rand, util::SampleBuffer& buffer)
+{
   float fw = static_cast<float>(buffer.width());
   float fh = static_cast<float>(buffer.height());
 
@@ -73,7 +76,8 @@ void Pathtracer::tracePrimaryRays(FastRand& rand, util::SampleBuffer& buffer) {
 vec3 Pathtracer::incomingLight(
     FastRand& rand,
     const Ray& primaryRay,
-    const Intersection& primaryIsect) {
+    const Intersection& primaryIsect)
+{
   vec3 L       = zero<vec3>();
   vec3 path_tp = one<vec3>();
 
@@ -137,6 +141,7 @@ vec3 Pathtracer::incomingLight(
 
 // -----------------------------------------------------------------------
 // Evaluate the outgoing radiance from the environment
-vec3 Pathtracer::environmentLight(const Ray&) {
+vec3 Pathtracer::environmentLight(const Ray&)
+{
   return vec3(0.8f, 0.8f, 0.8f);
 }

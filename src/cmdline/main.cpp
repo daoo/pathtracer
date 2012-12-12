@@ -11,7 +11,8 @@ using namespace std::chrono;
 using namespace std;
 using namespace util;
 
-void trace(Pathtracer& pt, SampleBuffer& buffer, size_t samples) {
+void trace(Pathtracer& pt, SampleBuffer& buffer, size_t samples)
+{
   assert(samples > 0);
   FastRand rand;
 
@@ -27,7 +28,8 @@ void trace(Pathtracer& pt, SampleBuffer& buffer, size_t samples) {
 }
 
 void program(const string& objFile, const string& outFile, size_t w, size_t h,
-    size_t camera, size_t sampleCount, size_t threadCount) {
+    size_t camera, size_t sampleCount, size_t threadCount)
+{
   assert(!objFile.empty());
   assert(!outFile.empty());
   assert(w > 0 && h > 0);
@@ -64,7 +66,8 @@ void program(const string& objFile, const string& outFile, size_t w, size_t h,
   writeImage(outFile, result);
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
   if (argc == 7) {
     string obj_file = argv[1];
     string img_file = argv[2];

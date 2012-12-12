@@ -5,15 +5,19 @@
 
 using namespace std;
 
-namespace kdtree {
-  namespace {
-    ostream& operator<<(ostream& stream, Axis axis) {
+namespace kdtree
+{
+  namespace
+  {
+    ostream& operator<<(ostream& stream, Axis axis)
+    {
       constexpr char AXIS[] = { 'X', 'Y', 'Z' };
       stream << AXIS[axis];
       return stream;
     }
 
-    void helper(ostream& out, const string& label, const KdTreeArray& tree, size_t index, Axis axis, size_t depth) {
+    void helper(ostream& out, const string& label, const KdTreeArray& tree, size_t index, Axis axis, size_t depth)
+    {
       for (size_t i = 0; i < depth; ++i) {
         out << "  ";
       }
@@ -36,7 +40,8 @@ namespace kdtree {
     }
   }
 
-  void print(ostream& out, const KdTreeArray& tree) {
+  void print(ostream& out, const KdTreeArray& tree)
+  {
     helper(out, "root", tree, 0, X, 0);
   }
 }

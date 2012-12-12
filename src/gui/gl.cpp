@@ -5,7 +5,8 @@
 using namespace std;
 
 namespace {
-  string getShaderInfoLog(GLuint obj) {
+  string getShaderInfoLog(GLuint obj)
+  {
     int logLength = 0;
     int charsWritten  = 0;
     char *tmpLog;
@@ -23,7 +24,8 @@ namespace {
     return log;
   }
 
-  GLuint createShader(GLuint type, const string& code) {
+  GLuint createShader(GLuint type, const string& code)
+  {
     const GLchar* str = code.c_str();
 
     GLuint id = glCreateShader(type);
@@ -41,7 +43,8 @@ namespace {
   }
 }
 
-void checkGLError(const string& file, size_t line) {
+void checkGLError(const string& file, size_t line)
+{
   stringstream ss;
   bool wasError = false;
   for (GLenum glErr = glGetError(); glErr != GL_NO_ERROR; glErr = glGetError()) {
@@ -54,14 +57,8 @@ void checkGLError(const string& file, size_t line) {
   }
 }
 
-
-void startupGLDiagnostics() {
-  if (!GLEW_VERSION_3_0) {
-    throw string("OpenGL 3.0 not supported.");
-  }
-}
-
-GLuint loadShaderProgram(const string& vertexShader, const string& fragmentShader) {
+GLuint loadShaderProgram(const string& vertexShader, const string& fragmentShader)
+{
   GLuint vShader = createShader(GL_VERTEX_SHADER, vertexShader);
   GLuint fShader = createShader(GL_FRAGMENT_SHADER, fragmentShader);
 
@@ -76,7 +73,8 @@ GLuint loadShaderProgram(const string& vertexShader, const string& fragmentShade
   return shaderProgram;
 }
 
-void linkShaderProgram(GLuint shaderProgram) {
+void linkShaderProgram(GLuint shaderProgram)
+{
   glLinkProgram(shaderProgram);
   GLint linkOk = 0;
   glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linkOk);
