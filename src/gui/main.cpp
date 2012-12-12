@@ -9,6 +9,7 @@
 #include "shaders.hpp"
 #include "util/clock.hpp"
 #include "util/samplebuffer.hpp"
+#include "util/strings.hpp"
 
 using namespace std;
 using namespace util;
@@ -17,6 +18,7 @@ FastRand g_rand;
 Pathtracer* g_pathtracer;
 SampleBuffer* g_buffer;
 Scene* g_scene;
+string g_img_file;
 
 size_t width, height;
 
@@ -30,8 +32,6 @@ int g_subsample = 4;
 #else
 int g_subsample = 1;
 #endif
-
-constexpr size_t MAX_SAMPLES_PER_PIXEL = 2048;
 
 void initGL() {
   glewInit();
@@ -91,8 +91,7 @@ void initGL() {
 void display() {
   Clock clock;
   clock.start();
-  if (g_buffer->samples() < MAX_SAMPLES_PER_PIXEL)
-    g_pathtracer->tracePrimaryRays(g_rand, *g_buffer);
+  g_pathtracer->tracePrimaryRays(g_rand, *g_buffer);
   clock.stop();
 
   glUseProgram(shaderProgram);
@@ -158,35 +157,40 @@ void handleKeys(unsigned char key, int, int) {
     g_subsample = max(1, g_subsample - 1);
     restart(width, height, 0);
   } else if (key == 'p') {
-    writeImage("screenshot.png", *g_buffer);
+    writeImage(g_img_file, *g_buffer);
   }
 }
 
 int main(int argc, char *argv[]) {
-  try {
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowSize(512, 512);
-    glutCreateWindow("Simple Pathtracer");
-    glutKeyboardFunc(handleKeys);
-    glutReshapeFunc(reshape);
-    glutIdleFunc(idle);
-    glutDisplayFunc(display);
+  if (argc >= 2) {
+    try {
+      glutInit(&argc, argv);
+      glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+      glutInitWindowSize(512, 512);
+      glutCreateWindow("Simple Pathtracer");
+      glutKeyboardFunc(handleKeys);
+      glutReshapeFunc(reshape);
+      glutIdleFunc(idle);
+      glutDisplayFunc(display);
 
-    initGL();
+      string obj_file = argv[1];
+      g_img_file = argv[2];
 
-    OBJModel model;
-    model.load("scenes/cornell.obj");
-    //model.load("scenes/cornell_textured.obj");
-    //model.load("scenes/cornellbottle2.obj");
-    g_scene = new Scene(model);
+      initGL();
 
-    restart(512, 512, 0);
+      OBJModel model;
+      model.load(obj_file);
+      g_scene = new Scene(model);
 
-    glEnable(GL_FRAMEBUFFER_SRGB);
-    glutMainLoop();  /* start the program main loop */
-  } catch (const string& err) {
-    cerr << "Caught error in main():\n" << err;
+      restart(512, 512, 0);
+
+      glEnable(GL_FRAMEBUFFER_SRGB);
+      glutMainLoop();  /* start the program main loop */
+    } catch (const string& err) {
+      cerr << "Caught error in main():\n" << err;
+    }
+  } else {
+    cerr << "Usage: pathtracer-gl model.obj output.png\n";
   }
 
   return 0;

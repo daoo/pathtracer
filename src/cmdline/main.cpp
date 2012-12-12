@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
 
     program(obj_file, img_file, width, height, 0, samples, threads);
   } else {
-    cout << "Usage: pathtracer model.obj output.png width height samples threads\n";
+    cerr << "Usage: pathtracer model.obj output.png width height samples threads\n";
   }
 
   return 0;
