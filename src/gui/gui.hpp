@@ -1,6 +1,8 @@
 #ifndef GUI_HPP_MKHN08BI
 #define GUI_HPP_MKHN08BI
 
+#include <GL/glew.h>
+
 #include "pathtracer/pathtracer.hpp"
 #include "util/fastrand.hpp"
 #include "util/samplebuffer.hpp"
@@ -9,11 +11,13 @@
 
 struct GUI
 {
+  GUI(const boost::filesystem::path&, const std::string&, const Scene& scene);
+
   util::FastRand m_rand;
 
   std::string m_screenshot_dir;
 
-  Scene* m_scene;
+  const Scene& m_scene;
   std::string m_scene_name;
 
   Pathtracer* m_pathtracer;
@@ -28,8 +32,9 @@ struct GUI
   GLuint m_vertexArrayObject;
 };
 
-void initGUI(GUI& gui);
-void trace(GUI& gui);
-void render(GUI& gui);
+void initGUI(GUI&);
+void render(GUI&);
+void restart(GUI&, size_t, size_t);
+void trace(GUI&);
 
 #endif /* end of include guard: GUI_HPP_MKHN08BI */

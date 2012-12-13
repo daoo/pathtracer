@@ -3,6 +3,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 project(pathtracer)
 
+find_package(Boost REQUIRED COMPONENTS system filesystem)
 find_package(FreeImage REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(GLM REQUIRED)

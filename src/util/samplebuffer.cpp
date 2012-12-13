@@ -3,6 +3,7 @@
 #include <FreeImage.h>
 #include <sstream>
 
+using namespace boost::filesystem;
 using namespace glm;
 using namespace std;
 
@@ -13,7 +14,7 @@ namespace
 
 namespace util
 {
-  void writeImage(const string& file, const SampleBuffer& buffer)
+  void writeImage(const path& file, const SampleBuffer& buffer)
   {
     FIBITMAP* dib = FreeImage_Allocate(buffer.width(), buffer.height(),
         32, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
