@@ -1,6 +1,7 @@
 #ifndef SAMPLEBUFFER_HPP_BIC38RBM
 #define SAMPLEBUFFER_HPP_BIC38RBM
 
+#include <boost/filesystem.hpp>
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
@@ -73,7 +74,7 @@ namespace util
       std::vector<glm::vec3> m_buffer;
   };
 
-  void writeImage(const std::string&, const util::SampleBuffer&);
+  void writeImage(const boost::filesystem::path&, const util::SampleBuffer&);
 }
 
 #endif /* end of include guard: SAMPLEBUFFER_HPP_BIC38RBM */
