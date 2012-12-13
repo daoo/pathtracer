@@ -1,0 +1,41 @@
+newlight Light01
+	lightposition 10.0 10.0 10.0
+	lightcolor 1.0 1.0 1.0
+	lightradius 0.0
+	lightintensity 100.0
+
+newlight Light02
+	lightposition 10.0 10.0 -10.0
+	lightcolor 1.0 1.0 1.0
+	lightradius 0.0
+	lightintensity 100.0
+
+newlight Light03
+	lightposition -10.0 10.0 10.0
+	lightcolor 1.0 1.0 1.0
+	lightradius 0.0
+	lightintensity 100.0
+
+newlight Light04
+	lightposition -10.0 10.0 -10.0
+	lightcolor 1.0 1.0 1.0
+	lightradius 0.0
+	lightintensity 100.0
+
+newcamera Camera01
+	cameraposition 18.0 16.0 12.0
+	cameratarget 0.0 0.0 1.0
+	cameraup 0.0 1.0 0.0
+	camerafov 45.0
+
+newmtl Material.001
+	diffuseReflectance 1.0 1.0 1.0
+
+newmtl Material.002
+	diffuseReflectance 1.0 1.0 1.0
+
+newmtl Material.003
+	diffuseReflectance 1.0 1.0 1.0
+
+newmtl Material.004
+	diffuseReflectance 1.0 1.0 1.0
