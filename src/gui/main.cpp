@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 
+#include <boost/filesystem/convenience.hpp>
 #include <glm/glm.hpp>
 #include <iostream>
 #include <sstream>
@@ -14,6 +15,7 @@
 #include "util/samplebuffer.hpp"
 #include "util/strings.hpp"
 
+using namespace boost::filesystem;
 using namespace std;
 using namespace util;
 
@@ -81,10 +83,15 @@ int main(int argc, char *argv[])
       Scene scene(model);
 
 #ifdef NDEBUG
-      g_gui = new GUI(obj_file, screenshot_dir, scene, 1);
+      constexpr size_t SUBSAMPLING = 1;
 #else
-      g_gui = new GUI(obj_file, screenshot_dir, scene, 4);
+      constexpr size_t SUBSAMPLING = 4;
 #endif
+
+      string name = basename(change_extension(obj_file, ""));
+
+      cout << name << "\n";
+      g_gui = new GUI(screenshot_dir, name, scene, SUBSAMPLING);
 
       g_gui->initGL();
       g_gui->resize(512, 512);

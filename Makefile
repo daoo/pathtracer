@@ -14,10 +14,10 @@ links:
 	ln -fsn $(path)/scenes $(build_dir)/src/scenes
 
 debug: links
-	cd $(build_dir)/src; gdb -ex "set args scenes/cube.obj $(path)/build/screenshot.png" $(build_dir)/src/gui/pathtracer-gl
+	cd $(build_dir)/src; gdb -ex "set args scenes/cube.obj $(path)/build/" $(build_dir)/src/gui/pathtracer-gl
 
 run: links
-	cd $(build_dir)/src; $(build_dir)/src/gui/pathtracer-gl scenes/cube.obj $(path)/build/screenshot.png
+	cd $(build_dir)/src; $(build_dir)/src/gui/pathtracer-gl scenes/cube.obj $(path)/build/
 
 cmake:
 	mkdir -p $(build_dir)
