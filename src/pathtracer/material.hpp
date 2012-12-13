@@ -20,7 +20,7 @@ class Material
         const glm::vec3& normal) const = 0;
 
     virtual glm::vec3 sample_f(
-        FastRand&,
+        util::FastRand&,
         const glm::vec3& wi,
         glm::vec3& wo,
         const glm::vec3& normal,
@@ -44,7 +44,7 @@ class DiffuseMaterial : public Material
         const glm::vec3&) const;
 
     virtual glm::vec3 sample_f(
-        FastRand&,
+        util::FastRand&,
         const glm::vec3&,
         glm::vec3&,
         const glm::vec3&,
@@ -75,7 +75,7 @@ class SpecularReflectionMaterial : public Material
         const glm::vec3&) const;
 
     virtual glm::vec3 sample_f(
-        FastRand&,
+        util::FastRand&,
         const glm::vec3&,
         glm::vec3&,
         const glm::vec3&,
@@ -105,7 +105,7 @@ class SpecularRefractionMaterial : public Material
         const glm::vec3&) const;
 
     virtual glm::vec3 sample_f(
-        FastRand&,
+        util::FastRand&,
         const glm::vec3&,
         glm::vec3&,
         const glm::vec3&,
@@ -136,7 +136,7 @@ class FresnelBlendMaterial : public Material
         const glm::vec3&) const;
 
     virtual glm::vec3 sample_f(
-        FastRand&,
+        util::FastRand&,
         const glm::vec3&,
         glm::vec3&,
         const glm::vec3&,
@@ -166,7 +166,7 @@ class BlendMaterial : public Material
         const glm::vec3&) const;
 
     virtual glm::vec3 sample_f(
-        FastRand&,
+        util::FastRand&,
         const glm::vec3&,
         glm::vec3&,
         const glm::vec3&,

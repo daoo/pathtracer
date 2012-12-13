@@ -2,6 +2,7 @@
 #include "mcsampling.hpp"
 
 using namespace glm;
+using namespace util;
 
 namespace
 {
