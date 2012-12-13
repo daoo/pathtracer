@@ -9,27 +9,45 @@
 
 #include <string>
 
-struct GUI
+class GUI
 {
-  GUI(const boost::filesystem::path&, const std::string&, const Scene& scene);
+  public:
+    GUI(const boost::filesystem::path&, const std::string&, const Scene& scene, size_t);
 
-  util::FastRand m_rand;
+    size_t samples() const;
+    size_t subsampling() const;
 
-  std::string m_screenshot_dir;
+    void increaseSubsampling();
+    void decreaseSubsampling();
 
-  const Scene& m_scene;
-  std::string m_scene_name;
+    void initGL();
+    void render() const;
+    void resize(size_t, size_t);
+    void trace();
 
-  Pathtracer* m_pathtracer;
-  util::SampleBuffer* m_buffer;
+    void saveScreenshot() const;
 
-  size_t m_width, m_height;
-  size_t m_subsample;
+  private:
+    util::FastRand m_rand;
 
-  GLuint m_framebufferTexture;
-  GLuint m_shaderProgram;
-  GLuint m_uniformFramebuffer, m_uniformFramebufferSamples;
-  GLuint m_vertexArrayObject;
+    boost::filesystem::path m_screenshot_dir;
+
+    const Scene& m_scene;
+    const std::string& m_scene_name;
+    size_t m_camera;
+
+    Pathtracer* m_pathtracer;
+    util::SampleBuffer* m_buffer;
+
+    size_t m_width, m_height;
+    size_t m_subsampling;
+
+    GLuint m_framebufferTexture;
+    GLuint m_shaderProgram;
+    GLuint m_uniformFramebuffer, m_uniformFramebufferSamples;
+    GLuint m_vertexArrayObject;
+
+    void restart();
 };
 
 void initGUI(GUI&);

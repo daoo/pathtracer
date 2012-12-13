@@ -2,18 +2,50 @@
 
 #include "gl.hpp"
 #include "shaders.hpp"
+#include "util/path.hpp"
+
+#include <algorithm>
+#include <sstream>
 
 using namespace boost::filesystem;
+using namespace std;
+using namespace util;
 
-GUI::GUI(const path& dir, const std::string& name, const Scene& scene)
+GUI::GUI(const path& dir, const string& name, const Scene& scene, size_t subsampling)
   : m_rand()
   , m_screenshot_dir(dir)
-  , m_scene_name(name)
   , m_scene(scene)
+  , m_scene_name(name)
+  , m_camera(0)
+  , m_pathtracer(nullptr)
+  , m_buffer(nullptr)
+  , m_subsampling(subsampling)
 {
 }
 
-void initGUI(GUI& gui)
+size_t GUI::samples() const
+{
+  return m_buffer->samples();
+}
+
+size_t GUI::subsampling() const
+{
+  return m_subsampling;
+}
+
+void GUI::increaseSubsampling()
+{
+  m_subsampling += 1;
+  restart();
+}
+
+void GUI::decreaseSubsampling()
+{
+  m_subsampling = std::max(1UL, m_subsampling - 1);
+  restart();
+}
+
+void GUI::initGL()
 {
   glDisable(GL_CULL_FACE);
 
@@ -31,77 +63,97 @@ void initGUI(GUI& gui)
 
   // ----------------------------------------------------------------------
   // Connect triangle data with the vertex array object
-  glGenVertexArrays(1, &gui.m_vertexArrayObject);
-  glBindVertexArray(gui.m_vertexArrayObject);
+  glGenVertexArrays(1, &m_vertexArrayObject);
+  glBindVertexArray(m_vertexArrayObject);
   glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(0);
 
   // ----------------------------------------------------------------------
   // Create shader
-  gui.m_shaderProgram = loadShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-  glBindAttribLocation(gui.m_shaderProgram, 0, "position");
-  glBindFragDataLocation(gui.m_shaderProgram, 0, "fragmentColor");
+  m_shaderProgram = loadShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+  glBindAttribLocation(m_shaderProgram, 0, "position");
+  glBindFragDataLocation(m_shaderProgram, 0, "fragmentColor");
 
-  linkShaderProgram(gui.m_shaderProgram);
+  linkShaderProgram(m_shaderProgram);
 
-  gui.m_uniformFramebuffer        = glGetUniformLocation(gui.m_shaderProgram, "framebuffer");
-  gui.m_uniformFramebufferSamples = glGetUniformLocation(gui.m_shaderProgram, "framebufferSamples");
+  m_uniformFramebuffer        = glGetUniformLocation(m_shaderProgram, "framebuffer");
+  m_uniformFramebufferSamples = glGetUniformLocation(m_shaderProgram, "framebufferSamples");
 
   // ----------------------------------------------------------------------
   // Create framebuffer texture
-  glGenTextures(1, &gui.m_framebufferTexture);
+  glGenTextures(1, &m_framebufferTexture);
 
   // ---------------------------------------------------------------------
   // Set up OpenGL state for use in Display
-  glBindVertexArray(gui.m_vertexArrayObject);
+  glBindVertexArray(m_vertexArrayObject);
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, gui.m_framebufferTexture);
+  glBindTexture(GL_TEXTURE_2D, m_framebufferTexture);
 
-  glUseProgram(gui.m_shaderProgram);
-  glUniform1i(gui.m_uniformFramebuffer, 0);
+  glUseProgram(m_shaderProgram);
+  glUniform1i(m_uniformFramebuffer, 0);
   glUseProgram(0);
 
   CHECK_GL_ERROR();
 }
 
-void restart(GUI& gui, size_t w, size_t h)
+void GUI::resize(size_t w, size_t h)
 {
   glClearColor(0.2f, 0.2f, 0.8f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glViewport(0, 0, w, h);
 
-  size_t nw = w / g_gui.m_subsample;
-  size_t nh = h / g_gui.m_subsample;
+  m_width  = w;
+  m_height = h;
 
-  delete g_gui.m_pathtracer;
-  g_gui.m_pathtracer = new Pathtracer(*g_gui.m_scene, camera, nw, nh);
-  delete g_gui.m_buffer;
-  g_gui.m_buffer = new SampleBuffer(nw, nh);
+  restart();
 }
 
-void trace(GUI& gui)
+void GUI::trace()
 {
-  gui.m_pathtracer->tracePrimaryRays(gui.m_rand, *gui.m_buffer);
+  m_pathtracer->tracePrimaryRays(m_rand, *m_buffer);
 }
 
-void render(GUI& gui)
+void GUI::render() const
 {
-  glUseProgram(gui.m_shaderProgram);
+  glUseProgram(m_shaderProgram);
 
   // Create and upload raytracer framebuffer as a texture
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
-      gui.m_buffer->width(),
-      gui.m_buffer->height(),
-      0, GL_RGB, GL_FLOAT, gui.m_buffer->data());
+      m_buffer->width(),
+      m_buffer->height(),
+      0, GL_RGB, GL_FLOAT, m_buffer->data());
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glUniform1i(gui.m_uniformFramebufferSamples, gui.m_buffer->samples());
+  glUniform1i(m_uniformFramebufferSamples, m_buffer->samples());
 
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   glUseProgram(0);
 
   CHECK_GL_ERROR();
+}
+
+void GUI::saveScreenshot() const
+{
+  stringstream name;
+  name << m_scene_name << "_"
+        << m_width << "x" << m_height << "_"
+        << m_buffer->samples();
+
+  writeImage(
+      nextFreeName(m_screenshot_dir, name.str(), ".png"),
+      *m_buffer);
+}
+
+void GUI::restart()
+{
+  size_t w = m_width / m_subsampling;
+  size_t h = m_height / m_subsampling;
+
+  delete m_pathtracer;
+  m_pathtracer = new Pathtracer(m_scene, m_camera, w, h);
+  delete m_buffer;
+  m_buffer = new SampleBuffer(w, h);
 }

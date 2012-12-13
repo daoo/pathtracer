@@ -23,25 +23,22 @@ void display()
 {
   Clock clock;
   clock.start();
-  trace(*g_gui);
+  g_gui->trace();
   clock.stop();
 
-  render(*g_gui);
+  g_gui->render();
   glutSwapBuffers();
 
   // Print some useful information
   cout << "Seconds per frame: " << clock.length<float, ratio<1>>() << "\n"
-       << "Samples per pixel: " << g_gui->m_buffer->samples() << "\n"
-       << "Subsampling: " << g_gui->m_subsample << "\n"
+       << "Samples per pixel: " << g_gui->samples() << "\n"
+       << "Subsampling: " << g_gui->subsampling() << "\n"
        << "\n";
 }
 
 void reshape(int w, int h)
 {
-  g_gui->m_width  = w;
-  g_gui->m_height = h;
-
-  restart(*g_gui, w, h);
+  g_gui->resize(w, h);
 }
 
 void idle()
@@ -53,23 +50,12 @@ void handleKeys(unsigned char key, int, int)
 {
   if (key == 27 || key == 'q') {
     exit(0);
-  } else if (key == 'c') {
-    restart(*g_gui, g_gui->m_width, g_gui->m_height);
   } else if (key == 's') {
-    g_gui->m_subsample += 1;
-    restart(*g_gui, g_gui->m_width, g_gui->m_height);
+    g_gui->increaseSubsampling();
   } else if (key == 'S') {
-    g_gui->m_subsample = glm::max(1UL, g_gui->m_subsample - 1);
-    restart(g_gui->m_width, g_gui->m_height, 0);
+    g_gui->decreaseSubsampling();
   } else if (key == 'p') {
-    stringstream name;
-    name << g_gui.m_scene_name << "_"
-         << g_gui.m_width << "x" << g_gui.m_height << "_"
-         << g_gui.m_buffer->samples();
-
-    writeImage(
-        nextFreeName(g_gui.m_screenshot_dir, name.str(), ".png"),
-        *g_gui.m_buffer);
+    g_gui->saveScreenshot();
   }
 }
 
@@ -92,11 +78,16 @@ int main(int argc, char *argv[])
 
       OBJModel model;
       model.load(obj_file);
-      Scene scene = Scene(model);
+      Scene scene(model);
 
-      initGUI(g_gui, obj_file, screenshot_dir, scene);
+#ifdef NDEBUG
+      g_gui = new GUI(obj_file, screenshot_dir, scene, 1);
+#else
+      g_gui = new GUI(obj_file, screenshot_dir, scene, 4);
+#endif
 
-      restart(512, 512, 0);
+      g_gui->initGL();
+      g_gui->resize(512, 512);
 
       glEnable(GL_FRAMEBUFFER_SRGB);
       glutMainLoop();  /* start the program main loop */
