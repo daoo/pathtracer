@@ -58,5 +58,8 @@ namespace kdtree
   void optimize(KdTreeArray& result, const KdTreeLinked& input)
   {
     helper(result, 0, input.m_root);
+
+    result.m_leaf_store.shrink_to_fit();
+    result.m_nodes.shrink_to_fit();
   }
 }
