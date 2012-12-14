@@ -13,11 +13,15 @@ find_package(MPI)
 find_package(OpenGL)
 
 set(build_mpi_frontend ${MPI_CXX_FOUND})
-set(build_gui_frontend ${OPENGL_FOUND})
+if (OPENGL_FOUND AND GLEW_FOUND AND GLUT_FOUND)
+  set(build_gui_frontend TRUE)
+else ()
+  set(build_gui_frontend FALSE)
+endif ()
 
 message(STATUS "MPI frontend: ${build_mpi_frontend}")
 message(STATUS "OpenGL frontend: ${build_gui_frontend}")
 
-add_definitions(-Wall -Wextra -std=c++11)
+add_definitions(-std=c++11)
 add_subdirectory(src)
 add_subdirectory(tests)

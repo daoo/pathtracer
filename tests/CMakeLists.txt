@@ -1,10 +1,9 @@
 project(tests)
 
-add_definitions(-Wall -Wextra -std=c++11)
 include_directories(. ../src/)
 
 add_executable(sizes sizes.cpp)
-target_link_libraries(sizes util libpathtracer)
+target_link_libraries(sizes util pathtracer)
 
 add_executable(print-tree printtree.cpp)
-target_link_libraries(print-tree util libpathtracer)
+target_link_libraries(print-tree util pathtracer)

@@ -13,7 +13,7 @@ if (${build_gui_frontend})
   add_executable(schwar-gl ${gui_src})
   target_link_libraries(schwar-gl
     util
-    libpathtracer
+    pathtracer
     ${Boost_LIBRARIES}
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}

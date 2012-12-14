@@ -15,7 +15,7 @@ if (${build_mpi_frontend})
   add_executable(schwar-mpi ${mpi_src})
   target_link_libraries(schwar-mpi
     util
-    libpathtracer
+    pathtracer
     ${Boost_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     ${MPI_CXX_LIBRARIES}
