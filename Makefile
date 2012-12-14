@@ -11,7 +11,6 @@ clean:
 	+@make --no-print-directory -C $(build_dir) clean
 
 links:
-	ln -fsn $(path)/src/gui/data $(build_dir)/src/data
 	ln -fsn $(path)/scenes $(build_dir)/src/scenes
 
 debug: links
