@@ -2,6 +2,7 @@ target = debug
 
 path      = $(realpath .)
 build_dir = $(path)/build/$(target)
+front_dir = $(build_dir)/src/frontends
 
 build:
 	+@make --no-print-directory -C $(build_dir) all
@@ -14,10 +15,15 @@ links:
 	ln -fsn $(path)/scenes $(build_dir)/src/scenes
 
 debug: links
-	cd $(build_dir)/src; gdb -ex "set args scenes/cube.obj $(path)/build/" $(build_dir)/src/gui/pathtracer-gl
+	cd $(build_dir)/src; \
+	      gdb -ex "set args scenes/cube.obj $(path)/build/" \
+	      $(front_dir)/gui/schwar-gl
 
 run: links
-	cd $(build_dir)/src; $(build_dir)/src/gui/pathtracer-gl scenes/cube.obj $(path)/build/
+	cd $(build_dir)/src; \
+	       $(front_dir)/gui/schwar-gl \
+	       scenes/cube.obj \
+	       $(path)/build/
 
 cmake:
 	mkdir -p $(build_dir)
