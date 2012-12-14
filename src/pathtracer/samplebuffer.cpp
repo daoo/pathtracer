@@ -11,8 +11,8 @@ namespace
 {
   constexpr float GAMMA_POWER = 1.0f / 2.2f;
 
-  constexpr float gammaCorrect(float x) {
-    return glm::min(1.0f, pow(x, GAMMA_POWER));
+  float gammaCorrect(float x) {
+    return std::min(1.0f, pow(x, GAMMA_POWER));
   }
 }
 
