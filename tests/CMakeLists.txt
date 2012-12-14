@@ -1,5 +1,6 @@
 project(tests)
 
+add_definitions(-Wall -Wextra -std=c++11)
 include_directories(. ../src/)
 
 add_executable(sizes sizes.cpp)
