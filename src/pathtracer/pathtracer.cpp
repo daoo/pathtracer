@@ -43,7 +43,7 @@ Pathtracer::Pathtracer(const Scene& scene, size_t camera_index, size_t width, si
 
 Pathtracer::~Pathtracer() { }
 
-void Pathtracer::tracePrimaryRays(FastRand& rand, util::SampleBuffer& buffer)
+void Pathtracer::tracePrimaryRays(FastRand& rand, util::SampleBuffer& buffer) const
 {
   float fw = static_cast<float>(buffer.width());
   float fh = static_cast<float>(buffer.height());
@@ -77,7 +77,7 @@ void Pathtracer::tracePrimaryRays(FastRand& rand, util::SampleBuffer& buffer)
 vec3 Pathtracer::incomingLight(
     FastRand& rand,
     const Ray& primaryRay,
-    const Intersection& primaryIsect)
+    const Intersection& primaryIsect) const
 {
   vec3 L       = zero<vec3>();
   vec3 path_tp = one<vec3>();
@@ -142,7 +142,7 @@ vec3 Pathtracer::incomingLight(
 
 // -----------------------------------------------------------------------
 // Evaluate the outgoing radiance from the environment
-vec3 Pathtracer::environmentLight(const Ray&)
+vec3 Pathtracer::environmentLight(const Ray&) const
 {
   return vec3(0.8f, 0.8f, 0.8f);
 }
