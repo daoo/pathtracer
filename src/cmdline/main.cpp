@@ -1,26 +1,29 @@
 #include "pathtracer/pathtracer.hpp"
 #include "util/clock.hpp"
 #include "util/fastrand.hpp"
+#include "util/path.hpp"
 #include "util/samplebuffer.hpp"
 #include "util/strings.hpp"
 
+#include <boost/filesystem.hpp>
 #include <iostream>
 
 using namespace boost;
+using namespace boost::filesystem;
 using namespace std::chrono;
 using namespace std;
 using namespace util;
 
-void program(const string& objFile, const string& outFile, size_t w, size_t h,
+void program(const path& objFile, const path& outDir, size_t w, size_t h,
     size_t camera, size_t sampleCount)
 {
   assert(!objFile.empty());
-  assert(!outFile.empty());
+  assert(!outDir.empty());
   assert(w > 0 && h > 0);
   assert(sampleCount > 0);
 
   OBJModel model;
-  model.load(objFile);
+  model.load(objFile.string());
 
   const Scene scene(model);
   const Pathtracer pt(scene, camera, w, h);
@@ -37,21 +40,27 @@ void program(const string& objFile, const string& outFile, size_t w, size_t h,
          << ", in " << clock.length<float, ratio<1>>() << " seconds\n";
   }
 
-  writeImage(outFile, buffer);
+  string scene_name = basename(change_extension(objFile, ""));
+  stringstream name;
+  name << scene_name << "_"
+        << w << "x" << h << "_"
+        << buffer.samples();
+
+  writeImage(nextFreeName(outDir, name.str(), ".png"), buffer);
 }
 
 int main(int argc, char* argv[])
 {
   if (argc == 6) {
     string obj_file = argv[1];
-    string img_file = argv[2];
+    string img_dir = argv[2];
     size_t width    = parse<size_t>(argv[3]);
     size_t height   = parse<size_t>(argv[4]);
     size_t samples  = parse<size_t>(argv[5]);
 
-    program(obj_file, img_file, width, height, 0, samples);
+    program(obj_file, img_dir, width, height, 0, samples);
   } else {
-    cerr << "Usage: pathtracer model.obj output.png width height samples\n";
+    cerr << "Usage: pathtracer model.obj output-dir width height samples\n";
   }
 
   return 0;

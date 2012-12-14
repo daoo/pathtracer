@@ -64,6 +64,14 @@ void handleKeys(unsigned char key, int, int)
 int main(int argc, char *argv[])
 {
   if (argc >= 3) {
+    path obj_file       = argv[1];
+    path screenshot_dir = argv[2];
+
+    if (!is_directory(screenshot_dir)) {
+      cerr << screenshot_dir << " is not a directory.\n";
+      return 1;
+    }
+
     try {
       glutInit(&argc, argv);
       glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
@@ -75,11 +83,8 @@ int main(int argc, char *argv[])
       glutDisplayFunc(display);
       glewInit();
 
-      string obj_file       = argv[1];
-      string screenshot_dir = argv[2];
-
       OBJModel model;
-      model.load(obj_file);
+      model.load(obj_file.string());
       Scene scene(model);
 
 #ifdef NDEBUG
@@ -90,9 +95,7 @@ int main(int argc, char *argv[])
 
       string name = basename(change_extension(obj_file, ""));
 
-      cout << name << "\n";
       g_gui = new GUI(screenshot_dir, name, scene, SUBSAMPLING);
-
       g_gui->initGL();
       g_gui->resize(512, 512);
 
@@ -102,7 +105,7 @@ int main(int argc, char *argv[])
       cerr << "Caught error in main():\n" << err;
     }
   } else {
-    cerr << "Usage: pathtracer-gl model.obj output.png\n";
+    cerr << "Usage: pathtracer-gl model.obj output-dir\n";
   }
 
   return 0;
