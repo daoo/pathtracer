@@ -1,11 +1,11 @@
 #ifndef PATHTRACER_HPP_NVGMZUSY
 #define PATHTRACER_HPP_NVGMZUSY
 
+#include "fastrand.hpp"
 #include "math/ray.hpp"
 #include "mcsampling.hpp"
+#include "samplebuffer.hpp"
 #include "scene.hpp"
-#include "util/fastrand.hpp"
-#include "util/samplebuffer.hpp"
 
 #include <glm/glm.hpp>
 

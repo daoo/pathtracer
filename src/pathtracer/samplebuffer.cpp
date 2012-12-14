@@ -10,6 +10,10 @@ using namespace std;
 namespace
 {
   constexpr float GAMMA_POWER = 1.0f / 2.2f;
+
+  constexpr float gammaCorrect(float x) {
+    return glm::min(1.0f, pow(x, GAMMA_POWER));
+  }
 }
 
 namespace util
@@ -24,9 +28,9 @@ namespace util
       BYTE* bits = FreeImage_GetScanLine(dib, y);
 
       for (size_t x = 0; x < FreeImage_GetWidth(dib); ++x) {
-        float r = glm::min(1.0f, pow(buffer.at(x, y).r / buffer.samples(), GAMMA_POWER));
-        float g = glm::min(1.0f, pow(buffer.at(x, y).g / buffer.samples(), GAMMA_POWER));
-        float b = glm::min(1.0f, pow(buffer.at(x, y).b / buffer.samples(), GAMMA_POWER));
+        float r = gammaCorrect(buffer.at(x, y).r / buffer.samples());
+        float g = gammaCorrect(buffer.at(x, y).g / buffer.samples());
+        float b = gammaCorrect(buffer.at(x, y).b / buffer.samples());
         bits[FI_RGBA_RED]   = BYTE(r * 255.0);
         bits[FI_RGBA_GREEN] = BYTE(g * 255.0);
         bits[FI_RGBA_BLUE]  = BYTE(b * 255.0);

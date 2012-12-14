@@ -9,7 +9,6 @@ include_directories(
 file(GLOB_RECURSE tracer_src *.hpp *.cpp)
 add_library(pathtracer ${tracer_src})
 target_link_libraries(pathtracer
-  util
   ${Boost_LIBRARIES}
   ${FREEIMAGE_LIBRARIES}
   )

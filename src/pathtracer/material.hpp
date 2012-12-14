@@ -1,8 +1,8 @@
 #ifndef MATERIAL_HPP_FNROXKUG
 #define MATERIAL_HPP_FNROXKUG
 
+#include "fastrand.hpp"
 #include "texture.hpp"
-#include "util/fastrand.hpp"
 
 #include <glm/glm.hpp>
 

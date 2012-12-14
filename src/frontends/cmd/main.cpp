@@ -1,8 +1,8 @@
+#include "pathtracer/fastrand.hpp"
 #include "pathtracer/pathtracer.hpp"
+#include "pathtracer/samplebuffer.hpp"
 #include "util/clock.hpp"
-#include "util/fastrand.hpp"
 #include "util/path.hpp"
-#include "util/samplebuffer.hpp"
 #include "util/strings.hpp"
 
 #include <boost/filesystem.hpp>

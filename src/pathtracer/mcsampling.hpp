@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/constants.hpp>
 
-#include "util/fastrand.hpp"
+#include "fastrand.hpp"
 
 inline glm::vec3 uniformSampleHemisphere(util::FastRand& rand)
 {

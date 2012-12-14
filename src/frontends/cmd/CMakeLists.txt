@@ -10,6 +10,4 @@ add_executable(schwar ${cmd_src})
 target_link_libraries(schwar
   util
   pathtracer
-  ${Boost_LIBRARIES}
-  ${CMAKE_THREAD_LIBS_INIT}
   )

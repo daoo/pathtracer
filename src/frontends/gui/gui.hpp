@@ -3,9 +3,9 @@
 
 #include <GL/glew.h>
 
+#include "pathtracer/fastrand.hpp"
 #include "pathtracer/pathtracer.hpp"
-#include "util/fastrand.hpp"
-#include "util/samplebuffer.hpp"
+#include "pathtracer/samplebuffer.hpp"
 
 #include <string>
 

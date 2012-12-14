@@ -14,7 +14,6 @@ if (${build_gui_frontend})
   target_link_libraries(schwar-gl
     util
     pathtracer
-    ${Boost_LIBRARIES}
     ${OPENGL_LIBRARIES}
     ${GLEW_LIBRARIES}
     ${GLUT_LIBRARIES}

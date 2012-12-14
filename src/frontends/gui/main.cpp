@@ -9,10 +9,9 @@
 #include "gui.hpp"
 
 #include "pathtracer/pathtracer.hpp"
+#include "pathtracer/samplebuffer.hpp"
 #include "util/clock.hpp"
 #include "util/path.hpp"
-#include "util/path.hpp"
-#include "util/samplebuffer.hpp"
 #include "util/strings.hpp"
 
 using namespace boost::filesystem;

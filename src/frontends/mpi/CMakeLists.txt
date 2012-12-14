@@ -19,7 +19,6 @@ if (${build_mpi_frontend})
     util
     pathtracer
     ${Boost_LIBRARIES}
-    ${CMAKE_THREAD_LIBS_INIT}
     ${MPI_CXX_LIBRARIES}
     )
 endif ()
