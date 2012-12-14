@@ -8,7 +8,6 @@
 using namespace glm;
 using namespace math;
 using namespace std;
-using namespace util;
 
 namespace
 {
@@ -43,7 +42,7 @@ Pathtracer::Pathtracer(const Scene& scene, size_t camera_index, size_t width, si
 
 Pathtracer::~Pathtracer() { }
 
-void Pathtracer::tracePrimaryRays(FastRand& rand, util::SampleBuffer& buffer) const
+void Pathtracer::tracePrimaryRays(FastRand& rand, SampleBuffer& buffer) const
 {
   float fw = static_cast<float>(buffer.width());
   float fh = static_cast<float>(buffer.height());

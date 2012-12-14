@@ -84,6 +84,8 @@ namespace
   }
 }
 
+Scene::Scene() { }
+
 Scene::Scene(const OBJModel& model)
 {
   assert(!model.m_cameras.empty());

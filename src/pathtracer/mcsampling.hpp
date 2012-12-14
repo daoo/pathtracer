@@ -7,7 +7,7 @@
 
 #include "fastrand.hpp"
 
-inline glm::vec3 uniformSampleHemisphere(util::FastRand& rand)
+inline glm::vec3 uniformSampleHemisphere(FastRand& rand)
 {
   float r1 = rand();
   float r2 = rand();
@@ -19,7 +19,7 @@ inline glm::vec3 uniformSampleHemisphere(util::FastRand& rand)
       std::fabs(1.0f - 2.0f * r2));
 }
 
-inline void concentricSampleDisk(util::FastRand& rand, float& dx, float& dy)
+inline void concentricSampleDisk(FastRand& rand, float& dx, float& dy)
 {
   float r, theta;
   float u1 = rand();

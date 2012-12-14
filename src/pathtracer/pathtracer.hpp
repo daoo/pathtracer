@@ -15,7 +15,7 @@ class Pathtracer
     Pathtracer(const Scene&, size_t, size_t, size_t);
     ~Pathtracer();
 
-    void tracePrimaryRays(util::FastRand&, util::SampleBuffer&) const;
+    void tracePrimaryRays(FastRand&, SampleBuffer&) const;
 
   private:
     const Scene& m_scene;
@@ -25,7 +25,7 @@ class Pathtracer
     glm::vec3 m_min_d;
     glm::vec3 m_dx, m_dy;
 
-    glm::vec3 incomingLight(util::FastRand&, const math::Ray&, const Intersection&) const;
+    glm::vec3 incomingLight(FastRand&, const math::Ray&, const Intersection&) const;
     glm::vec3 environmentLight(const math::Ray&) const;
 };
 

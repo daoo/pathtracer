@@ -51,17 +51,18 @@ void program(const path& objFile, const path& outDir, size_t w, size_t h,
 
 int main(int argc, char* argv[])
 {
-  if (argc == 6) {
-    string obj_file = argv[1];
-    string img_dir = argv[2];
-    size_t width    = parse<size_t>(argv[3]);
-    size_t height   = parse<size_t>(argv[4]);
-    size_t samples  = parse<size_t>(argv[5]);
-
-    program(obj_file, img_dir, width, height, 0, samples);
-  } else {
+  if (argc != 6) {
     cerr << "Usage: pathtracer model.obj output-dir width height samples\n";
+    return 1;
   }
+
+  string obj_file = argv[1];
+  string img_dir  = argv[2];
+  size_t width    = parse<size_t>(argv[3]);
+  size_t height   = parse<size_t>(argv[4]);
+  size_t samples  = parse<size_t>(argv[5]);
+
+  program(obj_file, img_dir, width, height, 0, samples);
 
   return 0;
 }

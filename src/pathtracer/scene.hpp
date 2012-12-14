@@ -11,6 +11,7 @@
 class Scene
 {
   public:
+    Scene();
     Scene(const OBJModel& model);
     ~Scene();
 

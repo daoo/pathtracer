@@ -28,7 +28,7 @@ class GUI
     void saveScreenshot() const;
 
   private:
-    util::FastRand m_rand;
+    FastRand m_rand;
 
     boost::filesystem::path m_screenshot_dir;
 
@@ -37,7 +37,7 @@ class GUI
     size_t m_camera;
 
     Pathtracer* m_pathtracer;
-    util::SampleBuffer* m_buffer;
+    SampleBuffer* m_buffer;
 
     size_t m_width, m_height;
     size_t m_subsampling;
