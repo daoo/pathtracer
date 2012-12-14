@@ -15,12 +15,11 @@ using namespace std;
 using namespace util;
 
 void program(const string& objFile, const string& outFile, size_t w, size_t h,
-    size_t camera, size_t sampleCount, size_t threadCount)
+    size_t camera, size_t sampleCount)
 {
   assert(!objFile.empty());
   assert(!outFile.empty());
   assert(w > 0 && h > 0);
-  assert(threadCount > 0);
   assert(sampleCount > 0);
 
   OBJModel model;
