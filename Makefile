@@ -10,18 +10,13 @@ build:
 clean:
 	+@make --no-print-directory -C $(build_dir) clean
 
-links:
-	ln -fsn $(path)/scenes $(build_dir)/src/scenes
-
-debug: links
-	cd $(build_dir)/src; \
-	      gdb -ex "set args scenes/cube.obj $(path)/build/" \
+debug:
+	gdb -ex "set args $(path)/scenes/cube.obj $(path)/build/" \
 	      $(front_dir)/gui/schwar-gl
 
-run: links
-	cd $(build_dir)/src; \
-	       $(front_dir)/gui/schwar-gl \
-	       scenes/cube.obj \
+run:
+	$(front_dir)/gui/schwar-gl \
+	       $(path)/scenes/cube.obj \
 	       $(path)/build/
 
 cmake:
