@@ -1,12 +1,8 @@
 project(util)
 
-find_package(Boost REQUIRED COMPONENTS system filesystem)
-find_package(FreeImage REQUIRED)
-find_package(GLM REQUIRED)
-
-add_definitions(-Wall -Wextra -std=c++11)
 include_directories(
   ${FREEIMAGE_INCLUDE_PATH}
+  ${GLM_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIR}
   )
 
