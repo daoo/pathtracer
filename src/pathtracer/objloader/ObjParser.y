@@ -2,7 +2,8 @@
 #include "Object.hpp"
 #include "ObjLexer.hpp"
 
-int yyerror(yyscan_t scanner, SExpression **expression, const char *msg);
+int yyerror(std::string);
+int yyerror(char*);
 
 %}
 
@@ -15,36 +16,58 @@ int yyerror(yyscan_t scanner, SExpression **expression, const char *msg);
 %parse-param { yyscan_t scanner }
 
 %union {
-    int value;
-    SExpression* expression;
+  int int_value;
+  float float_value;
+  char* string_value;
 }
 
 %token TOKEN_SLASH
 %token TOKEN_OFF
 %token TOKEN_MATERIAL
 %token TOKEN_FACE
-%token TOKEN_SHADING
 %token TOKEN_VERTEX
 %token TOKEN_NORMAL
 %token TOKEN_TEXTURECOORDINATE
 
-%token <value> TOKEN_STRING
-%token <value> TOKEN_FLOAT
-%token <value> TOKEN_INTEGER
+%token <string_value> TOKEN_STRING
+%token <float_value> TOKEN_FLOAT
+%token <int_value> TOKEN_INTEGER
 
 %type <expression> expr
 
 %%
 
 input
-    : expr { *expression = $1; }
+    : input data
     ;
 
 data
-    : TOKEN_VERTEX expr { $$ = ; }
-    | expr TOKEN_MULTIPLY expr { $$ = ; }
-    | TOKEN_LPAREN expr TOKEN_RPAREN { $$ = $2; }
-    | TOKEN_NUMBER { $$ = ; }
+    : 
+    | TOKEN_VERTEX value value
+    ;
+
+value
+    : TOKEN_FLOAT { $$ = $1; }
+    | TOKEN_INTEGER { $$ = $1; }
+    ;
+
+shading_value
+    : TOKEN_FLOAT { $$ = $1; }
     ;
 
 %%
+
+int yyerror(std::string s)
+{
+  extern int yylineno; // defined and maintained in lex.c
+  extern char *yytext; // defined and maintained in lex.c
+
+  cerr << "ERROR: " << s << " at symbol \"" << yytext;
+  cerr << "\" on line " << yylineno << "\n";
+  exit(1);
+}
+
+int yyerror(char* s)
+{
+  return yyerror(std::string(s));
+}
