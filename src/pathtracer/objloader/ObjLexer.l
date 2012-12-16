@@ -24,7 +24,7 @@ usmtl { return TOKEN_MATERIAL; }
 f  { return TOKEN_FACE; }
 v  { return TOKEN_VERTEX; }
 vn { return TOKEN_NORMAL; }
-vt { return TOKEN_TEXTURECOORDINATE; }
+vt { return TOKEN_TEXCOORD; }
 
 s  ;
 

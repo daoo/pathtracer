@@ -2,22 +2,41 @@
 #define OBJ_HPP_ABWTTNHR
 
 #include <boost/filesystem.hpp>
+#include <exception>
+#include <map>
+#include <vector>
 
+/**
+ * Obj and Mtl loader.
+ *
+ * Only supports ASCII.
+ */
 namespace objloader
 {
-  struct Vertex            { float x, y, z; };
-  struct Normal            { float x, y, z; };
-  struct TextureCoordinate { float u, v, w; };
+  class ObjLoaderException : public std::runtime_error
+  {
+    public:
+      ObjLoaderException(const std::string& what) : std::runtime_error(what) { }
+  };
+
+  class ObjLoaderParserException : public ObjLoaderException
+  {
+    public:
+      size_t m_line;
+      std::string m_text;
+
+      std::string m_message;
+  };
+
+  struct Vertex   { float x, y, z; };
+  struct Normal   { float x, y, z; };
+  struct TexCoord { float u, v; };
 
   struct Triangle
   {
     int xv, xt, xn;
     int yv, yt, yn;
     int zv, zt, zn;
-  };
-
-  struct Material
-  {
   };
 
   struct Chunk
@@ -29,16 +48,26 @@ namespace objloader
 
   struct Obj
   {
-    std::vector<Vertex> vertices;
-    std::vector<Normal> normals;
-    std::vector<TextureCoordinate> textureCoordinates;
+    std::vector<Vertex> m_vertices;
+    std::vector<Normal> m_normals;
+    std::vector<TexCoord> m_texcoords;
 
-    std::map<std::string, Material> materials;
+    std::vector<Chunk> m_chunks;
 
-    std::vector<Chunk> chunks;
+    boost::filesystem::path m_mtl_lib;
   };
 
-  Obj load(const boost::filesystem::path&, const boost::filesystem::path&);
+  struct Material
+  {
+  };
+
+  struct Mtl
+  {
+    std::map<std::string, Material> m_materials;
+  };
+
+  Obj loadObj(const boost::filesystem::path&);
+  Mtl loadMtl(const boost::filesystem::path&);
 }
 
 #endif /* end of include guard: OBJ_HPP_ABWTTNHR */

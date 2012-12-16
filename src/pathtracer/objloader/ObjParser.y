@@ -27,7 +27,7 @@ int yyerror(char*);
 %token TOKEN_FACE
 %token TOKEN_VERTEX
 %token TOKEN_NORMAL
-%token TOKEN_TEXTURECOORDINATE
+%token TOKEN_TEXCOORD
 
 %token <string_value> TOKEN_STRING
 %token <float_value> TOKEN_FLOAT
@@ -42,8 +42,9 @@ input
     ;
 
 data
-    : 
-    | TOKEN_VERTEX value value
+    : TOKEN_VERTEX value value value { $$ = Vertex{$1, $2, $3}; }
+    | TOKEN_NORMAL value value value { $$ = Normal{$1, $2, $3}; }
+    | TOKEN_TEXCOORD value value     { $$ = TexCoord{$1, $2, 0.0}; }
     ;
 
 value
@@ -59,8 +60,8 @@ shading_value
 
 int yyerror(std::string s)
 {
-  extern int yylineno; // defined and maintained in lex.c
-  extern char *yytext; // defined and maintained in lex.c
+  extern int yylineno;
+  extern char* yytext;
 
   cerr << "ERROR: " << s << " at symbol \"" << yytext;
   cerr << "\" on line " << yylineno << "\n";

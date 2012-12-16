@@ -2,6 +2,7 @@
 #include "pathtracer/samplebuffer.hpp"
 #include "pathtracer/scene.hpp"
 #include "util/clock.hpp"
+#include "util/strings.hpp"
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
@@ -14,6 +15,9 @@ using namespace std;
 using namespace util;
 
 struct SampleInformation : public mpi::is_mpi_datatype<SampleInformation> {
+  SampleInformation() { }
+  SampleInformation(size_t count, float time) : count(count), time(time) { }
+
   size_t count;
   float time;
 
@@ -28,7 +32,7 @@ struct SampleInformation : public mpi::is_mpi_datatype<SampleInformation> {
 enum InitializationMessage { SceneBuilt };
 enum ProgressMessage { SamplesCompleted, Finished };
 
-void trace(mpi::communicator local, mpi::communicator world
+void trace(mpi::communicator, mpi::communicator
     , size_t width, size_t height, size_t sampleCount)
 {
   assert(width > 0 && height > 0);
@@ -36,7 +40,7 @@ void trace(mpi::communicator local, mpi::communicator world
 
   // wait for work
   Scene scene;
-  local.recv(world.rank(), SceneBuilt, scene);
+  //local.recv(world.rank(), SceneBuilt, scene);
 
   // start work
   const Pathtracer pt(scene, 0, width, height);
@@ -49,11 +53,11 @@ void trace(mpi::communicator local, mpi::communicator world
     pt.tracePrimaryRays(rand, buffer);
     clock.stop();
 
-    world.isend(local.rank(), SamplesCompleted,
-        SampleInformation{buffer.samples(), clock.length<float, ratio<1>>()});
+    //world.isend(local.rank(), SamplesCompleted,
+        //SampleInformation{buffer.samples(), clock.length<float, ratio<1>>()});
   }
 
-  world.send(local.rank(), Finished, buffer);
+  //world.send(local.rank(), Finished, buffer);
 }
 
 int main(int argc, char* argv[])
@@ -82,7 +86,6 @@ int main(int argc, char* argv[])
 
   mpi::communicator local = world.split(is_worker? 0 : 1);
   if (is_worker) {
-    bool all_finished;
     size_t running = worker_count;
 
     SampleBuffer result(width, height);
@@ -90,7 +93,7 @@ int main(int argc, char* argv[])
       SampleInformation info;
       world.recv(mpi::any_source, SamplesCompleted, info);
 
-      cout << info.samples();
+      cout << info.count;
     }
   } else {
     trace(local, world, width, height, samples);
