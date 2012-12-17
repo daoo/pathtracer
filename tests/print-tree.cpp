@@ -1,11 +1,11 @@
-#include <chrono>
 #include <iostream>
 
 #include "pathtracer/kdtree/print.hpp"
 #include "pathtracer/pathtracer.hpp"
+#include "util/clock.hpp"
 
-using namespace std::chrono;
 using namespace std;
+using namespace util;
 
 int main(int argc, char* argv[])
 {
@@ -19,15 +19,15 @@ int main(int argc, char* argv[])
 
   string obj_file = argv[1];
 
-  time t1 = clock::now().time_since_epoch();
-
+  Clock clock;
   OBJModel model;
+
+  clock.start();
   model.load(obj_file);
   Scene scene(model);
+  clock.stop();
 
-  time t2 = clock::now().time_since_epoch();
-
-  cout << "Built in " << duration_cast<duration<double, ratio<1>>>(t2 - t1).count() << " seconds.\n\n";
+  cout << "Built in " << clock.length<double, ratio<1>>() << " seconds.\n\n";
   print(cout, scene.kdtree());
 
   return 0;
