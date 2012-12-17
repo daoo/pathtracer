@@ -16,22 +16,26 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-
   path file = argv[1];
 
-  Clock clock;
-  clock.start();
-  Obj obj = loadObj(file);
-  clock.stop();
+  try {
+    Clock clock;
+    clock.start();
+    Obj obj = loadObj(file);
+    clock.stop();
 
-  size_t triangle_count = 0;
-  for (const Chunk& c : obj.m_chunks) {
-    triangle_count += c.m_triangles.size();
+    size_t triangle_count = 0;
+    for (const Chunk& c : obj.m_chunks) {
+      triangle_count += c.m_triangles.size();
+    }
+
+    cout << "Loaded " << file << " in " << clock.length<double, ratio<1>>() << "seconds\n"
+        << "  Triangles: " << triangle_count << "\n"
+        << "  Chunks:    " << obj.m_chunks.size() << "\n";
+
+    return 0;
+  } catch (const ObjLoaderParserException& ex) {
+    cerr << ex;
+    return 1;
   }
-
-  cout << "Loaded " << basename(file) << " in " << clock.length<double, ratio<1>>() << "seconds\n"
-       << "  Triangles: " << triangle_count << "\n"
-       << "  Chunks:    " << obj.m_chunks.size() << "\n";
-
-  return 0;
 }

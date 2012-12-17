@@ -4,6 +4,7 @@
 #include <boost/filesystem.hpp>
 #include <exception>
 #include <map>
+#include <ostream>
 #include <vector>
 
 /**
@@ -22,11 +23,20 @@ namespace objloader
   class ObjLoaderParserException : public ObjLoaderException
   {
     public:
-      size_t m_line;
+      ObjLoaderParserException(const boost::filesystem::path& file,
+          size_t line, size_t column, const std::string& text,
+          const std::string& message) : ObjLoaderException(message),
+          m_file(file), m_line(line), m_column(column), m_text(text),
+          m_message(message) { }
+
+      boost::filesystem::path m_file;
+      size_t m_line, m_column;
       std::string m_text;
 
       std::string m_message;
   };
+
+  std::ostream& operator<<(std::ostream&, const ObjLoaderParserException&);
 
   struct Vertex   { float x, y, z; };
   struct Normal   { float x, y, z; };

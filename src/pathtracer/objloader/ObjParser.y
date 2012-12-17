@@ -41,7 +41,7 @@ input
     : input data
     ;
 
-data
+line
     : TOKEN_VERTEX value value value { $$ = Vertex{$1, $2, $3}; }
     | TOKEN_NORMAL value value value { $$ = Normal{$1, $2, $3}; }
     | TOKEN_TEXCOORD value value     { $$ = TexCoord{$1, $2, 0.0}; }
