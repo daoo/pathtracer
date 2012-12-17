@@ -109,40 +109,22 @@ namespace objloader
     ifstream stream(file.string());
     Obj obj;
 
-    size_t line_index = 0;
     while (!stream.eof()) {
-      string line;
-      getline(stream, line);
-
-      size_t column = 0;
-
       char c = stream.peek();
-      while (c != '\n') {
-        if (c == ' ' || c == '\t') {
-          // We ignore spaces and tabs
-          stream.get();
-          ++column;
-        } else if (c == '#') {
-          // Skip to next line
-          break;
-        } else {
-          // Try fetching a token
-          ObjToken tok = takeObjToken(stream);
+      if (c == ' ' || c == '\t') {
+        // We ignore spaces and tabs
+        stream.get();
+      } else if (c == '#') {
+        // Skip to next line
+        nextLine(stream);
+      } else {
+        // Try fetching a token
+        ObjToken tok = takeObjToken(stream);
 
-          if (tok == TVertex) threeValues<Vertex>(stream, obj.m_vertices);
-          else if (tok == TNormal) threeValues<Normal>(stream, obj.m_normals);
-          else if (tok == TTexCoord) {
-            float u = takeValue(stream);
-            float w = takeValue(stream);
-            obj.m_texcoords.push_back(TexCoord{u, w});
-          }
-
-          nextLine(stream);
-          ++line;
-        }
+        if (tok == TVertex)        threeValues<Vertex>(stream, obj.m_vertices);
+        else if (tok == TNormal)   threeValues<Normal>(stream, obj.m_normals);
+        else if (tok == TTexCoord) twoValues<TexCoord>(stream, obj.m_texcoords);
       }
-
-      ++line_index;
     }
 
     return obj;

@@ -1,0 +1,36 @@
+#include "pathtracer/objloader/Obj.hpp"
+#include "util/clock.hpp"
+
+#include <boost/filesystem.hpp>
+#include <iostream>
+
+using namespace boost::filesystem;
+using namespace std;
+using namespace util;
+
+int main(int argc, char* argv[])
+{
+  if (argc != 2) {
+    cout << "Usage: print-obj model.obj\n";
+    return 1;
+  }
+
+
+  path file = argv[1];
+
+  Clock clock;
+  clock.start();
+  Obj obj = loadObj(file);
+  clock.stop();
+
+  size_t triangle_count = 0;
+  for (const Chunk& c : obj.m_chunks) {
+    triangle_count += c.m_triangles.size();
+  }
+
+  cout << "Loaded " << basename(file) << " in " << clock.length<double, ratio<1>>() << "seconds\n"
+       << "  Triangles: " << triangle_count << "\n"
+       << "  Chunks:    " << obj.m_chunks.size() << "\n";
+
+  return 0;
+}

@@ -41,9 +41,9 @@ namespace objloader
 
   struct Chunk
   {
-    std::vector<Triangle> triangles;
+    std::vector<Triangle> m_triangles;
 
-    std::string material;
+    std::string m_material;
   };
 
   struct Obj
