@@ -5,6 +5,7 @@
 #include <iostream>
 
 using namespace boost::filesystem;
+using namespace objloader;
 using namespace std;
 using namespace util;
 

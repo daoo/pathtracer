@@ -14,9 +14,6 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  typedef high_resolution_clock clock;
-  typedef clock::duration time;
-
   string obj_file = argv[1];
 
   Clock clock;
