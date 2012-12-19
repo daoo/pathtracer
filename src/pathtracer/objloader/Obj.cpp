@@ -1,5 +1,6 @@
 #include "Obj.hpp"
 
+#include <array>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -37,6 +38,29 @@ namespace objloader
     const string TOKEN_TEXCOORD = "vt";
     const string TOKEN_USEMTL   = "usemtl";
     const string TOKEN_VERTEX   = "v";
+
+    void parseFacePoint(const string& face, array<int, 3>& output)
+    {
+      array<string, 3> strs;
+      for (size_t i = 0, j = 0; i < face.size(); ++i) {
+        if (face[i] == '/') {
+          ++j;
+        } else {
+          strs[j] += face[i];
+        }
+      }
+
+      stringstream ss;
+      for (size_t i = 0; i < 3; ++i) {
+        if (strs[i].empty()) {
+          output[i] = 0;
+        } else {
+          ss.clear();
+          ss << strs[i];
+          ss >> output[i];
+        }
+      }
+    }
   }
 
   std::ostream& operator<<(std::ostream& stream, const ObjLoaderParserException& ex) {
@@ -106,10 +130,22 @@ namespace objloader
       else if (tok == TOKEN_GROUP); // Not supported
 
       else if (tok == TOKEN_FACE) {
-        Triangle tri;
-        ss >> tri.v0 >> tri.t0 >> tri.n0;
-        ss >> tri.v1 >> tri.t1 >> tri.n1;
-        ss >> tri.v2 >> tri.t2 >> tri.n2;
+        string a, b, c;
+        ss >> a >> b >> c;
+
+        array<int, 3> p0;
+        array<int, 3> p1;
+        array<int, 3> p2;
+        parseFacePoint(a, p0);
+        parseFacePoint(b, p1);
+        parseFacePoint(c, p2);
+
+        Triangle tri
+          { p0[0], p0[1], p0[2]
+          , p1[0], p1[1], p1[2]
+          , p2[0], p2[1], p2[2]
+          };
+
         current_chunk->m_triangles.push_back(tri);
       }
 
