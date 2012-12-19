@@ -5,6 +5,14 @@ using namespace glm;
 
 namespace
 {
+  float reflect(
+      float r0,
+      const vec3& wo,
+      const vec3& n)
+  {
+    return r0 + (1.0f - r0) * pow(1.0f - abs(dot(wo, n)), 5.0f);
+  }
+
   constexpr int sign(float v)
   {
     return v < 0.0f ? -1 : 1;
@@ -36,20 +44,17 @@ vec3 DiffuseMaterial::f(
   return m_reflectance * one_over_pi<float>();
 }
 
-vec3 DiffuseMaterial::sample_f(
+LightSample DiffuseMaterial::sample_f(
     FastRand& rand,
     const vec3& i,
-    vec3& o,
-    const vec3& n,
-    float& pdf) const
+    const vec3& n) const
 {
   vec3 tangent   = normalize(perpendicular(n));
   vec3 bitangent = cross(n, tangent);
   vec3 s         = cosineSampleHemisphere(rand);
 
-  o   = normalize(s.x * tangent + s.y * bitangent + s.z * n);
-  pdf = length(s);
-  return f(i, o, n);
+  vec3 o = normalize(s.x * tangent + s.y * bitangent + s.z * n);
+  return { length(s), f(i, o, n), o };
 }
 
 SpecularReflectionMaterial::SpecularReflectionMaterial(const vec3& reflectance)
@@ -63,16 +68,14 @@ vec3 SpecularReflectionMaterial::f(
   return zero<vec3>();
 }
 
-vec3 SpecularReflectionMaterial::sample_f(
+LightSample SpecularReflectionMaterial::sample_f(
     FastRand&,
     const vec3& i,
-    vec3& o,
-    const vec3& n,
-    float& pdf) const
+    const vec3& n) const
 {
-  o   = normalize(2.0f * abs(dot(i, n)) * n - i);
-  pdf = sameHemisphere(i, o, n) ? abs(dot(o, n)) : 0.0f;
-  return m_reflectance;
+  vec3 wo   = normalize(2.0f * abs(dot(i, n)) * n - i);
+  float pdf = sameHemisphere(i, wo, n) ? abs(dot(wo, n)) : 0.0f;
+  return { pdf, m_reflectance, wo };
 }
 
 SpecularRefractionMaterial::SpecularRefractionMaterial(float ior)
@@ -86,12 +89,10 @@ vec3 SpecularRefractionMaterial::f(
   return zero<vec3>();
 }
 
-vec3 SpecularRefractionMaterial::sample_f(
+LightSample SpecularRefractionMaterial::sample_f(
     FastRand& rand,
     const vec3& i,
-    vec3& o,
-    const vec3& n,
-    float& pdf) const
+    const vec3& n) const
 {
   float eta;
   if(dot(-i, n) < 0.0f) eta = 1.0f/m_ior;
@@ -103,45 +104,36 @@ vec3 SpecularRefractionMaterial::sample_f(
   float k = 1.0f + (w - eta) * (w + eta);
   if (k < 0.0f) {
     // Total internal reflection
-    return m_refmat.sample_f(rand, i, o, N, pdf);
+    return m_refmat.sample_f(rand, i, N);
   }
 
-  k   = sqrt(k);
-  o   = normalize(-eta*i + (w-k)*N);
-  pdf = 1.0;
-  return one<vec3>();
+  k       = sqrt(k);
+  vec3 wo = normalize(-eta * i + (w - k) * N);
+  return { 1.0f, one<vec3>(), wo };
 }
 
 FresnelBlendMaterial::FresnelBlendMaterial(const Material* reflection, const Material* refraction, float r0)
   : m_onReflectionMaterial(reflection), m_onRefractionMaterial(refraction), m_R0(r0) { }
-
-float FresnelBlendMaterial::R(
-    const vec3& wo,
-    const vec3& n) const {
-  return m_R0 + (1.0f - m_R0) * pow(1.0f - abs(dot(wo,n)), 5.0f);
-}
 
 vec3 FresnelBlendMaterial::f(
     const vec3& wo,
     const vec3& wi,
     const vec3& n) const
 {
-  float _R = R(wo, n);
+  float _R = reflect(m_R0, wo, n);
   return _R * m_onReflectionMaterial->f(wo, wi, n) +
     (1.0f - _R) * m_onRefractionMaterial->f(wo, wi, n);
 }
 
-vec3 FresnelBlendMaterial::sample_f(
+LightSample FresnelBlendMaterial::sample_f(
     FastRand& rand,
-    const vec3& wo,
-    vec3& wi,
-    const vec3& n,
-    float& pdf) const
+    const vec3& wi,
+    const vec3& n) const
 {
-  if (rand() < R(wo, n))
-    return m_onReflectionMaterial->sample_f(rand, wo, wi, n, pdf);
+  if (rand() < reflect(m_R0, wi, n))
+    return m_onReflectionMaterial->sample_f(rand, wi, n);
   else
-    return m_onRefractionMaterial->sample_f(rand, wo, wi, n, pdf);
+    return m_onRefractionMaterial->sample_f(rand, wi, n);
 }
 
 BlendMaterial::BlendMaterial(const Material* first, const Material* second, float w)
@@ -155,15 +147,13 @@ vec3 BlendMaterial::f(
   return m_w * m_firstMaterial->f(wo, wi, n) + (1.0f - m_w) * m_secondMaterial->f(wo, wi, n);
 }
 
-vec3 BlendMaterial::sample_f(
+LightSample BlendMaterial::sample_f(
     FastRand& rand,
-    const vec3& wo,
-    vec3& wi,
-    const vec3& n,
-    float& pdf) const
+    const vec3& wi,
+    const vec3& n) const
 {
   if (rand() < m_w)
-    return m_firstMaterial->sample_f(rand, wo, wi, n, pdf);
+    return m_firstMaterial->sample_f(rand, wi, n);
   else
-    return m_secondMaterial->sample_f(rand, wo, wi, n, pdf);
+    return m_secondMaterial->sample_f(rand, wi, n);
 }

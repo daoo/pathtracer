@@ -110,25 +110,23 @@ vec3 Pathtracer::incomingLight(
       }
     }
 
-    float pdf;
-    vec3 wo;
-    const vec3 brdf = mat->sample_f(rand, wi, wo, isect.m_normal, pdf);
+    const LightSample sample = mat->sample_f(rand, wi, isect.m_normal);
 
-    if (pdf < PT_EPSILON) {
+    if (sample.pdf < PT_EPSILON) {
       return L;
     }
 
-    const float cosineterm = abs(dot(wo, isect.m_normal));
-    path_tp = path_tp * (brdf * (cosineterm / pdf));
+    const float cosineterm = abs(dot(sample.wo, isect.m_normal));
+    path_tp = path_tp * (sample.brdf * (cosineterm / sample.pdf));
 
     if (lengthSquared(path_tp) < PT_EPSILON * PT_EPSILON) {
       return L;
     }
 
-    if (dot(wo, isect.m_normal) >= 0) {
-      current_ray = Ray { isect.m_position + offsetInNormalDir, wo, 0.0f, FLT_MAX };
+    if (dot(sample.wo, isect.m_normal) >= 0) {
+      current_ray = Ray { isect.m_position + offsetInNormalDir, sample.wo, 0.0f, FLT_MAX };
     } else {
-      current_ray = Ray { isect.m_position - offsetInNormalDir, wo, 0.0f, FLT_MAX };
+      current_ray = Ray { isect.m_position - offsetInNormalDir, sample.wo, 0.0f, FLT_MAX };
     }
 
     if (!m_scene.allIntersection(current_ray, isect)) {

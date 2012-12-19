@@ -6,6 +6,12 @@
 
 #include <glm/glm.hpp>
 
+struct LightSample {
+  float pdf;
+  glm::vec3 brdf;
+  glm::vec3 wo;
+};
+
 /**
  * Abstract base class for materials.
  */
@@ -15,16 +21,14 @@ class Material
     virtual ~Material() { }
 
     virtual glm::vec3 f(
-        const glm::vec3& wi,
         const glm::vec3& wo,
+        const glm::vec3& wi,
         const glm::vec3& normal) const = 0;
 
-    virtual glm::vec3 sample_f(
+    virtual LightSample sample_f(
         FastRand&,
         const glm::vec3& wi,
-        glm::vec3& wo,
-        const glm::vec3& normal,
-        float& pdf) const = 0;
+        const glm::vec3& normal) const = 0;
 };
 
 /**
@@ -43,12 +47,10 @@ class DiffuseMaterial : public Material
         const glm::vec3&,
         const glm::vec3&) const;
 
-    virtual glm::vec3 sample_f(
+    virtual LightSample sample_f(
         FastRand&,
         const glm::vec3&,
-        glm::vec3&,
-        const glm::vec3&,
-        float&) const;
+        const glm::vec3&) const;
 
   private:
     // The reflectance (color) of the material
@@ -74,12 +76,10 @@ class SpecularReflectionMaterial : public Material
         const glm::vec3&,
         const glm::vec3&) const;
 
-    virtual glm::vec3 sample_f(
+    virtual LightSample sample_f(
         FastRand&,
         const glm::vec3&,
-        glm::vec3&,
-        const glm::vec3&,
-        float&) const;
+        const glm::vec3&) const;
 
   private:
     // The reflectance (color) of the specular reflection
@@ -104,12 +104,10 @@ class SpecularRefractionMaterial : public Material
         const glm::vec3&,
         const glm::vec3&) const;
 
-    virtual glm::vec3 sample_f(
+    virtual LightSample sample_f(
         FastRand&,
         const glm::vec3&,
-        glm::vec3&,
-        const glm::vec3&,
-        float&) const;
+        const glm::vec3&) const;
 
   private:
     // Index of refraction
@@ -135,19 +133,15 @@ class FresnelBlendMaterial : public Material
         const glm::vec3&,
         const glm::vec3&) const;
 
-    virtual glm::vec3 sample_f(
+    virtual LightSample sample_f(
         FastRand&,
         const glm::vec3&,
-        glm::vec3&,
-        const glm::vec3&,
-        float&) const;
+        const glm::vec3&) const;
 
   private:
     const Material* m_onReflectionMaterial;
     const Material* m_onRefractionMaterial;
     float m_R0;
-
-    float R(const glm::vec3& i, const glm::vec3& n) const;
 };
 
 /**
@@ -165,12 +159,10 @@ class BlendMaterial : public Material
         const glm::vec3&,
         const glm::vec3&) const;
 
-    virtual glm::vec3 sample_f(
+    virtual LightSample sample_f(
         FastRand&,
         const glm::vec3&,
-        glm::vec3&,
-        const glm::vec3&,
-        float&) const;
+        const glm::vec3&) const;
 
   private:
     const Material* m_firstMaterial;
