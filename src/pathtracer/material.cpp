@@ -18,9 +18,9 @@ namespace
     return v < 0.0f ? -1 : 1;
   }
 
-  bool sameHemisphere(const vec3& i, const vec3& o, const vec3& n)
+  bool sameHemisphere(const vec3& wi, const vec3& wo, const vec3& n)
   {
-    return sign(dot(o, n)) == sign(dot(i, n));
+    return sign(dot(wi, n)) == sign(dot(wo, n));
   }
 
   vec3 perpendicular(const vec3& v)
@@ -46,15 +46,15 @@ vec3 DiffuseMaterial::f(
 
 LightSample DiffuseMaterial::sample_f(
     FastRand& rand,
-    const vec3& i,
+    const vec3& wi,
     const vec3& n) const
 {
   vec3 tangent   = normalize(perpendicular(n));
   vec3 bitangent = cross(n, tangent);
   vec3 s         = cosineSampleHemisphere(rand);
 
-  vec3 o = normalize(s.x * tangent + s.y * bitangent + s.z * n);
-  return { length(s), f(i, o, n), o };
+  vec3 wo = normalize(s.x * tangent + s.y * bitangent + s.z * n);
+  return { length(s), f(wi, wo, n), wo };
 }
 
 SpecularReflectionMaterial::SpecularReflectionMaterial(const vec3& reflectance)
@@ -70,11 +70,11 @@ vec3 SpecularReflectionMaterial::f(
 
 LightSample SpecularReflectionMaterial::sample_f(
     FastRand&,
-    const vec3& i,
+    const vec3& wi,
     const vec3& n) const
 {
-  vec3 wo   = normalize(2.0f * abs(dot(i, n)) * n - i);
-  float pdf = sameHemisphere(i, wo, n) ? abs(dot(wo, n)) : 0.0f;
+  vec3 wo   = normalize(2.0f * abs(dot(wi, n)) * n - wi);
+  float pdf = sameHemisphere(wi, wo, n) ? abs(dot(wo, n)) : 0.0f;
   return { pdf, m_reflectance, wo };
 }
 
@@ -91,24 +91,24 @@ vec3 SpecularRefractionMaterial::f(
 
 LightSample SpecularRefractionMaterial::sample_f(
     FastRand& rand,
-    const vec3& i,
+    const vec3& wi,
     const vec3& n) const
 {
   float eta;
-  if(dot(-i, n) < 0.0f) eta = 1.0f/m_ior;
+  if(dot(-wi, n) < 0.0f) eta = 1.0f/m_ior;
   else eta = m_ior;
 
-  vec3 N = dot(-i, n) < 0.0 ? n : -n;
+  vec3 N = dot(-wi, n) < 0.0 ? n : -n;
 
-  float w = -dot(-i, N) * eta;
+  float w = -dot(-wi, N) * eta;
   float k = 1.0f + (w - eta) * (w + eta);
   if (k < 0.0f) {
     // Total internal reflection
-    return m_refmat.sample_f(rand, i, N);
+    return m_refmat.sample_f(rand, wi, N);
   }
 
   k       = sqrt(k);
-  vec3 wo = normalize(-eta * i + (w - k) * N);
+  vec3 wo = normalize(-eta * wi + (w - k) * N);
   return { 1.0f, one<vec3>(), wo };
 }
 
