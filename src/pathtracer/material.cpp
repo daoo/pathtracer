@@ -5,7 +5,7 @@ using namespace glm;
 
 namespace
 {
-  float reflect(
+  float reflectance(
       float r0,
       const vec3& wo,
       const vec3& n)
@@ -125,7 +125,7 @@ vec3 FresnelBlendMaterial::brdf(
     const vec3& wi,
     const vec3& n) const
 {
-  float _R = reflect(m_R0, wo, n);
+  float _R = reflectance(m_R0, wo, n);
   return _R * m_onReflectionMaterial->brdf(wo, wi, n) +
     (1.0f - _R) * m_onRefractionMaterial->brdf(wo, wi, n);
 }
@@ -135,7 +135,7 @@ LightSample FresnelBlendMaterial::sample_brdf(
     const vec3& wi,
     const vec3& n) const
 {
-  if (rand() < reflect(m_R0, wi, n))
+  if (rand() < reflectance(m_R0, wi, n))
     return m_onReflectionMaterial->sample_brdf(rand, wi, n);
   else
     return m_onRefractionMaterial->sample_brdf(rand, wi, n);
