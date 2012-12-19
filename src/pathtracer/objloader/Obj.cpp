@@ -12,19 +12,6 @@ namespace objloader
   namespace
   {
     class ObjLoaderNoTokenException : public ObjLoaderException { };
-    class InvalidTokenException : public ObjLoaderException
-    {
-      public:
-        InvalidTokenException()
-          : ObjLoaderException("Invalid token"), m_token_found() { }
-        InvalidTokenException(long pos, const string& str)
-          : ObjLoaderException("Invalid token"), m_token_found(str),
-            m_pos(pos) { }
-
-        string m_token_found;
-        long m_pos;
-    };
-
     class InvalidValueException : public ObjLoaderException
     {
       public:
@@ -41,95 +28,15 @@ namespace objloader
       TMtlLib, TUseMtl
     };
 
-    const string TOKEN_VERTEX   = "v";
-    const string TOKEN_NORMAL   = "vn";
-    const string TOKEN_TEXCOORD = "vt";
+    const string TOKEN_COMMENT  = "#";
     const string TOKEN_FACE     = "f";
-    const string TOKEN_SHADING  = "s";
+    const string TOKEN_GROUP    = "g";
     const string TOKEN_MTLLIB   = "mtllib";
-    const string TOKET_USEMTL   = "usemtl";
-
-    void skipWhitespace(istream& stream) {
-      char c = stream.peek();
-      while (c == ' ' || c == '\t') {
-        stream.get();
-        c = stream.peek();
-      }
-    }
-
-    string takeIdentifier(istream& stream)
-    {
-      string str;
-
-      char c = stream.peek();
-      while (c != ' ' && c != '\t' && c != '\n') {
-        str.push_back(c);
-        stream.get();
-        c = stream.peek();
-      }
-
-      return str;
-    }
-
-    ObjToken takeObjToken(istream& stream)
-    {
-      size_t old_pos = stream.tellg();
-
-      string id = takeIdentifier(stream);
-
-      if (id.empty()) throw InvalidTokenException();
-
-      else if (id == TOKEN_VERTEX)   return TVertex;
-      else if (id == TOKEN_NORMAL)   return TNormal;
-      else if (id == TOKEN_TEXCOORD) return TTexCoord;
-      else if (id == TOKEN_FACE)     return TFace;
-      else if (id == TOKEN_SHADING)  return TShading;
-      else if (id == TOKEN_MTLLIB)   return TMtlLib;
-      else if (id == TOKET_USEMTL)   return TUseMtl;
-
-      else throw InvalidTokenException(old_pos, id);
-    }
-
-    string takePath(istream& stream)
-    {
-      string str;
-      while (stream.peek() != '\n') {
-        str.push_back(stream.get());
-      }
-      return str;
-    }
-
-    float takeValue(istream& stream)
-    {
-      long old_pos = stream.tellg();
-
-      float a;
-      stream >> a;
-      if (stream.fail())
-        throw InvalidValueException(old_pos);
-      return a;
-    }
-
-    template <typename T>
-    void twoValues(istream& stream, vector<T>& vec)
-    {
-      float a = takeValue(stream); skipWhitespace(stream);
-      float b = takeValue(stream);
-      vec.push_back(T{a, b});
-    }
-
-    template <typename T>
-    void threeValues(istream& stream, vector<T>& vec)
-    {
-      float a = takeValue(stream); skipWhitespace(stream);
-      float b = takeValue(stream); skipWhitespace(stream);
-      float c = takeValue(stream);
-      vec.push_back(T{a, b, c});
-    }
-
-    void nextLine(istream& stream) {
-      stream.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
+    const string TOKEN_NORMAL   = "vn";
+    const string TOKEN_SHADING  = "s";
+    const string TOKEN_TEXCOORD = "vt";
+    const string TOKEN_USEMTL   = "usemtl";
+    const string TOKEN_VERTEX   = "v";
   }
 
   std::ostream& operator<<(std::ostream& stream, const ObjLoaderParserException& ex) {
@@ -146,55 +53,76 @@ namespace objloader
   Obj loadObj(const path& file)
   {
     ifstream stream(file.string());
+
+    string line;
+    size_t line_index = 0;
+
     Obj obj;
+    Chunk* current_chunk;
 
-    try {
-      while (!stream.eof()) {
-        char c = stream.peek();
+    while (getline(stream, line)) {
+      if (line.empty())
+        continue;
 
-        if (c == ' ' || c == '\t') {
-          stream.get();
-        } else if (c == '#') {
-          nextLine(stream);
-        } else {
-          ObjToken tok = takeObjToken(stream);
+      stringstream ss(line);
 
-          skipWhitespace(stream);
+      string tok;
+      ss >> tok;
 
-          if (tok == TMtlLib) obj.m_mtl_lib = takePath(stream);
+      size_t column_index = static_cast<size_t>(ss.tellg()) - tok.length();
 
-          else if (tok == TVertex)   threeValues<Vertex>(stream, obj.m_vertices);
-          else if (tok == TNormal)   threeValues<Normal>(stream, obj.m_normals);
-          else if (tok == TTexCoord) twoValues<TexCoord>(stream, obj.m_texcoords);
-        }
+      if (tok.empty()) {
+        throw ObjLoaderParserException(file, line_index, column_index, line, "Expected token");
       }
 
-      return obj;
-    } catch (const InvalidTokenException& ex) {
-      stream.clear();
+      else if (tok == TOKEN_COMMENT); // Do nothing
 
-      const long pos = ex.m_pos;
-
-      size_t start = 0;
-      size_t line  = 0;
-
-      stream.seekg(0);
-      while (stream.tellg() < pos) {
-        start = stream.tellg();
-        nextLine(stream);
-        ++line;
+      else if (tok == TOKEN_MTLLIB) {
+        ss >> obj.m_mtl_lib;
       }
 
-      size_t column = pos - start;
+      else if (tok == TOKEN_USEMTL) {
+        string mtl;
+        ss >> mtl;
+        obj.m_chunks.push_back(Chunk(mtl));
+        current_chunk = &obj.m_chunks.back();
+      }
 
-      stream.seekg(start);
-      string text;
-      getline(stream, text);
+      else if (tok == TOKEN_VERTEX) {
+        Vertex v;
+        ss >> v.x >> v.y >> v.z;
+        obj.m_vertices.push_back(v);
+      } else if (tok == TOKEN_NORMAL) {
+        Normal n;
+        ss >> n.x >> n.y >> n.z;
+        obj.m_normals.push_back(n);
+      } else if (tok == TOKEN_TEXCOORD) {
+        TexCoord t;
+        ss >> t.u >> t.v;
+        obj.m_texcoords.push_back(t);
+      }
 
-      stringstream ss;
-      ss << "Invalid token '" << ex.m_token_found << "'";
+      else if (tok == TOKEN_SHADING); // Not supported
+      else if (tok == TOKEN_GROUP); // Not supported
 
-      throw ObjLoaderParserException(file, line, column, text, ss.str());
+      else if (tok == TOKEN_FACE) {
+        Triangle tri;
+        ss >> tri.xv >> tri.xt >> tri.xn;
+        ss >> tri.yv >> tri.yt >> tri.yn;
+        ss >> tri.zv >> tri.zt >> tri.zn;
+        current_chunk->m_triangles.push_back(tri);
+      }
+
+      else {
+        stringstream err;
+        err << "Invalid token '" << tok << "'";
+
+        throw ObjLoaderParserException(file, line_index, column_index, line, err.str());
+      }
+
+      ++line_index;
     }
+
+    return obj;
   }
 }

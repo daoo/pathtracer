@@ -51,6 +51,8 @@ namespace objloader
 
   struct Chunk
   {
+    Chunk(const std::string& mtl) : m_material(mtl) { }
+
     std::vector<Triangle> m_triangles;
 
     std::string m_material;

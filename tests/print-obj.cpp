@@ -30,8 +30,8 @@ int main(int argc, char* argv[])
     }
 
     cout << "Loaded " << file << " in " << clock.length<double, ratio<1>>() << "seconds\n"
-        << "  Triangles: " << triangle_count << "\n"
-        << "  Chunks:    " << obj.m_chunks.size() << "\n";
+    cout << "  Triangles: " << triangle_count << "\n"
+    cout << "  Chunks:    " << obj.m_chunks.size() << "\n";
 
     return 0;
   } catch (const ObjLoaderParserException& ex) {
