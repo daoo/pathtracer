@@ -44,9 +44,9 @@ namespace objloader
 
   struct Triangle
   {
-    int xv, xt, xn;
-    int yv, yt, yn;
-    int zv, zt, zn;
+    int v0, t0, n0;
+    int v1, t1, n1;
+    int v2, t2, n2;
   };
 
   struct Chunk

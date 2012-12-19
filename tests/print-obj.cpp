@@ -29,8 +29,8 @@ int main(int argc, char* argv[])
       triangle_count += c.m_triangles.size();
     }
 
-    cout << "Loaded " << file << " in " << clock.length<double, ratio<1>>() << "seconds\n"
-    cout << "  Triangles: " << triangle_count << "\n"
+    cout << "Loaded " << file << " in " << clock.length<double, ratio<1>>() << "seconds\n";
+    cout << "  Triangles: " << triangle_count << "\n";
     cout << "  Chunks:    " << obj.m_chunks.size() << "\n";
 
     return 0;

@@ -107,9 +107,9 @@ namespace objloader
 
       else if (tok == TOKEN_FACE) {
         Triangle tri;
-        ss >> tri.xv >> tri.xt >> tri.xn;
-        ss >> tri.yv >> tri.yt >> tri.yn;
-        ss >> tri.zv >> tri.zt >> tri.zn;
+        ss >> tri.v0 >> tri.t0 >> tri.n0;
+        ss >> tri.v1 >> tri.t1 >> tri.n1;
+        ss >> tri.v2 >> tri.t2 >> tri.n2;
         current_chunk->m_triangles.push_back(tri);
       }
 
