@@ -90,9 +90,13 @@ namespace objloader
       else throw InvalidTokenException(old_pos, id);
     }
 
-    string takePath(istream&)
+    string takePath(istream& stream)
     {
-      return string();
+      string str;
+      while (stream.peek() != '\n') {
+        str.push_back(stream.get());
+      }
+      return str;
     }
 
     float takeValue(istream& stream)
