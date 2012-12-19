@@ -27,12 +27,6 @@ int main(int argc, char* argv[])
     size_t triangle_count = 0;
     for (const Chunk& c : obj.m_chunks) {
       triangle_count += c.m_triangles.size();
-
-      for (const Triangle& tri : c.m_triangles) {
-        cout << tri.v0 << "/" << tri.t0 << "/" << tri.n0 << " "
-             << tri.v1 << "/" << tri.t1 << "/" << tri.n1 << " "
-             << tri.v2 << "/" << tri.t2 << "/" << tri.n2 << "\n";
-      }
     }
 
     cout << "Loaded " << file << " in " << clock.length<double, ratio<1>>() << "seconds\n";
