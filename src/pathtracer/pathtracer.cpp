@@ -106,11 +106,14 @@ vec3 Pathtracer::incomingLight(
         const vec3 wo = normalize(directionToLight);
         const vec3 li = lightEmitted(light, isect.m_position);
 
-        L += path_tp * mat->f(wi, wo, isect.m_normal) * li * abs(dot(wo, isect.m_normal));
+        L += path_tp
+           * mat->brdf(wi, wo, isect.m_normal)
+           * li
+           * abs(dot(wo, isect.m_normal));
       }
     }
 
-    const LightSample sample = mat->sample_f(rand, wi, isect.m_normal);
+    const LightSample sample = mat->sample_brdf(rand, wi, isect.m_normal);
 
     if (sample.pdf < PT_EPSILON) {
       return L;

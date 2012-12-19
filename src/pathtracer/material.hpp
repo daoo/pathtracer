@@ -20,12 +20,12 @@ class Material
   public:
     virtual ~Material() { }
 
-    virtual glm::vec3 f(
+    virtual glm::vec3 brdf(
         const glm::vec3& wo,
         const glm::vec3& wi,
         const glm::vec3& normal) const = 0;
 
-    virtual LightSample sample_f(
+    virtual LightSample sample_brdf(
         FastRand&,
         const glm::vec3& wi,
         const glm::vec3& normal) const = 0;
@@ -42,12 +42,12 @@ class DiffuseMaterial : public Material
   public:
     DiffuseMaterial(const glm::vec3&, Texture*);
 
-    virtual glm::vec3 f(
+    virtual glm::vec3 brdf(
         const glm::vec3&,
         const glm::vec3&,
         const glm::vec3&) const;
 
-    virtual LightSample sample_f(
+    virtual LightSample sample_brdf(
         FastRand&,
         const glm::vec3&,
         const glm::vec3&) const;
@@ -71,12 +71,12 @@ class SpecularReflectionMaterial : public Material
   public:
     SpecularReflectionMaterial(const glm::vec3&);
 
-    virtual glm::vec3 f(
+    virtual glm::vec3 brdf(
         const glm::vec3&,
         const glm::vec3&,
         const glm::vec3&) const;
 
-    virtual LightSample sample_f(
+    virtual LightSample sample_brdf(
         FastRand&,
         const glm::vec3&,
         const glm::vec3&) const;
@@ -99,12 +99,12 @@ class SpecularRefractionMaterial : public Material
   public:
     SpecularRefractionMaterial(float);
 
-    virtual glm::vec3 f(
+    virtual glm::vec3 brdf(
         const glm::vec3&,
         const glm::vec3&,
         const glm::vec3&) const;
 
-    virtual LightSample sample_f(
+    virtual LightSample sample_brdf(
         FastRand&,
         const glm::vec3&,
         const glm::vec3&) const;
@@ -128,12 +128,12 @@ class FresnelBlendMaterial : public Material
   public:
     FresnelBlendMaterial(const Material*, const Material*, float);
 
-    virtual glm::vec3 f(
+    virtual glm::vec3 brdf(
         const glm::vec3&,
         const glm::vec3&,
         const glm::vec3&) const;
 
-    virtual LightSample sample_f(
+    virtual LightSample sample_brdf(
         FastRand&,
         const glm::vec3&,
         const glm::vec3&) const;
@@ -154,12 +154,12 @@ class BlendMaterial : public Material
   public:
     BlendMaterial(const Material*, const Material*, float);
 
-    virtual glm::vec3 f(
+    virtual glm::vec3 brdf(
         const glm::vec3&,
         const glm::vec3&,
         const glm::vec3&) const;
 
-    virtual LightSample sample_f(
+    virtual LightSample sample_brdf(
         FastRand&,
         const glm::vec3&,
         const glm::vec3&) const;
