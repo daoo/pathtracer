@@ -40,5 +40,8 @@ int main(int argc, char* argv[])
   } catch (const ObjLoaderParserException& ex) {
     cerr << ex;
     return 1;
+  } catch (const ObjLoaderException& ex) {
+    cerr << ex.what();
+    return 1;
   }
 }

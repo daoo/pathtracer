@@ -2,7 +2,6 @@
 
 #include <array>
 #include <fstream>
-#include <sstream>
 #include <vector>
 
 using namespace boost::filesystem;
@@ -71,7 +70,10 @@ namespace objloader
         }
     };
 
+    // General tokens
     const string TOKEN_COMMENT  = "#";
+
+    // Obj tokens
     const string TOKEN_FACE     = "f";
     const string TOKEN_GROUP    = "g";
     const string TOKEN_MTLLIB   = "mtllib";
@@ -80,6 +82,21 @@ namespace objloader
     const string TOKEN_TEXCOORD = "vt";
     const string TOKEN_USEMTL   = "usemtl";
     const string TOKEN_VERTEX   = "v";
+
+    // Mtl tokens
+    const string TOKEN_NEWMTL       = "newmtl";
+    const string TOKEN_DIFFUSE1     = "diffusereflectance";
+    const string TOKEN_DIFFUSE2     = "kd";
+    const string TOKEN_DIFFUSE_MAP1 = "diffusereflectancemap";
+    const string TOKEN_DIFFUSE_MAP2 = "map_kd";
+    const string TOKEN_SPECULAR1    = "specularreflectance";
+    const string TOKEN_SPECULAR2    = "ks";
+    const string TOKEN_ROUGHNESS    = "specularroughness";
+    const string TOKEN_EMITTANCE    = "emittance";
+    const string TOKEN_TRANSPARANCY = "transparency";
+    const string TOKEN_REFLECT0     = "reflat0deg";
+    const string TOKEN_REFLECT90    = "reflat90deg";
+    const string TOKEN_IOR          = "indexofrefraction";
 
     int toInt(const ConstString& str) {
       return str.empty() ? 0 : atoi(str.c_str());
@@ -109,9 +126,9 @@ namespace objloader
       ConstString str;
     };
 
-    Token sub(const ConstString& str, size_t start)
+    Token getWord(const ConstString& str)
     {
-      size_t i = start;
+      size_t i = 0;
       while (i < str.size()) {
         char c = str[i];
         if (c != ' ' || c != '\t')
@@ -129,6 +146,32 @@ namespace objloader
 
       return { i, j, str.substr(i, j) };
     }
+
+    template <typename T> T fill(const ConstString&);
+
+    template <>
+    Vec2 fill(const ConstString& str)
+    {
+      Vec2 v;
+      Token tx = getWord(str);
+      Token ty = getWord(str.substr(tx.end, str.size()));
+      v.x = atof(tx.str.c_str());
+      v.y = atof(ty.str.c_str());
+      return v;
+    }
+
+    template <>
+    Vec3 fill(const ConstString& str)
+    {
+      Vec3 v;
+      Token tx = getWord(str);
+      Token ty = getWord(str.substr(tx.end, str.size()));
+      Token tz = getWord(str.substr(ty.end, str.size()));
+      v.x = atof(tx.str.c_str());
+      v.y = atof(ty.str.c_str());
+      v.z = atof(tz.str.c_str());
+      return v;
+    }
   }
 
   std::ostream& operator<<(std::ostream& stream, const ObjLoaderParserException& ex) {
@@ -145,58 +188,44 @@ namespace objloader
   Obj loadObj(const path& file)
   {
     ifstream stream(file.string());
+    if (!stream.good()) {
+      string err = "Failed opening file '";
+      err += file.string();
+      err += "'";
+      throw ObjLoaderException(err);
+    }
 
     string line;
     size_t line_index = 0;
 
     Obj obj;
-    Chunk* current_chunk;
+    size_t current_chunk;
 
     while (getline(stream, line)) {
       if (line.empty())
         continue;
 
-      Token tok = sub(line, 0);
+      Token tok = getWord(line);
+      ConstString rest = line.substr(tok.end, line.size());
+
       if (tok.str.empty()) {
         throw ObjLoaderParserException(file, line_index, tok.start, line,
             "Expected token");
       }
 
-      else if (tok.str == TOKEN_VERTEX) {
-        Vertex v;
-        Token tx = sub(line, tok.end);
-        Token ty = sub(line, tx.end);
-        Token tz = sub(line, ty.end);
-        v.x = atof(tx.str.c_str());
-        v.y = atof(ty.str.c_str());
-        v.z = atof(tz.str.c_str());
-        obj.vertices.push_back(v);
-      }
+      else if (tok.str == TOKEN_VERTEX)
+        obj.vertices.push_back(fill<Vec3>(rest));
 
-      else if (tok.str == TOKEN_NORMAL) {
-        Normal n;
-        Token tx = sub(line, tok.end);
-        Token ty = sub(line, tx.end);
-        Token tz = sub(line, ty.end);
-        n.x = atof(tx.str.c_str());
-        n.y = atof(ty.str.c_str());
-        n.z = atof(tz.str.c_str());
-        obj.normals.push_back(n);
-      }
+      else if (tok.str == TOKEN_NORMAL)
+        obj.normals.push_back(fill<Vec3>(rest));
 
-      else if (tok.str == TOKEN_TEXCOORD) {
-        TexCoord t;
-        Token tx = sub(line, tok.end);
-        Token ty = sub(line, tx.end);
-        t.u = atof(tx.str.c_str());
-        t.v = atof(ty.str.c_str());
-        obj.texcoords.push_back(t);
-      }
+      else if (tok.str == TOKEN_TEXCOORD)
+        obj.texcoords.push_back(fill<Vec2>(rest));
 
       else if (tok.str == TOKEN_FACE) {
-        Token t0 = sub(line, tok.end);
-        Token t1 = sub(line, t0.end);
-        Token t2 = sub(line, t1.end);
+        Token t0 = getWord(rest);
+        Token t1 = getWord(line.substr(t0.end, line.size()));
+        Token t2 = getWord(line.substr(t1.end, line.size()));
 
         array<int, 3> p0;
         array<int, 3> p1;
@@ -211,7 +240,7 @@ namespace objloader
           , p2[0], p2[1], p2[2]
           };
 
-        current_chunk->triangles.push_back(tri);
+        obj.chunks[current_chunk].triangles.push_back(tri);
       }
 
       else if (tok.str == TOKEN_SHADING); // Not supported
@@ -220,21 +249,22 @@ namespace objloader
       else if (tok.str == TOKEN_COMMENT); // Do nothing
 
       else if (tok.str == TOKEN_USEMTL) {
-        Token mtl = sub(line, tok.end);
+        Token mtl = getWord(rest);
+        current_chunk = obj.chunks.size();
         obj.chunks.push_back(Chunk(mtl.str.str()));
-        current_chunk = &obj.chunks.back();
       }
 
       else if (tok.str == TOKEN_MTLLIB) {
-        Token mtl_lib = sub(line, tok.end);
+        Token mtl_lib = getWord(rest);
         obj.mtl_lib = mtl_lib.str.str();
       }
 
       else {
-        stringstream err;
-        err << "Invalid token '" << tok.str.str() << "'";
+        string err("Invalid token");
+        err += tok.str.str();
+        err += "'";
 
-        throw ObjLoaderParserException(file, line_index, tok.start, line, err.str());
+        throw ObjLoaderParserException(file, line_index, tok.start, line, err);
       }
 
       ++line_index;
@@ -243,8 +273,60 @@ namespace objloader
     return obj;
   }
 
-  Mtl loadMtl(const path&)
+  Mtl loadMtl(const path& file)
   {
-    return {};
+    ifstream stream(file.string());
+    if (!stream.good()) {
+      string err = "Failed opening file '";
+      err += file.string();
+      err += "'";
+      throw ObjLoaderException(err);
+    }
+
+    Mtl mtl;
+
+    string current_material;
+    string line;
+    size_t line_index = 0;
+    while (getline(stream, line)) {
+      if (line.empty())
+        continue;
+
+      Token tok = getWord(line);
+      ConstString rest = line.substr(tok.end, line.size());
+      if (tok.str.empty()) {
+        throw ObjLoaderParserException(file, line_index, tok.start, line,
+            "Expected token");
+      }
+
+      else if (tok.str == TOKEN_NEWMTL) {
+        Token tmtl = getWord(rest);
+        current_material = tmtl.str.str();
+        mtl.materials[current_material] =
+            { Vec3 {{0.7f}, {0.7f}, {0.7f}}
+            , ""
+            , Vec3 {{1.0f}, {1.0f}, {1.0f}}
+            , Vec3 {{0.0f}, {0.0f}, {0.0f}}
+            , 0.001f
+            , 0.0f
+            , 0.0f
+            , 0.0f
+            , 1.0f
+            };
+      }
+
+      else if (tok.str == TOKEN_DIFFUSE1 || tok.str == TOKEN_DIFFUSE2) {
+        //mtl.materials[current_material].diffuseReflectance = {0,0,0};
+      }
+
+      else if (tok.str == TOKEN_COMMENT); // Do nothing
+
+      else {
+      }
+
+      ++line_index;
+    }
+
+    return mtl;
   }
 }

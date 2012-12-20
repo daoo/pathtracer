@@ -38,9 +38,18 @@ namespace objloader
 
   std::ostream& operator<<(std::ostream&, const ObjLoaderParserException&);
 
-  struct Vertex   { float x, y, z; };
-  struct Normal   { float x, y, z; };
-  struct TexCoord { float u, v; };
+  struct Vec2
+  {
+    union { float x, u; };
+    union { float y, v; };
+  };
+
+  struct Vec3
+  {
+    union { float x, u, r; };
+    union { float y, v, g; };
+    union { float z, w, b; };
+  };
 
   struct Triangle
   {
@@ -60,9 +69,9 @@ namespace objloader
 
   struct Obj
   {
-    std::vector<Vertex> vertices;
-    std::vector<Normal> normals;
-    std::vector<TexCoord> texcoords;
+    std::vector<Vec3> vertices;
+    std::vector<Vec3> normals;
+    std::vector<Vec2> texcoords;
 
     std::vector<Chunk> chunks;
 
@@ -71,10 +80,10 @@ namespace objloader
 
   struct Material
   {
-    float diffuseReflectance[3];
+    Vec3 diffuseReflectance;
     std::string diffuseReflectanceMap;
-    float specularReflectance[3];
-    float emittance[3];
+    Vec3 specularReflectance;
+    Vec3 emittance;
     float specularRoughness;
     float transparency;
     float reflAt0Deg;
