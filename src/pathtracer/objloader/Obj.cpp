@@ -12,16 +12,6 @@ namespace objloader
 {
   namespace
   {
-    class ObjLoaderNoTokenException : public ObjLoaderException { };
-    class InvalidValueException : public ObjLoaderException
-    {
-      public:
-        InvalidValueException(long pos) : ObjLoaderException("Invalid value"),
-            m_pos(pos) { }
-
-        long m_pos;
-    };
-
     class ConstString
     {
       public:
@@ -30,17 +20,13 @@ namespace objloader
         {
         }
 
-        bool operator==(const string& str) const
+        bool operator==(const char* str) const
         {
-          if (size() == str.size()) {
-            for (size_t i = m_start, j = 0; i < m_end; ++i, ++j) {
-              if (m_str[i] != str[i])
-                return false;
-            }
-            return true;
+          for (size_t i = m_start; i < m_end && *str != 0; ++i, ++str) {
+            if (m_str[i] != *str)
+              return false;
           }
-
-          return false;
+          return true;
         }
 
         size_t size() const { return m_end - m_start; }
@@ -53,7 +39,9 @@ namespace objloader
 
         ConstString substr(size_t start, size_t end) const
         {
-          return ConstString(*this, start, end);
+          assert(start <= end);
+          assert(end <= size());
+          return ConstString(*this, m_start + start, m_start + end);
         }
 
         string str() const
@@ -73,37 +61,41 @@ namespace objloader
         ConstString(const ConstString& other, size_t start, size_t end)
           : m_str(other.m_str), m_start(start), m_end(end)
         {
-          assert(m_start <= m_end);
+          assert(start <= end);
+          assert(end <= other.m_str.size());
         }
     };
+
+    const char* TOKEN_COMMENT  = "#";
+    const char* TOKEN_FACE     = "f";
+    const char* TOKEN_GROUP    = "g";
+    const char* TOKEN_MTLLIB   = "mtllib";
+    const char* TOKEN_NORMAL   = "vn";
+    const char* TOKEN_SHADING  = "s";
+    const char* TOKEN_TEXCOORD = "vt";
+    const char* TOKEN_USEMTL   = "usemtl";
+    const char* TOKEN_VERTEX   = "v";
 
     int toInt(const ConstString& str) {
       return str.empty() ? 0 : atoi(str.c_str());
     }
 
-    const string TOKEN_COMMENT  = "#";
-    const string TOKEN_FACE     = "f";
-    const string TOKEN_GROUP    = "g";
-    const string TOKEN_MTLLIB   = "mtllib";
-    const string TOKEN_NORMAL   = "vn";
-    const string TOKEN_SHADING  = "s";
-    const string TOKEN_TEXCOORD = "vt";
-    const string TOKEN_USEMTL   = "usemtl";
-    const string TOKEN_VERTEX   = "v";
-
     void parseFacePoint(const ConstString& face, array<int, 3>& output)
     {
-      array<size_t, 3> sep { -1, -1, -1 };
-      for (size_t i = 0, j = 0; i < face.size(); ++i) {
+      const size_t end = face.size();
+      array<size_t, 3> starts {{ 0, end, end }};
+      array<size_t, 3> ends {{ end, end, end }};
+      for (size_t i = 0, j = 0; i < end; ++i) {
         if (face[i] == '/') {
-          sep[j] = i;
+          ends[j]       = i;
+          starts[j + 1] = i + 1;
           ++j;
         }
       }
 
-      output[0] = toInt(face.substr(0, separators[0]));
-      output[1] = toInt(face.substr(separators[0], separators[1]));
-      output[2] = toInt(face.substr(separators[1], separators[2]));
+      output[0] = toInt(face.substr(starts[0], ends[0]));
+      output[1] = toInt(face.substr(starts[1], ends[1]));
+      output[2] = toInt(face.substr(starts[2], ends[2]));
     }
 
     struct Token
@@ -115,16 +107,16 @@ namespace objloader
     Token sub(const ConstString& str, size_t start)
     {
       size_t i = start;
-      while (str[i] == ' ' || str[i] == '\t') {
+      while (i < str.size() && (str[i] == ' ' || str[i] == '\t')) {
         ++i;
       }
 
       size_t j = i;
-      while (str[j] != ' ') {
+      while (j < str.size() && (str[j] != ' ' || str[i] == '\n')) {
         ++j;
       }
 
-      return { i, j, str.substr(i, j - i) };
+      return { i, j, str.substr(i, j) };
     }
   }
 
@@ -176,25 +168,25 @@ namespace objloader
         Token tx = sub(line, tok.end);
         Token ty = sub(line, tx.end);
         Token tz = sub(line, ty.end);
-        v.x = atoi(tx.str.c_str());
-        v.y = atoi(ty.str.c_str());
-        v.z = atoi(tz.str.c_str());
+        v.x = atof(tx.str.c_str());
+        v.y = atof(ty.str.c_str());
+        v.z = atof(tz.str.c_str());
         obj.m_vertices.push_back(v);
       } else if (tok.str == TOKEN_NORMAL) {
         Normal n;
         Token tx = sub(line, tok.end);
         Token ty = sub(line, tx.end);
         Token tz = sub(line, ty.end);
-        n.x = atoi(tx.str.c_str());
-        n.y = atoi(ty.str.c_str());
-        n.z = atoi(tz.str.c_str());
+        n.x = atof(tx.str.c_str());
+        n.y = atof(ty.str.c_str());
+        n.z = atof(tz.str.c_str());
         obj.m_normals.push_back(n);
       } else if (tok.str == TOKEN_TEXCOORD) {
         TexCoord t;
         Token tx = sub(line, tok.end);
         Token ty = sub(line, tx.end);
-        t.u = atoi(tx.str.c_str());
-        t.v = atoi(ty.str.c_str());
+        t.u = atof(tx.str.c_str());
+        t.v = atof(ty.str.c_str());
         obj.m_texcoords.push_back(t);
       }
 
