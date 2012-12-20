@@ -20,13 +20,18 @@ namespace objloader
         {
         }
 
-        bool operator==(const char* str) const
+        bool operator==(const string& other) const
         {
-          for (size_t i = m_start; i < m_end && *str != 0; ++i, ++str) {
-            if (m_str[i] != *str)
-              return false;
+          if (size() == other.size()) {
+            for (size_t i = m_start, j = 0; i < m_end; ++i, ++j) {
+              if (m_str[i] != other[j])
+                return false;
+            }
+
+            return true;
           }
-          return true;
+
+          return false;
         }
 
         size_t size() const { return m_end - m_start; }
@@ -66,15 +71,15 @@ namespace objloader
         }
     };
 
-    const char* TOKEN_COMMENT  = "#";
-    const char* TOKEN_FACE     = "f";
-    const char* TOKEN_GROUP    = "g";
-    const char* TOKEN_MTLLIB   = "mtllib";
-    const char* TOKEN_NORMAL   = "vn";
-    const char* TOKEN_SHADING  = "s";
-    const char* TOKEN_TEXCOORD = "vt";
-    const char* TOKEN_USEMTL   = "usemtl";
-    const char* TOKEN_VERTEX   = "v";
+    const string TOKEN_COMMENT  = "#";
+    const string TOKEN_FACE     = "f";
+    const string TOKEN_GROUP    = "g";
+    const string TOKEN_MTLLIB   = "mtllib";
+    const string TOKEN_NORMAL   = "vn";
+    const string TOKEN_SHADING  = "s";
+    const string TOKEN_TEXCOORD = "vt";
+    const string TOKEN_USEMTL   = "usemtl";
+    const string TOKEN_VERTEX   = "v";
 
     int toInt(const ConstString& str) {
       return str.empty() ? 0 : atoi(str.c_str());
@@ -147,20 +152,8 @@ namespace objloader
 
       Token tok = sub(line, 0);
       if (tok.str.empty()) {
-        throw ObjLoaderParserException(file, line_index, tok.start, line, "Expected token");
-      }
-
-      else if (tok.str == TOKEN_COMMENT); // Do nothing
-
-      else if (tok.str == TOKEN_MTLLIB) {
-        Token mtl_lib = sub(line, tok.end);
-        obj.m_mtl_lib = mtl_lib.str.str();
-      }
-
-      else if (tok.str == TOKEN_USEMTL) {
-        Token mtl = sub(line, tok.end);
-        obj.m_chunks.push_back(Chunk(mtl.str.str()));
-        current_chunk = &obj.m_chunks.back();
+        throw ObjLoaderParserException(file, line_index, tok.start, line,
+            "Expected token");
       }
 
       else if (tok.str == TOKEN_VERTEX) {
@@ -172,7 +165,9 @@ namespace objloader
         v.y = atof(ty.str.c_str());
         v.z = atof(tz.str.c_str());
         obj.m_vertices.push_back(v);
-      } else if (tok.str == TOKEN_NORMAL) {
+      }
+
+      else if (tok.str == TOKEN_NORMAL) {
         Normal n;
         Token tx = sub(line, tok.end);
         Token ty = sub(line, tx.end);
@@ -181,7 +176,10 @@ namespace objloader
         n.y = atof(ty.str.c_str());
         n.z = atof(tz.str.c_str());
         obj.m_normals.push_back(n);
-      } else if (tok.str == TOKEN_TEXCOORD) {
+
+      }
+
+      else if (tok.str == TOKEN_TEXCOORD) {
         TexCoord t;
         Token tx = sub(line, tok.end);
         Token ty = sub(line, tx.end);
@@ -189,9 +187,6 @@ namespace objloader
         t.v = atof(ty.str.c_str());
         obj.m_texcoords.push_back(t);
       }
-
-      else if (tok.str == TOKEN_SHADING); // Not supported
-      else if (tok.str == TOKEN_GROUP); // Not supported
 
       else if (tok.str == TOKEN_FACE) {
         Token t0 = sub(line, tok.end);
@@ -212,6 +207,22 @@ namespace objloader
           };
 
         current_chunk->m_triangles.push_back(tri);
+      }
+
+      else if (tok.str == TOKEN_SHADING); // Not supported
+      else if (tok.str == TOKEN_GROUP); // Not supported
+
+      else if (tok.str == TOKEN_COMMENT); // Do nothing
+
+      else if (tok.str == TOKEN_USEMTL) {
+        Token mtl = sub(line, tok.end);
+        obj.m_chunks.push_back(Chunk(mtl.str.str()));
+        current_chunk = &obj.m_chunks.back();
+      }
+
+      else if (tok.str == TOKEN_MTLLIB) {
+        Token mtl_lib = sub(line, tok.end);
+        obj.m_mtl_lib = mtl_lib.str.str();
       }
 
       else {
