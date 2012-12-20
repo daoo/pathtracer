@@ -30,6 +30,9 @@ int main(int argc, char* argv[])
     }
 
     cout << "Loaded " << file << " in " << clock.length<double, ratio<1>>() << "seconds\n";
+    cout << "  Vertices:  " << obj.m_vertices.size() << "\n";
+    cout << "  Normals:   " << obj.m_normals.size() << "\n";
+    cout << "  TexCoords: " << obj.m_texcoords.size() << "\n";
     cout << "  Triangles: " << triangle_count << "\n";
     cout << "  Chunks:    " << obj.m_chunks.size() << "\n";
 
