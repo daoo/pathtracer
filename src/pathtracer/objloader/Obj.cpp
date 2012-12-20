@@ -112,12 +112,18 @@ namespace objloader
     Token sub(const ConstString& str, size_t start)
     {
       size_t i = start;
-      while (i < str.size() && (str[i] == ' ' || str[i] == '\t')) {
+      while (i < str.size()) {
+        char c = str[i];
+        if (c != ' ' || c != '\t')
+          break;
         ++i;
       }
 
       size_t j = i;
-      while (j < str.size() && (str[j] != ' ' || str[i] == '\n')) {
+      while (j < str.size()) {
+        char c = str[j];
+        if (c == ' ' || c == '\t' || c == '\n')
+          break;
         ++j;
       }
 
