@@ -7,8 +7,8 @@
 
 struct Texture
 {
-  std::vector<glm::vec3> m_image;
-  size_t m_width, m_height;
+  std::vector<glm::vec3> image;
+  size_t width, height;
 };
 
 Texture textureLoad(Texture&, const std::string& filename);

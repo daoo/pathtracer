@@ -11,18 +11,18 @@ namespace kdtree
 {
   struct KdTreeLinked
   {
-    KdTreeLinked() : m_root(nullptr) { }
-    ~KdTreeLinked() { delete m_root; }
+    KdTreeLinked() : root(nullptr) { }
+    ~KdTreeLinked() { delete root; }
 
     struct Node
     {
       ~Node()
       {
-        if (m_type == Leaf) {
-          delete m_leaf.m_triangles;
-        } else if (m_type == Split) {
-          delete m_split.m_left;
-          delete m_split.m_right;
+        if (type == Leaf) {
+          delete leaf.triangles;
+        } else if (type == Split) {
+          delete split.left;
+          delete split.right;
         }
       }
 
@@ -30,39 +30,39 @@ namespace kdtree
 
       struct SplitNode
       {
-        Axis m_axis;
-        float m_distance;
+        Axis axis;
+        float distance;
 
-        Node* m_left;
-        Node* m_right;
+        Node* left;
+        Node* right;
       };
 
       struct LeafNode
       {
-        std::vector<const Triangle*>* m_triangles;
+        std::vector<const Triangle*>* triangles;
       };
 
-      NodeType m_type;
+      NodeType type;
 
       union
       {
-        LeafNode m_leaf;
-        SplitNode m_split;
+        LeafNode leaf;
+        SplitNode split;
       };
     };
 
-    Node* m_root;
+    Node* root;
   };
 
   inline bool isLeaf(const KdTreeLinked::Node& node)
   {
-    return node.m_type == KdTreeLinked::Node::Leaf;
+    return node.type == KdTreeLinked::Node::Leaf;
   }
 
   inline bool hasTriangles(const KdTreeLinked::Node& node)
   {
     assert(isLeaf(node));
-    return node.m_leaf.m_triangles != nullptr;
+    return node.leaf.triangles != nullptr;
   }
 
   inline const std::vector<const Triangle*>& getTriangles(
@@ -70,24 +70,24 @@ namespace kdtree
   {
     assert(isLeaf(node));
     assert(hasTriangles(node));
-    return *node.m_leaf.m_triangles;
+    return *node.leaf.triangles;
   }
 
   inline bool isSplit(const KdTreeLinked::Node& node)
   {
-    return node.m_type == KdTreeLinked::Node::Split;
+    return node.type == KdTreeLinked::Node::Split;
   }
 
   inline Axis getAxis(const KdTreeLinked::Node& node)
   {
     assert(isSplit(node));
-    return node.m_split.m_axis;
+    return node.split.axis;
   }
 
   inline float getSplit(const KdTreeLinked::Node& node)
   {
     assert(isSplit(node));
-    return node.m_split.m_distance;
+    return node.split.distance;
   }
 }
 

@@ -358,19 +358,19 @@ void inline OBJModel::loadOBJ(ifstream& file, const string& basePath)
     const size_t start = materialChunks[i].second;
     const size_t end = i + 1 < materialChunks.size() ? materialChunks[i + 1].second : tris.size();
 
-    chunk.m_normals.resize(3 * (end - start));
-    chunk.m_positions.resize(3 * (end - start));
-    chunk.m_uvs.resize(3 * (end - start));
+    chunk.normals.resize(3 * (end - start));
+    chunk.positions.resize(3 * (end - start));
+    chunk.uvs.resize(3 * (end - start));
 
     for (size_t k = start; k < end; ++k)
     {
       for (int j = 0; j < 3; ++j)
       {
-        chunk.m_normals[(k  - start) * 3 + j] = (normals[tris[k].n[j]]);
-        chunk.m_positions[(k  - start) * 3 + j] = (positions[tris[k].v[j]]);
+        chunk.normals[(k  - start) * 3 + j] = (normals[tris[k].n[j]]);
+        chunk.positions[(k  - start) * 3 + j] = (positions[tris[k].v[j]]);
         if(tris[k].t[j] != -1)
         {
-          chunk.m_uvs[(k  - start) * 3 + j] = (uvs[tris[k].t[j]]);
+          chunk.uvs[(k  - start) * 3 + j] = (uvs[tris[k].t[j]]);
         }
       }
     }

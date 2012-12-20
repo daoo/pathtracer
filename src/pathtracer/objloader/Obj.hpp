@@ -26,14 +26,14 @@ namespace objloader
       ObjLoaderParserException(const boost::filesystem::path& file,
           size_t line, size_t column, const std::string& text,
           const std::string& message) : ObjLoaderException(message),
-          m_file(file), m_line(line), m_column(column), m_text(text),
-          m_message(message) { }
+          file(file), line(line), column(column), text(text),
+          message(message) { }
 
-      boost::filesystem::path m_file;
-      size_t m_line, m_column;
-      std::string m_text;
+      boost::filesystem::path file;
+      size_t line, column;
+      std::string text;
 
-      std::string m_message;
+      std::string message;
   };
 
   std::ostream& operator<<(std::ostream&, const ObjLoaderParserException&);
@@ -51,30 +51,30 @@ namespace objloader
 
   struct Chunk
   {
-    Chunk(const std::string& mtl) : m_material(mtl) { }
+    Chunk(const std::string& mtl) : material(mtl) { }
 
-    std::vector<Triangle> m_triangles;
+    std::vector<Triangle> triangles;
 
-    std::string m_material;
+    std::string material;
   };
 
   struct Obj
   {
-    std::vector<Vertex> m_vertices;
-    std::vector<Normal> m_normals;
-    std::vector<TexCoord> m_texcoords;
+    std::vector<Vertex> vertices;
+    std::vector<Normal> normals;
+    std::vector<TexCoord> texcoords;
 
-    std::vector<Chunk> m_chunks;
+    std::vector<Chunk> chunks;
 
-    boost::filesystem::path m_mtl_lib;
+    boost::filesystem::path mtl_lib;
   };
 
   struct Material
   {
-    glm::vec3 diffuseReflectance;
+    float diffuseReflectance[3];
     std::string diffuseReflectanceMap;
-    glm::vec3 specularReflectance;
-    glm::vec3 emittance;
+    float specularReflectance[3];
+    float emittance[3];
     float specularRoughness;
     float transparency;
     float reflAt0Deg;
@@ -84,7 +84,7 @@ namespace objloader
 
   struct Mtl
   {
-    std::map<std::string, Material> m_materials;
+    std::map<std::string, Material> materials;
   };
 
   Obj loadObj(const boost::filesystem::path&);

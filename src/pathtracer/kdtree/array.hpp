@@ -16,23 +16,23 @@ namespace kdtree
   {
     struct Node
     {
-      Node() : m_data(EMPTY_LEAF) { }
-      Node(uint32_t index) : m_data((index << 1) & MASK_DATA) { }
-      Node(float distance) : m_distance(distance) { m_data |= MASK_TYPE; }
+      Node() : index(EMPTY_LEAF) { }
+      Node(uint32_t i) : index((i << 1) & MASK_INDEX) { }
+      Node(float distance) : distance(distance) { index |= MASK_TYPE; }
 
       enum NodeType { Split, Leaf };
 
       union
       {
-        uint32_t m_data;
-        float m_distance;
+        uint32_t index;
+        float distance;
       };
 
-      static constexpr uint32_t MASK_TYPE = 0x1;
-      static constexpr uint32_t MASK_DATA = ~MASK_TYPE;
+      static constexpr uint32_t MASK_TYPE  = 0x1;
+      static constexpr uint32_t MASK_INDEX = ~MASK_TYPE;
 
       static constexpr uint32_t EMPTY_LEAF =
-        std::numeric_limits<uint32_t>::max() & MASK_DATA;
+        std::numeric_limits<uint32_t>::max() & MASK_INDEX;
 
       static constexpr uint32_t TYPE_LEAF = 0;
       static constexpr uint32_t TYPE_SPLIT = 1;
@@ -48,8 +48,8 @@ namespace kdtree
       return (index << 1) + 2;
     }
 
-    std::vector<Node> m_nodes;
-    std::vector<std::vector<Triangle>> m_leaf_store;
+    std::vector<Node> nodes;
+    std::vector<std::vector<Triangle>> leaf_store;
   };
 
   bool isLeaf(const KdTreeArray::Node& node);
@@ -63,39 +63,39 @@ namespace kdtree
 
   inline bool isLeaf(const KdTreeArray::Node& node)
   {
-    return (node.m_data & KdTreeArray::Node::MASK_TYPE) ==
+    return (node.index & KdTreeArray::Node::MASK_TYPE) ==
       KdTreeArray::Node::TYPE_LEAF;
   }
 
   inline bool hasTriangles(const KdTreeArray::Node& node)
   {
     assert(isLeaf(node));
-    return node.m_data != KdTreeArray::Node::EMPTY_LEAF;
+    return node.index != KdTreeArray::Node::EMPTY_LEAF;
   }
 
   inline uint32_t getIndex(const KdTreeArray::Node& node)
   {
     assert(isLeaf(node));
-    return node.m_data >> 1;
+    return node.index >> 1;
   }
 
   inline const std::vector<Triangle>& getTriangles(
       const KdTreeArray& tree, const KdTreeArray::Node& node)
   {
     assert(isLeaf(node));
-    return tree.m_leaf_store[getIndex(node)];
+    return tree.leaf_store[getIndex(node)];
   }
 
   inline bool isSplit(const KdTreeArray::Node& node)
   {
-    return (node.m_data & KdTreeArray::Node::MASK_TYPE) ==
+    return (node.index & KdTreeArray::Node::MASK_TYPE) ==
       KdTreeArray::Node::TYPE_SPLIT;
   }
 
   inline float getSplit(const KdTreeArray::Node& node)
   {
     assert(isSplit(node));
-    return node.m_distance;
+    return node.distance;
   }
 }
 

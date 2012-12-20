@@ -63,20 +63,20 @@ namespace
       materials.push_back(blend0);
       materials.push_back(blend1);
 
-      for (size_t j = 0; j < chunk.m_positions.size(); j += 3) {
+      for (size_t j = 0; j < chunk.positions.size(); j += 3) {
         Triangle triangle;
 
-        triangle.v0  = chunk.m_positions[j + 0];
-        triangle.v1  = chunk.m_positions[j + 1];
-        triangle.v2  = chunk.m_positions[j + 2];
-        triangle.n0  = chunk.m_normals[j + 0];
-        triangle.n1  = chunk.m_normals[j + 1];
-        triangle.n2  = chunk.m_normals[j + 2];
-        triangle.uv0 = chunk.m_uvs[j + 0];
-        triangle.uv1 = chunk.m_uvs[j + 1];
-        triangle.uv2 = chunk.m_uvs[j + 2];
+        triangle.v0  = chunk.positions[j + 0];
+        triangle.v1  = chunk.positions[j + 1];
+        triangle.v2  = chunk.positions[j + 2];
+        triangle.n0  = chunk.normals[j + 0];
+        triangle.n1  = chunk.normals[j + 1];
+        triangle.n2  = chunk.normals[j + 2];
+        triangle.uv0 = chunk.uvs[j + 0];
+        triangle.uv1 = chunk.uvs[j + 1];
+        triangle.uv2 = chunk.uvs[j + 2];
 
-        triangle.m_material = blend0;
+        triangle.material = blend0;
 
         triangles.push_back(triangle);
       }

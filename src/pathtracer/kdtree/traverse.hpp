@@ -19,9 +19,9 @@ namespace kdtree
     Axis axis = X;
 
     while (true) {
-      assert(index < tree.m_nodes.size());
+      assert(index < tree.nodes.size());
 
-      const KdTreeArray::Node& node = tree.m_nodes[index];
+      const KdTreeArray::Node& node = tree.nodes[index];
 
       if (isLeaf(node)) {
         bool hit = false;

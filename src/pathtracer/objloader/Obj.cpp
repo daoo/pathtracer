@@ -132,9 +132,9 @@ namespace objloader
   }
 
   std::ostream& operator<<(std::ostream& stream, const ObjLoaderParserException& ex) {
-    stream << ex.m_file.string() << ":" << ex.m_line << ":" << ex.m_column
-           << ": error: " << ex.m_message << "\n" << ex.m_text << "\n";
-    for (size_t i = 0; i < ex.m_column; ++i) {
+    stream << ex.file.string() << ":" << ex.line << ":" << ex.column
+           << ": error: " << ex.message << "\n" << ex.text << "\n";
+    for (size_t i = 0; i < ex.column; ++i) {
       stream << " ";
     }
     stream << "^\n";
@@ -170,7 +170,7 @@ namespace objloader
         v.x = atof(tx.str.c_str());
         v.y = atof(ty.str.c_str());
         v.z = atof(tz.str.c_str());
-        obj.m_vertices.push_back(v);
+        obj.vertices.push_back(v);
       }
 
       else if (tok.str == TOKEN_NORMAL) {
@@ -181,8 +181,7 @@ namespace objloader
         n.x = atof(tx.str.c_str());
         n.y = atof(ty.str.c_str());
         n.z = atof(tz.str.c_str());
-        obj.m_normals.push_back(n);
-
+        obj.normals.push_back(n);
       }
 
       else if (tok.str == TOKEN_TEXCOORD) {
@@ -191,7 +190,7 @@ namespace objloader
         Token ty = sub(line, tx.end);
         t.u = atof(tx.str.c_str());
         t.v = atof(ty.str.c_str());
-        obj.m_texcoords.push_back(t);
+        obj.texcoords.push_back(t);
       }
 
       else if (tok.str == TOKEN_FACE) {
@@ -212,7 +211,7 @@ namespace objloader
           , p2[0], p2[1], p2[2]
           };
 
-        current_chunk->m_triangles.push_back(tri);
+        current_chunk->triangles.push_back(tri);
       }
 
       else if (tok.str == TOKEN_SHADING); // Not supported
@@ -222,13 +221,13 @@ namespace objloader
 
       else if (tok.str == TOKEN_USEMTL) {
         Token mtl = sub(line, tok.end);
-        obj.m_chunks.push_back(Chunk(mtl.str.str()));
-        current_chunk = &obj.m_chunks.back();
+        obj.chunks.push_back(Chunk(mtl.str.str()));
+        current_chunk = &obj.chunks.back();
       }
 
       else if (tok.str == TOKEN_MTLLIB) {
         Token mtl_lib = sub(line, tok.end);
-        obj.m_mtl_lib = mtl_lib.str.str();
+        obj.mtl_lib = mtl_lib.str.str();
       }
 
       else {
@@ -244,7 +243,8 @@ namespace objloader
     return obj;
   }
 
-  Mtl loadMtl(const path& file)
+  Mtl loadMtl(const path&)
   {
+    return {};
   }
 }

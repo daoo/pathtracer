@@ -22,11 +22,11 @@ namespace kdtree
         out << "  ";
       }
 
-      KdTreeArray::Node node = tree.m_nodes[index];
+      KdTreeArray::Node node = tree.nodes[index];
 
       if (isLeaf(node)) {
         if (hasTriangles(node)) {
-          out << "Leaf: " << tree.m_leaf_store[getIndex(node)].size() << "\n";
+          out << "Leaf: " << tree.leaf_store[getIndex(node)].size() << "\n";
         } else {
           out << "Leaf: 0\n";
         }

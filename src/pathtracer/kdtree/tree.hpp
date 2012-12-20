@@ -20,8 +20,8 @@ namespace kdtree
     }
 
     KdTreeLinked tmp;
-    tmp.m_root = new KdTreeLinked::Node;
-    buildTreeSAH(tmp.m_root, 0, X, findBounding(triangles), ptrs);
+    tmp.root = new KdTreeLinked::Node;
+    buildTreeSAH(tmp.root, 0, X, findBounding(triangles), ptrs);
 
     optimize(tree, tmp);
   }

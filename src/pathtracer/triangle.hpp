@@ -12,7 +12,7 @@ struct Triangle
   glm::vec3 n0, n1, n2;
   glm::vec2 uv0, uv1, uv2;
 
-  const Material* m_material;
+  const Material* material;
 };
 
 bool intersects(const Triangle& tri, math::Ray& r, Intersection& i);
@@ -47,10 +47,10 @@ inline bool intersects(const Triangle& tri, math::Ray& r, Intersection& i)
   if (t < r.mint || t > r.maxt)
     return false;
 
-  r.maxt       = t;
-  i.m_position = r(t);
-  i.m_normal   = glm::normalize((1.0f - (u + v)) * tri.n0 + u * tri.n1 + v * tri.n2);
-  i.m_material = tri.m_material;
+  r.maxt     = t;
+  i.position = r(t);
+  i.normal   = glm::normalize((1.0f - (u + v)) * tri.n0 + u * tri.n1 + v * tri.n2);
+  i.material = tri.material;
   return true;
 }
 

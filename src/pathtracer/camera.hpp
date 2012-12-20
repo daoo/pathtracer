@@ -5,10 +5,10 @@
 
 struct Camera
 {
-  glm::vec3 m_position;
-  glm::vec3 m_direction;
-  glm::vec3 m_up;
-  float m_fov;
+  glm::vec3 position;
+  glm::vec3 direction;
+  glm::vec3 up;
+  float fov;
 };
 
 #endif /* end of include guard: CAMERA_HPP_6EER58HB */

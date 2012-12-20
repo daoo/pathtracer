@@ -206,18 +206,18 @@ namespace kdtree
         left_box, right_box, left_triangles, right_triangles);
 
     if (depth >= 20 || cost > COST_INTERSECT * triangles.size()) {
-      node->m_type             = KdTreeLinked::Node::Leaf;
-      node->m_leaf.m_triangles = new vector<const Triangle*>(triangles);
+      node->type           = KdTreeLinked::Node::Leaf;
+      node->leaf.triangles = new vector<const Triangle*>(triangles);
     } else {
-      node->m_type             = KdTreeLinked::Node::Split;
-      node->m_split.m_axis     = axis;
-      node->m_split.m_distance = split;
-      node->m_split.m_left     = new KdTreeLinked::Node;
-      node->m_split.m_right    = new KdTreeLinked::Node;
+      node->type           = KdTreeLinked::Node::Split;
+      node->split.axis     = axis;
+      node->split.distance = split;
+      node->split.left     = new KdTreeLinked::Node;
+      node->split.right    = new KdTreeLinked::Node;
 
-      buildTreeSAH(node->m_split.m_left, depth + 1, nextAxis(axis),
+      buildTreeSAH(node->split.left, depth + 1, nextAxis(axis),
           left_box, left_triangles);
-      buildTreeSAH(node->m_split.m_right, depth + 1, nextAxis(axis),
+      buildTreeSAH(node->split.right, depth + 1, nextAxis(axis),
           right_box, right_triangles);
     }
   }
@@ -228,8 +228,8 @@ namespace kdtree
     assert(node != nullptr);
 
     if (depth >= 20 || triangles.size() <= 10) {
-      node->m_type             = KdTreeLinked::Node::Leaf;
-      node->m_leaf.m_triangles = new vector<const Triangle*>(triangles);
+      node->type             = KdTreeLinked::Node::Leaf;
+      node->leaf.triangles = new vector<const Triangle*>(triangles);
     } else {
       float split = swizzle(box.center, axis);
 
@@ -243,15 +243,15 @@ namespace kdtree
       intersectTest(left_box, right_box, triangles,
           left_triangles, right_triangles);
 
-      node->m_type             = KdTreeLinked::Node::Split;
-      node->m_split.m_axis     = axis;
-      node->m_split.m_distance = split;
-      node->m_split.m_left     = new KdTreeLinked::Node;
-      node->m_split.m_right    = new KdTreeLinked::Node;
+      node->type           = KdTreeLinked::Node::Split;
+      node->split.axis     = axis;
+      node->split.distance = split;
+      node->split.left     = new KdTreeLinked::Node;
+      node->split.right    = new KdTreeLinked::Node;
 
-      buildTreeNaive(node->m_split.m_left, depth + 1, nextAxis(axis),
+      buildTreeNaive(node->split.left, depth + 1, nextAxis(axis),
           left_box, left_triangles);
-      buildTreeNaive(node->m_split.m_right, depth + 1, nextAxis(axis),
+      buildTreeNaive(node->split.right, depth + 1, nextAxis(axis),
           right_box, right_triangles);
     }
   }

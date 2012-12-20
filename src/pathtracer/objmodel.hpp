@@ -49,9 +49,9 @@ class OBJModel
       Material* material;
 
       // Data on host
-      std::vector<glm::vec3> m_positions;
-      std::vector<glm::vec3> m_normals;
-      std::vector<glm::vec2> m_uvs;
+      std::vector<glm::vec3> positions;
+      std::vector<glm::vec3> normals;
+      std::vector<glm::vec2> uvs;
     };
     std::vector<Chunk> m_chunks;
 

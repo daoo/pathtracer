@@ -25,16 +25,16 @@ int main(int argc, char* argv[])
     clock.stop();
 
     size_t triangle_count = 0;
-    for (const Chunk& c : obj.m_chunks) {
-      triangle_count += c.m_triangles.size();
+    for (const Chunk& c : obj.chunks) {
+      triangle_count += c.triangles.size();
     }
 
     cout << "Loaded " << file << " in " << clock.length<double, ratio<1>>() << "seconds\n";
-    cout << "  Vertices:  " << obj.m_vertices.size() << "\n";
-    cout << "  Normals:   " << obj.m_normals.size() << "\n";
-    cout << "  TexCoords: " << obj.m_texcoords.size() << "\n";
+    cout << "  Vertices:  " << obj.vertices.size() << "\n";
+    cout << "  Normals:   " << obj.normals.size() << "\n";
+    cout << "  TexCoords: " << obj.texcoords.size() << "\n";
     cout << "  Triangles: " << triangle_count << "\n";
-    cout << "  Chunks:    " << obj.m_chunks.size() << "\n";
+    cout << "  Chunks:    " << obj.chunks.size() << "\n";
 
     return 0;
   } catch (const ObjLoaderParserException& ex) {

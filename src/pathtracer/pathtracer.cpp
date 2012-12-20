@@ -22,17 +22,17 @@ Pathtracer::Pathtracer(const Scene& scene, size_t camera_index, size_t width, si
 
   const Camera& camera = m_scene.cameras()[camera_index % m_scene.cameras().size()];
 
-  vec3 camera_right = normalize(cross(camera.m_direction, camera.m_up));
-  vec3 camera_up    = normalize(cross(camera_right, camera.m_direction));
+  vec3 camera_right = normalize(cross(camera.direction, camera.up));
+  vec3 camera_up    = normalize(cross(camera_right, camera.direction));
 
   float aspect   = m_fwidth / m_fheight;
-  float fov_half = camera.m_fov / 2.0f;
+  float fov_half = camera.fov / 2.0f;
 
-  vec3 Z = camera.m_direction * cos(radians(fov_half));
-  vec3 X = camera_up          * sin(radians(fov_half));
-  vec3 Y = camera_right       * sin(radians(fov_half)) * aspect;
+  vec3 Z = camera.direction * cos(radians(fov_half));
+  vec3 X = camera_up        * sin(radians(fov_half));
+  vec3 Y = camera_right     * sin(radians(fov_half)) * aspect;
 
-  m_camera_pos = camera.m_position;
+  m_camera_pos = camera.position;
 
   m_min_d = Z - Y - X;
 
@@ -85,13 +85,13 @@ vec3 Pathtracer::incomingLight(
   Intersection isect(primaryIsect);
 
   for (size_t i = 0; i < PT_MAX_BOUNCES; ++i) {
-    const Material* mat = isect.m_material;
+    const Material* mat = isect.material;
     const vec3 wi       = -current_ray.direction;
 
-    const vec3 offsetInNormalDir = PT_EPSILON * isect.m_normal;
+    const vec3 offsetInNormalDir = PT_EPSILON * isect.normal;
 
     for (const SphereLight& light : m_scene.lights()) {
-      const vec3 isectPosition    = isect.m_position + offsetInNormalDir;
+      const vec3 isectPosition    = isect.position + offsetInNormalDir;
       const vec3 lightSamplePos   = lightSample(light);
       const vec3 directionToLight = lightSamplePos - isectPosition;
 
@@ -104,32 +104,32 @@ vec3 Pathtracer::incomingLight(
 
       if (!m_scene.anyIntersection(shadow_ray)) {
         const vec3 wo = normalize(directionToLight);
-        const vec3 li = lightEmitted(light, isect.m_position);
+        const vec3 li = lightEmitted(light, isect.position);
 
         L += path_tp
-           * mat->brdf(wi, wo, isect.m_normal)
+           * mat->brdf(wi, wo, isect.normal)
            * li
-           * abs(dot(wo, isect.m_normal));
+           * abs(dot(wo, isect.normal));
       }
     }
 
-    const LightSample sample = mat->sample_brdf(rand, wi, isect.m_normal);
+    const LightSample sample = mat->sample_brdf(rand, wi, isect.normal);
 
     if (sample.pdf < PT_EPSILON) {
       return L;
     }
 
-    const float cosineterm = abs(dot(sample.wo, isect.m_normal));
+    const float cosineterm = abs(dot(sample.wo, isect.normal));
     path_tp = path_tp * (sample.brdf * (cosineterm / sample.pdf));
 
     if (lengthSquared(path_tp) < PT_EPSILON * PT_EPSILON) {
       return L;
     }
 
-    if (dot(sample.wo, isect.m_normal) >= 0) {
-      current_ray = Ray { isect.m_position + offsetInNormalDir, sample.wo, 0.0f, FLT_MAX };
+    if (dot(sample.wo, isect.normal) >= 0) {
+      current_ray = Ray { isect.position + offsetInNormalDir, sample.wo, 0.0f, FLT_MAX };
     } else {
-      current_ray = Ray { isect.m_position - offsetInNormalDir, sample.wo, 0.0f, FLT_MAX };
+      current_ray = Ray { isect.position - offsetInNormalDir, sample.wo, 0.0f, FLT_MAX };
     }
 
     if (!m_scene.allIntersection(current_ray, isect)) {

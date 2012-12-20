@@ -12,9 +12,9 @@
  */
 struct SphereLight
 {
-  float m_radius;
-  glm::vec3 m_position;
-  glm::vec3 m_intensity;
+  float radius;
+  glm::vec3 position;
+  glm::vec3 intensity;
 };
 
 glm::vec3 lightSample(const SphereLight&);
@@ -23,7 +23,7 @@ glm::vec3 lightEmitted(const SphereLight&, const glm::vec3&);
 inline glm::vec3 lightSample(const SphereLight& light)
 {
   // TODO: Use thread local random engine
-  return light.m_position + glm::sphericalRand(light.m_radius);
+  return light.position + glm::sphericalRand(light.radius);
 }
 
 /**
@@ -31,7 +31,7 @@ inline glm::vec3 lightSample(const SphereLight& light)
  */
 inline glm::vec3 lightEmitted(const SphereLight& light, const glm::vec3& p)
 {
-  return light.m_intensity / math::lengthSquared(light.m_position - p);
+  return light.intensity / math::lengthSquared(light.position - p);
 }
 
 #endif /* end of include guard: LIGHT_HPP_JKOQK7HA */

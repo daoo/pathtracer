@@ -31,23 +31,23 @@ namespace kdtree
 
       if (isLeaf(*node)) {
         if (hasTriangles(*node)) {
-          uint32_t i = static_cast<uint32_t>(result.m_leaf_store.size());
-          result.m_leaf_store.push_back(vector<Triangle>());
-          copy(result.m_leaf_store[i], getTriangles(*node));
-          set(result.m_nodes, index, KdTreeArray::Node(i));
+          uint32_t i = static_cast<uint32_t>(result.leaf_store.size());
+          result.leaf_store.push_back(vector<Triangle>());
+          copy(result.leaf_store[i], getTriangles(*node));
+          set(result.nodes, index, KdTreeArray::Node(i));
         } else {
-          set(result.m_nodes, index, KdTreeArray::Node());
+          set(result.nodes, index, KdTreeArray::Node());
         }
       } else {
         assert(isSplit(*node));
 
-        KdTreeLinked::Node* left  = node->m_split.m_left;
-        KdTreeLinked::Node* right = node->m_split.m_right;
+        KdTreeLinked::Node* left  = node->split.left;
+        KdTreeLinked::Node* right = node->split.right;
 
         assert(left != nullptr);
         assert(right != nullptr);
 
-        set(result.m_nodes, index, KdTreeArray::Node(node->m_split.m_distance));
+        set(result.nodes, index, KdTreeArray::Node(node->split.distance));
 
         helper(result, KdTreeArray::leftChild(index), left);
         helper(result, KdTreeArray::rightChild(index), right);
@@ -57,9 +57,9 @@ namespace kdtree
 
   void optimize(KdTreeArray& result, const KdTreeLinked& input)
   {
-    helper(result, 0, input.m_root);
+    helper(result, 0, input.root);
 
-    result.m_leaf_store.shrink_to_fit();
-    result.m_nodes.shrink_to_fit();
+    result.leaf_store.shrink_to_fit();
+    result.nodes.shrink_to_fit();
   }
 }
