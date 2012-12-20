@@ -243,4 +243,8 @@ namespace objloader
 
     return obj;
   }
+
+  Mtl loadMtl(const path& file)
+  {
+  }
 }

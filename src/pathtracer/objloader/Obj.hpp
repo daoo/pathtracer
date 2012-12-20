@@ -71,6 +71,15 @@ namespace objloader
 
   struct Material
   {
+    glm::vec3 diffuseReflectance;
+    std::string diffuseReflectanceMap;
+    glm::vec3 specularReflectance;
+    glm::vec3 emittance;
+    float specularRoughness;
+    float transparency;
+    float reflAt0Deg;
+    float reflAt90Deg;
+    float indexOfRefraction;
   };
 
   struct Mtl
