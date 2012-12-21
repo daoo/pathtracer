@@ -11,65 +11,6 @@ namespace objloader
 {
   namespace
   {
-    class ConstString
-    {
-      public:
-        ConstString(const string& str)
-          : m_str(str), m_start(0), m_end(str.size())
-        {
-        }
-
-        bool operator==(const string& other) const
-        {
-          if (size() == other.size()) {
-            for (size_t i = m_start, j = 0; i < m_end; ++i, ++j) {
-              if (m_str[i] != other[j])
-                return false;
-            }
-
-            return true;
-          }
-
-          return false;
-        }
-
-        size_t size() const { return m_end - m_start; }
-        bool empty() const { return m_start == m_end; }
-
-        char operator[](size_t i) const
-        {
-          return m_str[m_start + i];
-        }
-
-        ConstString substr(size_t start, size_t end) const
-        {
-          assert(start <= end);
-          assert(end <= size());
-          return ConstString(*this, m_start + start, m_start + end);
-        }
-
-        string str() const
-        {
-          return m_str.substr(m_start, size());
-        }
-
-        const char* c_str() const
-        {
-          return m_str.c_str() + m_start;
-        }
-
-      private:
-        const string& m_str;
-        const size_t m_start, m_end;
-
-        ConstString(const ConstString& other, size_t start, size_t end)
-          : m_str(other.m_str), m_start(start), m_end(end)
-        {
-          assert(start <= end);
-          assert(end <= other.m_str.size());
-        }
-    };
-
     // General tokens
     const string TOKEN_COMMENT  = "#";
 
@@ -84,54 +25,84 @@ namespace objloader
     const string TOKEN_VERTEX   = "v";
 
     // Mtl tokens
-    const string TOKEN_NEWMTL       = "newmtl";
-    const string TOKEN_DIFFUSE1     = "diffusereflectance";
-    const string TOKEN_DIFFUSE2     = "kd";
-    const string TOKEN_DIFFUSE_MAP1 = "diffusereflectancemap";
-    const string TOKEN_DIFFUSE_MAP2 = "map_kd";
-    const string TOKEN_SPECULAR1    = "specularreflectance";
-    const string TOKEN_SPECULAR2    = "ks";
-    const string TOKEN_ROUGHNESS    = "specularroughness";
-    const string TOKEN_EMITTANCE    = "emittance";
-    const string TOKEN_TRANSPARANCY = "transparency";
-    const string TOKEN_REFLECT0     = "reflat0deg";
-    const string TOKEN_REFLECT90    = "reflat90deg";
-    const string TOKEN_IOR          = "indexofrefraction";
+    const string TOKEN_MTL_NEW          = "newmtl";
+    const string TOKEN_MTL_DIFFUSE1     = "diffusereflectance";
+    const string TOKEN_MTL_DIFFUSE2     = "kd";
+    const string TOKEN_MTL_DIFFUSE_MAP1 = "diffusereflectancemap";
+    const string TOKEN_MTL_DIFFUSE_MAP2 = "map_kd";
+    const string TOKEN_MTL_SPECULAR1    = "specularreflectance";
+    const string TOKEN_MTL_SPECULAR2    = "ks";
+    const string TOKEN_MTL_ROUGHNESS    = "specularroughness";
+    const string TOKEN_MTL_EMITTANCE    = "emittance";
+    const string TOKEN_MTL_TRANSPARANCY = "transparency";
+    const string TOKEN_MTL_REFLECT0     = "reflat0deg";
+    const string TOKEN_MTL_REFLECT90    = "reflat90deg";
+    const string TOKEN_MTL_IOR          = "indexofrefraction";
 
-    int toInt(const ConstString& str) {
-      return str.empty() ? 0 : atoi(str.c_str());
+    // Light tokens
+    const string TOKEN_LIGHT_NEW       = "newlight";
+    const string TOKEN_LIGHT_POSITION  = "lightposition";
+    const string TOKEN_LIGHT_COLOR     = "lightcolor";
+    const string TOKEN_LIGHT_RADIUS    = "lightradius";
+    const string TOKEN_LIGHT_INTENSITY = "lightintensity";
+
+    struct Word { const string& str; size_t begin, end; };
+
+    bool empty(const Word& word) { return word.begin == word.end; }
+    size_t size(const Word& word) { return word.end - word.begin; }
+
+    const char* c_str(const Word& word) { return word.str.c_str() + word.begin; }
+    string str(const Word& word) { return word.str.substr(word.begin, size(word)); }
+
+    bool equal(const Word& word, const string& other)
+    {
+      if (size(word) == other.size()) {
+        size_t i = word.begin;
+        size_t j = 0;
+        while (i < size(word)) {
+          if (word.str[i] != other[j])
+            return false;
+          ++i;
+          ++j;
+        }
+
+        return true;
+      }
+
+      return false;
     }
 
-    void parseFacePoint(const ConstString& face, array<int, 3>& output)
+    int toInt(const Word& word) {
+      return empty(word) ? 0 : atoi(c_str(word));
+    }
+
+    void parseFacePoint(const Word& word, array<int, 3>& output)
     {
-      const size_t end = face.size();
-      array<size_t, 3> starts {{ 0, end, end }};
-      array<size_t, 3> ends {{ end, end, end }};
-      for (size_t i = 0, j = 0; i < end; ++i) {
-        if (face[i] == '/') {
+      assert(!empty(word));
+
+      array<size_t, 3> starts {{ word.begin, word.end, word.end }};
+      array<size_t, 3> ends {{ word.end, word.end, word.end }};
+      for (size_t i = word.begin, j = 0; i < word.end; ++i) {
+        if (word.str[i] == '/') {
           ends[j]       = i;
           starts[j + 1] = i + 1;
           ++j;
         }
       }
 
-      output[0] = toInt(face.substr(starts[0], ends[0]));
-      output[1] = toInt(face.substr(starts[1], ends[1]));
-      output[2] = toInt(face.substr(starts[2], ends[2]));
+      output[0] = toInt(Word{word.str, starts[0], ends[0]});
+      output[1] = toInt(Word{word.str, starts[1], ends[1]});
+      output[2] = toInt(Word{word.str, starts[2], ends[2]});
     }
 
-    struct Token
+    Word getWord(const string& str, size_t begin)
     {
-      size_t start, end;
-      ConstString str;
-    };
+      assert(!str.empty());
 
-    Token getWord(const ConstString& str)
-    {
-      size_t i = 0;
+      size_t i = begin;
       while (i < str.size()) {
         char c = str[i];
-        if (c != ' ' || c != '\t')
+        if (c != ' ' && c != '\t')
           break;
         ++i;
       }
@@ -144,32 +115,36 @@ namespace objloader
         ++j;
       }
 
-      return { i, j, str.substr(i, j) };
+      return { str, i, j };
     }
 
-    template <typename T> T fill(const ConstString&);
+    template <typename T> T fill(const string&, size_t);
 
     template <>
-    Vec2 fill(const ConstString& str)
+    Vec2 fill(const string& str, size_t begin)
     {
+      assert(!str.empty());
+
       Vec2 v;
-      Token tx = getWord(str);
-      Token ty = getWord(str.substr(tx.end, str.size()));
-      v.x = atof(tx.str.c_str());
-      v.y = atof(ty.str.c_str());
+      Word tx = getWord(str, begin);
+      Word ty = getWord(str, tx.end);
+      v.x = atof(str.c_str() + tx.begin);
+      v.y = atof(str.c_str() + ty.begin);
       return v;
     }
 
     template <>
-    Vec3 fill(const ConstString& str)
+    Vec3 fill(const string& str, size_t begin)
     {
+      assert(!str.empty());
+
       Vec3 v;
-      Token tx = getWord(str);
-      Token ty = getWord(str.substr(tx.end, str.size()));
-      Token tz = getWord(str.substr(ty.end, str.size()));
-      v.x = atof(tx.str.c_str());
-      v.y = atof(ty.str.c_str());
-      v.z = atof(tz.str.c_str());
+      Word tx = getWord(str, begin);
+      Word ty = getWord(str, tx.end);
+      Word tz = getWord(str, ty.end);
+      v.x = atof(str.c_str() + tx.begin);
+      v.y = atof(str.c_str() + ty.begin);
+      v.z = atof(str.c_str() + tz.begin);
       return v;
     }
   }
@@ -202,69 +177,69 @@ namespace objloader
     size_t current_chunk;
 
     while (getline(stream, line)) {
-      if (line.empty())
-        continue;
+      if (!line.empty()) {
+        Word tok = getWord(line, 0);
 
-      Token tok = getWord(line);
-      ConstString rest = line.substr(tok.end, line.size());
+        if (empty(tok))
+          throw ObjLoaderParserException(
+              file, line_index, tok.begin, line, "Expected token");
 
-      if (tok.str.empty()) {
-        throw ObjLoaderParserException(file, line_index, tok.start, line,
-            "Expected token");
-      }
+        else if (tok.end >= line.size())
+          throw ObjLoaderParserException(
+              file, line_index, tok.end, line, "Expected token");
 
-      else if (tok.str == TOKEN_VERTEX)
-        obj.vertices.push_back(fill<Vec3>(rest));
+        else if (equal(tok, TOKEN_VERTEX))
+          obj.vertices.push_back(fill<Vec3>(line, tok.end));
 
-      else if (tok.str == TOKEN_NORMAL)
-        obj.normals.push_back(fill<Vec3>(rest));
+        else if (equal(tok, TOKEN_NORMAL))
+          obj.normals.push_back(fill<Vec3>(line, tok.end));
 
-      else if (tok.str == TOKEN_TEXCOORD)
-        obj.texcoords.push_back(fill<Vec2>(rest));
+        else if (equal(tok, TOKEN_TEXCOORD))
+          obj.texcoords.push_back(fill<Vec2>(line, tok.end));
 
-      else if (tok.str == TOKEN_FACE) {
-        Token t0 = getWord(rest);
-        Token t1 = getWord(line.substr(t0.end, line.size()));
-        Token t2 = getWord(line.substr(t1.end, line.size()));
+        else if (equal(tok, TOKEN_FACE)) {
+          Word t0 = getWord(line, tok.end);
+          Word t1 = getWord(line, t0.end);
+          Word t2 = getWord(line, t0.end);
 
-        array<int, 3> p0;
-        array<int, 3> p1;
-        array<int, 3> p2;
-        parseFacePoint(t0.str, p0);
-        parseFacePoint(t1.str, p1);
-        parseFacePoint(t2.str, p2);
+          array<int, 3> p0;
+          array<int, 3> p1;
+          array<int, 3> p2;
+          parseFacePoint(t0, p0);
+          parseFacePoint(t1, p1);
+          parseFacePoint(t2, p2);
 
-        Triangle tri
-          { p0[0], p0[1], p0[2]
-          , p1[0], p1[1], p1[2]
-          , p2[0], p2[1], p2[2]
-          };
+          obj.chunks[current_chunk].triangles.push_back(
+            { p0[0], p0[1], p0[2]
+            , p1[0], p1[1], p1[2]
+            , p2[0], p2[1], p2[2]
+            });
+        }
 
-        obj.chunks[current_chunk].triangles.push_back(tri);
-      }
+        else if (equal(tok, TOKEN_SHADING)); // Not supported
+        else if (equal(tok, TOKEN_GROUP)); // Not supported
 
-      else if (tok.str == TOKEN_SHADING); // Not supported
-      else if (tok.str == TOKEN_GROUP); // Not supported
+        else if (equal(tok, TOKEN_COMMENT)); // Do nothing
 
-      else if (tok.str == TOKEN_COMMENT); // Do nothing
+        else if (equal(tok, TOKEN_USEMTL)) {
+          Word mtl = getWord(line, tok.end);
+          current_chunk = obj.chunks.size();
+          obj.chunks.push_back(Chunk(str(mtl)));
+        }
 
-      else if (tok.str == TOKEN_USEMTL) {
-        Token mtl = getWord(rest);
-        current_chunk = obj.chunks.size();
-        obj.chunks.push_back(Chunk(mtl.str.str()));
-      }
+        else if (equal(tok, TOKEN_MTLLIB)) {
+          Word mtl_lib = getWord(line, tok.end);
+          obj.mtl_lib = str(mtl_lib);
+        }
 
-      else if (tok.str == TOKEN_MTLLIB) {
-        Token mtl_lib = getWord(rest);
-        obj.mtl_lib = mtl_lib.str.str();
-      }
+        else {
+          string err("Invalid token '");
+          err += str(tok);
+          err += "'";
 
-      else {
-        string err("Invalid token");
-        err += tok.str.str();
-        err += "'";
-
-        throw ObjLoaderParserException(file, line_index, tok.start, line, err);
+          throw ObjLoaderParserException(
+              file, line_index, tok.begin, line, err);
+        }
       }
 
       ++line_index;
@@ -289,39 +264,43 @@ namespace objloader
     string line;
     size_t line_index = 0;
     while (getline(stream, line)) {
-      if (line.empty())
-        continue;
+      if (!line.empty()) {
+        Word tok = getWord(line, 0);
 
-      Token tok = getWord(line);
-      ConstString rest = line.substr(tok.end, line.size());
-      if (tok.str.empty()) {
-        throw ObjLoaderParserException(file, line_index, tok.start, line,
-            "Expected token");
-      }
+        if (tok.str.empty())
+          throw ObjLoaderParserException(
+              file, line_index, tok.begin, line, "Expected token");
 
-      else if (tok.str == TOKEN_NEWMTL) {
-        Token tmtl = getWord(rest);
-        current_material = tmtl.str.str();
-        mtl.materials[current_material] =
-            { Vec3 {{0.7f}, {0.7f}, {0.7f}}
-            , ""
-            , Vec3 {{1.0f}, {1.0f}, {1.0f}}
-            , Vec3 {{0.0f}, {0.0f}, {0.0f}}
-            , 0.001f
-            , 0.0f
-            , 0.0f
-            , 0.0f
-            , 1.0f
-            };
-      }
+        else if (equal(tok, TOKEN_MTL_NEW)) {
+          Word tmtl = getWord(line, tok.end);
+          current_material = str(tmtl);
+          mtl.materials[current_material] =
+              { Vec3 {{0.7f}, {0.7f}, {0.7f}}
+              , ""
+              , Vec3 {{1.0f}, {1.0f}, {1.0f}}
+              , Vec3 {{0.0f}, {0.0f}, {0.0f}}
+              , 0.001f
+              , 0.0f
+              , 0.0f
+              , 0.0f
+              , 1.0f
+              };
+        }
 
-      else if (tok.str == TOKEN_DIFFUSE1 || tok.str == TOKEN_DIFFUSE2) {
-        //mtl.materials[current_material].diffuseReflectance = {0,0,0};
-      }
+        else if (equal(tok, TOKEN_MTL_DIFFUSE1) || equal(tok, TOKEN_MTL_DIFFUSE2)) {
+          mtl.materials[current_material].diffuseReflectance = fill<Vec3>(line, tok.end);
+        }
 
-      else if (tok.str == TOKEN_COMMENT); // Do nothing
+        else if (equal(tok, TOKEN_COMMENT)); // Do nothing
 
-      else {
+        else {
+          string err("Invalid token '");
+          err += str(tok);
+          err += "'";
+
+          throw ObjLoaderParserException(
+              file, line_index, tok.begin, line, err);
+        }
       }
 
       ++line_index;
