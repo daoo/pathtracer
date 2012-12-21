@@ -80,20 +80,34 @@ namespace objloader
 
   struct Material
   {
-    Vec3 diffuseReflectance;
+    std::string name;
+
     std::string diffuseReflectanceMap;
-    Vec3 specularReflectance;
-    Vec3 emittance;
+    Vec3 diffuseReflectance, specularReflectance, emittance;
     float specularRoughness;
     float transparency;
-    float reflAt0Deg;
-    float reflAt90Deg;
+    float reflAt0Deg, reflAt90Deg;
     float indexOfRefraction;
+  };
+
+  struct Light
+  {
+    std::string name;
+    Vec3 position, color;
+    float radius, intensity;
+  };
+
+  struct Camera
+  {
+    Vec3 position, target, up;
+    float fov;
   };
 
   struct Mtl
   {
-    std::map<std::string, Material> materials;
+    std::vector<Material> materials;
+    std::vector<Light> lights;
+    std::vector<Camera> cameras;
   };
 
   Obj loadObj(const boost::filesystem::path&);

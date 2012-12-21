@@ -4,6 +4,8 @@
 #include <fstream>
 #include <vector>
 
+#include <iostream>
+
 using namespace boost::filesystem;
 using namespace std;
 
@@ -72,8 +74,14 @@ namespace objloader
       return false;
     }
 
-    int toInt(const Word& word) {
+    int toInt(const Word& word)
+    {
       return empty(word) ? 0 : atoi(c_str(word));
+    }
+
+    float toFloat(const Word& word)
+    {
+      return strtof(c_str(word), nullptr);
     }
 
     void parseFacePoint(const Word& word, array<int, 3>& output)
@@ -118,42 +126,55 @@ namespace objloader
       return { str, i, j };
     }
 
-    template <typename T> T fill(const string&, size_t);
+    template <typename T> T parse(const string&, size_t);
 
     template <>
-    Vec2 fill(const string& str, size_t begin)
+    float parse(const string& str, size_t begin)
     {
       assert(!str.empty());
 
-      Vec2 v;
-      Word tx = getWord(str, begin);
-      Word ty = getWord(str, tx.end);
-      v.x = atof(str.c_str() + tx.begin);
-      v.y = atof(str.c_str() + ty.begin);
-      return v;
+      return toFloat(getWord(str, begin));
     }
 
     template <>
-    Vec3 fill(const string& str, size_t begin)
+    Vec2 parse(const string& str, size_t begin)
     {
       assert(!str.empty());
 
-      Vec3 v;
+      Word tx = getWord(str, begin);
+      Word ty = getWord(str, tx.end);
+      return
+        { {toFloat(tx)}
+        , {toFloat(ty)}
+        };
+    }
+
+    template <>
+    Vec3 parse(const string& str, size_t begin)
+    {
+      assert(!str.empty());
+
       Word tx = getWord(str, begin);
       Word ty = getWord(str, tx.end);
       Word tz = getWord(str, ty.end);
-      v.x = atof(str.c_str() + tx.begin);
-      v.y = atof(str.c_str() + ty.begin);
-      v.z = atof(str.c_str() + tz.begin);
-      return v;
+      return
+        { {toFloat(tx)}
+        , {toFloat(ty)}
+        , {toFloat(tz)}
+        };
     }
   }
 
-  std::ostream& operator<<(std::ostream& stream, const ObjLoaderParserException& ex) {
-    stream << ex.file.string() << ":" << ex.line << ":" << ex.column
-           << ": error: " << ex.message << "\n" << ex.text << "\n";
+  std::ostream& operator<<(std::ostream& stream,
+      const ObjLoaderParserException& ex)
+  {
+    stream << ex.file.string() << ':' << ex.line << ':' << ex.column
+           << ": error: " << ex.message << '\n' << ex.text << '\n';
     for (size_t i = 0; i < ex.column; ++i) {
-      stream << " ";
+      if (ex.text[i] == '\t')
+        stream << '\t';
+      else
+        stream << ' ';
     }
     stream << "^\n";
 
@@ -189,13 +210,13 @@ namespace objloader
               file, line_index, tok.end, line, "Expected token");
 
         else if (equal(tok, TOKEN_VERTEX))
-          obj.vertices.push_back(fill<Vec3>(line, tok.end));
+          obj.vertices.push_back(parse<Vec3>(line, tok.end));
 
         else if (equal(tok, TOKEN_NORMAL))
-          obj.normals.push_back(fill<Vec3>(line, tok.end));
+          obj.normals.push_back(parse<Vec3>(line, tok.end));
 
         else if (equal(tok, TOKEN_TEXCOORD))
-          obj.texcoords.push_back(fill<Vec2>(line, tok.end));
+          obj.texcoords.push_back(parse<Vec2>(line, tok.end));
 
         else if (equal(tok, TOKEN_FACE)) {
           Word t0 = getWord(line, tok.end);
@@ -260,7 +281,10 @@ namespace objloader
 
     Mtl mtl;
 
-    string current_material;
+    //size_t current_camera   = 0;
+    size_t current_light    = 0;
+    size_t current_material = 0;
+
     string line;
     size_t line_index = 0;
     while (getline(stream, line)) {
@@ -272,11 +296,13 @@ namespace objloader
               file, line_index, tok.begin, line, "Expected token");
 
         else if (equal(tok, TOKEN_MTL_NEW)) {
-          Word tmtl = getWord(line, tok.end);
-          current_material = str(tmtl);
-          mtl.materials[current_material] =
-              { Vec3 {{0.7f}, {0.7f}, {0.7f}}
+          ++current_material;
+
+          Word name = getWord(line, tok.end);
+          Material material =
+              { str(name)
               , ""
+              , Vec3 {{0.7f}, {0.7f}, {0.7f}}
               , Vec3 {{1.0f}, {1.0f}, {1.0f}}
               , Vec3 {{0.0f}, {0.0f}, {0.0f}}
               , 0.001f
@@ -285,11 +311,45 @@ namespace objloader
               , 0.0f
               , 1.0f
               };
+
+          mtl.materials.push_back(material);
         }
 
-        else if (equal(tok, TOKEN_MTL_DIFFUSE1) || equal(tok, TOKEN_MTL_DIFFUSE2)) {
-          mtl.materials[current_material].diffuseReflectance = fill<Vec3>(line, tok.end);
+        else if (equal(tok, TOKEN_MTL_DIFFUSE1) ||
+            equal(tok, TOKEN_MTL_DIFFUSE2))
+          mtl.materials[current_material].diffuseReflectance =
+            parse<Vec3>(line, tok.end);
+
+        else if (equal(tok, TOKEN_LIGHT_NEW)) {
+          ++current_light;
+
+          Word name = getWord(line, tok.end);
+          Light light =
+              { str(name)
+              , Vec3 {{0.0f}, {0.0f}, {0.0f}}
+              , Vec3 {{1.0f}, {1.0f}, {1.0f}}
+              , 0.1f
+              , 10.0f
+              };
+
+          mtl.lights.push_back(light);
         }
+
+        else if (equal(tok, TOKEN_LIGHT_POSITION))
+          mtl.lights[current_light].position =
+            parse<Vec3>(line, tok.end);
+
+        else if (equal(tok, TOKEN_LIGHT_COLOR))
+          mtl.lights[current_light].color =
+            parse<Vec3>(line, tok.end);
+
+        else if (equal(tok, TOKEN_LIGHT_RADIUS))
+          mtl.lights[current_light].radius =
+            parse<float>(line, tok.end);
+
+        else if (equal(tok, TOKEN_LIGHT_INTENSITY))
+          mtl.lights[current_light].intensity =
+            parse<float>(line, tok.end);
 
         else if (equal(tok, TOKEN_COMMENT)); // Do nothing
 
