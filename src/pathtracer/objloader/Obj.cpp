@@ -123,7 +123,7 @@ namespace objloader
         ++j;
       }
 
-      return { str, i, j };
+      return {str, i, j};
     }
 
     template <typename T> T parse(const string&, size_t);
