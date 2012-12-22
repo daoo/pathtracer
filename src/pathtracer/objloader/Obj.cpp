@@ -26,19 +26,17 @@ namespace objloader
     const string TOKEN_VERTEX   = "v";
 
     // Mtl tokens
-    const string TOKEN_MTL_NEW          = "newmtl";
-    const string TOKEN_MTL_DIFFUSE1     = "diffusereflectance";
-    const string TOKEN_MTL_DIFFUSE2     = "kd";
-    const string TOKEN_MTL_DIFFUSE_MAP1 = "diffusereflectancemap";
-    const string TOKEN_MTL_DIFFUSE_MAP2 = "map_kd";
-    const string TOKEN_MTL_SPECULAR1    = "specularreflectance";
-    const string TOKEN_MTL_SPECULAR2    = "ks";
-    const string TOKEN_MTL_ROUGHNESS    = "specularroughness";
+    const string TOKEN_MTL_DIFFUSE      = "kd";
+    const string TOKEN_MTL_DIFFUSE_MAP  = "map_kd";
     const string TOKEN_MTL_EMITTANCE    = "emittance";
-    const string TOKEN_MTL_TRANSPARANCY = "transparency";
+    const string TOKEN_MTL_IOR          = "indexofrefraction";
+    const string TOKEN_MTL_NEW          = "newmtl";
     const string TOKEN_MTL_REFLECT0     = "reflat0deg";
     const string TOKEN_MTL_REFLECT90    = "reflat90deg";
-    const string TOKEN_MTL_IOR          = "indexofrefraction";
+    const string TOKEN_MTL_ROUGHNESS    = "specularroughness";
+    const string TOKEN_MTL_SPECULAR1    = "specularreflectance";
+    const string TOKEN_MTL_SPECULAR2    = "ks";
+    const string TOKEN_MTL_TRANSPARANCY = "transparency";
 
     // Light tokens
     const string TOKEN_LIGHT_NEW       = "newlight";
@@ -53,8 +51,7 @@ namespace objloader
     float parse(const string& str, size_t begin)
     {
       assert(!str.empty());
-
-      return toFloat(getWord(str, begin));
+      return strtof(str.c_str() + begin, nullptr);
     }
 
     template <>
@@ -62,12 +59,10 @@ namespace objloader
     {
       assert(!str.empty());
 
-      Word tx = getWord(str, begin);
-      Word ty = getWord(str, tx.end);
-      return
-        { {toFloat(tx)}
-        , {toFloat(ty)}
-        };
+      char* end;
+      float x = strtof(str.c_str() + begin, &end);
+      float y = strtof(end, nullptr);
+      return {{x}, {y}};
     }
 
     template <>
@@ -75,14 +70,11 @@ namespace objloader
     {
       assert(!str.empty());
 
-      Word tx = getWord(str, begin);
-      Word ty = getWord(str, tx.end);
-      Word tz = getWord(str, ty.end);
-      return
-        { {toFloat(tx)}
-        , {toFloat(ty)}
-        , {toFloat(tz)}
-        };
+      char* end;
+      float x = strtof(str.c_str() + begin, &end);
+      float y = strtof(end, &end);
+      float z = strtof(end, nullptr);
+      return {{x}, {y}, {z}};
     }
   }
 
@@ -125,6 +117,8 @@ namespace objloader
         if (empty(tok))
           throw ObjLoaderParserException(
               file, line_index, tok.begin, line, "Expected token");
+
+        else if (line[tok.begin] == '#');
 
         else if (tok.end >= line.size())
           throw ObjLoaderParserException(
@@ -216,6 +210,8 @@ namespace objloader
           throw ObjLoaderParserException(
               file, line_index, tok.begin, line, "Expected token");
 
+        else if (line[tok.begin] == '#' || equal(tok, TOKEN_COMMENT)); // Do nothing
+
         else if (equal(tok, TOKEN_MTL_NEW)) {
           ++current_material;
 
@@ -236,8 +232,7 @@ namespace objloader
           mtl.materials.push_back(material);
         }
 
-        else if (equal(tok, TOKEN_MTL_DIFFUSE1) ||
-            equal(tok, TOKEN_MTL_DIFFUSE2))
+        else if (equal(tok, TOKEN_MTL_DIFFUSE))
           mtl.materials[current_material].diffuseReflectance =
             parse<Vec3>(line, tok.end);
 
@@ -271,8 +266,6 @@ namespace objloader
         else if (equal(tok, TOKEN_LIGHT_INTENSITY))
           mtl.lights[current_light].intensity =
             parse<float>(line, tok.end);
-
-        else if (equal(tok, TOKEN_COMMENT)); // Do nothing
 
         else {
           string err("Invalid token '");

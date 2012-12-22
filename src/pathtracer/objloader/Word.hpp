@@ -29,6 +29,8 @@ namespace objloader
 
   std::string str(const Word& word)
   {
+    assert(word.begin < word.str.size());
+    assert(word.end <= word.str.size());
     return word.str.substr(word.begin, size(word));
   }
 
@@ -38,7 +40,7 @@ namespace objloader
       size_t i = word.begin;
       size_t j = 0;
       while (i < size(word)) {
-        if (word.str[i] != other[j])
+        if (tolower(word.str[i]) != tolower(other[j]))
           return false;
         ++i;
         ++j;
