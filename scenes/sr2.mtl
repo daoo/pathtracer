@@ -29,13 +29,13 @@ newcamera Camera01
 	camerafov 45.0
 
 newmtl Material.001
-	diffuseReflectance 1.0 1.0 1.0
+	kd 1.0 1.0 1.0
 
 newmtl Material.002
-	diffuseReflectance 1.0 1.0 1.0
+	kd 1.0 1.0 1.0
 
 newmtl Material.003
-	diffuseReflectance 1.0 1.0 1.0
+	kd 1.0 1.0 1.0
 
 newmtl Material.004
-	diffuseReflectance 1.0 1.0 1.0
+	kd 1.0 1.0 1.0
