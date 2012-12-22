@@ -82,9 +82,10 @@ int main(int argc, char *argv[])
       glutDisplayFunc(display);
       glewInit();
 
-      OBJModel model;
-      model.load(obj_file.string());
-      Scene scene(model);
+      const objloader::Obj obj = objloader::loadObj(obj_file);
+      const objloader::Mtl mtl = objloader::loadMtl(obj_file.parent_path() / obj.mtl_lib);
+
+      const Scene scene(obj, mtl);
 
 #ifdef NDEBUG
       constexpr size_t SUBSAMPLING = 1;

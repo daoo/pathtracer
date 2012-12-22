@@ -22,10 +22,10 @@ void program(const path& objFile, const path& outDir, size_t w, size_t h,
   assert(w > 0 && h > 0);
   assert(sampleCount > 0);
 
-  OBJModel model;
-  model.load(objFile.string());
+  const objloader::Obj obj = objloader::loadObj(objFile);
+  const objloader::Mtl mtl = objloader::loadMtl(objFile.parent_path() / obj.mtl_lib);
 
-  const Scene scene(model);
+  const Scene scene(obj, mtl);
   const Pathtracer pt(scene, camera, w, h);
 
   SampleBuffer buffer(w, h);

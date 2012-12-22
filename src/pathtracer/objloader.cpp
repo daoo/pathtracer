@@ -1,4 +1,4 @@
-#include "Obj.hpp"
+#include "objloader.hpp"
 
 #include <array>
 #include <fstream>
@@ -163,7 +163,7 @@ namespace objloader
       int v = parse_int(str.c_str() + begin, &end1);
       int t = parse_int(end1 + 1, &end2);
       int n = parse_int(end2 + 1, nullptr);
-      return {static_cast<int>(v), static_cast<int>(t), static_cast<int>(n)};
+      return {v, t, n};
     }
 
     template <>

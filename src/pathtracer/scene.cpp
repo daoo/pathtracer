@@ -1,84 +1,82 @@
 #include "scene.hpp"
 #include "mcsampling.hpp"
 
+#include <map>
+
 using namespace glm;
 using namespace math;
 using namespace std;
 
 namespace
 {
-  void buildFromObj(const OBJModel& model,
+  vec2 to_glm(const objloader::Vec2& v) { return vec2(v.x, v.y); }
+  vec3 to_glm(const objloader::Vec3& v) { return vec3(v.x, v.y, v.z); }
+
+  void buildFromObj(const objloader::Obj& obj, const objloader::Mtl& mtl,
       vector<SphereLight>& lights, vector<Camera>& cameras,
-      vector<Material*>& materials, vector<Texture*> textures,
       vector<Triangle>& triangles)
   {
-    for (auto kv : model.m_lights) {
+    for (const objloader::Light& light : mtl.lights) {
       lights.push_back(
-          { kv.second.radius
-          , kv.second.position
-          , kv.second.intensity * kv.second.color
+          { light.radius
+          , to_glm(light.position)
+          , light.intensity * to_glm(light.color)
           });
     }
 
-    for (auto kv : model.m_cameras) {
+    for (const objloader::Camera& camera : mtl.cameras) {
       cameras.push_back(
-          { kv.second.position
-          , normalize(kv.second.target - kv.second.position)
-          , normalize(kv.second.up)
-          , kv.second.fov
+          { to_glm(camera.position)
+          , normalize(to_glm(camera.target) - to_glm(camera.position))
+          , normalize(to_glm(camera.up))
+          , camera.fov
           });
     }
 
-    for (size_t i = 0; i < model.m_chunks.size(); ++i) {
-      const OBJModel::Chunk& chunk = model.m_chunks[i];
-
+    map<string, Material*> materials;
+    for (const objloader::Material& mat : mtl.materials) {
       Texture* reflectanceMap = nullptr;
-      if (!chunk.material->diffuseReflectanceMap.empty()) {
+      if (!mat.diffuseMap.empty()) {
         reflectanceMap = new Texture;
-        textureLoad(*reflectanceMap, chunk.material->diffuseReflectanceMap);
+        textureLoad(*reflectanceMap, mat.diffuseMap);
       }
+
       DiffuseMaterial* diffuse =
-        new DiffuseMaterial(chunk.material->diffuseReflectance, reflectanceMap);
+        new DiffuseMaterial(to_glm(mat.diffuse), reflectanceMap);
 
       SpecularReflectionMaterial* specularReflection =
-        new SpecularReflectionMaterial(chunk.material->specularReflectance);
+        new SpecularReflectionMaterial(to_glm(mat.specular));
 
       SpecularRefractionMaterial* specularRefraction =
-        new SpecularRefractionMaterial(chunk.material->indexOfRefraction);
+        new SpecularRefractionMaterial(mat.ior);
 
       BlendMaterial* blend1 =
-        new BlendMaterial(specularRefraction, diffuse, chunk.material->transparency);
+        new BlendMaterial(specularRefraction, diffuse, mat.transparency);
 
       FresnelBlendMaterial* fresnel =
-        new FresnelBlendMaterial(specularReflection, blend1, chunk.material->reflAt0Deg);
+        new FresnelBlendMaterial(specularReflection, blend1, mat.reflAt0Deg);
 
       BlendMaterial* blend0 =
-        new BlendMaterial(fresnel, blend1, chunk.material->reflAt90Deg);
+        new BlendMaterial(fresnel, blend1, mat.reflAt90Deg);
 
-      textures.push_back(reflectanceMap);
-      materials.push_back(diffuse);
-      materials.push_back(specularReflection);
-      materials.push_back(specularRefraction);
-      materials.push_back(fresnel);
-      materials.push_back(blend0);
-      materials.push_back(blend1);
+      materials[mat.name] = blend0;
+    }
 
-      for (size_t j = 0; j < chunk.positions.size(); j += 3) {
-        Triangle triangle;
-
-        triangle.v0  = chunk.positions[j + 0];
-        triangle.v1  = chunk.positions[j + 1];
-        triangle.v2  = chunk.positions[j + 2];
-        triangle.n0  = chunk.normals[j + 0];
-        triangle.n1  = chunk.normals[j + 1];
-        triangle.n2  = chunk.normals[j + 2];
-        triangle.uv0 = chunk.uvs[j + 0];
-        triangle.uv1 = chunk.uvs[j + 1];
-        triangle.uv2 = chunk.uvs[j + 2];
-
-        triangle.material = blend0;
-
-        triangles.push_back(triangle);
+    for (const objloader::Chunk& chunk : obj.chunks) {
+      Material* mat = materials[chunk.material];
+      for (const objloader::Triangle& tri : chunk.triangles) {
+        triangles.push_back(
+            { to_glm(obj.vertices[tri.p1.v])
+            , to_glm(obj.vertices[tri.p2.v])
+            , to_glm(obj.vertices[tri.p3.v])
+            , to_glm(obj.normals[tri.p1.n])
+            , to_glm(obj.normals[tri.p2.n])
+            , to_glm(obj.normals[tri.p3.n])
+            , to_glm(obj.texcoords[tri.p1.t])
+            , to_glm(obj.texcoords[tri.p2.t])
+            , to_glm(obj.texcoords[tri.p3.t])
+            , mat
+            });
       }
     }
   }
@@ -86,11 +84,9 @@ namespace
 
 Scene::Scene() { }
 
-Scene::Scene(const OBJModel& model)
+Scene::Scene(const objloader::Obj& obj, const objloader::Mtl& mtl)
 {
-  assert(!model.m_cameras.empty());
-
-  buildFromObj(model, m_lights, m_cameras, m_material, m_textures, m_triangles);
+  buildFromObj(obj, mtl, m_lights, m_cameras, m_triangles);
   kdtree::buildTree(m_kdtree, m_triangles);
 }
 

@@ -1,4 +1,4 @@
-#include "pathtracer/objloader/Obj.hpp"
+#include "pathtracer/objloader.hpp"
 #include "util/clock.hpp"
 
 #include <boost/filesystem.hpp>

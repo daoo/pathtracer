@@ -6,13 +6,13 @@
 #include "light.hpp"
 #include "material.hpp"
 #include "math/ray.hpp"
-#include "objmodel.hpp"
+#include "objloader.hpp"
 
 class Scene
 {
   public:
     Scene();
-    Scene(const OBJModel& model);
+    Scene(const objloader::Obj&, const objloader::Mtl&);
     ~Scene();
 
     bool allIntersection(math::Ray& r, Intersection& isect) const;
@@ -36,8 +36,6 @@ class Scene
   private:
     std::vector<SphereLight> m_lights;
     std::vector<Camera> m_cameras;
-    std::vector<Material*> m_material;
-    std::vector<Texture*> m_textures;
     std::vector<Triangle> m_triangles;
 
     kdtree::KdTree m_kdtree;

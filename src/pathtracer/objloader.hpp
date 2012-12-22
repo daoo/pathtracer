@@ -3,7 +3,6 @@
 
 #include <boost/filesystem.hpp>
 #include <exception>
-#include <map>
 #include <ostream>
 #include <vector>
 
