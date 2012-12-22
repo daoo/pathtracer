@@ -17,9 +17,9 @@ newcamera Camera01
 	camerafov 45.0
 
 newmtl White
-	diffuseReflectance 1.0 1.0 1.0
+	kd 1.0 1.0 1.0
 
 newmtl Red
-	diffuseReflectance 1.0 0.0 0.0
+	kd 1.0 0.0 0.0
 	reflat0deg 0.1
-	reflAt90Deg 0.1
+	reflat90deg 0.1

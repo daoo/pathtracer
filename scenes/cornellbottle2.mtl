@@ -14,37 +14,37 @@ newcamera Camera01
 	camerafov 45.0
 
 newmtl GreenWall
-	Kd 0.3137 0.8039 0.3294
+	kd 0.3137 0.8039 0.3294
 	reflat0deg 0.1
-	reflAt90Deg 1.0
+	reflat90deg 1.0
 
 newmtl Floor
-	Kd 0.7843 0.7843 0.7843
+	kd 0.7843 0.7843 0.7843
 
 newmtl Roof
-	Kd 0.0902 0.0902 0.0902
+	kd 0.0902 0.0902 0.0902
 
 newmtl BlueWall
-	Kd 0.3294 0.3451 0.7255
+	kd 0.3294 0.3451 0.7255
 	reflat0deg 0.1
-	reflAt90Deg 1.0
+	reflat90deg 1.0
 
 newmtl RedWall
-	Kd 0.7529 0.3059 0.3137
+	kd 0.7529 0.3059 0.3137
 	reflat0deg 0.1
-	reflAt90Deg 1.0
+	reflat90deg 1.0
 
 newmtl Bottle
-	Kd 0.3451 0.7804 0.8824
+	kd 0.3451 0.7804 0.8824
 	reflat0deg 0.1
-	reflAt90Deg 1.0
-	indexOfRefraction 1.4
+	reflat90deg 1.0
+	indexofrefraction 1.4
 	transparency 1.0
 
 newmtl Cork
-	Kd 0.6745 0.5725 0.4902
+	kd 0.6745 0.5725 0.4902
 
 newmtl Stand
-	Kd 0.235 0.2294 0.0235
+	kd 0.235 0.2294 0.0235
 	reflat0deg 0.4
-	reflAt90Deg 1.0
+	reflat90deg 1.0

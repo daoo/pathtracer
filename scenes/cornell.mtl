@@ -1,7 +1,6 @@
 # 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
 # File Created: 31.10.2012 20:44:17
 
-
 newlight Light01
 	lightposition -0.0 0.7 -0.0
 	lightcolor 1.0 0.8 0.8
@@ -39,8 +38,8 @@ newmtl LeftBox
 	ks 0.7 0.7 0.7
 	kd 0.8 0.8 0.205804
 	reflat0deg 0.3
-	reflAt90Deg 1.0
-	indexOfRefraction 1.55
+	reflat90deg 1.0
+	indexofrefraction 1.55
 	transparency 0.0
 	specularroughness 0.001
 
@@ -48,7 +47,7 @@ newmtl RightBox
 	ks 0.7 0.7 0.7
 	kd 0.18 0.725 0.725
 	reflat0deg 0.2
-	reflAt90Deg 1.0
-	indexOfRefraction 1.55
+	reflat90deg 1.0
+	indexofrefraction 1.55
 	transparency 1.0
 	specularroughness 0.001
