@@ -38,22 +38,10 @@ namespace objloader
 
   std::ostream& operator<<(std::ostream&, const ObjLoaderParserException&);
 
-  struct Vec2
-  {
-    float x, y;
-  };
-
-  struct Vec3
-  {
-    float x, y, z;
-  };
-
-  struct Triangle
-  {
-    int v0, t0, n0;
-    int v1, t1, n1;
-    int v2, t2, n2;
-  };
+  struct Vec2 { float x, y; };
+  struct Vec3 { float x, y, z; };
+  struct Point { int v, t, n; };
+  struct Triangle { Point p1, p2, p3; };
 
   struct Chunk
   {

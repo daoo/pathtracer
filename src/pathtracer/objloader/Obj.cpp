@@ -1,7 +1,5 @@
 #include "Obj.hpp"
 
-#include "pathtracer/objloader/Word.hpp"
-
 #include <array>
 #include <fstream>
 
@@ -12,44 +10,104 @@ namespace objloader
 {
   namespace
   {
-    // General tokens
-    const string TOKEN_COMMENT  = "#";
-
-    // Obj tokens
-    const string TOKEN_FACE     = "f";
-    const string TOKEN_GROUP    = "g";
-    const string TOKEN_MTLLIB   = "mtllib";
-    const string TOKEN_NORMAL   = "vn";
-    const string TOKEN_SHADING  = "s";
-    const string TOKEN_TEXCOORD = "vt";
-    const string TOKEN_USEMTL   = "usemtl";
-    const string TOKEN_VERTEX   = "v";
-
     // Mtl tokens
-    const string TOKEN_MTL_DIFFUSE      = "kd";
-    const string TOKEN_MTL_DIFFUSE_MAP  = "map_kd";
-    const string TOKEN_MTL_EMITTANCE    = "emittance";
-    const string TOKEN_MTL_IOR          = "indexofrefraction";
-    const string TOKEN_MTL_NEW          = "newmtl";
-    const string TOKEN_MTL_REFLECT0     = "reflat0deg";
-    const string TOKEN_MTL_REFLECT90    = "reflat90deg";
-    const string TOKEN_MTL_ROUGHNESS    = "specularroughness";
-    const string TOKEN_MTL_SPECULAR     = "ks";
-    const string TOKEN_MTL_TRANSPARANCY = "transparency";
+    const char* TOKEN_MTL_DIFFUSE      = "kd";
+    const char* TOKEN_MTL_DIFFUSE_MAP  = "map_kd";
+    const char* TOKEN_MTL_EMITTANCE    = "emittance";
+    const char* TOKEN_MTL_IOR          = "indexofrefraction";
+    const char* TOKEN_MTL_REFLECT0     = "reflat0deg";
+    const char* TOKEN_MTL_REFLECT90    = "reflat90deg";
+    const char* TOKEN_MTL_ROUGHNESS    = "specularroughness";
+    const char* TOKEN_MTL_SPECULAR     = "ks";
+    const char* TOKEN_MTL_TRANSPARANCY = "transparency";
 
     // Light tokens
-    const string TOKEN_LIGHT_COLOR     = "lightcolor";
-    const string TOKEN_LIGHT_INTENSITY = "lightintensity";
-    const string TOKEN_LIGHT_NEW       = "newlight";
-    const string TOKEN_LIGHT_POSITION  = "lightposition";
-    const string TOKEN_LIGHT_RADIUS    = "lightradius";
+    const char* TOKEN_LIGHT_COLOR     = "lightcolor";
+    const char* TOKEN_LIGHT_INTENSITY = "lightintensity";
+    const char* TOKEN_LIGHT_POSITION  = "lightposition";
+    const char* TOKEN_LIGHT_RADIUS    = "lightradius";
 
     // Camera tokens
-    const string TOKEN_CAMERA_FOV      = "camerafov";
-    const string TOKEN_CAMERA_NEW      = "newcamera";
-    const string TOKEN_CAMERA_POSITION = "cameraposition";
-    const string TOKEN_CAMERA_TARGET   = "cameratarget";
-    const string TOKEN_CAMERA_UP       = "cameraup";
+    const char* TOKEN_CAMERA_FOV      = "camerafov";
+    const char* TOKEN_CAMERA_POSITION = "cameraposition";
+    const char* TOKEN_CAMERA_TARGET   = "cameratarget";
+    const char* TOKEN_CAMERA_UP       = "cameraup";
+
+    int parse_int(const char* str, const char** end)
+    {
+      int negate = 1;
+      if (*str == '-') {
+        ++str;
+        negate = -1;
+      }
+
+      const char* ptr = str;
+      while (*ptr >= '0' && *ptr <= '9') {
+        ++ptr;
+      }
+
+      if (end)
+        *end = ptr;
+      --ptr;
+
+      int result = 0;
+      int power = 1;
+      while (ptr >= str) {
+        result += static_cast<int>(*ptr - 48) * power;
+        power *= 10;
+        --ptr;
+      }
+
+      return negate * result;
+    }
+
+    bool equal(const char* a, const char* b)
+    {
+      assert(a != nullptr);
+      assert(*a != 0);
+      assert(b != nullptr);
+
+      while (*a != 0) {
+        if (*a != *b)
+          return false;
+
+        ++a;
+        ++b;
+      }
+
+      return true;
+    }
+
+    size_t skip_whitespace(const string& str, size_t begin)
+    {
+      size_t i = begin;
+      char c;
+      while (i < str.size()) {
+        c = str[i];
+        if (c != ' ' && c != '\t')
+          break;
+        ++i;
+      }
+
+      return i;
+    }
+
+    size_t next_word(const string& str, size_t begin)
+    {
+      size_t i = begin;
+      char c;
+
+      // If we point at a word we skip it first
+      while (i < str.size()) {
+        c = str[i];
+        if (c == ' ' || c == '\t')
+          break;
+        ++i;
+      }
+
+      // Then skip any whitespace to the next word
+      return skip_whitespace(str, i);
+    }
 
     template <typename T> T parse(const string&, size_t);
 
@@ -57,6 +115,7 @@ namespace objloader
     string parse(const string& str, size_t begin)
     {
       assert(!str.empty());
+      assert(begin < str.size());
       return str.substr(begin);
     }
 
@@ -64,6 +123,7 @@ namespace objloader
     float parse(const string& str, size_t begin)
     {
       assert(!str.empty());
+      assert(begin < str.size());
       return strtof(str.c_str() + begin, nullptr);
     }
 
@@ -71,6 +131,7 @@ namespace objloader
     Vec2 parse(const string& str, size_t begin)
     {
       assert(!str.empty());
+      assert(begin < str.size());
 
       char* end;
       float x = strtof(str.c_str() + begin, &end);
@@ -82,12 +143,43 @@ namespace objloader
     Vec3 parse(const string& str, size_t begin)
     {
       assert(!str.empty());
+      assert(begin < str.size());
 
       char* end;
       float x = strtof(str.c_str() + begin, &end);
       float y = strtof(end, &end);
       float z = strtof(end, nullptr);
       return {x, y, z};
+    }
+
+    template <>
+    Point parse(const string& str, size_t begin)
+    {
+      assert(!str.empty());
+      assert(begin < str.size());
+
+      const char* end1;
+      const char* end2;
+      int v = parse_int(str.c_str() + begin, &end1);
+      int t = parse_int(end1 + 1, &end2);
+      int n = parse_int(end2 + 1, nullptr);
+      return {static_cast<int>(v), static_cast<int>(t), static_cast<int>(n)};
+    }
+
+    template <>
+    Triangle parse(const string& str, size_t begin)
+    {
+      assert(!str.empty());
+      assert(begin < str.size());
+
+      size_t t0_start = next_word(str, begin);
+      size_t t1_start = next_word(str, t0_start);
+      size_t t2_start = next_word(str, t1_start);
+
+      return
+        { parse<Point>(str, t0_start)
+        , parse<Point>(str, t1_start)
+        , parse<Point>(str, t2_start) };
     }
   }
 
@@ -124,67 +216,49 @@ namespace objloader
 
     while (getline(stream, line)) {
       if (!line.empty()) {
-        Word tok = getWord(line, 0);
+        size_t offset = skip_whitespace(line, 0);
 
-        if (empty(tok))
+        if (offset >= line.size())
           throw ObjLoaderParserException(
-              file, line_index, tok.begin, line, "Expected token");
+              file, line_index, 0, line, "Expected token");
 
-        else if (line[tok.begin] == '#' || equal(tok, TOKEN_COMMENT));
+        char first = line[offset];
 
-        else if (tok.end >= line.size())
-          throw ObjLoaderParserException(
-              file, line_index, tok.end, line, "Expected token");
+        if (first == '#');
 
-        else if (equal(tok, TOKEN_VERTEX))
-          obj.vertices.push_back(parse<Vec3>(line, tok.end));
+        else if (first == 'v') {
+          char second = line[offset + 1];
+          if (second == ' ') {
+            obj.vertices.push_back(parse<Vec3>(line, offset + 1));
+          } else if (second == 'n') {
+            obj.normals.push_back(parse<Vec3>(line, offset + 1));
+          } else if (second == 't') {
+            obj.texcoords.push_back(parse<Vec2>(line, offset + 1));
+          } else {
+            throw ObjLoaderParserException(
+                file, line_index, offset + 1, line, "Expected v, vt or vn");
+          }
+        }
 
-        else if (equal(tok, TOKEN_NORMAL))
-          obj.normals.push_back(parse<Vec3>(line, tok.end));
-
-        else if (equal(tok, TOKEN_TEXCOORD))
-          obj.texcoords.push_back(parse<Vec2>(line, tok.end));
-
-        else if (equal(tok, TOKEN_FACE)) {
+        else if (first == 'f') {
           if (obj.chunks.empty())
             throw ObjLoaderParserException(
-                file, line_index, tok.end, line, "No chunk created");
+                file, line_index, offset, line, "No chunk created");
 
-          Word t0 = getWord(line, tok.end);
-          Word t1 = getWord(line, t0.end);
-          Word t2 = getWord(line, t0.end);
-
-          array<int, 3> p0;
-          array<int, 3> p1;
-          array<int, 3> p2;
-          parseFacePoint(t0, p0);
-          parseFacePoint(t1, p1);
-          parseFacePoint(t2, p2);
-
-          obj.chunks.back().triangles.push_back(
-            { p0[0], p0[1], p0[2]
-            , p1[0], p1[1], p1[2]
-            , p2[0], p2[1], p2[2]
-            });
+          obj.chunks.back().triangles.push_back(parse<Triangle>(line, offset + 1));
         }
 
-        else if (equal(tok, TOKEN_USEMTL)) {
-          Word mtl = getWord(line, tok.end);
-          obj.chunks.push_back(Chunk(str(mtl)));
+        else if (equal("usemtl", line.c_str() + offset)) {
+          obj.chunks.push_back(Chunk(line.substr(skip_whitespace(line, offset + 7))));
         }
 
-        else if (equal(tok, TOKEN_MTLLIB)) {
-          Word mtl_lib = getWord(line, tok.end);
-          obj.mtl_lib = str(mtl_lib);
+        else if (equal("mtllib", line.c_str() + offset)) {
+          obj.mtl_lib = line.substr(skip_whitespace(line, offset + 7));
         }
 
         else {
-          string err("Invalid token '");
-          err += str(tok);
-          err += "'";
-
           throw ObjLoaderParserException(
-              file, line_index, tok.begin, line, err);
+              file, line_index, offset, line, "Invalid token");
         }
       }
 
@@ -210,61 +284,64 @@ namespace objloader
     size_t line_index = 0;
     while (getline(stream, line)) {
       if (!line.empty()) {
-        Word tok = getWord(line, 0);
+        size_t offset = skip_whitespace(line, 0);
 
-        if (tok.str.empty())
+        if (offset >= line.size())
           throw ObjLoaderParserException(
-              file, line_index, tok.begin, line, "Expected token");
+              file, line_index, 0, line, "Expected token");
 
-        else if (line[tok.begin] == '#' || equal(tok, TOKEN_COMMENT)); // Do nothing
+        const char* str  = line.c_str() + offset;
+        const char first = line[offset];
 
-        else if (equal(tok, TOKEN_MTL_NEW)) {
-          Word name = getWord(line, tok.end);
-          Material material =
-              { str(name)
-              , ""
-              , Vec3 {0.7f, 0.7f, 0.7f}
-              , Vec3 {1.0f, 1.0f, 1.0f}
-              , Vec3 {0.0f, 0.0f, 0.0f}
-              , 0.001f
-              , 0.0f
-              , 0.0f
-              , 0.0f
-              , 1.0f
-              };
+        if (first == '#'); // Do nothing
 
-          mtl.materials.push_back(material);
-        }
+        else if (first == 'n') {
+          const char* str_next = str + 1;
+          if (equal("ewmtl", str_next)) {
+            mtl.materials.push_back(
+                { line.substr(skip_whitespace(line, offset + 7))
+                , ""
+                , Vec3 {0.7f, 0.7f, 0.7f}
+                , Vec3 {1.0f, 1.0f, 1.0f}
+                , Vec3 {0.0f, 0.0f, 0.0f}
+                , 0.001f
+                , 0.0f
+                , 0.0f
+                , 0.0f
+                , 1.0f
+                });
+          }
 
-        else if (equal(tok, TOKEN_LIGHT_NEW)) {
-          Light light =
-              { Vec3 {0.0f, 0.0f, 0.0f}
-              , Vec3 {1.0f, 1.0f, 1.0f}
-              , 0.1f
-              , 10.0f
-              };
+          else if (equal("ewlight", str_next)) {
+            Light light =
+                { Vec3 {0.0f, 0.0f, 0.0f}
+                , Vec3 {1.0f, 1.0f, 1.0f}
+                , 0.1f
+                , 10.0f
+                };
 
-          mtl.lights.push_back(light);
-        }
+            mtl.lights.push_back(light);
+          }
 
-        else if (equal(tok, TOKEN_CAMERA_NEW)) {
-          Camera camera =
-              { Vec3 {7.0f, 5.0f, 6.0f}
-              , Vec3 {0.0f, 0.0f, 0.0f}
-              , Vec3 {0.0f, 1.0f, 0.0f}
-              , 10.0f
-              };
+          else if (equal("ewcamera", str_next)) {
+            Camera camera =
+                { Vec3 {7.0f, 5.0f, 6.0f}
+                , Vec3 {0.0f, 0.0f, 0.0f}
+                , Vec3 {0.0f, 1.0f, 0.0f}
+                , 10.0f
+                };
 
-          mtl.cameras.push_back(camera);
+            mtl.cameras.push_back(camera);
+          }
         }
 
 #define TOKEN_VALUE(list, token, type, param, error) \
-  else if (equal(tok, (token))) { \
+  else if (equal(token, str)) { \
     if (list.empty()) \
       throw ObjLoaderParserException( \
-        file, line_index, tok.begin, line, (error)); \
+        file, line_index, offset, line, (error)); \
     list.back().param = \
-      parse<type>(line, tok.end); \
+      parse<type>(line, offset); \
   }
 
         TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE      , Vec3   , diffuse      , "No material created")
@@ -290,12 +367,8 @@ namespace objloader
 #undef TOKEN_VALUE
 
         else {
-          string err("Invalid token '");
-          err += str(tok);
-          err += "'";
-
           throw ObjLoaderParserException(
-              file, line_index, tok.begin, line, err);
+              file, line_index, offset, line, "Invalid token");
         }
       }
 
