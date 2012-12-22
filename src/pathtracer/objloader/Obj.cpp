@@ -39,11 +39,18 @@ namespace objloader
     const string TOKEN_MTL_TRANSPARANCY = "transparency";
 
     // Light tokens
+    const string TOKEN_LIGHT_COLOR     = "lightcolor";
+    const string TOKEN_LIGHT_INTENSITY = "lightintensity";
     const string TOKEN_LIGHT_NEW       = "newlight";
     const string TOKEN_LIGHT_POSITION  = "lightposition";
-    const string TOKEN_LIGHT_COLOR     = "lightcolor";
     const string TOKEN_LIGHT_RADIUS    = "lightradius";
-    const string TOKEN_LIGHT_INTENSITY = "lightintensity";
+
+    // Camera tokens
+    const string TOKEN_CAMERA_FOV      = "camerafov";
+    const string TOKEN_CAMERA_NEW      = "newcamera";
+    const string TOKEN_CAMERA_POSITION = "cameraposition";
+    const string TOKEN_CAMERA_TARGET   = "cameratarget";
+    const string TOKEN_CAMERA_UP       = "cameraup";
 
     template <typename T> T parse(const string&, size_t);
 
@@ -62,7 +69,7 @@ namespace objloader
       char* end;
       float x = strtof(str.c_str() + begin, &end);
       float y = strtof(end, nullptr);
-      return {{x}, {y}};
+      return {x, y};
     }
 
     template <>
@@ -74,7 +81,7 @@ namespace objloader
       float x = strtof(str.c_str() + begin, &end);
       float y = strtof(end, &end);
       float z = strtof(end, nullptr);
-      return {{x}, {y}, {z}};
+      return {x, y, z};
     }
   }
 
@@ -108,7 +115,6 @@ namespace objloader
     size_t line_index = 0;
 
     Obj obj;
-    size_t current_chunk;
 
     while (getline(stream, line)) {
       if (!line.empty()) {
@@ -118,7 +124,7 @@ namespace objloader
           throw ObjLoaderParserException(
               file, line_index, tok.begin, line, "Expected token");
 
-        else if (line[tok.begin] == '#');
+        else if (line[tok.begin] == '#' || equal(tok, TOKEN_COMMENT));
 
         else if (tok.end >= line.size())
           throw ObjLoaderParserException(
@@ -134,6 +140,10 @@ namespace objloader
           obj.texcoords.push_back(parse<Vec2>(line, tok.end));
 
         else if (equal(tok, TOKEN_FACE)) {
+          if (obj.chunks.empty())
+            throw ObjLoaderParserException(
+                file, line_index, tok.end, line, "No chunk created");
+
           Word t0 = getWord(line, tok.end);
           Word t1 = getWord(line, t0.end);
           Word t2 = getWord(line, t0.end);
@@ -145,7 +155,7 @@ namespace objloader
           parseFacePoint(t1, p1);
           parseFacePoint(t2, p2);
 
-          obj.chunks[current_chunk].triangles.push_back(
+          obj.chunks.back().triangles.push_back(
             { p0[0], p0[1], p0[2]
             , p1[0], p1[1], p1[2]
             , p2[0], p2[1], p2[2]
@@ -155,11 +165,8 @@ namespace objloader
         else if (equal(tok, TOKEN_SHADING)); // Not supported
         else if (equal(tok, TOKEN_GROUP)); // Not supported
 
-        else if (equal(tok, TOKEN_COMMENT)); // Do nothing
-
         else if (equal(tok, TOKEN_USEMTL)) {
           Word mtl = getWord(line, tok.end);
-          current_chunk = obj.chunks.size();
           obj.chunks.push_back(Chunk(str(mtl)));
         }
 
@@ -196,10 +203,6 @@ namespace objloader
 
     Mtl mtl;
 
-    //size_t current_camera   = 0;
-    size_t current_light    = 0;
-    size_t current_material = 0;
-
     string line;
     size_t line_index = 0;
     while (getline(stream, line)) {
@@ -213,15 +216,13 @@ namespace objloader
         else if (line[tok.begin] == '#' || equal(tok, TOKEN_COMMENT)); // Do nothing
 
         else if (equal(tok, TOKEN_MTL_NEW)) {
-          ++current_material;
-
           Word name = getWord(line, tok.end);
           Material material =
               { str(name)
               , ""
-              , Vec3 {{0.7f}, {0.7f}, {0.7f}}
-              , Vec3 {{1.0f}, {1.0f}, {1.0f}}
-              , Vec3 {{0.0f}, {0.0f}, {0.0f}}
+              , Vec3 {0.7f, 0.7f, 0.7f}
+              , Vec3 {1.0f, 1.0f, 1.0f}
+              , Vec3 {0.0f, 0.0f, 0.0f}
               , 0.001f
               , 0.0f
               , 0.0f
@@ -232,18 +233,10 @@ namespace objloader
           mtl.materials.push_back(material);
         }
 
-        else if (equal(tok, TOKEN_MTL_DIFFUSE))
-          mtl.materials[current_material].diffuseReflectance =
-            parse<Vec3>(line, tok.end);
-
         else if (equal(tok, TOKEN_LIGHT_NEW)) {
-          ++current_light;
-
-          Word name = getWord(line, tok.end);
           Light light =
-              { str(name)
-              , Vec3 {{0.0f}, {0.0f}, {0.0f}}
-              , Vec3 {{1.0f}, {1.0f}, {1.0f}}
+              { Vec3 {0.0f, 0.0f, 0.0f}
+              , Vec3 {1.0f, 1.0f, 1.0f}
               , 0.1f
               , 10.0f
               };
@@ -251,21 +244,43 @@ namespace objloader
           mtl.lights.push_back(light);
         }
 
-        else if (equal(tok, TOKEN_LIGHT_POSITION))
-          mtl.lights[current_light].position =
-            parse<Vec3>(line, tok.end);
+        else if (equal(tok, TOKEN_CAMERA_NEW)) {
+          Camera camera =
+              { Vec3 {7.0f, 5.0f, 6.0f}
+              , Vec3 {0.0f, 0.0f, 0.0f}
+              , Vec3 {0.0f, 1.0f, 0.0f}
+              , 10.0f
+              };
 
-        else if (equal(tok, TOKEN_LIGHT_COLOR))
-          mtl.lights[current_light].color =
-            parse<Vec3>(line, tok.end);
+          mtl.cameras.push_back(camera);
+        }
 
-        else if (equal(tok, TOKEN_LIGHT_RADIUS))
-          mtl.lights[current_light].radius =
-            parse<float>(line, tok.end);
+#define TOKEN_VALUE(list, token, type, param, error) \
+  else if (equal(tok, (token))) { \
+    if (list.empty()) \
+      throw ObjLoaderParserException( \
+        file, line_index, tok.begin, line, (error)); \
+    list.back().param = \
+      parse<type>(line, tok.end); \
+  }
 
-        else if (equal(tok, TOKEN_LIGHT_INTENSITY))
-          mtl.lights[current_light].intensity =
-            parse<float>(line, tok.end);
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE      , Vec3  , diffuseReflectance , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_IOR          , float , ior                , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_TRANSPARANCY , float , transparency                , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT0     , float , reflAt0Deg         , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT90    , float , reflAt90Deg        , "No material created")
+
+        TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_COLOR     , Vec3  , color     , "No light created")
+        TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_INTENSITY , float , intensity , "No light created")
+        TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_POSITION  , Vec3  , position  , "No light created")
+        TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_RADIUS    , float , radius    , "No light created")
+
+        TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_FOV      , float , fov      , "No camera created")
+        TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_POSITION , Vec3  , position , "No camera created")
+        TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_TARGET   , Vec3  , target   , "No camera created")
+        TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_UP       , Vec3  , up       , "No camera created")
+
+#undef TOKEN_VALUE
 
         else {
           string err("Invalid token '");

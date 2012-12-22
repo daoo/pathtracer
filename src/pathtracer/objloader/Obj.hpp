@@ -40,15 +40,12 @@ namespace objloader
 
   struct Vec2
   {
-    union { float x, u; };
-    union { float y, v; };
+    float x, y;
   };
 
   struct Vec3
   {
-    union { float x, u, r; };
-    union { float y, v, g; };
-    union { float z, w, b; };
+    float x, y, z;
   };
 
   struct Triangle
@@ -87,12 +84,11 @@ namespace objloader
     float specularRoughness;
     float transparency;
     float reflAt0Deg, reflAt90Deg;
-    float indexOfRefraction;
+    float ior;
   };
 
   struct Light
   {
-    std::string name;
     Vec3 position, color;
     float radius, intensity;
   };
