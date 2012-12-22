@@ -33,33 +33,33 @@ newcamera Camera02
 	camerafov 45.0
 
 newmtl GreenWall
-	diffuseReflectance 0.3137 0.8039 0.3294
+	kd 0.3137 0.8039 0.3294
 
 newmtl Floor
-	diffuseReflectance 0.7843 0.7843 0.7843
-	diffuseReflectanceMap ../scenes/uvtest.png
+	kd 0.7843 0.7843 0.7843
+	map_kd uvtest.png
 
 newmtl Roof
-	diffuseReflectance 0.0902 0.0902 0.0902
+	kd 0.0902 0.0902 0.0902
 
 newmtl BlueWall
-	diffuseReflectance 0.3294 0.3451 0.7255
+	kd 0.3294 0.3451 0.7255
 
 newmtl RedWall
-	diffuseReflectance 0.7529 0.3059 0.3137
+	kd 0.7529 0.3059 0.3137
 
-newmtl LeftBox	
-	specularReflectance 0.7 0.7 0.7
-	diffuseReflectance 0.25 0.25 0.805804
+newmtl LeftBox
+	ks 0.7 0.7 0.7
+	kd 0.25 0.25 0.805804
 	reflat0deg 0.3
 	reflAt90Deg 1.0
 	indexOfRefraction 1.55
 	transparency 0.0
 	specularroughness 0.001
 
-newmtl RightBox	
-	specularReflectance 0.7 0.7 0.7
-	diffuseReflectance 0.18 0.725 0.725
+newmtl RightBox
+	ks 0.7 0.7 0.7
+	kd 0.18 0.725 0.725
 	reflat0deg 0.2
 	reflAt90Deg 1.0
 	indexOfRefraction 1.55
