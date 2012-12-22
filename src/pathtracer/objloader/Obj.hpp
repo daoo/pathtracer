@@ -79,9 +79,9 @@ namespace objloader
   {
     std::string name;
 
-    std::string diffuseReflectanceMap;
-    Vec3 diffuseReflectance, specularReflectance, emittance;
-    float specularRoughness;
+    std::string diffuseMap;
+    Vec3 diffuse, specular, emittance;
+    float roughness;
     float transparency;
     float reflAt0Deg, reflAt90Deg;
     float ior;

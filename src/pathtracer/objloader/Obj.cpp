@@ -34,8 +34,7 @@ namespace objloader
     const string TOKEN_MTL_REFLECT0     = "reflat0deg";
     const string TOKEN_MTL_REFLECT90    = "reflat90deg";
     const string TOKEN_MTL_ROUGHNESS    = "specularroughness";
-    const string TOKEN_MTL_SPECULAR1    = "specularreflectance";
-    const string TOKEN_MTL_SPECULAR2    = "ks";
+    const string TOKEN_MTL_SPECULAR     = "ks";
     const string TOKEN_MTL_TRANSPARANCY = "transparency";
 
     // Light tokens
@@ -53,6 +52,13 @@ namespace objloader
     const string TOKEN_CAMERA_UP       = "cameraup";
 
     template <typename T> T parse(const string&, size_t);
+
+    template <>
+    string parse(const string& str, size_t begin)
+    {
+      assert(!str.empty());
+      return str.substr(begin);
+    }
 
     template <>
     float parse(const string& str, size_t begin)
@@ -162,9 +168,6 @@ namespace objloader
             });
         }
 
-        else if (equal(tok, TOKEN_SHADING)); // Not supported
-        else if (equal(tok, TOKEN_GROUP)); // Not supported
-
         else if (equal(tok, TOKEN_USEMTL)) {
           Word mtl = getWord(line, tok.end);
           obj.chunks.push_back(Chunk(str(mtl)));
@@ -264,11 +267,15 @@ namespace objloader
       parse<type>(line, tok.end); \
   }
 
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE      , Vec3  , diffuseReflectance , "No material created")
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_IOR          , float , ior                , "No material created")
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_TRANSPARANCY , float , transparency                , "No material created")
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT0     , float , reflAt0Deg         , "No material created")
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT90    , float , reflAt90Deg        , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE      , Vec3   , diffuse      , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE_MAP  , string , diffuseMap   , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_EMITTANCE    , Vec3   , emittance    , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_IOR          , float  , ior          , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT0     , float  , reflAt0Deg   , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT90    , float  , reflAt90Deg  , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_ROUGHNESS    , float  , roughness    , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_SPECULAR     , Vec3   , specular     , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_TRANSPARANCY , float  , transparency , "No material created")
 
         TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_COLOR     , Vec3  , color     , "No light created")
         TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_INTENSITY , float , intensity , "No light created")
