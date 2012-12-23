@@ -92,82 +92,65 @@ namespace objloader
       return true;
     }
 
-    size_t skip_whitespace(const string& str, size_t begin)
+    const char* skip_whitespace(const char* str)
     {
-      size_t i = begin;
-      char c;
-      while (i < str.size()) {
-        c = str[i];
-        if (c != ' ' && c != '\t')
-          break;
-        ++i;
+      while (*str == ' ' || *str == '\t') {
+        ++str;
       }
-
-      return i;
+      return str;
     }
 
-    size_t next_word(const string& str, size_t begin)
+    const char* next_word(const char* str)
     {
-      size_t i = begin;
-      char c;
-
       // If we point at a word we skip it first
-      while (i < str.size()) {
-        c = str[i];
-        if (c == ' ' || c == '\t')
-          break;
-        ++i;
+      while (*str != ' ' && *str != '\t') {
+        ++str;
       }
 
       // Then skip any whitespace to the next word
-      return skip_whitespace(str, i);
+      return skip_whitespace(str);
     }
 
-    string parse_string(const string& str, size_t begin)
+    string parse_string(const char* str)
     {
-      assert(!str.empty());
-      assert(begin < str.size());
-      return str.substr(begin);
+      assert(str != nullptr);
+      return string(str);
     }
 
-    float parse_float(const string& str, size_t begin)
+    float parse_float(const char* str)
     {
-      assert(!str.empty());
-      assert(begin < str.size());
-      return strtof(str.c_str() + begin, nullptr);
+      assert(str != nullptr);
+      return strtof(str, nullptr);
     }
 
-    Vec2 parse_vec2(const string& str, size_t begin)
+    Vec2 parse_vec2(const char* str)
     {
-      assert(!str.empty());
-      assert(begin < str.size());
+      assert(str != nullptr);
 
       char* end;
-      float x = strtof(str.c_str() + begin, &end);
+      float x = strtof(str, &end);
       float y = strtof(end, nullptr);
       return {x, y};
     }
 
-    Vec3 parse_vec3(const string& str, size_t begin)
+    Vec3 parse_vec3(const char* str)
     {
-      assert(!str.empty());
-      assert(begin < str.size());
+      assert(str != nullptr);
 
       char* end;
-      float x = strtof(str.c_str() + begin, &end);
+      float x = strtof(str, &end);
       float y = strtof(end, &end);
       float z = strtof(end, nullptr);
       return {x, y, z};
     }
 
-    Point parse_point(const string& str, size_t begin)
+    Point parse_point(const char* str)
     {
-      assert(!str.empty());
-      assert(begin < str.size());
+      assert(str != nullptr);
 
       const char* end1;
       const char* end2;
-      int v = parse_int(str.c_str() + begin, &end1);
+      int v = parse_int(str, &end1);
       int t = parse_int(end1 + 1, &end2);
       int n = parse_int(end2 + 1, nullptr);
 
@@ -182,14 +165,14 @@ namespace objloader
       assert(!str.empty());
       assert(begin < str.size());
 
-      size_t t0_start = next_word(str, begin);
-      size_t t1_start = next_word(str, t0_start);
-      size_t t2_start = next_word(str, t1_start);
+      const char* t0_start = next_word(str.c_str() + begin);
+      const char* t1_start = next_word(t0_start);
+      const char* t2_start = next_word(t1_start);
 
       return
-        { parse_point(str, t0_start)
-        , parse_point(str, t1_start)
-        , parse_point(str, t2_start) };
+        { parse_point(t0_start)
+        , parse_point(t1_start)
+        , parse_point(t2_start) };
     }
   }
 
@@ -229,24 +212,25 @@ namespace objloader
 
     while (getline(stream, line)) {
       if (!line.empty()) {
-        size_t offset = skip_whitespace(line, 0);
+        const char* token = skip_whitespace(line.c_str());
+        size_t offset     = token - line.c_str();
 
         if (offset >= line.size())
           throw ObjLoaderParserException(
               file, line_index, 0, line, "Expected token");
 
-        char first = line[offset];
+        char first = *token;
 
         if (first == '#');
 
         else if (first == 'v') {
-          char second = line[offset + 1];
+          char second = *(token + 1);
           if (second == ' ') {
-            vertices.push_back(parse_vec3(line, offset + 1));
+            vertices.push_back(parse_vec3(token + 1));
           } else if (second == 'n') {
-            normals.push_back(parse_vec3(line, offset + 2));
+            normals.push_back(parse_vec3(token + 2));
           } else if (second == 't') {
-            texcoords.push_back(parse_vec2(line, offset + 2));
+            texcoords.push_back(parse_vec2(token + 2));
           } else {
             throw ObjLoaderParserException(
                 file, line_index, offset + 1, line, "Expected v, vt or vn");
@@ -275,11 +259,13 @@ namespace objloader
         }
 
         else if (equal("usemtl", line.c_str() + offset)) {
-          obj.chunks.push_back(Chunk(line.substr(skip_whitespace(line, offset + 7))));
+          obj.chunks.push_back(Chunk(
+            parse_string(skip_whitespace(token + 7))));
         }
 
         else if (equal("mtllib", line.c_str() + offset)) {
-          obj.mtl_lib = line.substr(skip_whitespace(line, offset + 7));
+          obj.mtl_lib =
+            parse_string(skip_whitespace(token + 7));
         }
 
         else {
@@ -310,7 +296,8 @@ namespace objloader
     size_t line_index = 0;
     while (getline(stream, line)) {
       if (!line.empty()) {
-        size_t offset = skip_whitespace(line, 0);
+        const char* token = skip_whitespace(line.c_str());
+        size_t offset     = token - line.c_str();
 
         if (offset >= line.size())
           throw ObjLoaderParserException(
@@ -325,7 +312,7 @@ namespace objloader
           const char* str_next = str + 1;
           if (equal("ewmtl", str_next)) {
             mtl.materials.push_back(
-                { line.substr(skip_whitespace(line, offset + 7))
+                { parse_string(skip_whitespace(token + 7))
                 , ""
                 , Vec3 {0.7f, 0.7f, 0.7f}
                 , Vec3 {1.0f, 1.0f, 1.0f}
@@ -367,7 +354,7 @@ namespace objloader
       throw ObjLoaderParserException( \
         file, line_index, offset, line, (error)); \
     list.back().param = \
-      parse(line, offset); \
+      parse(token); \
   }
 
         TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE      , parse_vec3   , diffuse      , "No material created")
