@@ -11,8 +11,8 @@ using namespace std;
 
 namespace
 {
-  constexpr size_t PT_MAX_BOUNCES = 16;
-  constexpr float PT_EPSILON      = 0.00001f;
+  constexpr size_t MAX_BOUNCES = 16;
+  constexpr float EPSILON      = 0.0001f;
 }
 
 Pathtracer::Pathtracer(const Scene& scene, size_t camera_index, size_t width, size_t height)
@@ -84,11 +84,11 @@ vec3 Pathtracer::incomingLight(
   Ray current_ray(primaryRay);
   Intersection isect(primaryIsect);
 
-  for (size_t i = 0; i < PT_MAX_BOUNCES; ++i) {
+  for (size_t i = 0; i < MAX_BOUNCES; ++i) {
     const Material* mat = isect.material;
     const vec3 wi       = -current_ray.direction;
 
-    const vec3 offsetInNormalDir = PT_EPSILON * isect.normal;
+    const vec3 offsetInNormalDir = EPSILON * isect.normal;
 
     for (const SphereLight& light : m_scene.lights()) {
       const vec3 isectPosition    = isect.position + offsetInNormalDir;
@@ -115,14 +115,14 @@ vec3 Pathtracer::incomingLight(
 
     const LightSample sample = mat->sample_brdf(rand, wi, isect.normal);
 
-    if (sample.pdf < PT_EPSILON) {
+    if (sample.pdf < EPSILON) {
       return L;
     }
 
     const float cosineterm = abs(dot(sample.wo, isect.normal));
     path_tp = path_tp * (sample.brdf * (cosineterm / sample.pdf));
 
-    if (lengthSquared(path_tp) < PT_EPSILON * PT_EPSILON) {
+    if (lengthSquared(path_tp) < EPSILON * EPSILON) {
       return L;
     }
 
