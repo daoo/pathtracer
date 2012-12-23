@@ -119,7 +119,7 @@ class SpecularRefractionMaterial : public Material
 /**
  * Fresnel blending
  *
- * This Material actually combines two brdfs oth a view dependent fresnel
+ * This Material actually combines two brdfs of a view dependent fresnel
  * term. We use the Schlick approximation to the real fresnel equations,
  * which irks quite well for conductors.
  */
