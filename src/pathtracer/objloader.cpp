@@ -160,12 +160,11 @@ namespace objloader
       return {v, t, n};
     }
 
-    Face parse_face(const string& str, size_t begin)
+    Face parse_face(const char* str)
     {
-      assert(!str.empty());
-      assert(begin < str.size());
+      assert(str != nullptr);
 
-      const char* t0_start = next_word(str.c_str() + begin);
+      const char* t0_start = next_word(str);
       const char* t1_start = next_word(t0_start);
       const char* t2_start = next_word(t1_start);
 
@@ -233,7 +232,7 @@ namespace objloader
             texcoords.push_back(parse_vec2(token + 2));
           } else {
             throw ObjLoaderParserException(
-                file, line_index, offset + 1, line, "Expected v, vt or vn");
+                file, line_index, offset, line, "Expected v, vt or vn");
           }
         }
 
@@ -242,7 +241,7 @@ namespace objloader
             throw ObjLoaderParserException(
                 file, line_index, offset, line, "No chunk created");
 
-          Face face = parse_face(line, offset + 1);
+          Face face = parse_face(token + 1);
 
           Triangle tri;
           tri.v1.p = index(vertices  , face.p1.v);
@@ -258,12 +257,12 @@ namespace objloader
           obj.chunks.back().triangles.push_back(tri);
         }
 
-        else if (equal("usemtl", line.c_str() + offset)) {
+        else if (equal("usemtl", token)) {
           obj.chunks.push_back(Chunk(
             parse_string(skip_whitespace(token + 7))));
         }
 
-        else if (equal("mtllib", line.c_str() + offset)) {
+        else if (equal("mtllib", token)) {
           obj.mtl_lib =
             parse_string(skip_whitespace(token + 7));
         }
@@ -303,53 +302,45 @@ namespace objloader
           throw ObjLoaderParserException(
               file, line_index, 0, line, "Expected token");
 
-        const char* str  = line.c_str() + offset;
-        const char first = line[offset];
+        const char first = *token;
 
         if (first == '#'); // Do nothing
 
-        else if (first == 'n') {
-          const char* str_next = str + 1;
-          if (equal("ewmtl", str_next)) {
-            mtl.materials.push_back(
-                { parse_string(skip_whitespace(token + 7))
-                , ""
-                , Vec3 {0.7f, 0.7f, 0.7f}
-                , Vec3 {1.0f, 1.0f, 1.0f}
-                , Vec3 {0.0f, 0.0f, 0.0f}
-                , 0.001f
-                , 0.0f
-                , 0.0f
-                , 0.0f
-                , 1.0f
-                });
-          }
-
-          else if (equal("ewlight", str_next)) {
-            Light light =
-                { Vec3 {0.0f, 0.0f, 0.0f}
-                , Vec3 {1.0f, 1.0f, 1.0f}
-                , 0.1f
-                , 10.0f
-                };
-
-            mtl.lights.push_back(light);
-          }
-
-          else if (equal("ewcamera", str_next)) {
-            Camera camera =
-                { Vec3 {7.0f, 5.0f, 6.0f}
-                , Vec3 {0.0f, 0.0f, 0.0f}
-                , Vec3 {0.0f, 1.0f, 0.0f}
-                , 10.0f
-                };
-
-            mtl.cameras.push_back(camera);
-          }
+        else if (equal("newmtl", token)) {
+          mtl.materials.push_back(
+              { parse_string(skip_whitespace(token + 7))
+              , ""
+              , Vec3 {0.7f, 0.7f, 0.7f}
+              , Vec3 {1.0f, 1.0f, 1.0f}
+              , Vec3 {0.0f, 0.0f, 0.0f}
+              , 0.001f
+              , 0.0f
+              , 0.0f
+              , 0.0f
+              , 1.0f
+              });
         }
 
-#define TOKEN_VALUE(list, token, parse, param, error) \
-  else if (equal(token, str)) { \
+        else if (equal("newlight", token)) {
+          mtl.lights.push_back(
+            { Vec3 {0.0f, 0.0f, 0.0f}
+            , Vec3 {1.0f, 1.0f, 1.0f}
+            , 0.1f
+            , 10.0f
+            });
+        }
+
+        else if (equal("newcamera", token)) {
+          mtl.cameras.push_back(
+            { Vec3 {7.0f, 5.0f, 6.0f}
+            , Vec3 {0.0f, 0.0f, 0.0f}
+            , Vec3 {0.0f, 1.0f, 0.0f}
+            , 10.0f
+            });
+        }
+
+#define TOKEN_VALUE(list, constant, parse, param, error) \
+  else if (equal(constant, token)) { \
     if (list.empty()) \
       throw ObjLoaderParserException( \
         file, line_index, offset, line, (error)); \
