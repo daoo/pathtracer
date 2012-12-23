@@ -11,27 +11,27 @@ namespace objloader
   namespace
   {
     // Mtl tokens
-    const char* TOKEN_MTL_DIFFUSE      = "kd";
-    const char* TOKEN_MTL_DIFFUSE_MAP  = "map_kd";
-    const char* TOKEN_MTL_EMITTANCE    = "emittance";
-    const char* TOKEN_MTL_IOR          = "indexofrefraction";
-    const char* TOKEN_MTL_REFLECT0     = "reflat0deg";
-    const char* TOKEN_MTL_REFLECT90    = "reflat90deg";
-    const char* TOKEN_MTL_ROUGHNESS    = "specularroughness";
-    const char* TOKEN_MTL_SPECULAR     = "ks";
-    const char* TOKEN_MTL_TRANSPARANCY = "transparency";
+    const char TOKEN_MTL_DIFFUSE[]      = "kd";
+    const char TOKEN_MTL_DIFFUSE_MAP[]  = "map_kd";
+    const char TOKEN_MTL_EMITTANCE[]    = "emittance";
+    const char TOKEN_MTL_IOR[]          = "indexofrefraction";
+    const char TOKEN_MTL_REFLECT0[]     = "reflat0deg";
+    const char TOKEN_MTL_REFLECT90[]    = "reflat90deg";
+    const char TOKEN_MTL_ROUGHNESS[]    = "specularroughness";
+    const char TOKEN_MTL_SPECULAR[]     = "ks";
+    const char TOKEN_MTL_TRANSPARANCY[] = "transparency";
 
     // Light tokens
-    const char* TOKEN_LIGHT_COLOR     = "lightcolor";
-    const char* TOKEN_LIGHT_INTENSITY = "lightintensity";
-    const char* TOKEN_LIGHT_POSITION  = "lightposition";
-    const char* TOKEN_LIGHT_RADIUS    = "lightradius";
+    const char TOKEN_LIGHT_COLOR[]     = "lightcolor";
+    const char TOKEN_LIGHT_INTENSITY[] = "lightintensity";
+    const char TOKEN_LIGHT_POSITION[]  = "lightposition";
+    const char TOKEN_LIGHT_RADIUS[]    = "lightradius";
 
     // Camera tokens
-    const char* TOKEN_CAMERA_FOV      = "camerafov";
-    const char* TOKEN_CAMERA_POSITION = "cameraposition";
-    const char* TOKEN_CAMERA_TARGET   = "cameratarget";
-    const char* TOKEN_CAMERA_UP       = "cameraup";
+    const char TOKEN_CAMERA_FOV[]      = "camerafov";
+    const char TOKEN_CAMERA_POSITION[] = "cameraposition";
+    const char TOKEN_CAMERA_TARGET[]   = "cameratarget";
+    const char TOKEN_CAMERA_UP[]       = "cameraup";
 
     struct Point { int v, t, n; };
     struct Face { Point p1, p2, p3; };
@@ -297,7 +297,7 @@ namespace objloader
 
 #define TOKEN_VALUE(list, constant, parse, param, error) \
   else if (equal(constant, token)) { \
-    list.back().param = parse(token); \
+    list.back().param = parse(token + sizeof(constant)); \
   }
 
         TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE      , parse_vec3   , diffuse      , "No material created")

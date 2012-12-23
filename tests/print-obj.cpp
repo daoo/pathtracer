@@ -45,11 +45,8 @@ int main(int argc, char* argv[])
     cout << "  Materials: " << mtl.materials.size() << '\n';
 
     return 0;
-  } catch (const ObjLoaderParserException& ex) {
-    cerr << ex;
-    return 1;
-  } catch (const ObjLoaderException& ex) {
-    cerr << ex.what() << '\n';
+  } catch (const runtime_error& ex) {
+    cerr << ex.what();
     return 1;
   }
 }
