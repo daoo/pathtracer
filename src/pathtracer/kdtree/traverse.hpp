@@ -59,8 +59,8 @@ namespace kdtree
 
         float t = (p - o) / d;
 
-        const unsigned int first  = KdTreeArray::leftChild(index);
-        const unsigned int second = KdTreeArray::rightChild(index);
+        unsigned int first  = KdTreeArray::leftChild(index);
+        unsigned int second = KdTreeArray::rightChild(index);
 
         if (d < 0) {
           std::swap(first, second);
