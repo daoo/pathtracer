@@ -109,26 +109,21 @@ namespace objloader
       return skip_whitespace(str, i);
     }
 
-    template <typename T> T parse(const string&, size_t);
-
-    template <>
-    string parse(const string& str, size_t begin)
+    string parse_string(const string& str, size_t begin)
     {
       assert(!str.empty());
       assert(begin < str.size());
       return str.substr(begin);
     }
 
-    template <>
-    float parse(const string& str, size_t begin)
+    float parse_float(const string& str, size_t begin)
     {
       assert(!str.empty());
       assert(begin < str.size());
       return strtof(str.c_str() + begin, nullptr);
     }
 
-    template <>
-    Vec2 parse(const string& str, size_t begin)
+    Vec2 parse_vec2(const string& str, size_t begin)
     {
       assert(!str.empty());
       assert(begin < str.size());
@@ -139,8 +134,7 @@ namespace objloader
       return {x, y};
     }
 
-    template <>
-    Vec3 parse(const string& str, size_t begin)
+    Vec3 parse_vec3(const string& str, size_t begin)
     {
       assert(!str.empty());
       assert(begin < str.size());
@@ -152,8 +146,7 @@ namespace objloader
       return {x, y, z};
     }
 
-    template <>
-    Point parse(const string& str, size_t begin)
+    Point parse_point(const string& str, size_t begin)
     {
       assert(!str.empty());
       assert(begin < str.size());
@@ -166,8 +159,7 @@ namespace objloader
       return {v, t, n};
     }
 
-    template <>
-    Triangle parse(const string& str, size_t begin)
+    Triangle parse_triangle(const string& str, size_t begin)
     {
       assert(!str.empty());
       assert(begin < str.size());
@@ -177,9 +169,9 @@ namespace objloader
       size_t t2_start = next_word(str, t1_start);
 
       return
-        { parse<Point>(str, t0_start)
-        , parse<Point>(str, t1_start)
-        , parse<Point>(str, t2_start) };
+        { parse_point(str, t0_start)
+        , parse_point(str, t1_start)
+        , parse_point(str, t2_start) };
     }
   }
 
@@ -229,11 +221,11 @@ namespace objloader
         else if (first == 'v') {
           char second = line[offset + 1];
           if (second == ' ') {
-            obj.vertices.push_back(parse<Vec3>(line, offset + 1));
+            obj.vertices.push_back(parse_vec3(line, offset + 1));
           } else if (second == 'n') {
-            obj.normals.push_back(parse<Vec3>(line, offset + 1));
+            obj.normals.push_back(parse_vec3(line, offset + 1));
           } else if (second == 't') {
-            obj.texcoords.push_back(parse<Vec2>(line, offset + 1));
+            obj.texcoords.push_back(parse_vec2(line, offset + 1));
           } else {
             throw ObjLoaderParserException(
                 file, line_index, offset + 1, line, "Expected v, vt or vn");
@@ -245,7 +237,7 @@ namespace objloader
             throw ObjLoaderParserException(
                 file, line_index, offset, line, "No chunk created");
 
-          obj.chunks.back().triangles.push_back(parse<Triangle>(line, offset + 1));
+          obj.chunks.back().triangles.push_back(parse_triangle(line, offset + 1));
         }
 
         else if (equal("usemtl", line.c_str() + offset)) {
@@ -335,34 +327,34 @@ namespace objloader
           }
         }
 
-#define TOKEN_VALUE(list, token, type, param, error) \
+#define TOKEN_VALUE(list, token, parse, param, error) \
   else if (equal(token, str)) { \
     if (list.empty()) \
       throw ObjLoaderParserException( \
         file, line_index, offset, line, (error)); \
     list.back().param = \
-      parse<type>(line, offset); \
+      parse(line, offset); \
   }
 
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE      , Vec3   , diffuse      , "No material created")
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE_MAP  , string , diffuseMap   , "No material created")
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_EMITTANCE    , Vec3   , emittance    , "No material created")
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_IOR          , float  , ior          , "No material created")
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT0     , float  , reflAt0Deg   , "No material created")
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT90    , float  , reflAt90Deg  , "No material created")
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_ROUGHNESS    , float  , roughness    , "No material created")
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_SPECULAR     , Vec3   , specular     , "No material created")
-        TOKEN_VALUE(mtl.materials , TOKEN_MTL_TRANSPARANCY , float  , transparency , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE      , parse_vec3   , diffuse      , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE_MAP  , parse_string , diffuseMap   , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_EMITTANCE    , parse_vec3   , emittance    , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_IOR          , parse_float  , ior          , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT0     , parse_float  , reflAt0Deg   , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT90    , parse_float  , reflAt90Deg  , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_ROUGHNESS    , parse_float  , roughness    , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_SPECULAR     , parse_vec3   , specular     , "No material created")
+        TOKEN_VALUE(mtl.materials , TOKEN_MTL_TRANSPARANCY , parse_float  , transparency , "No material created")
 
-        TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_COLOR     , Vec3  , color     , "No light created")
-        TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_INTENSITY , float , intensity , "No light created")
-        TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_POSITION  , Vec3  , position  , "No light created")
-        TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_RADIUS    , float , radius    , "No light created")
+        TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_COLOR     , parse_vec3  , color     , "No light created")
+        TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_INTENSITY , parse_float , intensity , "No light created")
+        TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_POSITION  , parse_vec3  , position  , "No light created")
+        TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_RADIUS    , parse_float , radius    , "No light created")
 
-        TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_FOV      , float , fov      , "No camera created")
-        TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_POSITION , Vec3  , position , "No camera created")
-        TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_TARGET   , Vec3  , target   , "No camera created")
-        TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_UP       , Vec3  , up       , "No camera created")
+        TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_FOV      , parse_float , fov      , "No camera created")
+        TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_POSITION , parse_vec3  , position , "No camera created")
+        TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_TARGET   , parse_vec3  , target   , "No camera created")
+        TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_UP       , parse_vec3  , up       , "No camera created")
 
 #undef TOKEN_VALUE
 
