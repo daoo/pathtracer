@@ -39,26 +39,20 @@ namespace objloader
 
   struct Vec2 { float x, y; };
   struct Vec3 { float x, y, z; };
-  struct Point { int v, t, n; };
-  struct Triangle { Point p1, p2, p3; };
+  struct Vertex { Vec3 p, n; Vec2 t; };
+  struct Triangle { Vertex v1, v2, v3; };
 
   struct Chunk
   {
     Chunk(const std::string& mtl) : material(mtl) { }
 
     std::vector<Triangle> triangles;
-
     std::string material;
   };
 
   struct Obj
   {
-    std::vector<Vec3> vertices;
-    std::vector<Vec3> normals;
-    std::vector<Vec2> texcoords;
-
     std::vector<Chunk> chunks;
-
     boost::filesystem::path mtl_lib;
   };
 

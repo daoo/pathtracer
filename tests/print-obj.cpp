@@ -35,14 +35,13 @@ int main(int argc, char* argv[])
       triangle_count += c.triangles.size();
     }
 
-    cout << "Loaded " << obj_file << " in " << c1.length<double, ratio<1>>() << "seconds\n";
-    cout << "  Vertices:  " << obj.vertices.size() << '\n';
-    cout << "  Normals:   " << obj.normals.size() << '\n';
-    cout << "  TexCoords: " << obj.texcoords.size() << '\n';
-    cout << "  Triangles: " << triangle_count << '\n';
+    cout << "Loaded " << obj_file << " in ";
+    cout << c1.length<double, ratio<1>>() << "seconds\n";
     cout << "  Chunks:    " << obj.chunks.size() << '\n';
+    cout << "  Triangles: " << triangle_count << '\n';
 
-    cout << "Loaded " << mtl_file << " in " << c2.length<double, ratio<1>>() << "seconds\n";
+    cout << "Loaded " << mtl_file << " in ";
+    cout << c2.length<double, ratio<1>>() << "seconds\n";
     cout << "  Materials: " << mtl.materials.size() << '\n';
 
     return 0;

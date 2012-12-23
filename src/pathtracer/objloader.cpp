@@ -33,6 +33,20 @@ namespace objloader
     const char* TOKEN_CAMERA_TARGET   = "cameratarget";
     const char* TOKEN_CAMERA_UP       = "cameraup";
 
+    struct Point { int v, t, n; };
+    struct Face { Point p1, p2, p3; };
+
+    template <typename T>
+    T index(vector<T>& v, int i)
+    {
+      if (i == 0)
+        return T();
+      else if (i < 0)
+        return v[v.size() + i];
+      else
+        return v[i - 1];
+    }
+
     int parse_int(const char* str, const char** end)
     {
       int negate = 1;
@@ -156,10 +170,14 @@ namespace objloader
       int v = parse_int(str.c_str() + begin, &end1);
       int t = parse_int(end1 + 1, &end2);
       int n = parse_int(end2 + 1, nullptr);
+
+      assert(v != 0);
+      assert(n != 0);
+
       return {v, t, n};
     }
 
-    Triangle parse_triangle(const string& str, size_t begin)
+    Face parse_face(const string& str, size_t begin)
     {
       assert(!str.empty());
       assert(begin < str.size());
@@ -205,6 +223,9 @@ namespace objloader
     size_t line_index = 0;
 
     Obj obj;
+    vector<Vec3> vertices;
+    vector<Vec3> normals;
+    vector<Vec2> texcoords;
 
     while (getline(stream, line)) {
       if (!line.empty()) {
@@ -221,11 +242,11 @@ namespace objloader
         else if (first == 'v') {
           char second = line[offset + 1];
           if (second == ' ') {
-            obj.vertices.push_back(parse_vec3(line, offset + 1));
+            vertices.push_back(parse_vec3(line, offset + 1));
           } else if (second == 'n') {
-            obj.normals.push_back(parse_vec3(line, offset + 1));
+            normals.push_back(parse_vec3(line, offset + 2));
           } else if (second == 't') {
-            obj.texcoords.push_back(parse_vec2(line, offset + 1));
+            texcoords.push_back(parse_vec2(line, offset + 2));
           } else {
             throw ObjLoaderParserException(
                 file, line_index, offset + 1, line, "Expected v, vt or vn");
@@ -237,7 +258,20 @@ namespace objloader
             throw ObjLoaderParserException(
                 file, line_index, offset, line, "No chunk created");
 
-          obj.chunks.back().triangles.push_back(parse_triangle(line, offset + 1));
+          Face face = parse_face(line, offset + 1);
+
+          Triangle tri;
+          tri.v1.p = index(vertices  , face.p1.v);
+          tri.v2.p = index(vertices  , face.p2.v);
+          tri.v3.p = index(vertices  , face.p3.v);
+          tri.v1.n = index(normals   , face.p1.n);
+          tri.v2.n = index(normals   , face.p2.n);
+          tri.v3.n = index(normals   , face.p3.n);
+          tri.v1.t = index(texcoords , face.p1.t);
+          tri.v2.t = index(texcoords , face.p2.t);
+          tri.v3.t = index(texcoords , face.p3.t);
+
+          obj.chunks.back().triangles.push_back(tri);
         }
 
         else if (equal("usemtl", line.c_str() + offset)) {

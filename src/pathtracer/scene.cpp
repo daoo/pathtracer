@@ -66,15 +66,15 @@ namespace
       Material* mat = materials[chunk.material];
       for (const objloader::Triangle& tri : chunk.triangles) {
         triangles.push_back(
-            { to_glm(obj.vertices[tri.p1.v])
-            , to_glm(obj.vertices[tri.p2.v])
-            , to_glm(obj.vertices[tri.p3.v])
-            , to_glm(obj.normals[tri.p1.n])
-            , to_glm(obj.normals[tri.p2.n])
-            , to_glm(obj.normals[tri.p3.n])
-            , to_glm(obj.texcoords[tri.p1.t])
-            , to_glm(obj.texcoords[tri.p2.t])
-            , to_glm(obj.texcoords[tri.p3.t])
+            { to_glm(tri.v1.p)
+            , to_glm(tri.v2.p)
+            , to_glm(tri.v3.p)
+            , to_glm(tri.v1.n)
+            , to_glm(tri.v2.n)
+            , to_glm(tri.v3.n)
+            , to_glm(tri.v1.t)
+            , to_glm(tri.v2.t)
+            , to_glm(tri.v3.t)
             , mat
             });
       }
