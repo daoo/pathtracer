@@ -1,5 +1,5 @@
-#ifndef OBJ_HPP_ABWTTNHR
-#define OBJ_HPP_ABWTTNHR
+#ifndef OBJLOADER_HPP_THS3WZCH
+#define OBJLOADER_HPP_THS3WZCH
 
 #include <boost/filesystem.hpp>
 #include <ostream>
@@ -66,4 +66,4 @@ namespace objloader
   Mtl loadMtl(const boost::filesystem::path&);
 }
 
-#endif /* end of include guard: OBJ_HPP_ABWTTNHR */
+#endif /* end of include guard: OBJLOADER_HPP_THS3WZCH */
