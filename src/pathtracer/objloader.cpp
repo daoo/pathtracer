@@ -1,6 +1,5 @@
 #include "objloader.hpp"
 
-#include <array>
 #include <fstream>
 
 using namespace boost::filesystem;
