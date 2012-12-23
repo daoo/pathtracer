@@ -59,10 +59,12 @@ namespace kdtree
 
         float t = (p - o) / d;
 
-        unsigned int first  = d >= 0 ?
-          KdTreeArray::leftChild(index) : KdTreeArray::rightChild(index);
-        unsigned int second = d >= 0 ?
-          KdTreeArray::rightChild(index) : KdTreeArray::leftChild(index);
+        const unsigned int first  = KdTreeArray::leftChild(index);
+        const unsigned int second = KdTreeArray::rightChild(index);
+
+        if (d < 0) {
+          std::swap(first, second);
+        }
 
         if (t >= maxt) {
           axis  = nextAxis(axis);
