@@ -2,7 +2,6 @@
 #define OBJ_HPP_ABWTTNHR
 
 #include <boost/filesystem.hpp>
-#include <exception>
 #include <ostream>
 #include <vector>
 
@@ -13,30 +12,6 @@
  */
 namespace objloader
 {
-  class ObjLoaderException : public std::runtime_error
-  {
-    public:
-      ObjLoaderException(const std::string& what) : std::runtime_error(what) { }
-  };
-
-  class ObjLoaderParserException : public ObjLoaderException
-  {
-    public:
-      ObjLoaderParserException(const boost::filesystem::path& file,
-          size_t line, size_t column, const std::string& text,
-          const std::string& message) : ObjLoaderException(message),
-          file(file), line(line), column(column), text(text),
-          message(message) { }
-
-      boost::filesystem::path file;
-      size_t line, column;
-      std::string text;
-
-      std::string message;
-  };
-
-  std::ostream& operator<<(std::ostream&, const ObjLoaderParserException&);
-
   struct Vec2 { float x, y; };
   struct Vec3 { float x, y, z; };
   struct Vertex { Vec3 p, n; Vec2 t; };

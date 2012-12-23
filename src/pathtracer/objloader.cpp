@@ -1,5 +1,6 @@
 #include "objloader.hpp"
 
+#include <exception>
 #include <fstream>
 
 using namespace boost::filesystem;
@@ -174,22 +175,6 @@ namespace objloader
     }
   }
 
-  std::ostream& operator<<(std::ostream& stream,
-      const ObjLoaderParserException& ex)
-  {
-    stream << ex.file.string() << ':' << ex.line << ':' << ex.column
-           << ": error: " << ex.message << '\n' << ex.text << '\n';
-    for (size_t i = 0; i < ex.column; ++i) {
-      if (ex.text[i] == '\t')
-        stream << '\t';
-      else
-        stream << ' ';
-    }
-    stream << "^\n";
-
-    return stream;
-  }
-
   Obj loadObj(const path& file)
   {
     ifstream stream(file.string());
@@ -197,7 +182,7 @@ namespace objloader
       string err = "Failed opening file '";
       err += file.string();
       err += "'";
-      throw ObjLoaderException(err);
+      throw runtime_error(err);
     }
 
     string line;
@@ -211,17 +196,10 @@ namespace objloader
     while (getline(stream, line)) {
       if (!line.empty()) {
         const char* token = skip_whitespace(line.c_str());
-        size_t offset     = token - line.c_str();
-
-        if (offset >= line.size())
-          throw ObjLoaderParserException(
-              file, line_index, 0, line, "Expected token");
 
         char first = *token;
 
-        if (first == '#');
-
-        else if (first == 'v') {
+        if (first == 'v') {
           char second = *(token + 1);
           if (second == ' ') {
             vertices.push_back(parse_vec3(token + 1));
@@ -229,17 +207,10 @@ namespace objloader
             normals.push_back(parse_vec3(token + 2));
           } else if (second == 't') {
             texcoords.push_back(parse_vec2(token + 2));
-          } else {
-            throw ObjLoaderParserException(
-                file, line_index, offset, line, "Expected v, vt or vn");
           }
         }
 
         else if (first == 'f') {
-          if (obj.chunks.empty())
-            throw ObjLoaderParserException(
-                file, line_index, offset, line, "No chunk created");
-
           Face face = parse_face(token + 1);
 
           Triangle tri;
@@ -265,11 +236,6 @@ namespace objloader
           obj.mtl_lib =
             parse_string(skip_whitespace(token + 7));
         }
-
-        else {
-          throw ObjLoaderParserException(
-              file, line_index, offset, line, "Invalid token");
-        }
       }
 
       ++line_index;
@@ -285,7 +251,7 @@ namespace objloader
       string err = "Failed opening file '";
       err += file.string();
       err += "'";
-      throw ObjLoaderException(err);
+      throw runtime_error(err);
     }
 
     Mtl mtl;
@@ -295,17 +261,8 @@ namespace objloader
     while (getline(stream, line)) {
       if (!line.empty()) {
         const char* token = skip_whitespace(line.c_str());
-        size_t offset     = token - line.c_str();
 
-        if (offset >= line.size())
-          throw ObjLoaderParserException(
-              file, line_index, 0, line, "Expected token");
-
-        const char first = *token;
-
-        if (first == '#'); // Do nothing
-
-        else if (equal("newmtl", token)) {
+        if (equal("newmtl", token)) {
           mtl.materials.push_back(
               { parse_string(skip_whitespace(token + 7))
               , ""
@@ -340,11 +297,7 @@ namespace objloader
 
 #define TOKEN_VALUE(list, constant, parse, param, error) \
   else if (equal(constant, token)) { \
-    if (list.empty()) \
-      throw ObjLoaderParserException( \
-        file, line_index, offset, line, (error)); \
-    list.back().param = \
-      parse(token); \
+    list.back().param = parse(token); \
   }
 
         TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE      , parse_vec3   , diffuse      , "No material created")
@@ -368,11 +321,6 @@ namespace objloader
         TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_UP       , parse_vec3  , up       , "No camera created")
 
 #undef TOKEN_VALUE
-
-        else {
-          throw ObjLoaderParserException(
-              file, line_index, offset, line, "Invalid token");
-        }
       }
 
       ++line_index;
