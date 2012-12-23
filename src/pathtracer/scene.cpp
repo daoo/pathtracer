@@ -1,6 +1,7 @@
 #include "scene.hpp"
 #include "mcsampling.hpp"
 
+#include <glm/gtc/epsilon.hpp>
 #include <map>
 
 using namespace glm;
@@ -9,6 +10,8 @@ using namespace std;
 
 namespace
 {
+  constexpr float EPSILON = 0.0001f;
+
   vec2 to_glm(const objloader::Vec2& v) { return vec2(v.x, v.y); }
   vec3 to_glm(const objloader::Vec3& v) { return vec3(v.x, v.y, v.z); }
 
@@ -44,20 +47,36 @@ namespace
       DiffuseMaterial* diffuse =
         new DiffuseMaterial(to_glm(mat.diffuse), reflectanceMap);
 
-      SpecularReflectionMaterial* specularReflection =
-        new SpecularReflectionMaterial(to_glm(mat.specular));
-
       SpecularRefractionMaterial* specularRefraction =
         new SpecularRefractionMaterial(mat.ior);
 
-      BlendMaterial* blend1 =
-        new BlendMaterial(specularRefraction, diffuse, mat.transparency);
+      Material* blend1 = nullptr;
+      if (epsilonEqual(mat.transparency, 1.0f, EPSILON)) {
+        blend1 = specularRefraction;
+        delete diffuse;
+      } else if (epsilonEqual(mat.transparency, 0.0f, EPSILON)) {
+        blend1 = diffuse;
+        delete specularRefraction;
+      } else {
+        blend1 = new BlendMaterial(
+            specularRefraction, diffuse, mat.transparency);
+      }
+
+      SpecularReflectionMaterial* specularReflection =
+        new SpecularReflectionMaterial(to_glm(mat.specular));
 
       FresnelBlendMaterial* fresnel =
         new FresnelBlendMaterial(specularReflection, blend1, mat.reflAt0Deg);
 
-      BlendMaterial* blend0 =
-        new BlendMaterial(fresnel, blend1, mat.reflAt90Deg);
+      Material* blend0 = nullptr;
+      if (epsilonEqual(mat.reflAt90Deg, 1.0f, EPSILON)) {
+        blend0 = fresnel;
+      } else if (epsilonEqual(mat.reflAt90Deg, 0.0f, EPSILON)) {
+        blend0 = blend1;
+        delete fresnel;
+      } else {
+        blend0 = new BlendMaterial(fresnel, blend1, mat.reflAt90Deg);
+      }
 
       materials[mat.name] = blend0;
     }
