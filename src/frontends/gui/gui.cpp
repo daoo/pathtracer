@@ -11,7 +11,8 @@ using namespace boost::filesystem;
 using namespace std;
 using namespace util;
 
-GUI::GUI(const path& dir, const string& name, const Scene& scene, size_t subsampling)
+GUI::GUI(const path& dir, const string& name, const Scene& scene,
+    unsigned int subsampling)
   : m_rand()
   , m_screenshot_dir(dir)
   , m_scene(scene)
@@ -23,12 +24,12 @@ GUI::GUI(const path& dir, const string& name, const Scene& scene, size_t subsamp
 {
 }
 
-size_t GUI::samples() const
+unsigned int GUI::samples() const
 {
   return m_buffer->samples();
 }
 
-size_t GUI::subsampling() const
+unsigned int GUI::subsampling() const
 {
   return m_subsampling;
 }
@@ -41,7 +42,7 @@ void GUI::increaseSubsampling()
 
 void GUI::decreaseSubsampling()
 {
-  m_subsampling = std::max(1UL, m_subsampling - 1);
+  m_subsampling = std::max(1U, m_subsampling - 1);
   restart();
 }
 
@@ -98,7 +99,7 @@ void GUI::initGL()
   CHECK_GL_ERROR();
 }
 
-void GUI::resize(size_t w, size_t h)
+void GUI::resize(unsigned int w, unsigned int h)
 {
   glClearColor(0.2f, 0.2f, 0.8f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -149,8 +150,8 @@ void GUI::saveScreenshot() const
 
 void GUI::restart()
 {
-  size_t w = m_width / m_subsampling;
-  size_t h = m_height / m_subsampling;
+  unsigned int w = m_width / m_subsampling;
+  unsigned int h = m_height / m_subsampling;
 
   delete m_pathtracer;
   m_pathtracer = new Pathtracer(m_scene, m_camera, w, h);

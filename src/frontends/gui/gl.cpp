@@ -43,7 +43,7 @@ namespace {
   }
 }
 
-void checkGLError(const string& file, size_t line)
+void checkGLError(const string& file, unsigned int line)
 {
   stringstream ss;
   bool wasError = false;

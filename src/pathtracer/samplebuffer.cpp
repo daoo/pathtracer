@@ -22,10 +22,10 @@ void writeImage(const path& file, const SampleBuffer& buffer)
       32, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
 
   int bytespp = FreeImage_GetLine(dib) / FreeImage_GetWidth(dib);
-  for (size_t y = 0; y < FreeImage_GetHeight(dib); ++y) {
+  for (unsigned int y = 0; y < FreeImage_GetHeight(dib); ++y) {
     BYTE* bits = FreeImage_GetScanLine(dib, y);
 
-    for (size_t x = 0; x < FreeImage_GetWidth(dib); ++x) {
+    for (unsigned int x = 0; x < FreeImage_GetWidth(dib); ++x) {
       float r = gammaCorrect(buffer.at(x, y).r / buffer.samples());
       float g = gammaCorrect(buffer.at(x, y).g / buffer.samples());
       float b = gammaCorrect(buffer.at(x, y).b / buffer.samples());

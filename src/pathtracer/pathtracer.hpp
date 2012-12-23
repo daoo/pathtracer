@@ -12,7 +12,7 @@
 class Pathtracer
 {
   public:
-    Pathtracer(const Scene&, size_t, size_t, size_t);
+    Pathtracer(const Scene&, unsigned int, unsigned int, unsigned int);
     ~Pathtracer();
 
     void tracePrimaryRays(FastRand&, SampleBuffer&) const;

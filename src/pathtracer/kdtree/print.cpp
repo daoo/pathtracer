@@ -16,9 +16,10 @@ namespace kdtree
       return stream;
     }
 
-    void helper(ostream& out, const string& label, const KdTreeArray& tree, size_t index, Axis axis, size_t depth)
+    void helper(ostream& out, const string& label, const KdTreeArray& tree,
+        unsigned int index, Axis axis, unsigned int depth)
     {
-      for (size_t i = 0; i < depth; ++i) {
+      for (unsigned int i = 0; i < depth; ++i) {
         out << "  ";
       }
 

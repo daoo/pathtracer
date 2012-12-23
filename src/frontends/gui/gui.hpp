@@ -12,17 +12,17 @@
 class GUI
 {
   public:
-    GUI(const boost::filesystem::path&, const std::string&, const Scene& scene, size_t);
+    GUI(const boost::filesystem::path&, const std::string&, const Scene& scene, unsigned int);
 
-    size_t samples() const;
-    size_t subsampling() const;
+    unsigned int samples() const;
+    unsigned int subsampling() const;
 
     void increaseSubsampling();
     void decreaseSubsampling();
 
     void initGL();
     void render() const;
-    void resize(size_t, size_t);
+    void resize(unsigned int, unsigned int);
     void trace();
 
     void saveScreenshot() const;
@@ -34,13 +34,13 @@ class GUI
 
     const Scene& m_scene;
     const std::string& m_scene_name;
-    size_t m_camera;
+    unsigned int m_camera;
 
     Pathtracer* m_pathtracer;
     SampleBuffer* m_buffer;
 
-    size_t m_width, m_height;
-    size_t m_subsampling;
+    unsigned int m_width, m_height;
+    unsigned int m_subsampling;
 
     GLuint m_framebufferTexture;
     GLuint m_shaderProgram;
@@ -52,7 +52,7 @@ class GUI
 
 void initGUI(GUI&);
 void render(GUI&);
-void restart(GUI&, size_t, size_t);
+void restart(GUI&, unsigned int, unsigned int);
 void trace(GUI&);
 
 #endif /* end of include guard: GUI_HPP_MKHN08BI */

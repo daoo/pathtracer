@@ -186,7 +186,7 @@ namespace objloader
     }
 
     string line;
-    size_t line_index = 0;
+    unsigned int line_index = 0;
 
     Obj obj;
     vector<Vec3> vertices;
@@ -257,7 +257,7 @@ namespace objloader
     Mtl mtl;
 
     string line;
-    size_t line_index = 0;
+    unsigned int line_index = 0;
     while (getline(stream, line)) {
       if (!line.empty()) {
         const char* token = skip_whitespace(line.c_str());

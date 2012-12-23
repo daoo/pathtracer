@@ -88,9 +88,9 @@ int main(int argc, char *argv[])
       const Scene scene(obj, mtl);
 
 #ifdef NDEBUG
-      constexpr size_t SUBSAMPLING = 1;
+      constexpr unsigned int SUBSAMPLING = 1;
 #else
-      constexpr size_t SUBSAMPLING = 4;
+      constexpr unsigned int SUBSAMPLING = 4;
 #endif
 
       string name = basename(change_extension(obj_file, ""));

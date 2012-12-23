@@ -7,7 +7,7 @@
 
 #define CHECK_GL_ERROR() { checkGLError(__FILE__, __LINE__); }
 
-void checkGLError(const std::string& file, size_t line);
+void checkGLError(const std::string& file, unsigned int line);
 
 GLuint loadShaderProgram(const std::string&, const std::string&);
 void linkShaderProgram(GLuint);

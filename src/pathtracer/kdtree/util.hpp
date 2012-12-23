@@ -12,7 +12,7 @@ namespace kdtree
 
   inline Axis nextAxis(Axis axis)
   {
-    return static_cast<Axis>((static_cast<size_t>(axis) + 1) % 3);
+    return static_cast<Axis>((static_cast<unsigned int>(axis) + 1) % 3);
   }
 
   inline float swizzle(const glm::vec3& v, Axis c)

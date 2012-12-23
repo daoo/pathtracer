@@ -38,12 +38,12 @@ namespace kdtree
       static constexpr uint32_t TYPE_SPLIT = 1;
     };
 
-    static size_t leftChild(size_t index)
+    static unsigned int leftChild(unsigned int index)
     {
       return (index << 1) + 1;
     }
 
-    static size_t rightChild(size_t index)
+    static unsigned int rightChild(unsigned int index)
     {
       return (index << 1) + 2;
     }

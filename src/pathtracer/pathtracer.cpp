@@ -11,11 +11,11 @@ using namespace std;
 
 namespace
 {
-  constexpr size_t MAX_BOUNCES = 16;
+  constexpr unsigned int MAX_BOUNCES = 16;
   constexpr float EPSILON      = 0.0001f;
 }
 
-Pathtracer::Pathtracer(const Scene& scene, size_t camera_index, size_t width, size_t height)
+Pathtracer::Pathtracer(const Scene& scene, unsigned int camera_index, unsigned int width, unsigned int height)
   : m_scene(scene), m_fwidth(static_cast<float>(width)), m_fheight(static_cast<float>(height))
 {
   assert(!scene.cameras().empty());
@@ -47,8 +47,8 @@ void Pathtracer::tracePrimaryRays(FastRand& rand, SampleBuffer& buffer) const
   float fw = static_cast<float>(buffer.width());
   float fh = static_cast<float>(buffer.height());
 
-  for (size_t y = 0; y < buffer.height(); ++y) {
-    for (size_t x = 0; x < buffer.width(); ++x) {
+  for (unsigned int y = 0; y < buffer.height(); ++y) {
+    for (unsigned int x = 0; x < buffer.width(); ++x) {
       const vec2 screenCoord = vec2(
           (static_cast<float>(x) + rand()) / fw,
           (static_cast<float>(y) + rand()) / fh
@@ -84,7 +84,7 @@ vec3 Pathtracer::incomingLight(
   Ray current_ray(primaryRay);
   Intersection isect(primaryIsect);
 
-  for (size_t i = 0; i < MAX_BOUNCES; ++i) {
+  for (unsigned int i = 0; i < MAX_BOUNCES; ++i) {
     const Material* mat = isect.material;
     const vec3 wi       = -current_ray.direction;
 

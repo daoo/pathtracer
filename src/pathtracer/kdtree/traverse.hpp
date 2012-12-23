@@ -15,7 +15,7 @@ namespace kdtree
     float mint = ray.mint;
     float maxt = ray.maxt;
 
-    size_t index = 0;
+    unsigned int index = 0;
     Axis axis = X;
 
     while (true) {
@@ -59,8 +59,10 @@ namespace kdtree
 
         float t = (p - o) / d;
 
-        size_t first  = d >= 0 ? KdTreeArray::leftChild(index) : KdTreeArray::rightChild(index);
-        size_t second = d >= 0 ? KdTreeArray::rightChild(index) : KdTreeArray::leftChild(index);
+        unsigned int first  = d >= 0 ?
+          KdTreeArray::leftChild(index) : KdTreeArray::rightChild(index);
+        unsigned int second = d >= 0 ?
+          KdTreeArray::rightChild(index) : KdTreeArray::leftChild(index);
 
         if (t >= maxt) {
           axis  = nextAxis(axis);

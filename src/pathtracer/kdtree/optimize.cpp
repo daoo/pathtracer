@@ -8,7 +8,7 @@ namespace kdtree
 {
   namespace
   {
-    void set(vector<KdTreeArray::Node>& nodes, size_t index, KdTreeArray::Node&& node)
+    void set(vector<KdTreeArray::Node>& nodes, unsigned int index, KdTreeArray::Node&& node)
     {
       if (index >= nodes.size()) {
         nodes.resize(index + 1);
@@ -25,7 +25,7 @@ namespace kdtree
       }
     }
 
-    void helper(KdTreeArray& result, size_t index, KdTreeLinked::Node* node)
+    void helper(KdTreeArray& result, unsigned int index, KdTreeLinked::Node* node)
     {
       assert(node != nullptr);
 

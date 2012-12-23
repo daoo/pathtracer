@@ -6,12 +6,16 @@
 using namespace kdtree;
 using namespace std;
 
+#define PRINT_SIZE(type) cout << #type << " = " << sizeof(type) << " bytes\n"
+
 int main()
 {
-  cout << "KdTreeLinked::Node\t\t"  << sizeof(KdTreeLinked::Node)  << " bytes\n";
-  cout << "KdTreeArray::Node\t\t"   << sizeof(KdTreeArray::Node)   << " bytes\n";
+  PRINT_SIZE(size_t);
+  PRINT_SIZE(unsigned int);
+  PRINT_SIZE(float);
 
-  cout << "std::size_t\t\t\t"                << sizeof(std::size_t)                    << " bytes\n";
-  cout << "std::vector<KdTreeArray::Node>\t" << sizeof(std::vector<KdTreeArray::Node>) << " bytes\n";
+  PRINT_SIZE(KdTreeLinked::Node);
+  PRINT_SIZE(KdTreeArray::Node);
+  PRINT_SIZE(vector<KdTreeArray::Node>);
   return 0;
 }

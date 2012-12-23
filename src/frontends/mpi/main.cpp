@@ -16,9 +16,9 @@ using namespace util;
 
 struct SampleInformation : public mpi::is_mpi_datatype<SampleInformation> {
   SampleInformation() { }
-  SampleInformation(size_t count, float time) : count(count), time(time) { }
+  SampleInformation(unsigned int count, float time) : count(count), time(time) { }
 
-  size_t count;
+  unsigned int count;
   float time;
 
   template<class Archive>
@@ -33,7 +33,7 @@ enum InitializationMessage { SceneBuilt };
 enum ProgressMessage { SamplesCompleted, Finished };
 
 void trace(mpi::communicator, mpi::communicator
-    , size_t width, size_t height, size_t sampleCount)
+    , unsigned int width, unsigned int height, unsigned int sampleCount)
 {
   assert(width > 0 && height > 0);
   assert(sampleCount > 0);
@@ -77,16 +77,17 @@ int main(int argc, char* argv[])
 
   string obj_file = argv[1];
   string img_dir  = argv[2];
-  size_t width    = parse<size_t>(argv[3]);
-  size_t height   = parse<size_t>(argv[4]);
-  size_t samples  = parse<size_t>(argv[5]);
 
-  size_t worker_count = world.size() - 1;
+  unsigned int width   = parse<unsigned int>(argv[3]);
+  unsigned int height  = parse<unsigned int>(argv[4]);
+  unsigned int samples = parse<unsigned int>(argv[5]);
+
+  unsigned int worker_count = world.size() - 1;
   bool is_worker      = world.rank() == 0;
 
   mpi::communicator local = world.split(is_worker? 0 : 1);
   if (is_worker) {
-    size_t running = worker_count;
+    unsigned int running = worker_count;
 
     SampleBuffer result(width, height);
     while (running > 0) {

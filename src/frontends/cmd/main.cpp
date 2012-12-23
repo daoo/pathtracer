@@ -14,8 +14,9 @@ using namespace std::chrono;
 using namespace std;
 using namespace util;
 
-void program(const path& objFile, const path& outDir, size_t w, size_t h,
-    size_t camera, size_t sampleCount)
+void program(const path& objFile, const path& outDir,
+    unsigned int w, unsigned int h, unsigned int camera,
+    unsigned int sampleCount)
 {
   assert(!objFile.empty());
   assert(!outDir.empty());
@@ -58,9 +59,10 @@ int main(int argc, char* argv[])
 
   string obj_file = argv[1];
   string img_dir  = argv[2];
-  size_t width    = parse<size_t>(argv[3]);
-  size_t height   = parse<size_t>(argv[4]);
-  size_t samples  = parse<size_t>(argv[5]);
+
+  unsigned int width   = parse<unsigned int>(argv[3]);
+  unsigned int height  = parse<unsigned int>(argv[4]);
+  unsigned int samples = parse<unsigned int>(argv[5]);
 
   program(obj_file, img_dir, width, height, 0, samples);
 

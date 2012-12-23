@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
     Mtl mtl = loadMtl(mtl_file);
     c2.stop();
 
-    size_t triangle_count = 0;
+    unsigned int triangle_count = 0;
     for (const Chunk& c : obj.chunks) {
       triangle_count += c.triangles.size();
     }

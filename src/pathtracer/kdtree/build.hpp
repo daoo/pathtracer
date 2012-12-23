@@ -11,10 +11,10 @@ namespace kdtree
 {
   math::Aabb findBounding(const std::vector<Triangle>&);
 
-  void buildTreeSAH(KdTreeLinked::Node*, size_t, Axis,
+  void buildTreeSAH(KdTreeLinked::Node*, unsigned int, Axis,
       const math::Aabb&, const std::vector<const Triangle*>& triangles);
 
-  void buildTreeNaive(KdTreeLinked::Node*, size_t, Axis,
+  void buildTreeNaive(KdTreeLinked::Node*, unsigned int, Axis,
       const math::Aabb&, const std::vector<const Triangle*>& triangles);
 }
 

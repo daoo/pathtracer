@@ -26,11 +26,12 @@ Texture textureLoad(Texture& texture, const string& filename)
 
   texture.image.reserve(texture.width * texture.height);
 
-  size_t bytespp = FreeImage_GetLine(rgbabitmap) / FreeImage_GetWidth(rgbabitmap);
-  for (size_t y = 0; y < texture.height; ++y){
+  unsigned int bytespp =
+    FreeImage_GetLine(rgbabitmap) / FreeImage_GetWidth(rgbabitmap);
+  for (unsigned int y = 0; y < texture.height; ++y){
     BYTE* bits = FreeImage_GetScanLine(rgbabitmap, y);
-    for (size_t x = 0; x < texture.width; ++x){
-      size_t i = y * texture.width + x;
+    for (unsigned int x = 0; x < texture.width; ++x){
+      unsigned int i = y * texture.width + x;
       texture.image[i].x = static_cast<float>(bits[FI_RGBA_RED])   / 255.0f;
       texture.image[i].y = static_cast<float>(bits[FI_RGBA_GREEN]) / 255.0f;
       texture.image[i].z = static_cast<float>(bits[FI_RGBA_BLUE])  / 255.0f;

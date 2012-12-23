@@ -14,10 +14,11 @@ namespace util
     stringstream ss;
     ss << start << ext;
 
-    size_t counter = 2;
+    unsigned int counter = 2;
     while (exists(ss.str())) {
       ss.clear();
       ss << start << "_" << counter << ext;
+      ++counter;
     }
 
     return ss.str();

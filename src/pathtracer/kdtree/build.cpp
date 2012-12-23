@@ -193,8 +193,8 @@ namespace kdtree
     return { min + half, half };
   }
 
-  void buildTreeSAH(KdTreeLinked::Node* node, size_t depth, Axis axis, const Aabb& box,
-      const vector<const Triangle*>& triangles)
+  void buildTreeSAH(KdTreeLinked::Node* node, unsigned int depth,
+      Axis axis, const Aabb& box, const vector<const Triangle*>& triangles)
   {
     assert(node != nullptr);
 
@@ -222,8 +222,8 @@ namespace kdtree
     }
   }
 
-  void buildTreeNaive(KdTreeLinked::Node* node, size_t depth, Axis axis, const Aabb& box,
-      const vector<const Triangle*>& triangles)
+  void buildTreeNaive(KdTreeLinked::Node* node, unsigned int depth, Axis axis,
+      const Aabb& box, const vector<const Triangle*>& triangles)
   {
     assert(node != nullptr);
 
