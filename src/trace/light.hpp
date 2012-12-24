@@ -3,8 +3,8 @@
 
 #include "math/helpers.hpp"
 #include "trace/fastrand.hpp"
+#include "trace/mcsampling.hpp"
 #include <glm/glm.hpp>
-#include <glm/gtc/constants.hpp>
 
 namespace trace
 {

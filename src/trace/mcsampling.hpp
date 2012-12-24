@@ -2,7 +2,6 @@
 #define MCSAMPLING_HPP_AF3UKHEV
 
 #include "trace/fastrand.hpp"
-#include <cmath>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
@@ -14,8 +13,8 @@ namespace trace
 
     float r = glm::sqrt(1.0f - z * z);
 
-    float x = r * cosf(a);
-    float y = r * sinf(a);
+    float x = r * glm::cos(a);
+    float y = r * glm::sin(a);
 
     return glm::vec3(x, y, z) * radius;
   }
@@ -27,19 +26,16 @@ namespace trace
 
     float a = sqrtf(r2 * (1.0f - r2));
     return glm::vec3(
-        2.0f * cosf(glm::pi<float>() * 2.0f * r1) * a,
-        2.0f * sinf(glm::pi<float>() * 2.0f * r1) * a,
+        2.0f * glm::cos(glm::pi<float>() * 2.0f * r1) * a,
+        2.0f * glm::sin(glm::pi<float>() * 2.0f * r1) * a,
         std::fabs(1.0f - 2.0f * r2));
   }
 
   inline void concentricSampleDisk(FastRand& rand, float& dx, float& dy)
   {
-    float r, theta;
-    float u1 = rand();
-    float u2 = rand();
+    float sx = rand() * 2.0f - 1.0f;
+    float sy = rand() * 2.0f - 1.0f;
     // Map uniform random numbers to $[-1,1]^2$
-    float sx = 2 * u1 - 1;
-    float sy = 2 * u2 - 1;
     // Map square to $(r,\theta)$
     // Handle degeneracy at the origin
     if (sx == 0.0 && sy == 0.0) {
@@ -48,6 +44,7 @@ namespace trace
       return;
     }
 
+    float r, theta;
     if (sx >= -sy) {
       if (sx > sy) {
         // Handle first region of disk
@@ -72,8 +69,8 @@ namespace trace
       }
     }
     theta *= glm::pi<float>() / 4.f;
-    dx = r * cosf(theta);
-    dy = r * sinf(theta);
+    dx = r * glm::cos(theta);
+    dy = r * glm::sin(theta);
   }
 
   inline glm::vec3 cosineSampleHemisphere(FastRand& engine)
