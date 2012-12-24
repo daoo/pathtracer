@@ -40,8 +40,8 @@ namespace trace
     }
   }
 
-  DiffuseMaterial::DiffuseMaterial(const vec3& reflectance, Texture* map)
-    : m_reflectance(reflectance), m_reflectance_map(map) { }
+  DiffuseMaterial::DiffuseMaterial(const vec3& reflectance)
+    : m_reflectance(reflectance) { }
 
   vec3 DiffuseMaterial::brdf(
       const vec3&,

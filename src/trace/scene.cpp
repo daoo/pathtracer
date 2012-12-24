@@ -39,14 +39,8 @@ namespace trace
 
       map<string, Material*> materials;
       for (const obj::Material& mat : mtl.materials) {
-        Texture* reflectanceMap = nullptr;
-        if (!mat.diffuseMap.empty()) {
-          reflectanceMap = new Texture;
-          textureLoad(*reflectanceMap, mat.diffuseMap);
-        }
-
         DiffuseMaterial* diffuse =
-          new DiffuseMaterial(to_glm(mat.diffuse), reflectanceMap);
+          new DiffuseMaterial(to_glm(mat.diffuse));
 
         SpecularRefractionMaterial* specularRefraction =
           new SpecularRefractionMaterial(mat.ior);
