@@ -1,9 +1,8 @@
-#include "pathtracer.hpp"
+#include "trace/pathtracer.hpp"
 
 #include "math/helpers.hpp"
 #include "math/ray.hpp"
-
-#include <glm/gtx/constants.hpp>
+#include <glm/gtc/constants.hpp>
 
 using namespace glm;
 using namespace math;

@@ -1,11 +1,10 @@
 #ifndef MCSAMPLING_HPP_AF3UKHEV
 #define MCSAMPLING_HPP_AF3UKHEV
 
+#include "trace/fastrand.hpp"
 #include <cmath>
 #include <glm/glm.hpp>
-#include <glm/gtx/constants.hpp>
-
-#include "fastrand.hpp"
+#include <glm/gtc/constants.hpp>
 
 namespace trace
 {
