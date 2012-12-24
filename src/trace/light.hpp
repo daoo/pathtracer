@@ -2,9 +2,9 @@
 #define LIGHT_HPP_JKOQK7HA
 
 #include "math/helpers.hpp"
-
+#include "trace/fastrand.hpp"
 #include <glm/glm.hpp>
-#include <glm/gtx/random.hpp>
+#include <glm/gtc/constants.hpp>
 
 namespace trace
 {
@@ -22,10 +22,9 @@ namespace trace
   glm::vec3 lightSample(const SphereLight&);
   glm::vec3 lightEmitted(const SphereLight&, const glm::vec3&);
 
-  inline glm::vec3 lightSample(const SphereLight& light)
+  inline glm::vec3 lightSample(FastRand& rand, const SphereLight& light)
   {
-    // TODO: Use thread local random engine
-    return light.position + glm::sphericalRand(light.radius);
+    return light.position + uniformSampleSphere(rand, light.radius);
   }
 
   /**

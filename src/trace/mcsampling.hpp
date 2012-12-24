@@ -8,6 +8,18 @@
 
 namespace trace
 {
+  inline glm::vec3 uniformSampleSphere(FastRand& rand, float radius) {
+    float z = rand() * 2.0f - 1.0f;
+    float a = rand() * 6.283185307179586476925286766559f;
+
+    float r = glm::sqrt(1.0f - z * z);
+
+    float x = r * cosf(a);
+    float y = r * sinf(a);
+
+    return glm::vec3(x, y, z) * radius;
+  }
+
   inline glm::vec3 uniformSampleHemisphere(FastRand& rand)
   {
     float r1 = rand();

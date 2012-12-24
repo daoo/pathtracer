@@ -92,7 +92,7 @@ namespace trace
 
       for (const SphereLight& light : m_scene.lights()) {
         const vec3 isectPosition    = isect.position + offsetInNormalDir;
-        const vec3 lightSamplePos   = lightSample(light);
+        const vec3 lightSamplePos   = lightSample(rand, light);
         const vec3 directionToLight = lightSamplePos - isectPosition;
 
         const Ray shadow_ray
