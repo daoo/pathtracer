@@ -3,9 +3,6 @@
 
 #include "math/ray.hpp"
 #include "trace/kdtree/array.hpp"
-#include "trace/kdtree/build.hpp"
-#include "trace/kdtree/linked.hpp"
-#include "trace/kdtree/optimize.hpp"
 #include "trace/kdtree/traverse.hpp"
 
 namespace trace
@@ -14,19 +11,7 @@ namespace trace
   {
     typedef KdTreeArray KdTree;
 
-    inline void buildTree(KdTree& tree, const std::vector<Triangle>& triangles)
-    {
-      std::vector<const Triangle*> ptrs;
-      for (const Triangle& tri : triangles) {
-        ptrs.push_back(&tri);
-      }
-
-      KdTreeLinked tmp;
-      tmp.root = new KdTreeLinked::Node;
-      buildTreeSAH(tmp.root, 0, X, findBounding(triangles), ptrs);
-
-      optimize(tree, tmp);
-    }
+    void buildTree(KdTree& tree, const std::vector<Triangle>& triangles);
 
     inline bool intersects(const KdTree& tree, math::Ray& ray, Intersection& isect)
     {
