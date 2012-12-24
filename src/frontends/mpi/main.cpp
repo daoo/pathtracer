@@ -1,6 +1,6 @@
-#include "pathtracer/pathtracer.hpp"
-#include "pathtracer/samplebuffer.hpp"
-#include "pathtracer/scene.hpp"
+#include "trace/pathtracer.hpp"
+#include "trace/samplebuffer.hpp"
+#include "trace/scene.hpp"
 #include "util/clock.hpp"
 #include "util/strings.hpp"
 
@@ -12,6 +12,7 @@
 
 using namespace boost;
 using namespace std;
+using namespace trace;
 using namespace util;
 
 struct SampleInformation : public mpi::is_mpi_datatype<SampleInformation> {
@@ -32,7 +33,7 @@ struct SampleInformation : public mpi::is_mpi_datatype<SampleInformation> {
 enum InitializationMessage { SceneBuilt };
 enum ProgressMessage { SamplesCompleted, Finished };
 
-void trace(mpi::communicator, mpi::communicator
+void process(mpi::communicator, mpi::communicator
     , unsigned int width, unsigned int height, unsigned int sampleCount)
 {
   assert(width > 0 && height > 0);
@@ -97,7 +98,7 @@ int main(int argc, char* argv[])
       cout << info.count;
     }
   } else {
-    trace(local, world, width, height, samples);
+    process(local, world, width, height, samples);
   }
 
   return 0;

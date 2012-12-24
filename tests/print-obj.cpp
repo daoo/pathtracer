@@ -1,12 +1,12 @@
-#include "pathtracer/objloader.hpp"
+#include "trace/obj/loader.hpp"
 #include "util/clock.hpp"
 
 #include <boost/filesystem.hpp>
 #include <iostream>
 
 using namespace boost::filesystem;
-using namespace objloader;
 using namespace std;
+using namespace trace;
 using namespace util;
 
 int main(int argc, char* argv[])
@@ -22,16 +22,16 @@ int main(int argc, char* argv[])
   try {
     Clock c1;
     c1.start();
-    Obj obj = loadObj(obj_file);
+    obj::Obj obj = obj::loadObj(obj_file);
     c1.stop();
 
     Clock c2;
     c2.start();
-    Mtl mtl = loadMtl(mtl_file);
+    obj::Mtl mtl = obj::loadMtl(mtl_file);
     c2.stop();
 
     unsigned int triangle_count = 0;
-    for (const Chunk& c : obj.chunks) {
+    for (const obj::Chunk& c : obj.chunks) {
       triangle_count += c.triangles.size();
     }
 

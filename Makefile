@@ -12,10 +12,10 @@ clean:
 
 debug:
 	gdb -ex "set args $(path)/scenes/cube.obj $(path)/build/" \
-	      $(front_dir)/gui/schwar-gl
+	      $(front_dir)/gui/pathtracer-gl
 
 run:
-	$(front_dir)/gui/schwar-gl \
+	$(front_dir)/gui/pathtracer-gl \
 	       $(path)/scenes/cube.obj \
 	       $(path)/build/
 

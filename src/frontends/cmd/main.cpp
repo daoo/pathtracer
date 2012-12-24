@@ -1,6 +1,6 @@
-#include "pathtracer/fastrand.hpp"
-#include "pathtracer/pathtracer.hpp"
-#include "pathtracer/samplebuffer.hpp"
+#include "trace/fastrand.hpp"
+#include "trace/pathtracer.hpp"
+#include "trace/samplebuffer.hpp"
 #include "util/clock.hpp"
 #include "util/path.hpp"
 #include "util/strings.hpp"
@@ -8,10 +8,11 @@
 #include <boost/filesystem.hpp>
 #include <iostream>
 
-using namespace boost;
 using namespace boost::filesystem;
+using namespace boost;
 using namespace std::chrono;
 using namespace std;
+using namespace trace;
 using namespace util;
 
 void program(const path& objFile, const path& outDir,
@@ -23,8 +24,8 @@ void program(const path& objFile, const path& outDir,
   assert(w > 0 && h > 0);
   assert(sampleCount > 0);
 
-  const objloader::Obj obj = objloader::loadObj(objFile);
-  const objloader::Mtl mtl = objloader::loadMtl(objFile.parent_path() / obj.mtl_lib);
+  const obj::Obj obj = obj::loadObj(objFile);
+  const obj::Mtl mtl = obj::loadMtl(objFile.parent_path() / obj.mtl_lib);
 
   const Scene scene(obj, mtl);
   const Pathtracer pt(scene, camera, w, h);

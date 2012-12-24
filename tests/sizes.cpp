@@ -1,9 +1,9 @@
 #include <iostream>
 
-#include "pathtracer/kdtree/array.hpp"
-#include "pathtracer/kdtree/linked.hpp"
+#include "trace/kdtree/array.hpp"
+#include "trace/kdtree/linked.hpp"
 
-using namespace kdtree;
+using namespace trace;
 using namespace std;
 
 #define PRINT_SIZE(type) cout << #type << " = " << sizeof(type) << " bytes\n"
@@ -14,8 +14,8 @@ int main()
   PRINT_SIZE(unsigned int);
   PRINT_SIZE(float);
 
-  PRINT_SIZE(KdTreeLinked::Node);
-  PRINT_SIZE(KdTreeArray::Node);
-  PRINT_SIZE(vector<KdTreeArray::Node>);
+  PRINT_SIZE(kdtree::KdTreeLinked::Node);
+  PRINT_SIZE(kdtree::KdTreeArray::Node);
+  PRINT_SIZE(vector<kdtree::KdTreeArray::Node>);
   return 0;
 }

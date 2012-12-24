@@ -1,5 +1,5 @@
-#include "pathtracer/kdtree/print.hpp"
-#include "pathtracer/pathtracer.hpp"
+#include "trace/kdtree/print.hpp"
+#include "trace/pathtracer.hpp"
 #include "util/clock.hpp"
 
 #include <boost/filesystem.hpp>
@@ -7,6 +7,7 @@
 
 using namespace boost::filesystem;
 using namespace std;
+using namespace trace;
 using namespace util;
 
 int main(int argc, char* argv[])
@@ -18,8 +19,8 @@ int main(int argc, char* argv[])
 
   path obj_file = argv[1];
 
-  const objloader::Obj obj = objloader::loadObj(obj_file);
-  const objloader::Mtl mtl = objloader::loadMtl(obj_file.parent_path() / obj.mtl_lib);
+  const obj::Obj obj = obj::loadObj(obj_file);
+  const obj::Mtl mtl = obj::loadMtl(obj_file.parent_path() / obj.mtl_lib);
 
   Clock clock;
   clock.start();

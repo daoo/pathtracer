@@ -9,6 +9,7 @@
 
 using namespace boost::filesystem;
 using namespace std;
+using namespace trace;
 using namespace util;
 
 GUI::GUI(const path& dir, const string& name, const Scene& scene,

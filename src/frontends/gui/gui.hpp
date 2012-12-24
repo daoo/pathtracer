@@ -3,16 +3,16 @@
 
 #include <GL/glew.h>
 
-#include "pathtracer/fastrand.hpp"
-#include "pathtracer/pathtracer.hpp"
-#include "pathtracer/samplebuffer.hpp"
+#include "trace/fastrand.hpp"
+#include "trace/pathtracer.hpp"
+#include "trace/samplebuffer.hpp"
 
 #include <string>
 
 class GUI
 {
   public:
-    GUI(const boost::filesystem::path&, const std::string&, const Scene& scene, unsigned int);
+    GUI(const boost::filesystem::path&, const std::string&, const trace::Scene& scene, unsigned int);
 
     unsigned int samples() const;
     unsigned int subsampling() const;
@@ -28,16 +28,16 @@ class GUI
     void saveScreenshot() const;
 
   private:
-    FastRand m_rand;
+    trace::FastRand m_rand;
 
     boost::filesystem::path m_screenshot_dir;
 
-    const Scene& m_scene;
+    const trace::Scene& m_scene;
     const std::string& m_scene_name;
     unsigned int m_camera;
 
-    Pathtracer* m_pathtracer;
-    SampleBuffer* m_buffer;
+    trace::Pathtracer* m_pathtracer;
+    trace::SampleBuffer* m_buffer;
 
     unsigned int m_width, m_height;
     unsigned int m_subsampling;
@@ -49,10 +49,5 @@ class GUI
 
     void restart();
 };
-
-void initGUI(GUI&);
-void render(GUI&);
-void restart(GUI&, unsigned int, unsigned int);
-void trace(GUI&);
 
 #endif /* end of include guard: GUI_HPP_MKHN08BI */

@@ -6,8 +6,8 @@ include_directories(
   )
 
 file(GLOB_RECURSE cmd_src *.hpp *.cpp)
-add_executable(schwar ${cmd_src})
-target_link_libraries(schwar
+add_executable(pathtracer ${cmd_src})
+target_link_libraries(pathtracer
   util
-  pathtracer
+  trace
   )

@@ -1,21 +1,20 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 
-#include <boost/filesystem/convenience.hpp>
-#include <glm/glm.hpp>
-#include <iostream>
-#include <sstream>
-
 #include "gui.hpp"
 
-#include "pathtracer/pathtracer.hpp"
-#include "pathtracer/samplebuffer.hpp"
+#include "trace/pathtracer.hpp"
+#include "trace/samplebuffer.hpp"
 #include "util/clock.hpp"
 #include "util/path.hpp"
 #include "util/strings.hpp"
 
+#include <boost/filesystem/convenience.hpp>
+#include <iostream>
+
 using namespace boost::filesystem;
 using namespace std;
+using namespace trace;
 using namespace util;
 
 GUI* g_gui;
@@ -82,8 +81,8 @@ int main(int argc, char *argv[])
       glutDisplayFunc(display);
       glewInit();
 
-      const objloader::Obj obj = objloader::loadObj(obj_file);
-      const objloader::Mtl mtl = objloader::loadMtl(obj_file.parent_path() / obj.mtl_lib);
+      const obj::Obj obj = obj::loadObj(obj_file);
+      const obj::Mtl mtl = obj::loadMtl(obj_file.parent_path() / obj.mtl_lib);
 
       const Scene scene(obj, mtl);
 

@@ -13,10 +13,10 @@ if (${build_mpi_frontend})
     )
 
   file(GLOB_RECURSE mpi_src *.hpp *.cpp)
-  add_executable(schwar-mpi ${mpi_src})
-  target_link_libraries(schwar-mpi
+  add_executable(pathtracer-mpi ${mpi_src})
+  target_link_libraries(pathtracer-mpi
     util
-    pathtracer
+    trace
     ${Boost_LIBRARIES}
     ${MPI_CXX_LIBRARIES}
     )
