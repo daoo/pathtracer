@@ -49,14 +49,12 @@ namespace trace
 
     for (unsigned int y = 0; y < buffer.height(); ++y) {
       for (unsigned int x = 0; x < buffer.width(); ++x) {
-        vec2 screenCoord
-          { (static_cast<float>(x) + rand()) / fw
-          , (static_cast<float>(y) + rand()) / fh
-          };
+        float sx = (static_cast<float>(x) + rand()) / fw;
+        float sy = (static_cast<float>(y) + rand()) / fh;
 
         Ray primaryRay
           { m_camera_pos
-          , normalize(m_min_d + screenCoord.x * m_dx + screenCoord.y * m_dy)
+          , normalize(m_min_d + sx * m_dx + sy * m_dy)
           , 0.0f
           , FLT_MAX
           };
