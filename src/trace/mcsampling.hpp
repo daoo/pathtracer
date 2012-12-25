@@ -24,24 +24,23 @@ namespace trace
     float r1 = rand();
     float r2 = rand();
 
-    float a = sqrtf(r2 * (1.0f - r2));
-    return glm::vec3(
-        2.0f * glm::cos(glm::pi<float>() * 2.0f * r1) * a,
-        2.0f * glm::sin(glm::pi<float>() * 2.0f * r1) * a,
-        std::fabs(1.0f - 2.0f * r2));
+    float a = glm::sqrt(r2 * (1.0f - r2));
+    float b = glm::pi<float>() * 2.0f * r1;
+    return glm::vec3
+      { 2.0f * a * glm::cos(b)
+      , 2.0f * a * glm::sin(b)
+      , glm::abs(1.0f - 2.0f * r2)
+      };
   }
 
-  inline void concentricSampleDisk(FastRand& rand, float& dx, float& dy)
+  inline glm::vec2 concentricSampleDisk(FastRand& rand)
   {
     float sx = rand() * 2.0f - 1.0f;
     float sy = rand() * 2.0f - 1.0f;
-    // Map uniform random numbers to $[-1,1]^2$
-    // Map square to $(r,\theta)$
+
     // Handle degeneracy at the origin
     if (sx == 0.0 && sy == 0.0) {
-      dx = 0.0;
-      dy = 0.0;
-      return;
+      return glm::zero<glm::vec2>();
     }
 
     float r, theta;
@@ -68,17 +67,22 @@ namespace trace
         theta = 6.0f + sx/r;
       }
     }
-    theta *= glm::pi<float>() / 4.f;
-    dx = r * glm::cos(theta);
-    dy = r * glm::sin(theta);
+
+    theta *= glm::quarter_pi<float>();
+    return glm::vec2
+      { r * glm::cos(theta)
+      , r * glm::sin(theta)
+      };
   }
 
   inline glm::vec3 cosineSampleHemisphere(FastRand& engine)
   {
-    glm::vec3 ret;
-    concentricSampleDisk(engine, ret.x, ret.y);
-    ret.z = sqrtf(std::max(0.f, 1.f - ret.x*ret.x - ret.y*ret.y));
-    return ret;
+    glm::vec2 ret = concentricSampleDisk(engine);
+    return glm::vec3
+      { ret.x
+      , ret.y
+      , glm::sqrt(glm::max(0.0f, 1.0f - ret.x * ret.x - ret.y * ret.y))
+      };
   }
 }
 
