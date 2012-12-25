@@ -11,8 +11,6 @@ namespace trace
 {
   namespace kdtree
   {
-    math::Aabb findBounding(const std::vector<Triangle>&);
-
     void buildTreeSAH(KdTreeLinked::Node*, unsigned int, Axis,
         const math::Aabb&, const std::vector<const Triangle*>& triangles);
 
