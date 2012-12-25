@@ -49,10 +49,10 @@ namespace trace
 
     for (unsigned int y = 0; y < buffer.height(); ++y) {
       for (unsigned int x = 0; x < buffer.width(); ++x) {
-        const vec2 screenCoord = vec2(
-            (static_cast<float>(x) + rand()) / fw,
-            (static_cast<float>(y) + rand()) / fh
-            );
+        vec2 screenCoord
+          { (static_cast<float>(x) + rand()) / fw
+          , (static_cast<float>(y) + rand()) / fh
+          };
 
         Ray primaryRay
           { m_camera_pos
