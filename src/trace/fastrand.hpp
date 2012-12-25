@@ -18,7 +18,7 @@ namespace trace
       }
 
     private:
-      std::minstd_rand m_engine;
+      std::mt19937 m_engine;
   };
 }
 
