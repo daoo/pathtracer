@@ -12,7 +12,7 @@ namespace trace
   namespace
   {
     constexpr unsigned int MAX_BOUNCES = 16;
-    constexpr float EPSILON            = 0.0001f;
+    constexpr float EPSILON            = 0.00001f;
   }
 
   Pathtracer::Pathtracer(const Scene& scene, unsigned int camera_index, unsigned int width, unsigned int height)
@@ -120,7 +120,7 @@ namespace trace
       const float cosineterm = abs(dot(sample.wo, isect.normal));
       path_tp = path_tp * (sample.brdf * (cosineterm / sample.pdf));
 
-      if (lengthSquared(path_tp) < EPSILON * EPSILON) {
+      if (lengthSquared(path_tp) < EPSILON) {
         return L;
       }
 
