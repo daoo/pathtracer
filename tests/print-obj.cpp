@@ -36,12 +36,12 @@ int main(int argc, char* argv[])
     }
 
     cout << "Loaded " << obj_file << " in ";
-    cout << c1.length<double, ratio<1>>() << "seconds\n";
+    cout << c1.length<float, ratio<1>>() << "seconds\n";
     cout << "  Chunks:    " << obj.chunks.size() << '\n';
     cout << "  Triangles: " << triangle_count << '\n';
 
     cout << "Loaded " << mtl_file << " in ";
-    cout << c2.length<double, ratio<1>>() << "seconds\n";
+    cout << c2.length<float, ratio<1>>() << "seconds\n";
     cout << "  Materials: " << mtl.materials.size() << '\n';
 
     return 0;

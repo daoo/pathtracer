@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
   Scene scene(obj, mtl);
   clock.stop();
 
-  cout << "Built in " << clock.length<double, ratio<1>>() << " seconds.\n\n";
+  cout << "Built in " << clock.length<float, ratio<1>>() << " seconds.\n\n";
   print(cout, scene.kdtree());
 
   return 0;

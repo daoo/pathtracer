@@ -12,7 +12,7 @@ namespace trace
         const vec3& wo,
         const vec3& n)
     {
-      return r0 + (1.0f - r0) * pow(1.0f - abs(dot(wo, n)), 5.0f);
+      return r0 + (1.0f - r0) * pow(1.0f - glm::abs<float>(dot(wo, n)), 5.0f);
     }
 
     vec3 blend(float w, const vec3& a, const vec3& b)
@@ -32,7 +32,7 @@ namespace trace
 
     vec3 perpendicular(const vec3& v)
     {
-      if (fabsf(v.x) < fabsf(v.y)) {
+      if (glm::abs<float>(v.x) < glm::abs<float>(v.y)) {
         return vec3(0.0f, -v.z, v.y);
       }
 
@@ -80,8 +80,8 @@ namespace trace
       const vec3& wi,
       const vec3& n) const
   {
-    vec3 wo   = normalize(2.0f * abs(dot(wi, n)) * n - wi);
-    float pdf = sameHemisphere(wi, wo, n) ? abs(dot(wo, n)) : 0.0f;
+    vec3 wo   = normalize(2.0f * glm::abs<float>(dot(wi, n)) * n - wi);
+    float pdf = sameHemisphere(wi, wo, n) ? glm::abs<float>(dot(wo, n)) : 0.0f;
     return { pdf, m_reflectance, wo };
   }
 

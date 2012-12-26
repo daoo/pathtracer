@@ -28,9 +28,9 @@ namespace trace
     float aspect   = m_fwidth / m_fheight;
     float fov_half = camera.fov / 2.0f;
 
-    vec3 Z = camera.direction * cos(radians(fov_half));
-    vec3 X = camera_up        * sin(radians(fov_half));
-    vec3 Y = camera_right     * sin(radians(fov_half)) * aspect;
+    vec3 Z = camera.direction * cos<float>(radians(fov_half));
+    vec3 X = camera_up        * sin<float>(radians(fov_half));
+    vec3 Y = camera_right     * sin<float>(radians(fov_half)) * aspect;
 
     m_camera_pos = camera.position;
 
@@ -107,7 +107,7 @@ namespace trace
           L += path_tp
             * mat->brdf(wi, wo, isect.normal)
             * li
-            * abs(dot(wo, isect.normal));
+            * abs<float>(dot(wo, isect.normal));
         }
       }
 
