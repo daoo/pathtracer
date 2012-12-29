@@ -9,17 +9,14 @@ find_package(GLM REQUIRED)
 
 find_package(GLEW)
 find_package(GLUT)
-find_package(MPI)
 find_package(OpenGL)
 
-set(build_mpi_frontend ${MPI_CXX_FOUND})
 if (OPENGL_FOUND AND GLEW_FOUND AND GLUT_FOUND)
   set(build_gui_frontend TRUE)
 else ()
   set(build_gui_frontend FALSE)
 endif ()
 
-message(STATUS "MPI frontend: ${build_mpi_frontend}")
 message(STATUS "OpenGL frontend: ${build_gui_frontend}")
 
 add_definitions(-std=c++11)
