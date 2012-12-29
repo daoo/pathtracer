@@ -44,13 +44,10 @@ namespace trace
 
   void Pathtracer::tracePrimaryRays(FastRand& rand, SampleBuffer& buffer) const
   {
-    float fw = static_cast<float>(buffer.width());
-    float fh = static_cast<float>(buffer.height());
-
     for (unsigned int y = 0; y < buffer.height(); ++y) {
       for (unsigned int x = 0; x < buffer.width(); ++x) {
-        float sx = (static_cast<float>(x) + rand()) / fw;
-        float sy = (static_cast<float>(y) + rand()) / fh;
+        float sx = (static_cast<float>(x) + rand()) / m_fwidth;
+        float sy = (static_cast<float>(y) + rand()) / m_fheight;
 
         Ray primaryRay
           { m_camera_pos
