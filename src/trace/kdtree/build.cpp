@@ -14,7 +14,7 @@ namespace trace
   {
     namespace
     {
-      inline void triangleExtremes(const Triangle& tri, Axis axis,
+      void triangleExtremes(const Triangle& tri, Axis axis,
           float& min, float& max)
       {
         float a = tri.v0[axis];
