@@ -14,6 +14,8 @@ namespace trace
   {
     namespace
     {
+      constexpr float EPSILON = 0.00001f;
+
       void triangleExtremes(const Triangle& tri, Axis axis,
           float& min, float& max)
       {
@@ -28,8 +30,6 @@ namespace trace
       void aabbFromSplit(const math::Aabb& box,
           Axis axis, float split, math::Aabb& left, math::Aabb& right)
       {
-        constexpr float EPSILON = 0.000001f;
-
         left  = box;
         right = box;
 
@@ -51,7 +51,6 @@ namespace trace
         right.center[axis] = splitClamped + rh;
       }
 
-      constexpr float EPSILON        = 0.00001f;
       constexpr float COST_TRAVERSE  = 0.3f;
       constexpr float COST_INTERSECT = 1.0f;
 
