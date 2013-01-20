@@ -1,79 +1,10 @@
-#include "trace/fastrand.hpp"
-#include "trace/pathtracer.hpp"
-#include "trace/samplebuffer.hpp"
-#include "util/clock.hpp"
-#include "util/path.hpp"
+#include "thread.hpp"
 #include "util/strings.hpp"
 
-#include <boost/filesystem.hpp>
 #include <iostream>
-#include <thread>
 
-using namespace boost::filesystem;
-using namespace boost;
-using namespace std::chrono;
 using namespace std;
-using namespace trace;
 using namespace util;
-
-void work(const Pathtracer& pt, unsigned int sampleCount,
-   unsigned int thread, SampleBuffer& buffer)
-{
-  assert(sampleCount > 0);
-
-  Clock clock;
-  FastRand rand;
-  while (buffer.samples() < sampleCount) {
-    clock.start();
-    pt.tracePrimaryRays(rand, buffer);
-    clock.stop();
-    cout << "Thread " << thread << ", sample " << buffer.samples() << " in "
-      << clock.length<float,ratio<1>>() << "\n";
-  }
-}
-
-void program(const path& objFile, const path& outDir,
-    unsigned int w, unsigned int h, unsigned int camera,
-    unsigned int sampleCount, unsigned int threadCount)
-{
-  assert(!objFile.empty());
-  assert(!outDir.empty());
-  assert(w > 0 && h > 0);
-  assert(sampleCount > 0);
-
-  const obj::Obj obj = obj::loadObj(objFile);
-  const obj::Mtl mtl = obj::loadMtl(objFile.parent_path() / obj.mtl_lib);
-
-  const Scene scene(obj, mtl);
-  const Pathtracer pt(scene, camera, w, h);
-
-  vector<SampleBuffer> buffers;
-  for (unsigned int i = 0; i < threadCount; ++i) {
-    buffers.emplace_back(w, h);
-  }
-
-  vector<thread> threads;
-  for (unsigned int i = 0; i < threadCount; ++i) {
-    threads.emplace_back(work,
-        ref(pt), sampleCount / threadCount, i, ref(buffers[i]));
-  }
-
-  for (thread& th : threads) {
-    th.join();
-  }
-
-  SampleBuffer result(w, h);
-  for (const SampleBuffer& buffer : buffers) {
-    result.append(buffer);
-  }
-
-  string scene_name = basename(change_extension(objFile, ""));
-  stringstream name;
-  name << scene_name << "_"
-    << w << "x" << h << "_"
-    << sampleCount;
-  writeImage(nextFreeName(outDir, name.str(), ".png"), result);
-}
 
 int main(int argc, char* argv[])
 {
