@@ -23,11 +23,6 @@ namespace trace
     static_assert(nextAxis(X) == Y, "incorrect next");
     static_assert(nextAxis(Y) == Z, "incorrect next");
     static_assert(nextAxis(Z) == X, "incorrect next");
-
-    inline float swizzle(const glm::vec3& v, Axis c)
-    {
-      return v[c];
-    }
   }
 }
 

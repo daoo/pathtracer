@@ -17,9 +17,9 @@ namespace trace
       inline void triangleExtremes(const Triangle& tri, Axis axis,
           float& min, float& max)
       {
-        float a = swizzle(tri.v0, axis);
-        float b = swizzle(tri.v1, axis);
-        float c = swizzle(tri.v2, axis);
+        float a = tri.v0[axis];
+        float b = tri.v1[axis];
+        float c = tri.v2[axis];
 
         min = glm::min(glm::min(a, b), c);
         max = glm::max(glm::max(a, b), c);
@@ -35,43 +35,20 @@ namespace trace
 
         float splitClamped = glm::clamp(
             split,
-            swizzle(box.center, axis) - swizzle(box.half, axis),
-            swizzle(box.center, axis) + swizzle(box.half, axis));
+            box.center[axis] - box.half[axis],
+            box.center[axis] + box.half[axis]);
 
-        if (axis == X) {
-          float min = box.center.x - box.half.x;
-          float max = box.center.x + box.half.x;
+        float min = box.center[axis] - box.half[axis];
+        float max = box.center[axis] + box.half[axis];
 
-          float lh = (splitClamped - min) / 2.0f + EPSILON;
-          left.half.x   = lh;
-          left.center.x = splitClamped - lh;
+        float lh = (splitClamped - min) / 2.0f + EPSILON;
+        float rh = (max - splitClamped) / 2.0f + EPSILON;
 
-          float rh = (max - splitClamped) / 2.0f + EPSILON;
-          right.half.x   = rh;
-          right.center.x = splitClamped + rh;
-        } else if (axis == Y) {
-          float min = box.center.y - box.half.y;
-          float max = box.center.y + box.half.y;
+        left.half[axis]   = lh;
+        left.center[axis] = splitClamped - lh;
 
-          float lh = (splitClamped - min) / 2.0f + EPSILON;
-          left.half.y   = lh;
-          left.center.y = splitClamped - lh;
-
-          float rh = (max - splitClamped) / 2.0f + EPSILON;
-          right.half.y   = rh;
-          right.center.y = splitClamped + rh;
-        } else if (axis == Z) {
-          float min = box.center.z - box.half.z;
-          float max = box.center.z + box.half.z;
-
-          float lh = (splitClamped - min) / 2.0f + EPSILON;
-          left.half.z   = lh;
-          left.center.z = splitClamped - lh;
-
-          float rh = (max - splitClamped) / 2.0f + EPSILON;
-          right.half.z   = rh;
-          right.center.z = splitClamped + rh;
-        }
+        right.half[axis]   = rh;
+        right.center[axis] = splitClamped + rh;
       }
 
       constexpr float EPSILON        = 0.00001f;
@@ -215,7 +192,7 @@ namespace trace
         node->type             = KdTreeLinked::Node::Leaf;
         node->leaf.triangles = new vector<const Triangle*>(triangles);
       } else {
-        float split = swizzle(box.center, axis);
+        float split = box.center[axis];
 
         Aabb left_box;
         Aabb right_box;
