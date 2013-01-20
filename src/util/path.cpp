@@ -16,7 +16,7 @@ namespace util
 
     unsigned int counter = 2;
     while (exists(ss.str())) {
-      ss.clear();
+      ss.str(string());
       ss << start << "_" << counter << ext;
       ++counter;
     }

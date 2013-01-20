@@ -44,7 +44,8 @@ void program(const path& objFile, const path& outDir,
   const obj::Obj obj = obj::loadObj(objFile);
   const obj::Mtl mtl = obj::loadMtl(objFile.parent_path() / obj.mtl_lib);
 
-  const Pathtracer pt(Scene(obj, mtl), camera, w, h);
+  const Scene scene(obj, mtl);
+  const Pathtracer pt(scene, camera, w, h);
 
   vector<SampleBuffer> buffers;
   for (unsigned int i = 0; i < threadCount; ++i) {
@@ -54,13 +55,16 @@ void program(const path& objFile, const path& outDir,
   vector<thread> threads;
   for (unsigned int i = 0; i < threadCount; ++i) {
     threads.emplace_back(work,
-        ref(pt),
-        sampleCount / threadCount, i,
-        ref(buffers[i]));
+        ref(pt), sampleCount / threadCount, i, ref(buffers[i]));
   }
 
   for (thread& th : threads) {
     th.join();
+  }
+
+  SampleBuffer result(w, h);
+  for (const SampleBuffer& buffer : buffers) {
+    result.append(buffer);
   }
 
   string scene_name = basename(change_extension(objFile, ""));
@@ -68,11 +72,6 @@ void program(const path& objFile, const path& outDir,
   name << scene_name << "_"
     << w << "x" << h << "_"
     << sampleCount;
-
-  SampleBuffer result(w, h);
-  for (const SampleBuffer& buffer : buffers) {
-    result.append(buffer);
-  }
   writeImage(nextFreeName(outDir, name.str(), ".png"), result);
 }
 
