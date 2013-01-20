@@ -7,6 +7,7 @@
 
 #include <boost/filesystem.hpp>
 #include <iostream>
+#include <thread>
 
 using namespace boost::filesystem;
 using namespace boost;
@@ -15,9 +16,25 @@ using namespace std;
 using namespace trace;
 using namespace util;
 
+void work(const Pathtracer& pt, unsigned int sampleCount,
+   unsigned int thread, SampleBuffer& buffer)
+{
+  assert(sampleCount > 0);
+
+  Clock clock;
+  FastRand rand;
+  while (buffer.samples() < sampleCount) {
+    clock.start();
+    pt.tracePrimaryRays(rand, buffer);
+    clock.stop();
+    cout << "Thread " << thread << ", sample " << buffer.samples() << " in "
+      << clock.length<float,ratio<1>>() << "\n";
+  }
+}
+
 void program(const path& objFile, const path& outDir,
     unsigned int w, unsigned int h, unsigned int camera,
-    unsigned int sampleCount)
+    unsigned int sampleCount, unsigned int threadCount)
 {
   assert(!objFile.empty());
   assert(!outDir.empty());
@@ -27,34 +44,42 @@ void program(const path& objFile, const path& outDir,
   const obj::Obj obj = obj::loadObj(objFile);
   const obj::Mtl mtl = obj::loadMtl(objFile.parent_path() / obj.mtl_lib);
 
-  const Scene scene(obj, mtl);
-  const Pathtracer pt(scene, camera, w, h);
+  const Pathtracer pt(Scene(obj, mtl), camera, w, h);
 
-  SampleBuffer buffer(w, h);
-  FastRand rand;
-  Clock clock;
-  while (buffer.samples() < sampleCount) {
-    clock.start();
-    pt.tracePrimaryRays(rand, buffer);
-    clock.stop();
+  vector<SampleBuffer> buffers;
+  for (unsigned int i = 0; i < threadCount; ++i) {
+    buffers.emplace_back(w, h);
+  }
 
-    cout << "Sample " << buffer.samples()
-         << ", in " << clock.length<float, ratio<1>>() << " seconds\n";
+  vector<thread> threads;
+  for (unsigned int i = 0; i < threadCount; ++i) {
+    threads.emplace_back(work,
+        ref(pt),
+        sampleCount / threadCount, i,
+        ref(buffers[i]));
+  }
+
+  for (thread& th : threads) {
+    th.join();
   }
 
   string scene_name = basename(change_extension(objFile, ""));
   stringstream name;
   name << scene_name << "_"
-        << w << "x" << h << "_"
-        << buffer.samples();
+    << w << "x" << h << "_"
+    << sampleCount;
 
-  writeImage(nextFreeName(outDir, name.str(), ".png"), buffer);
+  SampleBuffer result(w, h);
+  for (const SampleBuffer& buffer : buffers) {
+    result.append(buffer);
+  }
+  writeImage(nextFreeName(outDir, name.str(), ".png"), result);
 }
 
 int main(int argc, char* argv[])
 {
-  if (argc != 6) {
-    cerr << "Usage: pathtracer model.obj output-dir width height samples\n";
+  if (argc != 7) {
+    cerr << "Usage: pathtracer model.obj output-dir width height samples threads\n";
     return 1;
   }
 
@@ -64,8 +89,13 @@ int main(int argc, char* argv[])
   unsigned int width   = parse<unsigned int>(argv[3]);
   unsigned int height  = parse<unsigned int>(argv[4]);
   unsigned int samples = parse<unsigned int>(argv[5]);
+  unsigned int threads = parse<unsigned int>(argv[6]);
 
-  program(obj_file, img_dir, width, height, 0, samples);
+  try {
+    program(obj_file, img_dir, width, height, 0, samples, threads);
+  } catch (const string& str) {
+    cerr << str;
+  }
 
   return 0;
 }
