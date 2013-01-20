@@ -38,23 +38,35 @@ void nice_time(float s, float& hour, float& min, float& sec)
   sec = round((b - min) * 60.0f);
 }
 
-void print_status(unsigned int samplesPerThread, const vector<WorkerStatus>& status)
+void print_status(unsigned int samples_per_thread, const vector<WorkerStatus>& status)
 {
   system("clear");
 
+  float total_time = 0;
+  unsigned int total_samples = 0;
   for (unsigned int i = 0; i < status.size(); ++i) {
     const WorkerStatus& ws = status[i];
-    float avg = ws.total / ws.samples;
+    total_samples += ws.samples;
 
-    float eta = avg * (samplesPerThread - ws.samples);
+    float avg = ws.total / ws.samples;
+    total_time += avg;
+
+    float eta = avg * (samples_per_thread - ws.samples);
     float h, m, s;
     nice_time(eta, h, m, s);
 
     cout << "Thread " << i << ": "
-      << ws.samples << "/" << samplesPerThread << ", "
+      << ws.samples << "/" << samples_per_thread << ", "
       << "avg: " << avg << " sec, eta: "
       << h << " h, " << m << " min, " << s << " sec\n";
   }
+
+  unsigned int samples = samples_per_thread * status.size();
+  float avg = total_time / status.size();
+
+  cout << "\nTotal: "
+    << total_samples << "/" << samples << ", "
+    << "avg: " << avg << " sec\n";
 }
 
 void worker(const Pathtracer& pt, unsigned int sampleCount,
