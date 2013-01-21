@@ -29,13 +29,11 @@ struct WorkerStatus
   float total;
 };
 
-void nice_time(float s, float& hour, float& min, float& sec)
+void nice_time(unsigned int s, unsigned int& hour, unsigned int& min, unsigned int& sec)
 {
-  float a = s / 3600.0f;
-  hour = floor(a);
-  float b = (a - hour) * 60.0f;
-  min = floor(b);
-  sec = round((b - min) * 60.0f);
+  hour = s / 3600;
+  min  = (s % 3600) / 60;
+  sec  = s % 60;
 }
 
 void print_status(unsigned int samples_per_thread, const vector<WorkerStatus>& status)
@@ -52,8 +50,8 @@ void print_status(unsigned int samples_per_thread, const vector<WorkerStatus>& s
     total_time += avg;
 
     float eta = avg * (samples_per_thread - ws.samples);
-    float h, m, s;
-    nice_time(eta, h, m, s);
+    unsigned int h, m, s;
+    nice_time(static_cast<unsigned int>(eta), h, m, s);
 
     cout << "Thread " << i << ": "
       << ws.samples << "/" << samples_per_thread << ", "
