@@ -29,46 +29,46 @@ struct WorkerStatus
   float total;
 };
 
-void nice_time(unsigned int s, unsigned int& hour, unsigned int& min, unsigned int& sec)
+void niceTime(unsigned int s, unsigned int& hour, unsigned int& min, unsigned int& sec)
 {
   hour = s / 3600;
   min  = (s % 3600) / 60;
   sec  = s % 60;
 }
 
-void print_status(unsigned int samples_per_thread, const vector<WorkerStatus>& status)
+void printStatus(unsigned int samplesPerThread, const vector<WorkerStatus>& status)
 {
-  system("clear");
+  const unsigned int threadCount = status.size();
+  const unsigned int samples      = samplesPerThread * threadCount;
 
-  float total_time = 0;
-  unsigned int total_samples = 0;
-  for (unsigned int i = 0; i < status.size(); ++i) {
+  float totalTime = 0;
+  unsigned int totalSamples = 0;
+  for (unsigned int i = 0; i < threadCount; ++i) {
     const WorkerStatus& ws = status[i];
-    total_samples += ws.samples;
+    totalSamples += ws.samples;
 
     float avg = ws.total / ws.samples;
-    total_time += avg;
+    totalTime += avg;
 
-    float eta = avg * (samples_per_thread - ws.samples);
+    float eta = avg * (samplesPerThread - ws.samples);
     unsigned int h, m, s;
-    nice_time(static_cast<unsigned int>(eta), h, m, s);
+    niceTime(static_cast<unsigned int>(eta), h, m, s);
 
     cout << "Thread " << i << ": "
-      << ws.samples << "/" << samples_per_thread << ", "
+      << ws.samples << "/" << samplesPerThread << ", "
       << "avg: " << avg << " sec, eta: "
       << h << " h, " << m << " min, " << s << " sec\n";
   }
 
-  unsigned int samples = samples_per_thread * status.size();
-  float avg = total_time / status.size();
+  float avg = totalTime / threadCount;
 
-  cout << "\nTotal: "
-    << total_samples << "/" << samples << ", "
-    << "avg: " << avg << " sec\n";
+  cout << "Total: "
+    << totalSamples << "/" << samples << ", "
+    << "avg: " << avg << " sec\n\n";
 }
 
 void worker(const Pathtracer& pt, unsigned int sampleCount,
-   unsigned int thread, misc::concurrent_queue<MessageSample>& queue,
+   unsigned int thread, misc::ConcurrentQueue<MessageSample>& queue,
    SampleBuffer& buffer)
 {
   assert(sampleCount > 0);
@@ -108,7 +108,7 @@ void program(const path& objFile, const path& outDir,
   }
 
   // Setup threads and message queue
-  misc::concurrent_queue<MessageSample> queue;
+  misc::ConcurrentQueue<MessageSample> queue;
   vector<thread> threads;
 
   unsigned int samplesPerThread = sampleCount / threadCount;
@@ -134,7 +134,7 @@ void program(const path& objFile, const path& outDir,
       --working;
 
     if (messagesRecieved > threadCount) {
-      print_status(samplesPerThread, status);
+      printStatus(samplesPerThread, status);
       messagesRecieved = 0;
     }
 

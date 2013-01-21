@@ -8,7 +8,7 @@
 namespace misc
 {
   template<typename T>
-  class concurrent_queue
+  class ConcurrentQueue
   {
     public:
       void push(const T& data)
