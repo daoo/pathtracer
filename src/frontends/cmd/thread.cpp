@@ -120,7 +120,6 @@ void program(const path& objFile, const path& outDir,
   // Wait for work to finish
   vector<WorkerStatus> status(threadCount);
   unsigned int working = threadCount;
-  unsigned int messagesRecieved = 0;
   while (working > 0) {
     MessageSample msg;
     queue.wait_and_pop(msg);
@@ -133,12 +132,7 @@ void program(const path& objFile, const path& outDir,
     if (msg.sample == samplesPerThread)
       --working;
 
-    if (messagesRecieved > threadCount) {
-      printStatus(samplesPerThread, status);
-      messagesRecieved = 0;
-    }
-
-    ++messagesRecieved;
+    printStatus(samplesPerThread, status);
   }
 
   for (thread& th : threads) {
