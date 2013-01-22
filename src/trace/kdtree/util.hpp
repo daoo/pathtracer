@@ -12,7 +12,7 @@ namespace trace
       X = 0, Y = 1, Z = 2
     };
 
-    // A look up table have been impirically proven to be the fastest way to
+    // A look up table have been empirically proven to be the fastest way to
     // calculate the next axis, compared to using modulo addition and bit hacks.
     constexpr Axis NEXT[] = { Y, Z, X };
     constexpr inline Axis nextAxis(Axis axis)
