@@ -45,19 +45,9 @@ namespace trace
             maxt = initial_maxt;
           }
         } else {
-          float p = getSplit(node);
-          float o, d;
-          if (axis == X) {
-            o = ray.origin.x;
-            d = ray.direction.x;
-          } else if (axis == Y) {
-            o = ray.origin.y;
-            d = ray.direction.y;
-          } else {
-            assert(axis == Z);
-            o = ray.origin.z;
-            d = ray.direction.z;
-          }
+          const float p = getSplit(node);
+          const float o = ray.origin[axis];
+          const float d = ray.direction[axis];
 
           float t = (p - o) / d;
 
