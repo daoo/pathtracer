@@ -1,8 +1,9 @@
-# - Find the FreeImage Library
+# Find the FreeImage Library
+#
 # This module defines the following variables:
-#  FREEIMAGE_INCLUDE_DIRS - include directories for FreeImage
-#  FREEIMAGE_LIBRARIES - libraries to link against FreeImage
-#  FREEIMAGE_FOUND - true if FreeImage has been found and can be used
+#   FREEIMAGE_INCLUDE_DIRS - include directories for FreeImage
+#   FREEIMAGE_LIBRARIES    - libraries to link against FreeImage
+#   FREEIMAGE_FOUND        - true if FreeImage has been found and can be used
 
 find_path(FREEIMAGE_INCLUDE_DIR FreeImage.h)
 find_library(FREEIMAGE_LIBRARY FreeImage NAMES freeimage FreeImage)
