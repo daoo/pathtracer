@@ -1,9 +1,9 @@
 #ifndef TRIANGLE_HPP_N4FJV8PZ
 #define TRIANGLE_HPP_N4FJV8PZ
 
-#include "intersection.hpp"
-#include "material.hpp"
 #include "math/ray.hpp"
+#include "trace/intersection.hpp"
+#include "trace/material.hpp"
 #include <glm/glm.hpp>
 
 namespace trace

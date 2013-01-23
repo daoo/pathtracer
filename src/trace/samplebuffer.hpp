@@ -3,7 +3,6 @@
 
 #include <boost/filesystem.hpp>
 #include <glm/glm.hpp>
-#include <string>
 #include <vector>
 
 namespace trace

@@ -1,12 +1,11 @@
 #ifndef PATHTRACER_HPP_NVGMZUSY
 #define PATHTRACER_HPP_NVGMZUSY
 
-#include "fastrand.hpp"
 #include "math/ray.hpp"
-#include "mcsampling.hpp"
-#include "samplebuffer.hpp"
-#include "scene.hpp"
-
+#include "trace/fastrand.hpp"
+#include "trace/mcsampling.hpp"
+#include "trace/samplebuffer.hpp"
+#include "trace/scene.hpp"
 #include <glm/glm.hpp>
 
 namespace trace

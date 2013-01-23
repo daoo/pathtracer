@@ -2,7 +2,6 @@
 #define INTERSECTION_HPP_B7YTSMBV
 
 #include "trace/material.hpp"
-
 #include <glm/glm.hpp>
 
 namespace trace
