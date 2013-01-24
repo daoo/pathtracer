@@ -89,7 +89,6 @@ void program(const path& objFile, const path& outDir,
     unsigned int sampleCount, unsigned int threadCount)
 {
   assert(!objFile.empty());
-  assert(!outDir.empty());
   assert(w > 0 && h > 0);
   assert(sampleCount > 0);
   assert(threadCount > 0);
@@ -140,16 +139,18 @@ void program(const path& objFile, const path& outDir,
   }
 
   // Merge results from each thread
-  SampleBuffer result(w, h);
-  for (const SampleBuffer& buffer : buffers) {
-    result.append(buffer);
-  }
+  if (!outDir.empty()) {
+    SampleBuffer result(w, h);
+    for (const SampleBuffer& buffer : buffers) {
+      result.append(buffer);
+    }
 
-  // Make a nice file name and save a file without overwriting anything
-  string scene_name = basename(change_extension(objFile, ""));
-  stringstream name;
-  name << scene_name << "_"
-    << w << "x" << h << "_"
-    << sampleCount;
-  writeImage(nextFreeName(outDir, name.str(), ".png"), result);
+    // Make a nice file name and save a file without overwriting anything
+    string scene_name = basename(change_extension(objFile, ""));
+    stringstream name;
+    name << scene_name << "_"
+      << w << "x" << h << "_"
+      << sampleCount;
+    writeImage(nextFreeName(outDir, name.str(), ".png"), result);
+  }
 }

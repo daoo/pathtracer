@@ -1,31 +1,73 @@
 #include "thread.hpp"
 #include "util/strings.hpp"
 
+#include <boost/filesystem/path.hpp>
+#include <boost/program_options.hpp>
 #include <iostream>
+#include <unistd.h>
+
+namespace fs = boost::filesystem;
+namespace po = boost::program_options;
+
+constexpr unsigned int WIDTH   = 512;
+constexpr unsigned int HEIGHT  = 512;
+constexpr unsigned int THREADS = 1;
+constexpr unsigned int SAMPLES = 128;
+
+constexpr int OK                   = 0;
+constexpr int ERROR_PARAMS         = 1;
+constexpr int ERROR_FILE_NOT_FOUND = 2;
+constexpr int ERROR_PROGRAM        = 3;
 
 using namespace std;
 using namespace util;
 
 int main(int argc, char* argv[])
 {
-  if (argc != 7) {
-    cerr << "Usage: pathtracer model.obj output-dir width height samples threads\n";
-    return 1;
-  }
+  fs::path outdir, model;
+  unsigned int width, height;
+  unsigned int samples, threads;
 
-  string obj_file = argv[1];
-  string img_dir  = argv[2];
-
-  unsigned int width   = parse<unsigned int>(argv[3]);
-  unsigned int height  = parse<unsigned int>(argv[4]);
-  unsigned int samples = parse<unsigned int>(argv[5]);
-  unsigned int threads = parse<unsigned int>(argv[6]);
+  po::options_description desc("Allowed options");
+  desc.add_options()
+    ("help,h"    , "produce help message")
+    ("model,m"   , po::value<fs::path>(&model)                               , "obj model")
+    ("outdir,o"  , po::value<fs::path>(&outdir)                              , "output directory for resulting image, if not specified, no image is written")
+    ("threads,t" , po::value<unsigned int>(&threads)->default_value(THREADS) , "number of threads to use")
+    ("width,x"   , po::value<unsigned int>(&width)->default_value(WIDTH)     , "width of the image")
+    ("height,y"  , po::value<unsigned int>(&height)->default_value(HEIGHT)   , "height of the image")
+    ("samples,s" , po::value<unsigned int>(&samples)->default_value(SAMPLES) , "number of samples to render")
+    ;
 
   try {
-    program(obj_file, img_dir, width, height, 0, samples, threads);
-  } catch (const string& str) {
-    cerr << str;
+    po::positional_options_description pd;
+    pd.add("model", -1);
+
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).options(desc).positional(pd).run(), vm);
+    po::notify(vm);
+
+    if (vm.count("help")) {
+      cout << desc << '\n';
+      return OK;
+    }
+  } catch (const po::error& ex) {
+    cerr << "ERROR: " << ex.what() << "\n\n";
+    cout << desc;
+    return ERROR_PARAMS;
   }
 
-  return 0;
+  if (!exists(model)) {
+    cerr << "ERROR: file " << model << " does not exist.\n";
+    return ERROR_FILE_NOT_FOUND;
+  }
+
+  try {
+    program(model, outdir, width, height, 0, samples, threads);
+  } catch (const string& str) {
+    cerr << str;
+    return ERROR_PROGRAM;
+  }
+
+  return OK;
 }
