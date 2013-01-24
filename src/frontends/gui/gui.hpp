@@ -1,12 +1,11 @@
 #ifndef GUI_HPP_MKHN08BI
 #define GUI_HPP_MKHN08BI
 
-#include <GL/glew.h>
-
 #include "trace/fastrand.hpp"
 #include "trace/pathtracer.hpp"
 #include "trace/samplebuffer.hpp"
 
+#include <GL/glew.h>
 #include <string>
 
 class GUI
