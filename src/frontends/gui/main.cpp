@@ -10,12 +10,30 @@
 #include "util/strings.hpp"
 
 #include <boost/filesystem/convenience.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/program_options.hpp>
 #include <iostream>
 
-using namespace boost::filesystem;
+namespace fs = boost::filesystem;
+namespace po = boost::program_options;
+
 using namespace std;
 using namespace trace;
 using namespace util;
+
+constexpr unsigned int DEFAULT_WIDTH  = 512;
+constexpr unsigned int DEFAULT_HEIGHT = 512;
+
+#ifdef NDEBUG
+constexpr unsigned int SUBSAMPLING = 1;
+#else
+constexpr unsigned int SUBSAMPLING = 4;
+#endif
+
+constexpr int OK                   = 0;
+constexpr int ERROR_PARAMS         = 1;
+constexpr int ERROR_FILE_NOT_FOUND = 2;
+constexpr int ERROR_PROGRAM        = 3;
 
 GUI* g_gui;
 
@@ -61,51 +79,66 @@ void handleKeys(unsigned char key, int, int)
 
 int main(int argc, char *argv[])
 {
-  if (argc >= 3) {
-    path obj_file       = argv[1];
-    path screenshot_dir = argv[2];
+  glutInit(&argc, argv);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+  glutInitWindowSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+  glutCreateWindow("Simple Pathtracer");
+  glutKeyboardFunc(handleKeys);
+  glutReshapeFunc(reshape);
+  glutIdleFunc(idle);
+  glutDisplayFunc(display);
+  glewInit();
 
-    if (!is_directory(screenshot_dir)) {
-      cerr << screenshot_dir << " is not a directory.\n";
-      return 1;
+  fs::path outdir, model;
+
+  po::options_description desc("Pathtracer GUI options");
+  desc.add_options()
+    ("help,h"   , "produce help message")
+    ("model,m"  , po::value<fs::path>(&model)  , "obj model")
+    ("outdir,o" , po::value<fs::path>(&outdir) , "output directory for screenshots")
+    ;
+
+  try {
+    po::positional_options_description pd;
+    pd.add("model", -1);
+
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).options(desc).positional(pd).run(), vm);
+    po::notify(vm);
+
+    if (vm.count("help")) {
+      cout << desc << '\n';
+      return OK;
     }
 
-    try {
-      glutInit(&argc, argv);
-      glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-      glutInitWindowSize(512, 512);
-      glutCreateWindow("Simple Pathtracer");
-      glutKeyboardFunc(handleKeys);
-      glutReshapeFunc(reshape);
-      glutIdleFunc(idle);
-      glutDisplayFunc(display);
-      glewInit();
-
-      const obj::Obj obj = obj::loadObj(obj_file);
-      const obj::Mtl mtl = obj::loadMtl(obj_file.parent_path() / obj.mtl_lib);
-
-      const Scene scene(obj, mtl);
-
-#ifdef NDEBUG
-      constexpr unsigned int SUBSAMPLING = 1;
-#else
-      constexpr unsigned int SUBSAMPLING = 4;
-#endif
-
-      string name = basename(change_extension(obj_file, ""));
-
-      g_gui = new GUI(screenshot_dir, name, scene, SUBSAMPLING);
-      g_gui->initGL();
-      g_gui->resize(512, 512);
-
-      glEnable(GL_FRAMEBUFFER_SRGB);
-      glutMainLoop();  /* start the program main loop */
-    } catch (const string& err) {
-      cerr << "Caught error in main():\n" << err;
+    if (!exists(model)) {
+      cerr << "ERROR: file " << model << " does not exist.\n";
+      return ERROR_FILE_NOT_FOUND;
     }
-  } else {
-    cerr << "Usage: pathtracer-gl model.obj output-dir\n";
+
+    const obj::Obj obj = obj::loadObj(model);
+    const obj::Mtl mtl = obj::loadMtl(model.parent_path() / obj.mtl_lib);
+    const Scene scene(obj, mtl);
+
+    string name = basename(change_extension(model, ""));
+
+    g_gui = new GUI(outdir, name, scene, SUBSAMPLING);
+    g_gui->initGL();
+    g_gui->resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+
+    glEnable(GL_FRAMEBUFFER_SRGB);
+    glutMainLoop();  /* start the program main loop */
+  } catch (const po::error& ex) {
+    cerr << "ERROR: " << ex.what() << "\n\n";
+    cout << desc;
+    return ERROR_PARAMS;
+  } catch (const runtime_error& ex) {
+    cerr << "ERROR: " << ex.what() << '\n';
+    return ERROR_PROGRAM;
+  } catch (const string& str) {
+    cerr << "ERROR: " << str << '\n';
+    return ERROR_PROGRAM;
   }
 
-  return 0;
+  return OK;
 }
