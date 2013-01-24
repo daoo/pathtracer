@@ -9,6 +9,9 @@
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 
+using namespace std;
+using namespace util;
+
 constexpr unsigned int WIDTH   = 512;
 constexpr unsigned int HEIGHT  = 512;
 constexpr unsigned int THREADS = 1;
@@ -19,16 +22,13 @@ constexpr int ERROR_PARAMS         = 1;
 constexpr int ERROR_FILE_NOT_FOUND = 2;
 constexpr int ERROR_PROGRAM        = 3;
 
-using namespace std;
-using namespace util;
-
 int main(int argc, char* argv[])
 {
   fs::path outdir, model;
   unsigned int width, height;
   unsigned int samples, threads;
 
-  po::options_description desc("Allowed options");
+  po::options_description desc("Pathtracer options");
   desc.add_options()
     ("help,h"    , "produce help message")
     ("model,m"   , po::value<fs::path>(&model)                               , "obj model")
