@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
   try {
     program(model, outdir, width, height, 0, samples, threads);
   } catch (const string& str) {
-    cerr << str;
+    cerr << str << '\n';
     return ERROR_PROGRAM;
   }
 
