@@ -13,7 +13,7 @@ namespace trace
     unsigned int width, height;
   };
 
-  Texture textureLoad(Texture&, const std::string& filename);
+  Texture textureLoad(const std::string& filename);
 }
 
 #endif /* end of include guard: TEXTURE_HPP_NJD06RG1 */

@@ -8,7 +8,7 @@ using namespace std;
 
 namespace trace
 {
-  Texture textureLoad(Texture& texture, const string& filename)
+  Texture textureLoad(const string& filename)
   {
     FIBITMAP* bitmap = FreeImage_Load(FIF_PNG, filename.c_str());
 
@@ -19,6 +19,7 @@ namespace trace
     FIBITMAP *rgbabitmap = FreeImage_ConvertTo32Bits(bitmap);
     FreeImage_Unload(bitmap);
 
+    Texture texture;
     texture.width  = FreeImage_GetWidth(rgbabitmap);
     texture.height = FreeImage_GetHeight(rgbabitmap);
 
