@@ -5,7 +5,12 @@ require 'open3'
 COMMAND = "./build/opt/src/frontends/cmd/pathtracer"
 
 def measure(scene, width, height, threads, samples)
-  Open3.popen3(COMMAND, scene, 'build', width.to_s, height.to_s, samples.to_s, threads.to_s) do |i, o, e|
+  Open3.popen3(COMMAND,
+               '-x', width.to_s,
+               '-y', height.to_s,
+               '-s', samples.to_s,
+               '-t', threads.to_s,
+               scene) do |i, o, e|
     return o.readlines[-2].split[3].to_f
   end
 end
