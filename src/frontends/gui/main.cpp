@@ -79,16 +79,6 @@ void handleKeys(unsigned char key, int, int)
 
 int main(int argc, char *argv[])
 {
-  glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-  glutInitWindowSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-  glutCreateWindow("Simple Pathtracer");
-  glutKeyboardFunc(handleKeys);
-  glutReshapeFunc(reshape);
-  glutIdleFunc(idle);
-  glutDisplayFunc(display);
-  glewInit();
-
   fs::path outdir, model;
 
   po::options_description desc("Pathtracer GUI options");
@@ -121,6 +111,16 @@ int main(int argc, char *argv[])
     const Scene scene(obj, mtl);
 
     string name = basename(change_extension(model, ""));
+
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitWindowSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+    glutCreateWindow("Pathtracer GUI");
+    glutKeyboardFunc(handleKeys);
+    glutReshapeFunc(reshape);
+    glutIdleFunc(idle);
+    glutDisplayFunc(display);
+    glewInit();
 
     g_gui = new GUI(outdir, name, scene, SUBSAMPLING);
     g_gui->initGL();
