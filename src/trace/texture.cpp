@@ -23,9 +23,6 @@ namespace trace
     texture.width  = FreeImage_GetWidth(rgbabitmap);
     texture.height = FreeImage_GetHeight(rgbabitmap);
 
-    //int scan_width = FreeImage_GetPitch(rgbabitmap);
-    //BYTE* data     = new BYTE[height*scan_width];
-
     texture.image.reserve(texture.width * texture.height);
 
     const unsigned int BYTESPP =
