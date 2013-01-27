@@ -50,7 +50,10 @@ namespace trace
     return texture.image[x + y * texture.width];
   }
 
-  Texture textureLoad(const std::string& filename);
+  /**
+   * Load a texture from a file.
+   */
+  Texture textureLoad(const std::string&);
 }
 
 #endif /* end of include guard: TEXTURE_HPP_NJD06RG1 */

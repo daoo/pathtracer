@@ -1,19 +1,21 @@
 #include "texture.hpp"
 
 #include <FreeImage.h>
-#include <iostream>
 
 using namespace glm;
 using namespace std;
 
 namespace trace
 {
-  Texture textureLoad(const string& filename)
+  Texture textureLoad(const string& file)
   {
-    FIBITMAP* bitmap = FreeImage_Load(FIF_PNG, filename.c_str());
+    FIBITMAP* bitmap = FreeImage_Load(FIF_PNG, file.c_str());
 
     if (!bitmap) {
-      cout << "Failed to load texture " << filename << endl;
+      string err = "Failed to load texture '";
+      err += file;
+      err += '\'';
+      throw err;
     }
 
     FIBITMAP *rgbabitmap = FreeImage_ConvertTo32Bits(bitmap);

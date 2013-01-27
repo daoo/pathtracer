@@ -11,7 +11,10 @@
 class GUI
 {
   public:
-    GUI(const boost::filesystem::path&, const std::string&, const trace::Scene& scene, unsigned int);
+    GUI(const boost::filesystem::path&,
+        const boost::filesystem::path&,
+        const trace::Scene& scene,
+        unsigned int);
 
     unsigned int samples() const;
     unsigned int subsampling() const;
@@ -30,9 +33,9 @@ class GUI
     trace::FastRand m_rand;
 
     boost::filesystem::path m_screenshot_dir;
+    boost::filesystem::path m_obj_file;
 
     const trace::Scene& m_scene;
-    const std::string& m_scene_name;
     unsigned int m_camera;
 
     trace::Pathtracer* m_pathtracer;

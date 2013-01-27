@@ -5,19 +5,18 @@
 #include "util/path.hpp"
 
 #include <algorithm>
-#include <sstream>
 
 using namespace boost::filesystem;
 using namespace std;
 using namespace trace;
 using namespace util;
 
-GUI::GUI(const path& dir, const string& name, const Scene& scene,
+GUI::GUI(const path& dir, const path& file, const Scene& scene,
     unsigned int subsampling)
   : m_rand()
   , m_screenshot_dir(dir)
+  , m_obj_file(file)
   , m_scene(scene)
-  , m_scene_name(name)
   , m_camera(0)
   , m_pathtracer(nullptr)
   , m_buffer(nullptr)
@@ -139,13 +138,9 @@ void GUI::render() const
 
 void GUI::saveScreenshot() const
 {
-  stringstream name;
-  name << m_scene_name << "_"
-        << m_width << "x" << m_height << "_"
-        << m_buffer->samples();
-
+  string name = niceName(m_obj_file, m_width, m_height, m_buffer->samples());
   writeImage(
-      nextFreeName(m_screenshot_dir, name.str(), ".png"),
+      nextFreeName(m_screenshot_dir, name, ".png").string(),
       *m_buffer);
 }
 

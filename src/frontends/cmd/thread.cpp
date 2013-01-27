@@ -8,7 +8,6 @@
 #include "util/path.hpp"
 
 #include <iostream>
-#include <sstream>
 #include <thread>
 
 using namespace boost::filesystem;
@@ -146,11 +145,7 @@ void program(const path& objFile, const path& outDir,
     }
 
     // Make a nice file name and save a file without overwriting anything
-    string scene_name = basename(change_extension(objFile, ""));
-    stringstream name;
-    name << scene_name << "_"
-      << w << "x" << h << "_"
-      << sampleCount;
-    writeImage(nextFreeName(outDir, name.str(), ".png"), result);
+    string name = niceName(objFile, w, h, sampleCount);
+    writeImage(nextFreeName(outDir, name, ".png").string(), result);
   }
 }

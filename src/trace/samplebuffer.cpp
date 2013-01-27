@@ -1,9 +1,7 @@
 #include "trace/samplebuffer.hpp"
 
 #include <FreeImage.h>
-#include <sstream>
 
-using namespace boost::filesystem;
 using namespace glm;
 using namespace std;
 
@@ -24,7 +22,7 @@ namespace trace
     }
   }
 
-  void writeImage(const path& file, const SampleBuffer& buffer)
+  void writeImage(const string& file, const SampleBuffer& buffer)
   {
     FIBITMAP* dib = FreeImage_Allocate(buffer.width(), buffer.height(),
         32, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
@@ -48,9 +46,10 @@ namespace trace
     }
 
     if (!FreeImage_Save(FIF_PNG, dib, file.c_str(), 0)) {
-      stringstream ss;
-      ss << "Failed to save screenshot to file '" << file << "'";
-      throw ss.str();
+      string err = "Failed to save screenshot to file '";
+      err += file;
+      err += '\'';
+      throw err;
     }
 
     FreeImage_Unload(dib);

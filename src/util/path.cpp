@@ -23,4 +23,14 @@ namespace util
 
     return ss.str();
   }
+
+  string niceName(const path& file,
+      unsigned int width, unsigned int height,
+      unsigned int samples)
+  {
+    stringstream name;
+    name << basename(change_extension(file, "")) << "_"
+      << width << "x" << height << "_" << samples;
+    return name.str();
+  }
 }
