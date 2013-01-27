@@ -2,6 +2,7 @@
 #define MATERIAL_HPP_FNROXKUG
 
 #include "trace/fastrand.hpp"
+#include "trace/texture.hpp"
 #include <glm/glm.hpp>
 
 namespace trace
@@ -55,6 +56,29 @@ namespace trace
 
     private:
       glm::vec3 m_reflectance;
+  };
+
+  /**
+   * Textured diffuse material.
+   */
+  class DiffuseTextureMaterial : public Material
+  {
+    public:
+      DiffuseTextureMaterial(const glm::vec3&, const Texture&);
+
+      virtual glm::vec3 brdf(
+          const glm::vec3&,
+          const glm::vec3&,
+          const glm::vec3&) const;
+
+      virtual LightSample sample_brdf(
+          FastRand&,
+          const glm::vec3&,
+          const glm::vec3&) const;
+
+    private:
+      glm::vec3 m_reflectance;
+      Texture m_texture;
   };
 
   /**

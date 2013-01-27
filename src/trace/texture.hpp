@@ -19,6 +19,37 @@ namespace trace
     unsigned int width, height;
   };
 
+  inline glm::vec3 textureSample(
+      const Texture& texture,
+      float x, float y)
+  {
+    assert(x >= 0.0f && x < 1.0f);
+    assert(y >= 0.0f && y < 1.0f);
+    return textureSample(texture,
+        static_cast<unsigned int>(x * texture.width),
+        static_cast<unsigned int>(y * texture.height));
+  }
+
+  inline glm::vec3 textureSample(
+      const Texture& texture,
+      unsigned int x,
+      unsigned int y)
+  {
+    assert(x < texture.width);
+    assert(y < texture.height);
+    return texture.image[x + y * texture.width];
+  }
+
+  inline glm::vec3& textureSample(
+      Texture& texture,
+      unsigned int x,
+      unsigned int y)
+  {
+    assert(x < texture.width);
+    assert(y < texture.height);
+    return texture.image[x + y * texture.width];
+  }
+
   Texture textureLoad(const std::string& filename);
 }
 

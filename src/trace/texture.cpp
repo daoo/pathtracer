@@ -31,7 +31,7 @@ namespace trace
       BYTE* bits = FreeImage_GetScanLine(rgbabitmap, y);
 
       for (unsigned int x = 0; x < texture.width; ++x){
-        glm::vec3& c = texture.image[y * texture.width + x];
+        glm::vec3& c = textureSample(texture, x, y);
         c.r = static_cast<float>(bits[FI_RGBA_RED])   / 255.0f;
         c.g = static_cast<float>(bits[FI_RGBA_GREEN]) / 255.0f;
         c.b = static_cast<float>(bits[FI_RGBA_BLUE])  / 255.0f;
