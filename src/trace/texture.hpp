@@ -7,8 +7,14 @@
 
 namespace trace
 {
+  /**
+   * RGB texture container.
+   */
   struct Texture
   {
+    /**
+     * Vector containing the pixel colors stored in row-major order.
+     */
     std::vector<glm::vec3> image;
     unsigned int width, height;
   };

@@ -9,8 +9,7 @@
 namespace trace
 {
   /**
-   * For now, a light is an emitting sphere that radiates uniformly in all
-   * directions.
+   * An emitting sphere that radiates uniformly in all directions.
    */
   struct SphereLight
   {

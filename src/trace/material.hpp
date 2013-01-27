@@ -1,7 +1,7 @@
 #ifndef MATERIAL_HPP_FNROXKUG
 #define MATERIAL_HPP_FNROXKUG
 
-#include "fastrand.hpp"
+#include "trace/fastrand.hpp"
 #include <glm/glm.hpp>
 
 namespace trace
