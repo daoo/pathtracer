@@ -5,6 +5,7 @@
 #include "trace/samplebuffer.hpp"
 #include "util/clock.hpp"
 #include "util/concurrentqueue.hpp"
+#include "util/nicetime.hpp"
 #include "util/path.hpp"
 
 #include <iostream>
@@ -28,35 +29,29 @@ struct WorkerStatus
   float total;
 };
 
-void niceTime(unsigned int s, unsigned int& hour, unsigned int& min, unsigned int& sec)
-{
-  hour = s / 3600;
-  min  = (s % 3600) / 60;
-  sec  = s % 60;
-}
-
 void printStatus(unsigned int samplesPerThread, const vector<WorkerStatus>& status)
 {
   const unsigned int threadCount = status.size();
-  const unsigned int samples      = samplesPerThread * threadCount;
+  const unsigned int samples     = samplesPerThread * threadCount;
 
-  float totalTime = 0;
+  float totalTime           = 0;
   unsigned int totalSamples = 0;
+
   for (unsigned int i = 0; i < threadCount; ++i) {
     const WorkerStatus& ws = status[i];
-    totalSamples += ws.samples;
 
     float avg = ws.total / ws.samples;
-    totalTime += avg;
-
     float eta = avg * (samplesPerThread - ws.samples);
-    unsigned int h, m, s;
-    niceTime(static_cast<unsigned int>(eta), h, m, s);
+
+    totalSamples += ws.samples;
+    totalTime    += avg;
+
+    NiceTime t = niceTime(static_cast<unsigned int>(eta));
 
     cout << "Thread " << i << ": "
       << ws.samples << "/" << samplesPerThread << ", "
       << "avg: " << avg << " sec, eta: "
-      << h << " h, " << m << " min, " << s << " sec\n";
+      << t.hour << " h, " << t.min << " min, " << t.sec << " sec\n";
   }
 
   float avg = totalTime / threadCount;
