@@ -11,8 +11,8 @@ clean:
 	+@make --no-print-directory -C $(build_dir) clean
 
 debug:
-	gdb -ex "set args $(path)/scenes/cube.obj $(path)/build/" \
-	      $(front_dir)/gui/pathtracer-gl
+	cgdb -- -ex "set args $(path)/scenes/cube.obj -o $(path)/build/" \
+		$(front_dir)/gui/pathtracer-gl
 
 run:
 	$(front_dir)/gui/pathtracer-gl \
