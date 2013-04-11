@@ -46,12 +46,10 @@ void printStatus(unsigned int samplesPerThread, const vector<WorkerStatus>& stat
     totalSamples += ws.samples;
     totalTime    += avg;
 
-    NiceTime t = niceTime(static_cast<unsigned int>(eta));
-
     cout << "Thread " << i << ": "
       << ws.samples << "/" << samplesPerThread << ", "
       << "avg: " << avg << " sec, eta: "
-      << t.hour << " h, " << t.min << " min, " << t.sec << " sec\n";
+      << niceTime(static_cast<unsigned int>(eta)) << "\n";
   }
 
   float avg = totalTime / threadCount;
