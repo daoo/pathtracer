@@ -26,7 +26,8 @@ class Server
   def initialize(name, dir, threads, samples)
     raise "incorrect name #{name}" unless not name.empty?
     raise "incorrect dir #{dir}" unless not dir.empty?
-    raise "incorrect threads #{threads}" unless
+    raise "incorrect threads #{threads}" unless threads.is_a? Integer and threads > 0
+    raise "incorrect samples #{samples}" unless samples.is_a? Integer and samples > 0
 
     @name    = name
     @dir     = dir
@@ -48,6 +49,8 @@ def combine(png1, png2, output)
 end
 
 def make_archive(dir, revision)
+  raise "does not exist #{dir}" unless File.directory?(dir)
+
   hash    = %x(git rev-parse #{revision}).chomp
   archive = "#{dir}/pathtracer-#{hash}.tar.gz"
 
@@ -58,11 +61,14 @@ def make_archive(dir, revision)
   return archive
 end
 
+def transfer_archive(archive, server, dir)
+end
+
 def worker(archive, server, render, output)
-  system("echo cat '#{archive}' | ssh #{server.name} tar -C '#{server.dir}' xzf -")
-  system("echo tar xcf - #{render.model} | ssh #{server.name} tar -C '#{servers.dir}' xzf -")
-  system("echo ssh #{server.name} 'bash -s #{server.to_args()} #{render.to_args()}' < tools/compile-run.sh")
-  system("echo sh #{server.name} 'cat TODO' > #{output}")
+  system("cat '#{archive}' | ssh #{server.name} tar -C #{server.dir} xzf -'") or raise
+  system("tar xcf - #{render.model} | ssh #{server.name} tar -C #{server.dir} xzf -'") or raise
+  system("ssh #{server.name} bash -s #{server.to_args()} #{render.to_args()} < tools/compile-run.sh'") or raise
+  system("ssh #{server.name} 'cat TODO' > #{output}") or raise
 end
 
 def master(servers, render)
@@ -90,17 +96,18 @@ def master(servers, render)
   end
 end
 
-model  = ARGV[0]
-width  = ARGV[1].to_i
-height = ARGV[2].to_i
+if ARGV.length != 3
+  puts "Usage: distribute.rb MODEL WIDTH HEIGHT"
+  puts "Servers are supplied one per line to the standard input with the following format: \"NAME,DIRECTORY,THREADS,SAMPLES\""
+  exit 1
+end
 
-render = Render.new(model, width, height)
+render = Render.new(ARGV[0], ARGV[1].to_i, ARGV[2].to_i)
 
+servers = Array.new
 STDIN.readlines.each do |line|
   a = line.split(",")
-  server = Server.new(a[0], a[1], a[2], a[3])
-  puts server.name
-  puts server.dir
-  puts server.threads
-  puts server.samples
+  servers << Server.new(a[0], a[1], a[2].to_i, a[3].to_i)
 end
+
+master(servers, render)
