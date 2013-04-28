@@ -113,7 +113,7 @@ void GUI::resize(unsigned int w, unsigned int h)
 
 void GUI::trace()
 {
-  m_pathtracer->tracePrimaryRays(m_rand, *m_buffer);
+  m_pathtracer->trace(m_rand, *m_buffer);
 }
 
 void GUI::render() const

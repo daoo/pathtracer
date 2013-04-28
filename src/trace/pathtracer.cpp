@@ -15,8 +15,14 @@ namespace trace
     constexpr float EPSILON            = 0.00001f;
   }
 
-  Pathtracer::Pathtracer(const Scene& scene, unsigned int camera_index, unsigned int width, unsigned int height)
-    : m_scene(scene), m_fwidth(static_cast<float>(width)), m_fheight(static_cast<float>(height))
+  Pathtracer::Pathtracer(
+      const Scene& scene,
+      unsigned int camera_index,
+      unsigned int width,
+      unsigned int height)
+    : m_scene(scene)
+    , m_fwidth(static_cast<float>(width))
+    , m_fheight(static_cast<float>(height))
   {
     assert(!scene.cameras().empty());
 
@@ -42,7 +48,7 @@ namespace trace
 
   Pathtracer::~Pathtracer() { }
 
-  void Pathtracer::tracePrimaryRays(FastRand& rand, SampleBuffer& buffer) const
+  void Pathtracer::trace(FastRand& rand, SampleBuffer& buffer) const
   {
     for (unsigned int y = 0; y < buffer.height(); ++y) {
       for (unsigned int x = 0; x < buffer.width(); ++x) {
@@ -57,15 +63,14 @@ namespace trace
           };
 
         Intersection isect;
-        if (m_scene.allIntersection(primaryRay, isect)) {
-          buffer.add(x, y, incomingLight(rand, primaryRay, isect));
-        } else {
-          buffer.add(x, y, environmentLight(primaryRay));
-        }
+        vec3 light = m_scene.allIntersection(primaryRay, isect)
+          ? incomingLight(rand, primaryRay, isect)
+          : environmentLight(primaryRay);
+        buffer.add(x, y, light);
       }
     }
 
-    buffer.increaseSamples();
+    buffer.inc();
   }
 
   vec3 Pathtracer::incomingLight(

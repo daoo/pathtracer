@@ -48,7 +48,7 @@ namespace math
     }
 
     inline int planeBoxOverlap(const glm::vec3& normal, const glm::vec3& vert,
-        glm::vec3 maxbox)
+        const glm::vec3& maxbox)
     {
       glm::vec3 vmin, vmax;
       test_axis(glm::X, normal, vert, maxbox, vmin, vmax);
@@ -134,27 +134,32 @@ namespace math
 
     /* Bullet 3:  */
     /* test the 9 tests first (this was faster) */
-    float fex, fey, fez;
-    fex = glm::abs<float>(e0.x);
-    fey = glm::abs<float>(e0.y);
-    fez = glm::abs<float>(e0.z);
-    AXISTEST_X01(e0.z, e0.y, fez, fey);
-    AXISTEST_Y02(e0.z, e0.x, fez, fex);
-    AXISTEST_Z12(e0.y, e0.x, fey, fex);
+    {
+      float fex = glm::abs<float>(e0.x);
+      float fey = glm::abs<float>(e0.y);
+      float fez = glm::abs<float>(e0.z);
+      AXISTEST_X01(e0.z, e0.y, fez, fey);
+      AXISTEST_Y02(e0.z, e0.x, fez, fex);
+      AXISTEST_Z12(e0.y, e0.x, fey, fex);
+    }
 
-    fex = glm::abs<float>(e1.x);
-    fey = glm::abs<float>(e1.y);
-    fez = glm::abs<float>(e1.z);
-    AXISTEST_X01(e1.z, e1.y, fez, fey);
-    AXISTEST_Y02(e1.z, e1.x, fez, fex);
-    AXISTEST_Z0(e1.y, e1.x, fey, fex);
+    {
+      float fex = glm::abs<float>(e1.x);
+      float fey = glm::abs<float>(e1.y);
+      float fez = glm::abs<float>(e1.z);
+      AXISTEST_X01(e1.z, e1.y, fez, fey);
+      AXISTEST_Y02(e1.z, e1.x, fez, fex);
+      AXISTEST_Z0(e1.y, e1.x, fey, fex);
+    }
 
-    fex = glm::abs<float>(e2.x);
-    fey = glm::abs<float>(e2.y);
-    fez = glm::abs<float>(e2.z);
-    AXISTEST_X2(e2.z, e2.y, fez, fey);
-    AXISTEST_Y1(e2.z, e2.x, fez, fex);
-    AXISTEST_Z12(e2.y, e2.x, fey, fex);
+    {
+      float fex = glm::abs<float>(e2.x);
+      float fey = glm::abs<float>(e2.y);
+      float fez = glm::abs<float>(e2.z);
+      AXISTEST_X2(e2.z, e2.y, fez, fey);
+      AXISTEST_Y1(e2.z, e2.x, fez, fex);
+      AXISTEST_Z12(e2.y, e2.x, fey, fex);
+    }
 
     /* Bullet 1: */
     /*  first test overlap in the {x, y, z}-directions */

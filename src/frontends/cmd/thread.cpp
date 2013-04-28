@@ -69,7 +69,7 @@ void worker(const Pathtracer& pt, unsigned int sampleCount,
   FastRand rand;
   while (buffer.samples() < sampleCount) {
     clock.start();
-    pt.tracePrimaryRays(rand, buffer);
+    pt.trace(rand, buffer);
     clock.stop();
 
     queue.push({thread, buffer.samples(), clock.length<float, ratio<1>>()});

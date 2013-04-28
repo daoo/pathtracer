@@ -16,7 +16,7 @@ namespace trace
       Pathtracer(const Scene&, unsigned int, unsigned int, unsigned int);
       ~Pathtracer();
 
-      void tracePrimaryRays(FastRand&, SampleBuffer&) const;
+      void trace(FastRand&, SampleBuffer&) const;
 
     private:
       const Scene& m_scene;

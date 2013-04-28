@@ -20,14 +20,14 @@ namespace trace
       return w * a + (1.0f - w) * b;
     }
 
-    constexpr int sign(float v)
+    constexpr int same_sign(float a, float b)
     {
-      return v < 0.0f ? -1 : 1;
+      return (a < 0 && b < 0) || (a >= 0 && b >= 0);
     }
 
     bool sameHemisphere(const vec3& wi, const vec3& wo, const vec3& n)
     {
-      return sign(dot(wi, n)) == sign(dot(wo, n));
+      return same_sign(dot(wi, n), dot(wo, n));
     }
 
     vec3 perpendicular(const vec3& v)
@@ -101,14 +101,13 @@ namespace trace
       const vec3& wi,
       const vec3& n) const
   {
-    float eta;
-    if (dot(-wi, n) < 0.0f) eta = 1.0f/m_ior;
-    else eta = m_ior;
+    float a   = dot(-wi, n);
+    float eta = a < 0.0f ? 1.0f / m_ior : m_ior;
+    vec3 N    = a < 0.0f ? n : -n;
 
-    vec3 N = dot(-wi, n) < 0.0 ? n : -n;
-
-    float w = -dot(-wi, N) * eta;
+    float w = -a * eta;
     float k = 1.0f + (w - eta) * (w + eta);
+
     if (k < 0.0f) {
       // Total internal reflection
       return m_refmat.sample_brdf(rand, wi, N);
@@ -151,7 +150,8 @@ namespace trace
       const vec3& wi,
       const vec3& n) const
   {
-    return blend(m_w,
+    return blend(
+        m_w,
         m_firstMaterial->brdf(wo, wi, n),
         m_secondMaterial->brdf(wo, wi, n));
   }

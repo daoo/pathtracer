@@ -20,10 +20,16 @@ namespace trace
     {
       return min(1.0f, pow(x, GAMMA_POWER));
     }
+
+    vec3 gammaCorrect(const vec3& v)
+    {
+      return vec3(gammaCorrect(v.r), gammaCorrect(v.g), gammaCorrect(v.b));
+    }
   }
 
   void writeImage(const string& file, const SampleBuffer& buffer)
   {
+    const float samples = static_cast<float>(buffer.samples());
     FIBITMAP* dib = FreeImage_Allocate(buffer.width(), buffer.height(),
         32, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK);
 
@@ -33,12 +39,10 @@ namespace trace
       BYTE* bits = FreeImage_GetScanLine(dib, y);
 
       for (unsigned int x = 0; x < FreeImage_GetWidth(dib); ++x) {
-        const float r = gammaCorrect(buffer.at(x, y).r / buffer.samples());
-        const float g = gammaCorrect(buffer.at(x, y).g / buffer.samples());
-        const float b = gammaCorrect(buffer.at(x, y).b / buffer.samples());
-        bits[FI_RGBA_RED]   = BYTE(r * 255.0);
-        bits[FI_RGBA_GREEN] = BYTE(g * 255.0);
-        bits[FI_RGBA_BLUE]  = BYTE(b * 255.0);
+        vec3 c = gammaCorrect(buffer.get(x, y) / samples) * 255.0f;
+        bits[FI_RGBA_RED]   = static_cast<BYTE>(c.r);
+        bits[FI_RGBA_GREEN] = static_cast<BYTE>(c.g);
+        bits[FI_RGBA_BLUE]  = static_cast<BYTE>(c.b);
         bits[FI_RGBA_ALPHA] = 255;
 
         bits += BYTESPP;
