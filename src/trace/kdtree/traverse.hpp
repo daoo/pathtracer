@@ -29,7 +29,19 @@ namespace trace
           bool hit = false;
           if (hasTriangles(node)) {
             for (const Triangle& tri : getTriangles(tree, node)) {
-              hit |= intersects(tri, ray, isect);
+              float t;
+              glm::vec3 n;
+              if (intersects(tri, ray, t, n)) {
+                if (t >= ray.mint && t <= ray.maxt) {
+                  isect.position = ray(t);
+                  isect.normal   = n;
+                  isect.material = tri.material;
+
+                  ray.maxt = t;
+
+                  hit = true;
+                }
+              }
             }
           }
 

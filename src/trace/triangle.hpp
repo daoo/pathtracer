@@ -17,9 +17,17 @@ namespace trace
     const Material* material;
   };
 
-  bool intersects(const Triangle& tri, math::Ray& r, Intersection& i);
+  bool intersects(
+      const Triangle& tri,
+      const math::Ray& r,
+      float& t,
+      glm::vec3& n);
 
-  inline bool intersects(const Triangle& tri, math::Ray& r, Intersection& i)
+  inline bool intersects(
+      const Triangle& tri,
+      math::Ray& r,
+      float& t,
+      glm::vec3& n)
   {
     constexpr float epsilon = 0.00001f;
 
@@ -45,14 +53,9 @@ namespace trace
     if (v < 0.0 || u + v > 1.0)
       return false;
 
-    float t = f * glm::dot(e2, R);
-    if (t < r.mint || t > r.maxt)
-      return false;
+    t = f * glm::dot(e2, R);
+    n = glm::normalize((1.0f - (u + v)) * tri.n0 + u * tri.n1 + v * tri.n2);
 
-    r.maxt     = t;
-    i.position = r(t);
-    i.normal   = glm::normalize((1.0f - (u + v)) * tri.n0 + u * tri.n1 + v * tri.n2);
-    i.material = tri.material;
     return true;
   }
 }
