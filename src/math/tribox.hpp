@@ -33,7 +33,7 @@ namespace math
       if (x2 > max) max = x2;
     }
 
-    inline void test_axis(glm::comp axis, const glm::vec3& normal,
+    inline void test_axis(int axis, const glm::vec3& normal,
         const glm::vec3& vert, const glm::vec3& maxbox,
         glm::vec3& vmin, glm::vec3& vmax)
     {
@@ -51,9 +51,9 @@ namespace math
         const glm::vec3& maxbox)
     {
       glm::vec3 vmin, vmax;
-      test_axis(glm::X, normal, vert, maxbox, vmin, vmax);
-      test_axis(glm::Y, normal, vert, maxbox, vmin, vmax);
-      test_axis(glm::Z, normal, vert, maxbox, vmin, vmax);
+      test_axis(0, normal, vert, maxbox, vmin, vmax);
+      test_axis(1, normal, vert, maxbox, vmin, vmax);
+      test_axis(2, normal, vert, maxbox, vmin, vmax);
       if (glm::dot(normal, vmin) > 0.0f) return 0;
       if (glm::dot(normal, vmax) >= 0.0f) return 1;
 

@@ -11,10 +11,10 @@ namespace trace
     float z = rand() * 2.0f - 1.0f;
     float a = rand() * (2.0f * glm::pi<float>());
 
-    float r = glm::sqrt<float>(1.0f - z * z);
+    float r = glm::sqrt(1.0f - z * z);
 
-    float x = r * glm::cos<float>(a);
-    float y = r * glm::sin<float>(a);
+    float x = r * glm::cos(a);
+    float y = r * glm::sin(a);
 
     return glm::vec3(x, y, z) * radius;
   }
@@ -24,12 +24,12 @@ namespace trace
     float r1 = rand();
     float r2 = rand();
 
-    float a = glm::sqrt<float>(r2 * (1.0f - r2));
+    float a = glm::sqrt(r2 * (1.0f - r2));
     float b = glm::pi<float>() * 2.0f * r1;
     return glm::vec3
-      { 2.0f * a * glm::cos<float>(b)
-      , 2.0f * a * glm::sin<float>(b)
-      , glm::abs<float>(1.0f - 2.0f * r2)
+      { 2.0f * a * glm::cos(b)
+      , 2.0f * a * glm::sin(b)
+      , glm::abs(1.0f - 2.0f * r2)
       };
   }
 
@@ -68,8 +68,8 @@ namespace trace
 
     theta *= glm::quarter_pi<float>();
     return glm::vec2
-      { r * glm::cos<float>(theta)
-      , r * glm::sin<float>(theta)
+      { r * glm::cos(theta)
+      , r * glm::sin(theta)
       };
   }
 
@@ -79,8 +79,8 @@ namespace trace
     return glm::vec3
       { ret.x
       , ret.y
-      , glm::sqrt<float>(
-          glm::max<float>(
+      , glm::sqrt(
+          glm::max(
             0.0f, 1.0f - ret.x * ret.x - ret.y * ret.y))
       };
   }
