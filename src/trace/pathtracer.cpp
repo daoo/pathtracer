@@ -1,6 +1,5 @@
 #include "trace/pathtracer.hpp"
 
-#include "math/helpers.hpp"
 #include "math/ray.hpp"
 #include <glm/gtc/constants.hpp>
 
@@ -88,7 +87,7 @@ namespace trace
         const float cosineterm = abs(dot(sample.wo, n));
         transport = transport * (sample.brdf * (cosineterm / sample.pdf));
 
-        if (lengthSquared(transport) < EPSILON)
+        if (length2(transport) < EPSILON)
           return radiance;
 
         Ray next_ray = dot(sample.wo, n) >= 0

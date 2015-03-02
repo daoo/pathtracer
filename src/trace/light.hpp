@@ -1,10 +1,10 @@
 #ifndef LIGHT_HPP_JKOQK7HA
 #define LIGHT_HPP_JKOQK7HA
 
-#include "math/helpers.hpp"
 #include "trace/fastrand.hpp"
 #include "trace/mcsampling.hpp"
 #include <glm/glm.hpp>
+#include <glm/gtx/norm.hpp>
 
 namespace trace
 {
@@ -31,7 +31,7 @@ namespace trace
    */
   inline glm::vec3 lightEmitted(const SphereLight& light, const glm::vec3& p)
   {
-    return light.intensity / math::lengthSquared(light.position - p);
+    return light.intensity / glm::length2(light.position - p);
   }
 }
 
