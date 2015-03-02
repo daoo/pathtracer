@@ -13,6 +13,98 @@ namespace trace
   {
     constexpr unsigned int MAX_BOUNCES = 16;
     constexpr float EPSILON            = 0.00001f;
+
+    vec3 environmentLight(const Ray&)
+    {
+      return vec3(0.8f, 0.8f, 0.8f);
+    }
+
+    vec3 fromLight(
+        const Scene& scene,
+        const Material* material,
+        const vec3& target,
+        const vec3& offset,
+        const vec3& wi,
+        const vec3& n,
+        const SphereLight& light,
+        FastRand& rand)
+    {
+      const vec3 source    = lightSample(rand, light);
+      const vec3 direction = source - target;
+
+      const Ray shadow_ray
+        { offset
+        , direction
+        , 0.0f
+        , 1.0f
+        };
+
+      if (!scene.anyIntersection(shadow_ray)) {
+        const vec3 wr = normalize(direction);
+
+        const vec3 radiance = lightEmitted(light, target);
+
+        return material->brdf(wi, wr, n) * radiance * abs(dot(wr, n));
+      }
+
+      return zero<vec3>();
+    }
+
+    vec3 incomingLight(
+        const Scene& scene,
+        FastRand& rand,
+        const Ray& primaryRay,
+        const Intersection& primaryIsect)
+    {
+      vec3 radiance  = zero<vec3>();
+      vec3 transport = one<vec3>();
+
+      Ray current_ray(primaryRay);
+      Intersection isect(primaryIsect);
+
+      for (unsigned int i = 0; i < MAX_BOUNCES; ++i) {
+        const vec3 wi    = -current_ray.direction;
+        const vec3 point = isect.position;
+        const vec3 n     = isect.normal;
+
+        const Material* material = isect.material;
+
+        const vec3 offset     = EPSILON * n;
+        const vec3 offsetUp   = point + offset;
+        const vec3 offsetDown = point - offset;
+
+        vec3 sumLights = zero<vec3>();
+        for (const SphereLight& light : scene.lights()) {
+          sumLights += fromLight(scene, material, point, offsetUp, wi, n, light, rand);
+        }
+
+        radiance += transport * sumLights;
+
+        const LightSample sample = material->sample_brdf(rand, wi, n);
+
+        if (sample.pdf < EPSILON)
+          return radiance;
+
+        const float cosineterm = abs(dot(sample.wo, n));
+        transport = transport * (sample.brdf * (cosineterm / sample.pdf));
+
+        if (lengthSquared(transport) < EPSILON)
+          return radiance;
+
+        Ray next_ray = dot(sample.wo, n) >= 0
+          ? Ray { offsetUp, sample.wo, 0.0f, FLT_MAX }
+          : Ray { offsetDown, sample.wo, 0.0f, FLT_MAX };
+
+        Intersection next_isect;
+        if (!scene.allIntersection(next_ray, next_isect))
+          return radiance + transport * environmentLight(current_ray);
+
+        current_ray = next_ray;
+        isect       = next_isect;
+      }
+
+      return radiance;
+    }
   }
 
   Pathtracer::Pathtracer(
@@ -34,9 +126,9 @@ namespace trace
     float aspect   = m_fwidth / m_fheight;
     float fov_half = camera.fov / 2.0f;
 
-    vec3 Z = camera.direction * cos(radians(fov_half));
     vec3 X = camera_up        * sin(radians(fov_half));
     vec3 Y = camera_right     * sin(radians(fov_half)) * aspect;
+    vec3 Z = camera.direction * cos(radians(fov_half));
 
     m_camera_pos = camera.position;
 
@@ -64,87 +156,12 @@ namespace trace
 
         Intersection isect;
         vec3 light = m_scene.allIntersection(primaryRay, isect)
-          ? incomingLight(rand, primaryRay, isect)
+          ? incomingLight(m_scene, rand, primaryRay, isect)
           : environmentLight(primaryRay);
         buffer.add(x, y, light);
       }
     }
 
     buffer.inc();
-  }
-
-  vec3 Pathtracer::incomingLight(
-      FastRand& rand,
-      const Ray& primaryRay,
-      const Intersection& primaryIsect) const
-  {
-    vec3 L       = zero<vec3>();
-    vec3 path_tp = one<vec3>();
-
-    Ray current_ray(primaryRay);
-    Intersection isect(primaryIsect);
-
-    for (unsigned int i = 0; i < MAX_BOUNCES; ++i) {
-      const Material* mat = isect.material;
-      const vec3 wi       = -current_ray.direction;
-
-      const vec3 offsetInNormalDir = EPSILON * isect.normal;
-
-      for (const SphereLight& light : m_scene.lights()) {
-        const vec3 isectPosition    = isect.position + offsetInNormalDir;
-        const vec3 lightSamplePos   = lightSample(rand, light);
-        const vec3 directionToLight = lightSamplePos - isectPosition;
-
-        const Ray shadow_ray
-        { isectPosition
-          , directionToLight
-            , 0.0f
-            , 1.0f
-        };
-
-        if (!m_scene.anyIntersection(shadow_ray)) {
-          const vec3 wo = normalize(directionToLight);
-          const vec3 li = lightEmitted(light, isect.position);
-
-          L += path_tp
-            * mat->brdf(wi, wo, isect.normal)
-            * li
-            * abs<float>(dot(wo, isect.normal));
-        }
-      }
-
-      const LightSample sample = mat->sample_brdf(rand, wi, isect.normal);
-
-      if (sample.pdf < EPSILON) {
-        return L;
-      }
-
-      const float cosineterm = abs(dot(sample.wo, isect.normal));
-      path_tp = path_tp * (sample.brdf * (cosineterm / sample.pdf));
-
-      if (lengthSquared(path_tp) < EPSILON) {
-        return L;
-      }
-
-      if (dot(sample.wo, isect.normal) >= 0) {
-        current_ray = Ray { isect.position + offsetInNormalDir, sample.wo, 0.0f, FLT_MAX };
-      } else {
-        current_ray = Ray { isect.position - offsetInNormalDir, sample.wo, 0.0f, FLT_MAX };
-      }
-
-      if (!m_scene.allIntersection(current_ray, isect)) {
-        return L + path_tp * environmentLight(current_ray);
-      }
-    }
-
-    return L;
-  }
-
-  /**
-   * Evaluate the outgoing radiance from the environment.
-   */
-  vec3 Pathtracer::environmentLight(const Ray&) const
-  {
-    return vec3(0.8f, 0.8f, 0.8f);
   }
 }
