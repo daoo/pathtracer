@@ -10,7 +10,7 @@ namespace math
     glm::vec3 origin, direction;
     float mint, maxt;
 
-    glm::vec3 operator()(float t)
+    glm::vec3 operator()(float t) const
     {
       return origin + t * direction;
     }
