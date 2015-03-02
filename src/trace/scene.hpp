@@ -17,8 +17,8 @@ namespace trace
       Scene(const obj::Obj&, const obj::Mtl&);
       ~Scene();
 
-      bool allIntersection(math::Ray& r, Intersection& isect) const;
-      bool anyIntersection(const math::Ray& r) const;
+      bool allIntersection(const math::Ray&, Intersection&) const;
+      bool anyIntersection(const math::Ray&) const;
 
       const std::vector<Camera>& cameras() const
       {

@@ -51,7 +51,7 @@ namespace trace
 
     vec3 incomingLightHelper(
         const Scene& scene,
-        Ray& ray,
+        const Ray& ray,
         FastRand& rand,
         vec3 radiance,
         vec3 transport,
@@ -110,7 +110,7 @@ namespace trace
 
     vec3 incomingLight(
         const Scene& scene,
-        Ray& ray,
+        const Ray& ray,
         FastRand& rand)
     {
       return incomingLightHelper(

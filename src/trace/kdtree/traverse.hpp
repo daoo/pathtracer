@@ -10,8 +10,13 @@ namespace trace
 {
   namespace kdtree
   {
-    inline bool searchTree(const KdTreeArray& tree, math::Ray& ray, Intersection& isect)
+    inline bool searchTree(
+        const KdTreeArray& tree,
+        const math::Ray& initray,
+        Intersection& isect)
     {
+      math::Ray ray(initray);
+
       const float initial_maxt = ray.maxt;
 
       float mint = ray.mint;

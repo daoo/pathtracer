@@ -106,7 +106,7 @@ namespace trace
 
   Scene::~Scene() { }
 
-  bool Scene::allIntersection(Ray& ray, Intersection& isect) const
+  bool Scene::allIntersection(const Ray& ray, Intersection& isect) const
   {
     return kdtree::intersects(m_kdtree, ray, isect);
   }
