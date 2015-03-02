@@ -3,6 +3,39 @@
 
 using namespace glm;
 using namespace math;
+using namespace std;
+using namespace trace;
+
+namespace
+{
+  bool intersectTriangles(
+      const vector<Triangle>& triangles,
+      const Ray& ray,
+      float mint,
+      float& maxt,
+      vec3& normal,
+      const Material*& material)
+  {
+    bool hit = false;
+
+    for (const Triangle& triangle : triangles) {
+      float t;
+      vec3 n;
+      if (intersects(triangle, ray, t, n)) {
+        if (t >= mint && t <= maxt) {
+          normal   = n;
+          material = triangle.material;
+
+          maxt = t;
+
+          hit = true;
+        }
+      }
+    }
+
+    return hit;
+  }
+}
 
 namespace trace
 {
@@ -10,12 +43,11 @@ namespace trace
   {
     bool searchTree(
         const KdTreeArray& tree,
-        const Ray& initray,
+        const Ray& ray,
         Intersection& isect)
     {
-      Ray ray(initray);
-
-      const float initial_maxt = ray.maxt;
+      float raymint = ray.mint;
+      float raymaxt = ray.maxt;
 
       float mint = ray.mint;
       float maxt = ray.maxt;
@@ -29,35 +61,30 @@ namespace trace
         const KdTreeArray::Node& node = tree.nodes[index];
 
         if (isLeaf(node)) {
-          bool hit = false;
-          if (hasTriangles(node)) {
-            for (const Triangle& tri : getTriangles(tree, node)) {
-              float t;
-              vec3 n;
-              if (intersects(tri, ray, t, n)) {
-                if (t >= ray.mint && t <= ray.maxt) {
-                  isect.position = ray(t);
-                  isect.normal   = n;
-                  isect.material = tri.material;
+          vec3 n;
+          const Material* material(nullptr);
+          bool hit = intersectTriangles(
+              getTriangles(tree, node),
+              ray,
+              raymint,
+              raymaxt,
+              n,
+              material);
 
-                  ray.maxt = t;
+          if (hit && raymaxt < maxt) {
+            isect.position = ray(raymaxt);
+            isect.normal   = n;
+            isect.material = material;
 
-                  hit = true;
-                }
-              }
-            }
-          }
-
-          if (hit && ray.maxt < maxt) {
             return true;
-          } else if (maxt == initial_maxt) {
+          } else if (maxt == ray.maxt) {
             return false;
           } else {
             index = 0;
             axis  = X;
 
             mint = maxt;
-            maxt = initial_maxt;
+            maxt = ray.maxt;
           }
         } else {
           const float p = getSplit(node);

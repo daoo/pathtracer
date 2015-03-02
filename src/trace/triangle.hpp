@@ -25,7 +25,7 @@ namespace trace
 
   inline bool intersects(
       const Triangle& tri,
-      math::Ray& ray,
+      const math::Ray& ray,
       float& t,
       glm::vec3& n)
   {
