@@ -8,7 +8,6 @@ namespace math
   struct Ray
   {
     glm::vec3 origin, direction;
-    float mint, maxt;
 
     glm::vec3 operator()(float t) const
     {

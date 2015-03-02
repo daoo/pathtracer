@@ -44,13 +44,14 @@ namespace trace
     bool searchTree(
         const KdTreeArray& tree,
         const Ray& ray,
+        float tmininit,
+        float tmaxinit,
         Intersection& isect)
     {
-      float raymint = ray.mint;
-      float raymaxt = ray.maxt;
+      float raymaxt = tmaxinit;
 
-      float mint = ray.mint;
-      float maxt = ray.maxt;
+      float mint = tmininit;
+      float maxt = tmaxinit;
 
       unsigned int index = 0;
       Axis axis = X;
@@ -66,7 +67,7 @@ namespace trace
           bool hit = intersectTriangles(
               getTriangles(tree, node),
               ray,
-              raymint,
+              tmininit,
               raymaxt,
               n,
               material);
@@ -77,14 +78,14 @@ namespace trace
             isect.material = material;
 
             return true;
-          } else if (maxt == ray.maxt) {
+          } else if (maxt == tmaxinit) {
             return false;
           } else {
             index = 0;
             axis  = X;
 
             mint = maxt;
-            maxt = ray.maxt;
+            maxt = tmaxinit;
           }
         } else {
           const float p = getSplit(node);

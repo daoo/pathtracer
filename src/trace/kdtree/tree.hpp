@@ -13,9 +13,14 @@ namespace trace
 
     void buildTree(KdTree& tree, const std::vector<Triangle>& triangles);
 
-    inline bool intersects(const KdTree& tree, const math::Ray& ray, Intersection& isect)
+    inline bool intersects(
+        const KdTree& tree,
+        const math::Ray& ray,
+        float tmin,
+        float tmax,
+        Intersection& isect)
     {
-      return searchTree(tree, ray, isect);
+      return searchTree(tree, ray, tmin, tmax, isect);
     }
   }
 }

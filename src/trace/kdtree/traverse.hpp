@@ -11,7 +11,9 @@ namespace trace
   {
     bool searchTree(
         const KdTreeArray& tree,
-        const math::Ray& initray,
+        const math::Ray& ray,
+        float tmin,
+        float tmax,
         Intersection& isect);
   }
 }

@@ -26,14 +26,9 @@ namespace trace
       const vec3 source    = lightSample(rand, light);
       const vec3 direction = source - target;
 
-      const Ray shadow_ray
-        { offset
-        , direction
-        , 0.0f
-        , 1.0f
-        };
+      const Ray shadow_ray { offset , direction };
 
-      if (!scene.anyIntersection(shadow_ray)) {
+      if (!scene.anyIntersection(shadow_ray, 0.0f, 1.0f)) {
         const vec3 wr = normalize(direction);
 
         const vec3 radiance = lightEmitted(light, target);
@@ -61,7 +56,7 @@ namespace trace
         return radiance;
 
       Intersection isect;
-      if (!scene.allIntersection(ray, isect))
+      if (!scene.allIntersection(ray, 0.0f, FLT_MAX, isect))
         return radiance + transport * environmentLight(ray);
 
       const vec3 wi    = -ray.direction;
@@ -95,8 +90,6 @@ namespace trace
       Ray next_ray
         { dot(sample.wo, n) >= 0 ? offsetUp : offsetDown
         , sample.wo
-        , 0.0f
-        , FLT_MAX
         };
 
       return incomingLightHelper(
@@ -166,8 +159,6 @@ namespace trace
         Ray ray
           { m_camera_pos
           , normalize(m_min_d + sx * m_dx + sy * m_dy)
-          , 0.0f
-          , FLT_MAX
           };
 
         const vec3 light = incomingLight(m_scene, ray, rand);
