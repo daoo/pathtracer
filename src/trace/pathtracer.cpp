@@ -13,11 +13,6 @@ namespace trace
     constexpr unsigned int MAX_BOUNCES = 16;
     constexpr float EPSILON            = 0.00001f;
 
-    vec3 environmentLight(const Ray&)
-    {
-      return vec3(0.8f, 0.8f, 0.8f);
-    }
-
     vec3 fromLight(
         const Scene& scene,
         const Material* material,
@@ -49,60 +44,82 @@ namespace trace
       return zero<vec3>();
     }
 
-    vec3 incomingLight(
-        const Scene& scene,
-        FastRand& rand,
-        const Ray& primaryRay,
-        const Intersection& primaryIsect)
+    vec3 environmentLight(const Ray&)
     {
-      vec3 radiance  = zero<vec3>();
-      vec3 transport = one<vec3>();
+      return vec3(0.8f, 0.8f, 0.8f);
+    }
 
-      Ray current_ray(primaryRay);
-      Intersection isect(primaryIsect);
+    vec3 incomingLightHelper(
+        const Scene& scene,
+        Ray& ray,
+        FastRand& rand,
+        vec3 radiance,
+        vec3 transport,
+        int bounce)
+    {
+      if (bounce >= MAX_BOUNCES)
+        return radiance;
 
-      for (unsigned int i = 0; i < MAX_BOUNCES; ++i) {
-        const vec3 wi    = -current_ray.direction;
-        const vec3 point = isect.position;
-        const vec3 n     = isect.normal;
+      Intersection isect;
+      if (!scene.allIntersection(ray, isect))
+        return radiance + transport * environmentLight(ray);
 
-        const Material* material = isect.material;
+      const vec3 wi    = -ray.direction;
+      const vec3 point = isect.position;
+      const vec3 n     = isect.normal;
 
-        const vec3 offset     = EPSILON * n;
-        const vec3 offsetUp   = point + offset;
-        const vec3 offsetDown = point - offset;
+      const Material* material = isect.material;
 
-        vec3 sumLights = zero<vec3>();
-        for (const SphereLight& light : scene.lights()) {
-          sumLights += fromLight(scene, material, point, offsetUp, wi, n, light, rand);
-        }
+      const vec3 offset     = EPSILON * n;
+      const vec3 offsetUp   = point + offset;
+      const vec3 offsetDown = point - offset;
 
-        radiance += transport * sumLights;
-
-        const LightSample sample = material->sample_brdf(rand, wi, n);
-
-        if (sample.pdf < EPSILON)
-          return radiance;
-
-        const float cosineterm = abs(dot(sample.wo, n));
-        transport = transport * (sample.brdf * (cosineterm / sample.pdf));
-
-        if (length2(transport) < EPSILON)
-          return radiance;
-
-        Ray next_ray = dot(sample.wo, n) >= 0
-          ? Ray { offsetUp, sample.wo, 0.0f, FLT_MAX }
-          : Ray { offsetDown, sample.wo, 0.0f, FLT_MAX };
-
-        Intersection next_isect;
-        if (!scene.allIntersection(next_ray, next_isect))
-          return radiance + transport * environmentLight(current_ray);
-
-        current_ray = next_ray;
-        isect       = next_isect;
+      vec3 sumLights = zero<vec3>();
+      for (const SphereLight& light : scene.lights()) {
+        sumLights += fromLight(scene, material, point, offsetUp, wi, n, light, rand);
       }
 
-      return radiance;
+      radiance += transport * sumLights;
+
+      const LightSample sample = material->sample_brdf(rand, wi, n);
+
+      if (sample.pdf < EPSILON)
+        return radiance;
+
+      const float cosineterm = abs(dot(sample.wo, n));
+      transport = transport * (sample.brdf * (cosineterm / sample.pdf));
+
+      if (length2(transport) < EPSILON)
+        return radiance;
+
+      Ray next_ray
+        { dot(sample.wo, n) >= 0 ? offsetUp : offsetDown
+        , sample.wo
+        , 0.0f
+        , FLT_MAX
+        };
+
+      return incomingLightHelper(
+          scene,
+          next_ray,
+          rand,
+          radiance,
+          transport,
+          bounce + 1);
+    }
+
+    vec3 incomingLight(
+        const Scene& scene,
+        Ray& ray,
+        FastRand& rand)
+    {
+      return incomingLightHelper(
+          scene,
+          ray,
+          rand,
+          zero<vec3>(),
+          one<vec3>(),
+          0);
     }
   }
 
@@ -146,17 +163,14 @@ namespace trace
         float sx = (static_cast<float>(x) + rand()) / m_fwidth;
         float sy = (static_cast<float>(y) + rand()) / m_fheight;
 
-        Ray primaryRay
+        Ray ray
           { m_camera_pos
           , normalize(m_min_d + sx * m_dx + sy * m_dy)
           , 0.0f
           , FLT_MAX
           };
 
-        Intersection isect;
-        vec3 light = m_scene.allIntersection(primaryRay, isect)
-          ? incomingLight(m_scene, rand, primaryRay, isect)
-          : environmentLight(primaryRay);
+        const vec3 light = incomingLight(m_scene, ray, rand);
         buffer.add(x, y, light);
       }
     }
