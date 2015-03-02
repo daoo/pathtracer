@@ -73,7 +73,7 @@ namespace trace
               material);
 
           if (hit && raymaxt < maxt) {
-            isect.position = ray(raymaxt);
+            isect.position = ray.param(raymaxt);
             isect.normal   = n;
             isect.material = material;
 
