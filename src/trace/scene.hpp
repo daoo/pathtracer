@@ -17,8 +17,16 @@ namespace trace
       Scene(const obj::Obj&, const obj::Mtl&);
       ~Scene();
 
-      bool allIntersection(const math::Ray&, Intersection&) const;
-      bool anyIntersection(const math::Ray&) const;
+      inline bool allIntersection(const math::Ray& ray, Intersection& isect) const
+      {
+        return kdtree::intersects(m_kdtree, ray, isect);
+      }
+
+      inline bool anyIntersection(const math::Ray& ray) const
+      {
+        Intersection isect;
+        return kdtree::intersects(m_kdtree, ray, isect);
+      }
 
       const std::vector<Camera>& cameras() const
       {

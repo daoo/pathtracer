@@ -17,12 +17,6 @@ namespace trace
     {
       return searchTree(tree, ray, isect);
     }
-
-    inline bool intersects(const KdTree& tree, const math::Ray& ray)
-    {
-      Intersection isect;
-      return searchTree(tree, ray, isect);
-    }
   }
 }
 
