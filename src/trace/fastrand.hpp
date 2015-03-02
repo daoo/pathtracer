@@ -11,7 +11,7 @@ namespace trace
     public:
       FastRand() : m_engine(std::random_device()()) { }
 
-      float operator()()
+      float next()
       {
         return std::generate_canonical<float,
               std::numeric_limits<float>::digits>(m_engine);

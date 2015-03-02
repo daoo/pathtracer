@@ -136,7 +136,7 @@ namespace trace
       const vec3& wi,
       const vec3& n) const
   {
-    if (rand() < reflectance(m_R0, wi, n))
+    if (rand.next() < reflectance(m_R0, wi, n))
       return m_onReflectionMaterial->sample_brdf(rand, wi, n);
     else
       return m_onRefractionMaterial->sample_brdf(rand, wi, n);
@@ -161,7 +161,7 @@ namespace trace
       const vec3& wi,
       const vec3& n) const
   {
-    if (rand() < m_w)
+    if (rand.next() < m_w)
       return m_firstMaterial->sample_brdf(rand, wi, n);
     else
       return m_secondMaterial->sample_brdf(rand, wi, n);

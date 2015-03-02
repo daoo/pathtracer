@@ -153,8 +153,8 @@ namespace trace
   {
     for (unsigned int y = 0; y < buffer.height(); ++y) {
       for (unsigned int x = 0; x < buffer.width(); ++x) {
-        float sx = (static_cast<float>(x) + rand()) / m_fwidth;
-        float sy = (static_cast<float>(y) + rand()) / m_fheight;
+        float sx = (static_cast<float>(x) + rand.next()) / m_fwidth;
+        float sy = (static_cast<float>(y) + rand.next()) / m_fheight;
 
         Ray ray
           { m_camera_pos

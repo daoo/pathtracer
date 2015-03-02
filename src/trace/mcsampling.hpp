@@ -8,8 +8,8 @@
 namespace trace
 {
   inline glm::vec3 uniformSampleSphere(FastRand& rand, float radius) {
-    float z = rand() * 2.0f - 1.0f;
-    float a = rand() * (2.0f * glm::pi<float>());
+    float z = rand.next() * 2.0f - 1.0f;
+    float a = rand.next() * (2.0f * glm::pi<float>());
 
     float r = glm::sqrt(1.0f - z * z);
 
@@ -21,8 +21,8 @@ namespace trace
 
   inline glm::vec3 uniformSampleHemisphere(FastRand& rand)
   {
-    float r1 = rand();
-    float r2 = rand();
+    float r1 = rand.next();
+    float r2 = rand.next();
 
     float a = glm::sqrt(r2 * (1.0f - r2));
     float b = glm::pi<float>() * 2.0f * r1;
@@ -35,8 +35,8 @@ namespace trace
 
   inline glm::vec2 concentricSampleDisk(FastRand& rand)
   {
-    float sx = rand() * 2.0f - 1.0f;
-    float sy = rand() * 2.0f - 1.0f;
+    float sx = rand.next() * 2.0f - 1.0f;
+    float sy = rand.next() * 2.0f - 1.0f;
 
     // Handle degeneracy at the origin
     if (sx == 0.0 && sy == 0.0) {
