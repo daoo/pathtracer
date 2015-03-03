@@ -7,7 +7,8 @@
 
 namespace trace
 {
-  inline glm::vec3 uniformSampleSphere(FastRand& rand, float radius) {
+  inline glm::vec3 uniformSampleSphere(FastRand& rand)
+  {
     float z = rand.next() * 2.0f - 1.0f;
     float a = rand.next() * (2.0f * glm::pi<float>());
 
@@ -16,7 +17,7 @@ namespace trace
     float x = r * glm::cos(a);
     float y = r * glm::sin(a);
 
-    return glm::vec3(x, y, z) * radius;
+    return glm::vec3(x, y, z);
   }
 
   inline glm::vec3 uniformSampleHemisphere(FastRand& rand)

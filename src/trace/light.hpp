@@ -23,7 +23,7 @@ namespace trace
 
   inline glm::vec3 lightSample(FastRand& rand, const SphereLight& light)
   {
-    return light.position + uniformSampleSphere(rand, light.radius);
+    return light.position + uniformSampleSphere(rand) * light.radius;
   }
 
   /**
