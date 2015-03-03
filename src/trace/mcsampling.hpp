@@ -40,34 +40,34 @@ namespace trace
 
   inline glm::vec2 concentricSampleDisk(FastRand& rand)
   {
-    float sx = rand.next() * 2.0f - 1.0f;
-    float sy = rand.next() * 2.0f - 1.0f;
+    float x = rand.next() * 2.0f - 1.0f;
+    float y = rand.next() * 2.0f - 1.0f;
 
     // Handle degeneracy at the origin
-    if (sx == 0.0 && sy == 0.0) {
+    if (x == 0.0 && y == 0.0) {
       return glm::zero<glm::vec2>();
     }
 
     float r, theta;
-    if (sx >= -sy) {
-      if (sx > sy) {
+    if (x >= -y) {
+      if (x > y) {
         // Handle first region of disk
-        r     = sx;
-        theta = sy > 0.0f ? sy / r : 8.0f + sy / r;
+        r     = x;
+        theta = y/x;
       } else {
         // Handle second region of disk
-        r     = sy;
-        theta = 2.0f - sx / r;
+        r     = y;
+        theta = 2.0f - x/y;
       }
     } else {
-      if (sx <= sy) {
+      if (x <= y) {
         // Handle third region of disk
-        r     = -sx;
-        theta = 4.0f - sy / r;
+        r     = -x;
+        theta = 4.0f + y/x;
       } else {
         // Handle fourth region of disk
-        r     = -sy;
-        theta = 6.0f + sx / r;
+        r     = -y;
+        theta = 6.0f - x/y;
       }
     }
 
@@ -84,9 +84,7 @@ namespace trace
     return glm::vec3
       { ret.x
       , ret.y
-      , glm::sqrt(
-          glm::max(
-            0.0f, 1.0f - ret.x * ret.x - ret.y * ret.y))
+      , glm::sqrt(glm::max(0.0f, 1.0f - ret.x*ret.x - ret.y*ret.y))
       };
   }
 }
