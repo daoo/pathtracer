@@ -7,6 +7,11 @@
 
 namespace trace
 {
+  inline glm::vec2 uniformSampleSquare(FastRand& rand)
+  {
+    return glm::vec2(rand.next(), rand.next());
+  }
+
   inline glm::vec3 uniformSampleSphere(FastRand& rand)
   {
     float z = rand.next() * 2.0f - 1.0f;
@@ -22,15 +27,14 @@ namespace trace
 
   inline glm::vec3 uniformSampleHemisphere(FastRand& rand)
   {
-    float r1 = rand.next();
-    float r2 = rand.next();
+    glm::vec2 r = uniformSampleSquare(rand);
 
-    float a = glm::sqrt(r2 * (1.0f - r2));
-    float b = glm::pi<float>() * 2.0f * r1;
+    float a = 2.0f * glm::sqrt(r.y * (1.0f - r.y));
+    float b = glm::pi<float>() * 2.0f * r.x;
     return glm::vec3
-      { 2.0f * a * glm::cos(b)
-      , 2.0f * a * glm::sin(b)
-      , glm::abs(1.0f - 2.0f * r2)
+      { a * glm::cos(b)
+      , a * glm::sin(b)
+      , glm::abs(1.0f - 2.0f * r.y)
       };
   }
 
