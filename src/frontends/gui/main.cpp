@@ -3,11 +3,11 @@
 
 #include "gui.hpp"
 
+#include "trace/clock.hpp"
+#include "trace/path.hpp"
 #include "trace/pathtracer.hpp"
 #include "trace/samplebuffer.hpp"
-#include "util/clock.hpp"
-#include "util/path.hpp"
-#include "util/strings.hpp"
+#include "trace/strings.hpp"
 
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/path.hpp>
@@ -106,8 +106,8 @@ int main(int argc, char *argv[])
       return ERROR_FILE_NOT_FOUND;
     }
 
-    const obj::Obj obj = obj::loadObj(model);
-    const obj::Mtl mtl = obj::loadMtl(model.parent_path() / obj.mtl_lib);
+    const wavefront::Obj obj = wavefront::loadObj(model);
+    const wavefront::Mtl mtl = wavefront::loadMtl(model.parent_path() / obj.mtl_lib);
     const Scene scene(obj, mtl);
 
     string name = basename(change_extension(model, ""));

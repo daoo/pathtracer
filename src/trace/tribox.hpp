@@ -16,7 +16,7 @@
 
 #include <glm/glm.hpp>
 
-#include "math/aabb.hpp"
+#include "trace/geometry/aabb.hpp"
 
 namespace math
 {

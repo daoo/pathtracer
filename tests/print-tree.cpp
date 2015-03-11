@@ -1,6 +1,7 @@
+#include "trace/clock.hpp"
 #include "trace/kdtree/print.hpp"
-#include "trace/pathtracer.hpp"
-#include "util/clock.hpp"
+#include "trace/scene.hpp"
+#include "trace/wavefront/obj.hpp"
 
 #include <boost/filesystem.hpp>
 #include <iostream>
@@ -19,8 +20,8 @@ int main(int argc, char* argv[])
 
   path obj_file = argv[1];
 
-  const obj::Obj obj = obj::loadObj(obj_file);
-  const obj::Mtl mtl = obj::loadMtl(obj_file.parent_path() / obj.mtl_lib);
+  const wavefront::Obj obj = wavefront::loadObj(obj_file);
+  const wavefront::Mtl mtl = wavefront::loadMtl(obj_file.parent_path() / obj.mtl_lib);
 
   Clock clock;
   clock.start();

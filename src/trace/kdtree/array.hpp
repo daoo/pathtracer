@@ -1,9 +1,9 @@
 #ifndef ARRAY_HPP_BBXOECNY
 #define ARRAY_HPP_BBXOECNY
 
-#include "math/ray.hpp"
+#include "trace/geometry/ray.hpp"
+#include "trace/geometry/triangle.hpp"
 #include "trace/kdtree/util.hpp"
-#include "trace/triangle.hpp"
 
 #include <array>
 #include <cstdint>

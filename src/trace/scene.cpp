@@ -13,34 +13,31 @@ namespace trace
   {
     constexpr float EPSILON = 0.0001f;
 
-    vec2 to_glm(const obj::Vec2& v) { return vec2(v.x, v.y); }
-    vec3 to_glm(const obj::Vec3& v) { return vec3(v.x, v.y, v.z); }
-
-    void buildFromObj(const obj::Obj& obj, const obj::Mtl& mtl,
+    void buildFromObj(const wavefront::Obj& obj, const wavefront::Mtl& mtl,
         vector<SphereLight>& lights, vector<Camera>& cameras,
         vector<Triangle>& triangles)
     {
-      for (const obj::Light& light : mtl.lights) {
+      for (const wavefront::Light& light : mtl.lights) {
         lights.push_back(
             { light.radius
-            , to_glm(light.position)
-            , light.intensity * to_glm(light.color)
+            , light.center
+            , light.intensity * light.color
             });
       }
 
-      for (const obj::Camera& camera : mtl.cameras) {
+      for (const wavefront::Camera& camera : mtl.cameras) {
         cameras.push_back(
-            { to_glm(camera.position)
-            , normalize(to_glm(camera.target) - to_glm(camera.position))
-            , normalize(to_glm(camera.up))
+            { camera.position
+            , normalize(camera.target - camera.position)
+            , normalize(camera.up)
             , camera.fov
             });
       }
 
       map<string, Material*> materials;
-      for (const obj::Material& mat : mtl.materials) {
+      for (const wavefront::Material& mat : mtl.materials) {
         DiffuseMaterial* diffuse =
-          new DiffuseMaterial(to_glm(mat.diffuse));
+          new DiffuseMaterial(mat.diffuse);
 
         SpecularRefractionMaterial* specularRefraction =
           new SpecularRefractionMaterial(mat.ior);
@@ -58,7 +55,7 @@ namespace trace
         }
 
         SpecularReflectionMaterial* specularReflection =
-          new SpecularReflectionMaterial(to_glm(mat.specular));
+          new SpecularReflectionMaterial(mat.specular);
 
         FresnelBlendMaterial* fresnel =
           new FresnelBlendMaterial(specularReflection, blend1, mat.reflAt0Deg);
@@ -76,19 +73,19 @@ namespace trace
         materials[mat.name] = blend0;
       }
 
-      for (const obj::Chunk& chunk : obj.chunks) {
+      for (const wavefront::Chunk& chunk : obj.chunks) {
         Material* mat = materials[chunk.material];
-        for (const obj::Triangle& tri : chunk.triangles) {
+        for (const wavefront::Face& polygon : chunk.polygons) {
           triangles.push_back(
-              { to_glm(tri.v1.p)
-              , to_glm(tri.v2.p)
-              , to_glm(tri.v3.p)
-              , to_glm(tri.v1.n)
-              , to_glm(tri.v2.n)
-              , to_glm(tri.v3.n)
-              , to_glm(tri.v1.t)
-              , to_glm(tri.v2.t)
-              , to_glm(tri.v3.t)
+              { obj.vertices[polygon.p1.v]
+              , obj.vertices[polygon.p2.v]
+              , obj.vertices[polygon.p3.v]
+              , obj.normals[polygon.p1.n]
+              , obj.normals[polygon.p2.n]
+              , obj.normals[polygon.p3.n]
+              , obj.texcoords[polygon.p1.t]
+              , obj.texcoords[polygon.p2.t]
+              , obj.texcoords[polygon.p3.t]
               , mat
               });
         }
@@ -98,7 +95,7 @@ namespace trace
 
   Scene::Scene() { }
 
-  Scene::Scene(const obj::Obj& obj, const obj::Mtl& mtl)
+  Scene::Scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl)
   {
     buildFromObj(obj, mtl, m_lights, m_cameras, m_triangles);
     kdtree::buildTree(m_kdtree, m_triangles);

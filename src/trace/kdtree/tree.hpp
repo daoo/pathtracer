@@ -1,7 +1,7 @@
 #ifndef TREE_HPP_47RCBESP
 #define TREE_HPP_47RCBESP
 
-#include "math/ray.hpp"
+#include "trace/geometry/ray.hpp"
 #include "trace/kdtree/array.hpp"
 #include "trace/kdtree/traverse.hpp"
 

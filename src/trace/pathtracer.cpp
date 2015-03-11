@@ -1,6 +1,7 @@
 #include "trace/pathtracer.hpp"
 
-#include "math/ray.hpp"
+#include "trace/geometry/ray.hpp"
+#include "trace/mcsampling.hpp"
 #include <glm/gtc/constants.hpp>
 
 using namespace glm;

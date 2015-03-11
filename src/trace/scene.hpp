@@ -1,12 +1,12 @@
 #ifndef SCENE_HPP_BOFJZX4D
 #define SCENE_HPP_BOFJZX4D
 
-#include "math/ray.hpp"
 #include "trace/camera.hpp"
+#include "trace/geometry/ray.hpp"
 #include "trace/kdtree/tree.hpp"
 #include "trace/light.hpp"
 #include "trace/material.hpp"
-#include "trace/obj/loader.hpp"
+#include "trace/wavefront/obj.hpp"
 
 namespace trace
 {
@@ -14,7 +14,7 @@ namespace trace
   {
     public:
       Scene();
-      Scene(const obj::Obj&, const obj::Mtl&);
+      Scene(const wavefront::Obj&, const wavefront::Mtl&);
       ~Scene();
 
       inline bool allIntersection(const math::Ray& ray, float tmin, float tmax, Intersection& isect) const

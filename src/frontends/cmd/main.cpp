@@ -1,5 +1,6 @@
 #include "thread.hpp"
-#include "util/strings.hpp"
+
+#include "trace/strings.hpp"
 
 #include <boost/filesystem/path.hpp>
 #include <boost/program_options.hpp>

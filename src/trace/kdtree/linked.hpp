@@ -1,9 +1,9 @@
 #ifndef LINKED_HPP_DGVBYSLC
 #define LINKED_HPP_DGVBYSLC
 
-#include "math/ray.hpp"
+#include "trace/geometry/ray.hpp"
+#include "trace/geometry/triangle.hpp"
 #include "trace/kdtree/util.hpp"
-#include "trace/triangle.hpp"
 
 #include <vector>
 

@@ -1,36 +1,33 @@
-#ifndef OBJLOADER_HPP_THS3WZCH
-#define OBJLOADER_HPP_THS3WZCH
+#ifndef OBJ_HPP_BMTCK0HO
+#define OBJ_HPP_BMTCK0HO
 
 #include <boost/filesystem.hpp>
-#include <ostream>
+#include <glm/glm.hpp>
 #include <vector>
 
 namespace trace
 {
-  /**
-   * Obj and Mtl loader.
-   *
-   * Only supports ASCII.
-   */
-  namespace obj
+  namespace wavefront
   {
-    struct Vec2 { float x, y; };
-    struct Vec3 { float x, y, z; };
-    struct Vertex { Vec3 p, n; Vec2 t; };
-    struct Triangle { Vertex v1, v2, v3; };
+    struct Point { int v, t, n; };
+    struct Face { Point p1, p2, p3; };
 
     struct Chunk
     {
       Chunk(const std::string& mtl) : material(mtl) { }
 
-      std::vector<Triangle> triangles;
+      std::vector<Face> polygons;
       std::string material;
     };
 
     struct Obj
     {
-      std::vector<Chunk> chunks;
       boost::filesystem::path mtl_lib;
+
+      std::vector<glm::vec3> vertices;
+      std::vector<glm::vec3> normals;
+      std::vector<glm::vec2> texcoords;
+      std::vector<Chunk> chunks;
     };
 
     struct Material
@@ -38,7 +35,7 @@ namespace trace
       std::string name;
 
       std::string diffuseMap;
-      Vec3 diffuse, specular, emittance;
+      glm::vec3 diffuse, specular, emittance;
       float roughness;
       float transparency;
       float reflAt0Deg, reflAt90Deg;
@@ -47,13 +44,13 @@ namespace trace
 
     struct Light
     {
-      Vec3 position, color;
+      glm::vec3 center, color;
       float radius, intensity;
     };
 
     struct Camera
     {
-      Vec3 position, target, up;
+      glm::vec3 position, target, up;
       float fov;
     };
 
@@ -69,4 +66,4 @@ namespace trace
   }
 }
 
-#endif /* end of include guard: OBJLOADER_HPP_THS3WZCH */
+#endif /* end of include guard: OBJ_HPP_BMTCK0HO */

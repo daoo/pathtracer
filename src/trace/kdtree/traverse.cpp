@@ -1,5 +1,6 @@
 #include "traverse.hpp"
-#include "trace/triangle.hpp"
+
+#include "trace/geometry/triangle.hpp"
 
 using namespace glm;
 using namespace math;
@@ -45,7 +46,7 @@ namespace
   };
 
   bool go(
-      TreeSearch search,
+      const TreeSearch& search,
       float raymaxt,
       float tmin,
       float tmax,

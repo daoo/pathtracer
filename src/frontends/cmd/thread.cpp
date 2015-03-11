@@ -1,12 +1,12 @@
 #include "thread.hpp"
 
+#include "trace/clock.hpp"
+#include "trace/concurrentqueue.hpp"
 #include "trace/fastrand.hpp"
+#include "trace/nicetime.hpp"
+#include "trace/path.hpp"
 #include "trace/pathtracer.hpp"
 #include "trace/samplebuffer.hpp"
-#include "util/clock.hpp"
-#include "util/concurrentqueue.hpp"
-#include "util/nicetime.hpp"
-#include "util/path.hpp"
 
 #include <iostream>
 #include <thread>
@@ -86,8 +86,8 @@ void program(const path& objFile, const path& outDir,
   assert(threadCount > 0);
 
   // Setup scene
-  const obj::Obj obj = obj::loadObj(objFile);
-  const obj::Mtl mtl = obj::loadMtl(objFile.parent_path() / obj.mtl_lib);
+  const wavefront::Obj obj = wavefront::loadObj(objFile);
+  const wavefront::Mtl mtl = wavefront::loadMtl(objFile.parent_path() / obj.mtl_lib);
 
   const Scene scene(obj, mtl);
   const Pathtracer pt(scene, camera, w, h);

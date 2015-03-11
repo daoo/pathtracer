@@ -1,5 +1,5 @@
-#include "trace/obj/loader.hpp"
-#include "util/clock.hpp"
+#include "trace/clock.hpp"
+#include "trace/wavefront/obj.hpp"
 
 #include <boost/filesystem.hpp>
 #include <iostream>
@@ -22,17 +22,17 @@ int main(int argc, char* argv[])
   try {
     Clock c1;
     c1.start();
-    obj::Obj obj = obj::loadObj(obj_file);
+    wavefront::Obj obj = wavefront::loadObj(obj_file);
     c1.stop();
 
     Clock c2;
     c2.start();
-    obj::Mtl mtl = obj::loadMtl(mtl_file);
+    wavefront::Mtl mtl = wavefront::loadMtl(mtl_file);
     c2.stop();
 
     unsigned int triangle_count = 0;
-    for (const obj::Chunk& c : obj.chunks) {
-      triangle_count += c.triangles.size();
+    for (const wavefront::Chunk& c : obj.chunks) {
+      triangle_count += c.polygons.size();
     }
 
     cout << "Loaded " << obj_file << " in ";

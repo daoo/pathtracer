@@ -1,14 +1,16 @@
-#include "loader.hpp"
+#include "obj.hpp"
 
 #include <exception>
 #include <fstream>
+#include <ostream>
 
 using namespace boost::filesystem;
+using namespace glm;
 using namespace std;
 
 namespace trace
 {
-  namespace obj
+  namespace wavefront
   {
     namespace
     {
@@ -34,9 +36,6 @@ namespace trace
       const char TOKEN_CAMERA_POSITION[] = "cameraposition";
       const char TOKEN_CAMERA_TARGET[]   = "cameratarget";
       const char TOKEN_CAMERA_UP[]       = "cameraup";
-
-      struct Point { int v, t, n; };
-      struct Face { Point p1, p2, p3; };
 
       template <typename T>
       T index(vector<T>& v, int i)
@@ -125,7 +124,7 @@ namespace trace
         return strtof(str, nullptr);
       }
 
-      Vec2 parse_vec2(const char* str)
+      vec2 parse_vec2(const char* str)
       {
         assert(str != nullptr);
 
@@ -135,7 +134,7 @@ namespace trace
         return {x, y};
       }
 
-      Vec3 parse_vec3(const char* str)
+      vec3 parse_vec3(const char* str)
       {
         assert(str != nullptr);
 
@@ -191,9 +190,6 @@ namespace trace
       unsigned int line_index = 0;
 
       Obj obj;
-      vector<Vec3> vertices;
-      vector<Vec3> normals;
-      vector<Vec2> texcoords;
 
       while (getline(stream, line)) {
         if (!line.empty()) {
@@ -204,29 +200,17 @@ namespace trace
           if (first == 'v') {
             char second = *(token + 1);
             if (second == ' ') {
-              vertices.push_back(parse_vec3(token + 1));
+              obj.vertices.push_back(parse_vec3(token + 1));
             } else if (second == 'n') {
-              normals.push_back(parse_vec3(token + 2));
+              obj.normals.push_back(parse_vec3(token + 2));
             } else if (second == 't') {
-              texcoords.push_back(parse_vec2(token + 2));
+              obj.texcoords.push_back(parse_vec2(token + 2));
             }
           }
 
           else if (first == 'f') {
-            Face face = parse_face(token + 1);
-
-            Triangle tri;
-            tri.v1.p = index(vertices  , face.p1.v);
-            tri.v2.p = index(vertices  , face.p2.v);
-            tri.v3.p = index(vertices  , face.p3.v);
-            tri.v1.n = index(normals   , face.p1.n);
-            tri.v2.n = index(normals   , face.p2.n);
-            tri.v3.n = index(normals   , face.p3.n);
-            tri.v1.t = index(texcoords , face.p1.t);
-            tri.v2.t = index(texcoords , face.p2.t);
-            tri.v3.t = index(texcoords , face.p3.t);
-
-            obj.chunks.back().triangles.push_back(tri);
+            obj.chunks.back().polygons.push_back(
+              parse_face(token + 1));
           }
 
           else if (equal("usemtl", token)) {
@@ -268,9 +252,9 @@ namespace trace
             mtl.materials.push_back(
                 { parse_string(skip_whitespace(token + 7))
                 , ""
-                , Vec3 {0.7f, 0.7f, 0.7f}
-                , Vec3 {1.0f, 1.0f, 1.0f}
-                , Vec3 {0.0f, 0.0f, 0.0f}
+                , {0.7f, 0.7f, 0.7f}
+                , {1.0f, 1.0f, 1.0f}
+                , {0.0f, 0.0f, 0.0f}
                 , 0.001f
                 , 0.0f
                 , 0.0f
@@ -281,8 +265,8 @@ namespace trace
 
           else if (equal("newlight", token)) {
             mtl.lights.push_back(
-              { Vec3 {0.0f, 0.0f, 0.0f}
-              , Vec3 {1.0f, 1.0f, 1.0f}
+              { {0.0f, 0.0f, 0.0f}
+              , {1.0f, 1.0f, 1.0f}
               , 0.1f
               , 10.0f
               });
@@ -290,17 +274,17 @@ namespace trace
 
           else if (equal("newcamera", token)) {
             mtl.cameras.push_back(
-              { Vec3 {7.0f, 5.0f, 6.0f}
-              , Vec3 {0.0f, 0.0f, 0.0f}
-              , Vec3 {0.0f, 1.0f, 0.0f}
+              { {7.0f, 5.0f, 6.0f}
+              , {0.0f, 0.0f, 0.0f}
+              , {0.0f, 1.0f, 0.0f}
               , 10.0f
               });
           }
 
 #define TOKEN_VALUE(list, constant, parse, param, error) \
-    else if (equal(constant, token)) { \
-      list.back().param = parse(token + sizeof(constant)); \
-    }
+  else if (equal(constant, token)) { \
+    list.back().param = parse(token + sizeof(constant)); \
+  }
 
           TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE      , parse_vec3   , diffuse      , "No material created")
           TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE_MAP  , parse_string , diffuseMap   , "No material created")
@@ -314,7 +298,7 @@ namespace trace
 
           TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_COLOR     , parse_vec3  , color     , "No light created")
           TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_INTENSITY , parse_float , intensity , "No light created")
-          TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_POSITION  , parse_vec3  , position  , "No light created")
+          TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_POSITION  , parse_vec3  , center    , "No light created")
           TOKEN_VALUE(mtl.lights , TOKEN_LIGHT_RADIUS    , parse_float , radius    , "No light created")
 
           TOKEN_VALUE(mtl.cameras , TOKEN_CAMERA_FOV      , parse_float , fov      , "No camera created")

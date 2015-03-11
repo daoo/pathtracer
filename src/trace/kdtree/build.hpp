@@ -1,9 +1,9 @@
 #ifndef BUILD_HPP_BTVASI2S
 #define BUILD_HPP_BTVASI2S
 
-#include "math/aabb.hpp"
+#include "trace/geometry/aabb.hpp"
+#include "trace/geometry/triangle.hpp"
 #include "trace/kdtree/linked.hpp"
-#include "trace/triangle.hpp"
 
 #include <vector>
 
