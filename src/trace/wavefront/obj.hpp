@@ -30,39 +30,7 @@ namespace trace
       std::vector<Chunk> chunks;
     };
 
-    struct Material
-    {
-      std::string name;
-
-      std::string diffuseMap;
-      glm::vec3 diffuse, specular, emittance;
-      float roughness;
-      float transparency;
-      float reflAt0Deg, reflAt90Deg;
-      float ior;
-    };
-
-    struct Light
-    {
-      glm::vec3 center, color;
-      float radius, intensity;
-    };
-
-    struct Camera
-    {
-      glm::vec3 position, target, up;
-      float fov;
-    };
-
-    struct Mtl
-    {
-      std::vector<Material> materials;
-      std::vector<Light> lights;
-      std::vector<Camera> cameras;
-    };
-
     Obj loadObj(const boost::filesystem::path&);
-    Mtl loadMtl(const boost::filesystem::path&);
   }
 }
 

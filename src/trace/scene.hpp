@@ -7,6 +7,7 @@
 #include "trace/light.hpp"
 #include "trace/material.hpp"
 #include "trace/wavefront/obj.hpp"
+#include "trace/wavefront/mtl.hpp"
 
 namespace trace
 {

@@ -1,4 +1,5 @@
 #include "trace/clock.hpp"
+#include "trace/wavefront/mtl.hpp"
 #include "trace/wavefront/obj.hpp"
 
 #include <boost/filesystem.hpp>
