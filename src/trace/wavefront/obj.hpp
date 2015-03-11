@@ -31,6 +31,24 @@ namespace trace
     };
 
     Obj loadObj(const boost::filesystem::path&);
+
+    inline glm::vec3 indexVertex(const Obj& obj, int i)
+    {
+      if (i == 0) return glm::vec3();
+      return obj.vertices[i < 0 ? obj.vertices.size() + i : i - 1];
+    }
+
+    inline glm::vec3 indexNormal(const Obj& obj, int i)
+    {
+      if (i == 0) return glm::vec3();
+      return obj.normals[i < 0 ? obj.normals.size() + i : i - 1];
+    }
+
+    inline glm::vec2 indexTexCoord(const Obj& obj, int i)
+    {
+      if (i == 0) return glm::vec2();
+      return obj.texcoords[i < 0 ? obj.texcoords.size() + i : i - 1];
+    }
   }
 }
 

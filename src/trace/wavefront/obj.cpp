@@ -16,17 +16,6 @@ namespace trace
   {
     namespace
     {
-      template <typename T>
-      T index(vector<T>& v, int i)
-      {
-        if (i == 0)
-          return -1;
-        else if (i < 0)
-          return v.size() + i;
-        else
-          return i - 1;
-      }
-
       Point parse_point(const char* str)
       {
         assert(str != nullptr);

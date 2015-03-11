@@ -77,15 +77,15 @@ namespace trace
         Material* mat = materials[chunk.material];
         for (const wavefront::Face& polygon : chunk.polygons) {
           triangles.push_back(
-              { obj.vertices[polygon.p1.v]
-              , obj.vertices[polygon.p2.v]
-              , obj.vertices[polygon.p3.v]
-              , obj.normals[polygon.p1.n]
-              , obj.normals[polygon.p2.n]
-              , obj.normals[polygon.p3.n]
-              , obj.texcoords[polygon.p1.t]
-              , obj.texcoords[polygon.p2.t]
-              , obj.texcoords[polygon.p3.t]
+              { indexVertex(obj, polygon.p1.v)
+              , indexVertex(obj, polygon.p2.v)
+              , indexVertex(obj, polygon.p3.v)
+              , indexNormal(obj, polygon.p1.n)
+              , indexNormal(obj, polygon.p2.n)
+              , indexNormal(obj, polygon.p3.n)
+              , indexTexCoord(obj, polygon.p1.t)
+              , indexTexCoord(obj, polygon.p2.t)
+              , indexTexCoord(obj, polygon.p3.t)
               , mat
               });
         }
