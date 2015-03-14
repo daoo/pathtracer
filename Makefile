@@ -10,6 +10,9 @@ build:
 clean:
 	+@make --no-print-directory -C $(build_dir) clean
 
+distclean:
+	rm -rf $(build_dir)
+
 debug:
 	cgdb -- -ex "set args -m $(path)/scenes/cube.obj -o $(path)/build/" \
 		$(front_dir)/gui/pathtracer-gl
