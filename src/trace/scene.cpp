@@ -33,7 +33,7 @@ namespace trace
               camera.position,
               camera.target,
               camera.up,
-              camera.fov));
+              radians(camera.fov)));
       }
 
       map<string, Material*> materials;

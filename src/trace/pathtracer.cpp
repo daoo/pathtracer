@@ -136,9 +136,9 @@ namespace trace
     float aspect   = m_fwidth / m_fheight;
     float fov_half = camera.fov / 2.0f;
 
-    vec3 x = camera_up        * sin(radians(fov_half));
-    vec3 y = camera_right     * sin(radians(fov_half)) * aspect;
-    vec3 z = camera.direction * cos(radians(fov_half));
+    vec3 x = camera_up        * sin(fov_half);
+    vec3 y = camera_right     * sin(fov_half) * aspect;
+    vec3 z = camera.direction * cos(fov_half);
 
     m_camera_pos = camera.position;
 
