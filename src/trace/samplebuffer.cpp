@@ -11,14 +11,9 @@ namespace trace
   {
     constexpr float GAMMA_POWER = 1.0f / 2.2f;
 
-    constexpr float min(float a, float b)
-    {
-      return a < b ? a : b;
-    }
-
     float gammaCorrect(float x)
     {
-      return min(1.0f, pow(x, GAMMA_POWER));
+      return glm::min(1.0f, pow(x, GAMMA_POWER));
     }
 
     vec3 gammaCorrect(const vec3& v)
