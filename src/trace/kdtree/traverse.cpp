@@ -4,7 +4,6 @@
 #include "trace/geometry/triray.hpp"
 
 using namespace glm;
-using namespace math;
 using namespace std;
 using namespace trace;
 using namespace trace::kdtree;

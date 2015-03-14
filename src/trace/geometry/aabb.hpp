@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-namespace math
+namespace trace
 {
   struct Aabb
   {

@@ -11,11 +11,19 @@ namespace trace
 {
   namespace kdtree
   {
-    void build_tree_sah(KdTreeLinked::Node*, unsigned int, Axis,
-        const math::Aabb&, const std::vector<const Triangle*>& triangles);
+    void build_tree_sah(
+        KdTreeLinked::Node*,
+        unsigned int,
+        Axis,
+        const Aabb&,
+        const std::vector<const Triangle*>& triangles);
 
-    void build_tree_naive(KdTreeLinked::Node*, unsigned int, Axis,
-        const math::Aabb&, const std::vector<const Triangle*>& triangles);
+    void build_tree_naive(
+        KdTreeLinked::Node*,
+        unsigned int,
+        Axis,
+        const Aabb&,
+        const std::vector<const Triangle*>& triangles);
   }
 }
 

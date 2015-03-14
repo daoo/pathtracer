@@ -9,7 +9,6 @@
 #include <vector>
 
 using namespace glm;
-using namespace math;
 using namespace std;
 
 namespace trace

@@ -15,7 +15,7 @@ namespace trace
 
     inline bool intersects(
         const KdTree& tree,
-        const math::Ray& ray,
+        const Ray& ray,
         float tmin,
         float tmax,
         Intersection& isect)

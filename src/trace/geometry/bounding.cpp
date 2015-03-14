@@ -5,9 +5,9 @@
 using namespace glm;
 using namespace std;
 
-namespace math
+namespace trace
 {
-  Aabb find_bounding(const vector<trace::Triangle>& triangles)
+  Aabb find_bounding(const vector<Triangle>& triangles)
   {
     vec3 min, max;
 

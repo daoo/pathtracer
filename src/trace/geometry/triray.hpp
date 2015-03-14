@@ -9,7 +9,7 @@ namespace trace
 {
   inline bool triray(
       const Triangle& tri,
-      const math::Ray& ray,
+      const Ray& ray,
       float& t,
       glm::vec3& n)
   {

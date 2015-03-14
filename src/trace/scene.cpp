@@ -5,8 +5,8 @@
 #include <map>
 
 using namespace glm;
-using namespace math;
 using namespace std;
+
 namespace trace
 {
   namespace

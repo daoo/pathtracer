@@ -19,7 +19,7 @@ namespace trace
       ~Scene();
 
       inline bool all_intersection(
-          const math::Ray& ray,
+          const Ray& ray,
           float tmin,
           float tmax,
           Intersection& isect) const
@@ -28,7 +28,7 @@ namespace trace
       }
 
       inline bool any_intersection(
-          const math::Ray& ray,
+          const Ray& ray,
           float tmin,
           float tmax) const
       {

@@ -5,7 +5,6 @@
 #include <glm/glm.hpp>
 
 using namespace glm;
-using namespace math;
 using namespace std;
 
 namespace trace
@@ -17,11 +16,11 @@ namespace trace
       constexpr float EPSILON = 0.00001f;
 
       void aabb_from_split(
-          const math::Aabb& box,
+          const Aabb& box,
           Axis axis,
           float split,
-          math::Aabb& left,
-          math::Aabb& right)
+          Aabb& left,
+          Aabb& right)
       {
         left  = box;
         right = box;

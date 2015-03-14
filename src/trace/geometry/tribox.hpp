@@ -18,7 +18,7 @@
 
 #include "trace/geometry/aabb.hpp"
 
-namespace math
+namespace trace
 {
   namespace detail
   {
