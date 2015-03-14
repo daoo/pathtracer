@@ -1,5 +1,5 @@
 path = $(realpath .)
-target = debug
+target = debug_gcc
 
 build:
 	+@make --no-print-directory -C build/$(target) all
@@ -16,22 +16,25 @@ run:
 		-m $(path)/scenes/cube.obj \
 		-o /tmp
 
-cmake_debug:
+cmake:
 	@mkdir -p build/debug
-	@cd build/debug; \
-		CC=clang CXX=clang CXXOPTS="-g -Og" cmake -DCMAKE_BUILD_TYPE=debug $(path)
-
-cmake_release_clang:
+	@mkdir -p build/debug_gcc
 	@mkdir -p build/release_clang
+	@mkdir -p build/release_gcc
+	@cd build/debug; \
+		CC=clang CXX=clang CXXOPTS="-stdlib=libc++ -lc++abi -g -Og" cmake -DCMAKE_BUILD_TYPE=debug $(path)
+	@cd build/debug_gcc; \
+		CC=gcc CXX=g++ CXXOPTS="-g -Og" cmake -DCMAKE_BUILD_TYPE=debug $(path)
 	@cd build/release_clang; \
 		CC=clang CXX=clang CXXOPTS="-Ofast" cmake -DCMAKE_BUILD_TYPE=release $(path)
-
-cmake_release_gcc:
-	@mkdir -p build/release_gcc
 	@cd build/release_gcc; \
 		CC=gcc CXX=g++ CXXOPTS="-Ofast -march=native" cmake -DCMAKE_BUILD_TYPE=release $(path)
 
 distclean:
-	rm -rf build/debug build/release_clang
+	rm -rf \
+		build/debug \
+		build/debug_gcc \
+		build/release_clang \
+		build/release_gcc
 
 .PHONY: build clean cmake links debug run
