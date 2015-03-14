@@ -1,7 +1,7 @@
 #include "build.hpp"
 
+#include "trace/geometry/tribox.hpp"
 #include "trace/kdtree/util.hpp"
-#include "trace/tribox.hpp"
 #include <glm/glm.hpp>
 
 using namespace glm;
