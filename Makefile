@@ -1,29 +1,37 @@
+path = $(realpath .)
 target = debug
 
-path      = $(realpath .)
-build_dir = $(path)/build/$(target)
-front_dir = $(build_dir)/src/frontends
-
 build:
-	+@make --no-print-directory -C $(build_dir) all
+	+@make --no-print-directory -C build/$(target) all
 
 clean:
-	+@make --no-print-directory -C $(build_dir) clean
-
-distclean:
-	rm -rf $(build_dir)
+	+@make --no-print-directory -C build/$(target) clean
 
 debug:
-	cgdb -- -ex "set args -m $(path)/scenes/cube.obj -o $(path)/build/" \
-		$(front_dir)/gui/pathtracer-gl
+	cgdb -- -ex "set args -m $(path)/scenes/cube.obj -o /tmp" \
+		build/debug/src/frontends/gui/pathtracer-gl
 
 run:
-	$(front_dir)/gui/pathtracer-gl \
+	build/release_clang/src/frontends/gui/pathtracer-gl \
 		-m $(path)/scenes/cube.obj \
-		-o $(path)/build/
+		-o /tmp
 
-cmake:
-	mkdir -p $(build_dir)
-	cd $(build_dir); cmake -DCMAKE_BUILD_TYPE=$(target) $(path)
+cmake_debug:
+	@mkdir -p build/debug
+	@cd build/debug; \
+		CC=clang CXX=clang CXXOPTS="-g -Og" cmake -DCMAKE_BUILD_TYPE=debug $(path)
+
+cmake_release_clang:
+	@mkdir -p build/release_clang
+	@cd build/release_clang; \
+		CC=clang CXX=clang CXXOPTS="-Ofast" cmake -DCMAKE_BUILD_TYPE=release $(path)
+
+cmake_release_gcc:
+	@mkdir -p build/release_gcc
+	@cd build/release_gcc; \
+		CC=gcc CXX=g++ CXXOPTS="-Ofast -march=native" cmake -DCMAKE_BUILD_TYPE=release $(path)
+
+distclean:
+	rm -rf build/debug build/release_clang
 
 .PHONY: build clean cmake links debug run
