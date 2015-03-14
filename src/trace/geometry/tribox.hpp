@@ -33,9 +33,13 @@ namespace math
       if (x2 > max) max = x2;
     }
 
-    inline void test_axis(int axis, const glm::vec3& normal,
-        const glm::vec3& vert, const glm::vec3& maxbox,
-        glm::vec3& vmin, glm::vec3& vmax)
+    inline void test_axis(
+        int axis,
+        const glm::vec3& normal,
+        const glm::vec3& vert,
+        const glm::vec3& maxbox,
+        glm::vec3& vmin,
+        glm::vec3& vmax)
     {
       float v = vert[axis];
       if (normal[axis] > 0.0f) {
@@ -47,7 +51,9 @@ namespace math
       }
     }
 
-    inline int plane_box_overlap(const glm::vec3& normal, const glm::vec3& vert,
+    inline int plane_box_overlap(
+        const glm::vec3& normal,
+        const glm::vec3& vert,
         const glm::vec3& maxbox)
     {
       glm::vec3 vmin, vmax;
@@ -108,8 +114,11 @@ namespace math
     if(min > rad || max < -rad) return 0;
   }
 
-  inline bool tri_box_overlap(const Aabb& aabb,
-        const glm::vec3& triv0, const glm::vec3& triv1, const glm::vec3& triv2)
+  inline bool tri_box_overlap(
+      const Aabb& aabb,
+      const glm::vec3& triv0,
+      const glm::vec3& triv1,
+      const glm::vec3& triv2)
   {
     /*    use separating axis theorem to test overlap between triangle and box */
     /*    need to test for overlap in these directions: */
