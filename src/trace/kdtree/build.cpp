@@ -16,20 +16,6 @@ namespace trace
     {
       constexpr float EPSILON = 0.00001f;
 
-      void triangle_extremes(
-          const Triangle& tri,
-          Axis axis,
-          float& min,
-          float& max)
-      {
-        float a = tri.v0[axis];
-        float b = tri.v1[axis];
-        float c = tri.v2[axis];
-
-        min = glm::min(glm::min(a, b), c);
-        max = glm::max(glm::max(a, b), c);
-      }
-
       void aabb_from_split(
           const math::Aabb& box,
           Axis axis,
@@ -166,10 +152,10 @@ namespace trace
         for (const Triangle* triangle : triangles) {
           assert(triangle != nullptr);
 
-          float min, max;
-          triangle_extremes(*triangle, axis, min, max);
-          min -= EPSILON;
-          max += EPSILON;
+          vec3 vmin, vmax;
+          triangle_extremes(*triangle, vmin, vmax);
+          float min = vmin[axis] - EPSILON;
+          float max = vmax[axis] + EPSILON;
 
           best(
               box,

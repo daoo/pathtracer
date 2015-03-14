@@ -17,6 +17,16 @@ namespace trace
     const Material* material;
   };
 
+  inline void triangle_extremes(
+      const Triangle& tri,
+      glm::vec3& min,
+      glm::vec3& max)
+  {
+    min = glm::min(glm::min(tri.v0, tri.v1), tri.v2);
+    max = glm::max(glm::max(tri.v0, tri.v1), tri.v2);
+  }
+
+
   bool intersects(
       const Triangle& tri,
       const math::Ray& ray,
