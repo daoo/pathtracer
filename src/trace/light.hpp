@@ -14,16 +14,22 @@ namespace trace
   struct SphereLight
   {
     float radius;
-    glm::vec3 position;
+    glm::vec3 center;
     glm::vec3 intensity;
   };
+
+  SphereLight newLight(
+      const glm::vec3& center,
+      const glm::vec3& color,
+      float intensity,
+      float radius);
 
   glm::vec3 lightSample(const SphereLight&);
   glm::vec3 lightEmitted(const SphereLight&, const glm::vec3&);
 
   inline glm::vec3 lightSample(FastRand& rand, const SphereLight& light)
   {
-    return light.position + uniformSampleSphere(rand) * light.radius;
+    return light.center + uniformSampleSphere(rand) * light.radius;
   }
 
   /**
@@ -31,7 +37,7 @@ namespace trace
    */
   inline glm::vec3 lightEmitted(const SphereLight& light, const glm::vec3& p)
   {
-    return light.intensity / glm::length2(light.position - p);
+    return light.intensity / glm::length2(light.center - p);
   }
 }
 

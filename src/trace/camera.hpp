@@ -12,6 +12,12 @@ namespace trace
     glm::vec3 up;
     float fov;
   };
+
+  Camera newCamera(
+      const glm::vec3& position,
+      const glm::vec3& target,
+      const glm::vec3& approxup,
+      float fov);
 }
 
 #endif /* end of include guard: CAMERA_HPP_6EER58HB */

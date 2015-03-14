@@ -18,20 +18,19 @@ namespace trace
         vector<Triangle>& triangles)
     {
       for (const wavefront::Light& light : mtl.lights) {
-        lights.push_back(
-            { light.radius
-            , light.center
-            , light.intensity * light.color
-            });
+        lights.push_back(newLight(
+              light.center,
+              light.color,
+              light.intensity,
+              light.radius));
       }
 
       for (const wavefront::Camera& camera : mtl.cameras) {
-        cameras.push_back(
-            { camera.position
-            , normalize(camera.target - camera.position)
-            , normalize(camera.up)
-            , camera.fov
-            });
+        cameras.push_back(newCamera(
+              camera.position,
+              camera.target,
+              camera.up,
+              camera.fov));
       }
 
       map<string, Material*> materials;
