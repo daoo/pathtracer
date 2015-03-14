@@ -118,18 +118,14 @@ namespace trace
   }
 
   Pathtracer::Pathtracer(
+      const Camera& camera,
       const Scene& scene,
-      unsigned int camera_index,
       unsigned int width,
       unsigned int height)
     : m_scene(scene)
     , m_fwidth(static_cast<float>(width))
     , m_fheight(static_cast<float>(height))
   {
-    assert(!scene.cameras().empty());
-
-    const Camera& camera = m_scene.cameras()[camera_index % m_scene.cameras().size()];
-
     vec3 camera_right = normalize(cross(camera.direction, camera.up));
     vec3 camera_up    = normalize(cross(camera_right, camera.direction));
 

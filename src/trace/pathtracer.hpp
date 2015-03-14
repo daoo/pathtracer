@@ -1,6 +1,7 @@
 #ifndef PATHTRACER_HPP_NVGMZUSY
 #define PATHTRACER_HPP_NVGMZUSY
 
+#include "trace/camera.hpp"
 #include "trace/fastrand.hpp"
 #include "trace/samplebuffer.hpp"
 #include "trace/scene.hpp"
@@ -11,7 +12,7 @@ namespace trace
   class Pathtracer
   {
     public:
-      Pathtracer(const Scene&, unsigned int, unsigned int, unsigned int);
+      Pathtracer(const Camera&, const Scene&, unsigned int, unsigned int);
       ~Pathtracer();
 
       void trace(FastRand&, SampleBuffer&) const;

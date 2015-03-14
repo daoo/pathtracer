@@ -100,7 +100,7 @@ void program(
   const wavefront::Mtl mtl = wavefront::load_mtl(obj_file.parent_path() / obj.mtl_lib);
 
   const Scene scene(obj, mtl);
-  const Pathtracer pt(scene, camera, w, h);
+  const Pathtracer pt(scene.cameras()[camera], scene, w, h);
 
   // Setup one buffer for each thread
   vector<SampleBuffer> buffers;
