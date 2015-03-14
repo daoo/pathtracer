@@ -16,8 +16,11 @@ namespace trace
     {
       constexpr float EPSILON = 0.00001f;
 
-      void triangleExtremes(const Triangle& tri, Axis axis,
-          float& min, float& max)
+      void triangle_extremes(
+          const Triangle& tri,
+          Axis axis,
+          float& min,
+          float& max)
       {
         float a = tri.v0[axis];
         float b = tri.v1[axis];
@@ -27,13 +30,17 @@ namespace trace
         max = glm::max(glm::max(a, b), c);
       }
 
-      void aabbFromSplit(const math::Aabb& box,
-          Axis axis, float split, math::Aabb& left, math::Aabb& right)
+      void aabb_from_split(
+          const math::Aabb& box,
+          Axis axis,
+          float split,
+          math::Aabb& left,
+          math::Aabb& right)
       {
         left  = box;
         right = box;
 
-        float splitClamped = glm::clamp(
+        float split_clamped = glm::clamp(
             split,
             box.center[axis] - box.half[axis],
             box.center[axis] + box.half[axis]);
@@ -41,32 +48,33 @@ namespace trace
         float min = box.center[axis] - box.half[axis];
         float max = box.center[axis] + box.half[axis];
 
-        float lh = (splitClamped - min) / 2.0f + EPSILON;
-        float rh = (max - splitClamped) / 2.0f + EPSILON;
+        float lh = (split_clamped - min) / 2.0f + EPSILON;
+        float rh = (max - split_clamped) / 2.0f + EPSILON;
 
         left.half[axis]   = lh;
-        left.center[axis] = splitClamped - lh;
+        left.center[axis] = split_clamped - lh;
 
         right.half[axis]   = rh;
-        right.center[axis] = splitClamped + rh;
+        right.center[axis] = split_clamped + rh;
       }
 
       constexpr float COST_TRAVERSE  = 0.3f;
       constexpr float COST_INTERSECT = 1.0f;
 
-      float calculateCost(const Aabb& box,
-          const Aabb& leftBox,
-          const Aabb& rightBox,
-          const vector<const Triangle*>& leftTriangles,
-          const vector<const Triangle*>& rightTriangles)
+      float calculate_cost(
+          const Aabb& box,
+          const Aabb& left_box,
+          const Aabb& right_box,
+          const vector<const Triangle*>& left_triangles,
+          const vector<const Triangle*>& right_triangles)
       {
-        float area = surfaceArea(box);
+        float area = surface_area(box);
 
-        float left_area  = surfaceArea(leftBox);
-        float left_count = leftTriangles.size();
+        float left_area  = surface_area(left_box);
+        float left_count = left_triangles.size();
 
-        float right_area  = surfaceArea(rightBox);
-        float right_count = rightTriangles.size();
+        float right_area  = surface_area(right_box);
+        float right_count = right_triangles.size();
 
         assert(left_area > 0 && right_area > 0);
         assert(right_count >= 0 && left_count >= 0);
@@ -75,65 +83,83 @@ namespace trace
           (left_area * left_count + right_area * right_count) / area;
       }
 
-      void intersectTest(const Aabb& leftBox,
-          const Aabb& rightBox,
+      void intersect_test(
+          const Aabb& left_box,
+          const Aabb& right_box,
           const vector<const Triangle*>& triangles,
-          vector<const Triangle*>& leftTriangles,
-          vector<const Triangle*>& rightTriangles)
+          vector<const Triangle*>& left_triangles,
+          vector<const Triangle*>& right_triangles)
       {
 
-        leftTriangles.reserve(triangles.size());
-        rightTriangles.reserve(triangles.size());
+        left_triangles.reserve(triangles.size());
+        right_triangles.reserve(triangles.size());
         for (const Triangle* tri : triangles) {
-          if (triBoxOverlap(leftBox, tri->v0, tri->v1, tri->v2)) {
-            leftTriangles.push_back(tri);
+          if (tri_box_overlap(left_box, tri->v0, tri->v1, tri->v2)) {
+            left_triangles.push_back(tri);
           }
 
-          if (triBoxOverlap(rightBox, tri->v0, tri->v1, tri->v2)) {
-            rightTriangles.push_back(tri);
+          if (tri_box_overlap(right_box, tri->v0, tri->v1, tri->v2)) {
+            right_triangles.push_back(tri);
           }
         }
 
-        assert(leftTriangles.size() + rightTriangles.size() >= triangles.size());
+        assert(left_triangles.size() + right_triangles.size() >= triangles.size());
 
-        leftTriangles.shrink_to_fit();
-        rightTriangles.shrink_to_fit();
+        left_triangles.shrink_to_fit();
+        right_triangles.shrink_to_fit();
       }
 
-      void best(const Aabb& box, Axis axis, float split,
+      void best(
+          const Aabb& box,
+          Axis axis,
+          float split,
           const vector<const Triangle*>& triangles,
-          float& bestCost, float& bestSplit,
-          Aabb& bestLeftBox, Aabb& bestRightBox,
-          vector<const Triangle*>& bestLeftTriangles,
-          vector<const Triangle*>& bestRightTriangles)
+          float& best_cost,
+          float& best_split,
+          Aabb& best_left_box,
+          Aabb& best_right_box,
+          vector<const Triangle*>& best_left_triangles,
+          vector<const Triangle*>& best_right_triangles)
       {
         Aabb left_box, right_box;
-        aabbFromSplit(box, axis, split, left_box, right_box);
+        aabb_from_split(box, axis, split, left_box, right_box);
 
         vector<const Triangle*> left_triangles, right_triangles;
-        intersectTest(left_box, right_box, triangles,
-            left_triangles, right_triangles);
+        intersect_test(
+            left_box,
+            right_box,
+            triangles,
+            left_triangles,
+            right_triangles);
 
-        float cost = calculateCost(box, left_box, right_box,
-            left_triangles, right_triangles);
-        if (cost < bestCost) {
-          bestCost  = cost;
-          bestSplit = split;
+        float cost = calculate_cost(
+            box,
+            left_box,
+            right_box,
+            left_triangles,
+            right_triangles);
+        if (cost < best_cost) {
+          best_cost  = cost;
+          best_split = split;
 
-          bestLeftBox  = left_box;
-          bestRightBox = right_box;
+          best_left_box  = left_box;
+          best_right_box = right_box;
 
-          bestLeftTriangles  = left_triangles;
-          bestRightTriangles = right_triangles;
+          best_left_triangles  = left_triangles;
+          best_right_triangles = right_triangles;
         }
       }
 
-      void findSplit(const Aabb& box, Axis axis,
+      void find_split(
+          const Aabb& box,
+          Axis axis,
           const vector<const Triangle*>& triangles,
-          float& cost, float& split,
-          Aabb& leftBox, Aabb& rightBox,
-          vector<const Triangle*>& leftTriangles,
-          vector<const Triangle*>& rightTriangles)
+          float& cost,
+          float& split,
+          Aabb& left_box,
+          Aabb& right_box,
+          vector<const Triangle*>& left_triangles,
+          vector<const Triangle*>& right_triangles)
       {
         cost  = FLT_MAX;
         split = 0;
@@ -141,20 +167,42 @@ namespace trace
           assert(triangle != nullptr);
 
           float min, max;
-          triangleExtremes(*triangle, axis, min, max);
+          triangle_extremes(*triangle, axis, min, max);
           min -= EPSILON;
           max += EPSILON;
 
-          best(box, axis, min, triangles, cost, split, leftBox, rightBox,
-              leftTriangles, rightTriangles);
-          best(box, axis, max, triangles, cost, split, leftBox, rightBox,
-              leftTriangles, rightTriangles);
+          best(
+              box,
+              axis,
+              min,
+              triangles,
+              cost,
+              split,
+              left_box,
+              right_box,
+              left_triangles,
+              right_triangles);
+          best(
+              box,
+              axis,
+              max,
+              triangles,
+              cost,
+              split,
+              left_box,
+              right_box,
+              left_triangles,
+              right_triangles);
         }
       }
     }
 
-    void buildTreeSAH(KdTreeLinked::Node* node, unsigned int depth,
-        Axis axis, const Aabb& box, const vector<const Triangle*>& triangles)
+    void build_tree_sah(
+        KdTreeLinked::Node* node,
+        unsigned int depth,
+        Axis axis,
+        const Aabb& box,
+        const vector<const Triangle*>& triangles)
     {
       assert(node != nullptr);
 
@@ -162,8 +210,16 @@ namespace trace
       vector<const Triangle*> left_triangles, right_triangles;
       Aabb left_box, right_box;
 
-      findSplit(box, axis, triangles, cost, split,
-          left_box, right_box, left_triangles, right_triangles);
+      find_split(
+          box,
+          axis,
+          triangles,
+          cost,
+          split,
+          left_box,
+          right_box,
+          left_triangles,
+          right_triangles);
 
       if (depth >= 20 || cost > COST_INTERSECT * triangles.size()) {
         node->type           = KdTreeLinked::Node::Leaf;
@@ -175,20 +231,32 @@ namespace trace
         node->split.left     = new KdTreeLinked::Node;
         node->split.right    = new KdTreeLinked::Node;
 
-        buildTreeSAH(node->split.left, depth + 1, nextAxis(axis),
-            left_box, left_triangles);
-        buildTreeSAH(node->split.right, depth + 1, nextAxis(axis),
-            right_box, right_triangles);
+        build_tree_sah(
+            node->split.left,
+            depth + 1,
+            next_axis(axis),
+            left_box,
+            left_triangles);
+        build_tree_sah(
+            node->split.right,
+            depth + 1,
+            next_axis(axis),
+            right_box,
+            right_triangles);
       }
     }
 
-    void buildTreeNaive(KdTreeLinked::Node* node, unsigned int depth, Axis axis,
-        const Aabb& box, const vector<const Triangle*>& triangles)
+    void build_tree_naive(
+        KdTreeLinked::Node* node,
+        unsigned int depth,
+        Axis axis,
+        const Aabb& box,
+        const vector<const Triangle*>& triangles)
     {
       assert(node != nullptr);
 
       if (depth >= 20 || triangles.size() <= 10) {
-        node->type             = KdTreeLinked::Node::Leaf;
+        node->type           = KdTreeLinked::Node::Leaf;
         node->leaf.triangles = new vector<const Triangle*>(triangles);
       } else {
         float split = box.center[axis];
@@ -196,12 +264,16 @@ namespace trace
         Aabb left_box;
         Aabb right_box;
 
-        aabbFromSplit(box, axis, split, left_box, right_box);
+        aabb_from_split(box, axis, split, left_box, right_box);
 
         vector<const Triangle*> left_triangles, right_triangles;
 
-        intersectTest(left_box, right_box, triangles,
-            left_triangles, right_triangles);
+        intersect_test(
+            left_box,
+            right_box,
+            triangles,
+            left_triangles,
+            right_triangles);
 
         node->type           = KdTreeLinked::Node::Split;
         node->split.axis     = axis;
@@ -209,10 +281,18 @@ namespace trace
         node->split.left     = new KdTreeLinked::Node;
         node->split.right    = new KdTreeLinked::Node;
 
-        buildTreeNaive(node->split.left, depth + 1, nextAxis(axis),
-            left_box, left_triangles);
-        buildTreeNaive(node->split.right, depth + 1, nextAxis(axis),
-            right_box, right_triangles);
+        build_tree_naive(
+            node->split.left,
+            depth + 1,
+            next_axis(axis),
+            left_box,
+            left_triangles);
+        build_tree_naive(
+            node->split.right,
+            depth + 1,
+            next_axis(axis),
+            right_box,
+            right_triangles);
       }
     }
   }

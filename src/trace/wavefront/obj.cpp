@@ -47,7 +47,7 @@ namespace trace
       }
     }
 
-    Obj loadObj(const path& file)
+    Obj load_obj(const path& file)
     {
       ifstream stream(file.string());
       if (!stream.good()) {

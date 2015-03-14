@@ -11,18 +11,18 @@ namespace trace
   {
     constexpr float GAMMA_POWER = 1.0f / 2.2f;
 
-    float gammaCorrect(float x)
+    float gamma_correct(float x)
     {
       return glm::min(1.0f, pow(x, GAMMA_POWER));
     }
 
-    vec3 gammaCorrect(const vec3& v)
+    vec3 gamma_correct(const vec3& v)
     {
-      return vec3(gammaCorrect(v.r), gammaCorrect(v.g), gammaCorrect(v.b));
+      return vec3(gamma_correct(v.r), gamma_correct(v.g), gamma_correct(v.b));
     }
   }
 
-  void writeImage(const string& file, const SampleBuffer& buffer)
+  void write_image(const string& file, const SampleBuffer& buffer)
   {
     const float samples = static_cast<float>(buffer.samples());
     FIBITMAP* dib = FreeImage_Allocate(buffer.width(), buffer.height(),
@@ -34,7 +34,7 @@ namespace trace
       BYTE* bits = FreeImage_GetScanLine(dib, y);
 
       for (unsigned int x = 0; x < FreeImage_GetWidth(dib); ++x) {
-        vec3 c = gammaCorrect(buffer.get(x, y) / samples) * 255.0f;
+        vec3 c = gamma_correct(buffer.get(x, y) / samples) * 255.0f;
         bits[FI_RGBA_RED]   = static_cast<BYTE>(c.r);
         bits[FI_RGBA_GREEN] = static_cast<BYTE>(c.g);
         bits[FI_RGBA_BLUE]  = static_cast<BYTE>(c.b);

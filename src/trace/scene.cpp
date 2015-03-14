@@ -13,12 +13,15 @@ namespace trace
   {
     constexpr float EPSILON = 0.0001f;
 
-    void buildFromObj(const wavefront::Obj& obj, const wavefront::Mtl& mtl,
-        vector<SphereLight>& lights, vector<Camera>& cameras,
+    void build_from_obj(
+        const wavefront::Obj& obj,
+        const wavefront::Mtl& mtl,
+        vector<SphereLight>& lights,
+        vector<Camera>& cameras,
         vector<Triangle>& triangles)
     {
       for (const wavefront::Light& light : mtl.lights) {
-        lights.push_back(newLight(
+        lights.push_back(new_light(
               light.center,
               light.color,
               light.intensity,
@@ -26,7 +29,7 @@ namespace trace
       }
 
       for (const wavefront::Camera& camera : mtl.cameras) {
-        cameras.push_back(newCamera(
+        cameras.push_back(new_camera(
               camera.position,
               camera.target,
               camera.up,
@@ -38,35 +41,35 @@ namespace trace
         DiffuseMaterial* diffuse =
           new DiffuseMaterial(mat.diffuse);
 
-        SpecularRefractionMaterial* specularRefraction =
+        SpecularRefractionMaterial* specular_refraction =
           new SpecularRefractionMaterial(mat.ior);
 
         Material* blend1 = nullptr;
         if (epsilonEqual(mat.transparency, 1.0f, EPSILON)) {
-          blend1 = specularRefraction;
+          blend1 = specular_refraction;
           delete diffuse;
         } else if (epsilonEqual(mat.transparency, 0.0f, EPSILON)) {
           blend1 = diffuse;
-          delete specularRefraction;
+          delete specular_refraction;
         } else {
           blend1 = new BlendMaterial(
-              specularRefraction, diffuse, mat.transparency);
+              specular_refraction, diffuse, mat.transparency);
         }
 
-        SpecularReflectionMaterial* specularReflection =
+        SpecularReflectionMaterial* specular_reflection =
           new SpecularReflectionMaterial(mat.specular);
 
         FresnelBlendMaterial* fresnel =
-          new FresnelBlendMaterial(specularReflection, blend1, mat.reflAt0Deg);
+          new FresnelBlendMaterial(specular_reflection, blend1, mat.refl0);
 
         Material* blend0 = nullptr;
-        if (epsilonEqual(mat.reflAt90Deg, 1.0f, EPSILON)) {
+        if (epsilonEqual(mat.refl90, 1.0f, EPSILON)) {
           blend0 = fresnel;
-        } else if (epsilonEqual(mat.reflAt90Deg, 0.0f, EPSILON)) {
+        } else if (epsilonEqual(mat.refl90, 0.0f, EPSILON)) {
           blend0 = blend1;
           delete fresnel;
         } else {
-          blend0 = new BlendMaterial(fresnel, blend1, mat.reflAt90Deg);
+          blend0 = new BlendMaterial(fresnel, blend1, mat.refl90);
         }
 
         materials[mat.name] = blend0;
@@ -76,15 +79,15 @@ namespace trace
         Material* mat = materials[chunk.material];
         for (const wavefront::Face& polygon : chunk.polygons) {
           triangles.push_back(
-              { indexVertex(obj, polygon.p1.v)
-              , indexVertex(obj, polygon.p2.v)
-              , indexVertex(obj, polygon.p3.v)
-              , indexNormal(obj, polygon.p1.n)
-              , indexNormal(obj, polygon.p2.n)
-              , indexNormal(obj, polygon.p3.n)
-              , indexTexCoord(obj, polygon.p1.t)
-              , indexTexCoord(obj, polygon.p2.t)
-              , indexTexCoord(obj, polygon.p3.t)
+              { index_vertex(obj, polygon.p1.v)
+              , index_vertex(obj, polygon.p2.v)
+              , index_vertex(obj, polygon.p3.v)
+              , index_normal(obj, polygon.p1.n)
+              , index_normal(obj, polygon.p2.n)
+              , index_normal(obj, polygon.p3.n)
+              , index_texcoord(obj, polygon.p1.t)
+              , index_texcoord(obj, polygon.p2.t)
+              , index_texcoord(obj, polygon.p3.t)
               , mat
               });
         }
@@ -96,8 +99,8 @@ namespace trace
 
   Scene::Scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl)
   {
-    buildFromObj(obj, mtl, m_lights, m_cameras, m_triangles);
-    kdtree::buildTree(m_kdtree, m_triangles);
+    build_from_obj(obj, mtl, m_lights, m_cameras, m_triangles);
+    kdtree::build_tree(m_kdtree, m_triangles);
   }
 
   Scene::~Scene() { }

@@ -30,17 +30,17 @@ namespace trace
       {
         assert(node != nullptr);
 
-        if (isLeaf(*node)) {
-          if (hasTriangles(*node)) {
+        if (is_leaf(*node)) {
+          if (has_triangles(*node)) {
             uint32_t i = static_cast<uint32_t>(result.leaf_store.size());
             result.leaf_store.push_back(vector<Triangle>());
-            copy(result.leaf_store[i], getTriangles(*node));
+            copy(result.leaf_store[i], get_triangles(*node));
             set(result.nodes, index, KdTreeArray::Node(i));
           } else {
             set(result.nodes, index, KdTreeArray::Node());
           }
         } else {
-          assert(isSplit(*node));
+          assert(is_split(*node));
 
           KdTreeLinked::Node* left  = node->split.left;
           KdTreeLinked::Node* right = node->split.right;
@@ -50,8 +50,8 @@ namespace trace
 
           set(result.nodes, index, KdTreeArray::Node(node->split.distance));
 
-          helper(result, KdTreeArray::leftChild(index), left);
-          helper(result, KdTreeArray::rightChild(index), right);
+          helper(result, KdTreeArray::left_child(index), left);
+          helper(result, KdTreeArray::right_child(index), right);
         }
       }
     }

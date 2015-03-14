@@ -22,7 +22,7 @@ namespace math
 {
   namespace detail
   {
-    inline void findminmax(float x0, float x1, float x2, float& min, float& max)
+    inline void find_min_max(float x0, float x1, float x2, float& min, float& max)
     {
       min = x0;
       max = x0;
@@ -47,7 +47,7 @@ namespace math
       }
     }
 
-    inline int planeBoxOverlap(const glm::vec3& normal, const glm::vec3& vert,
+    inline int plane_box_overlap(const glm::vec3& normal, const glm::vec3& vert,
         const glm::vec3& maxbox)
     {
       glm::vec3 vmin, vmax;
@@ -108,7 +108,7 @@ namespace math
     if(min > rad || max < -rad) return 0;
   }
 
-  inline bool triBoxOverlap(const Aabb& aabb,
+  inline bool tri_box_overlap(const Aabb& aabb,
         const glm::vec3& triv0, const glm::vec3& triv1, const glm::vec3& triv2)
   {
     /*    use separating axis theorem to test overlap between triangle and box */
@@ -168,17 +168,17 @@ namespace math
     /*  the triangle against the AABB */
 
     /* test in X-direction */
-    detail::findminmax(v0.x, v1.x, v2.x, min, max);
+    detail::find_min_max(v0.x, v1.x, v2.x, min, max);
     if (min>aabb.half.x || max<-aabb.half.x)
       return false;
 
     /* test in Y-direction */
-    detail::findminmax(v0.y, v1.y, v2.y, min, max);
+    detail::find_min_max(v0.y, v1.y, v2.y, min, max);
     if (min>aabb.half.y || max<-aabb.half.y)
       return false;
 
     /* test in Z-direction */
-    detail::findminmax(v0.z, v1.z, v2.z, min, max);
+    detail::find_min_max(v0.z, v1.z, v2.z, min, max);
     if (min>aabb.half.z || max<-aabb.half.z)
       return false;
 
@@ -187,7 +187,7 @@ namespace math
     /*  compute plane equation of triangle: normal*x+d=0 */
     glm::vec3 normal = glm::cross(e0, e1);
 
-    return detail::planeBoxOverlap(normal, v0, aabb.half);
+    return detail::plane_box_overlap(normal, v0, aabb.half);
   }
 }
 

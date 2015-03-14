@@ -35,19 +35,19 @@ unsigned int GUI::subsampling() const
   return m_subsampling;
 }
 
-void GUI::increaseSubsampling()
+void GUI::increase_subsampling()
 {
   m_subsampling += 1;
   restart();
 }
 
-void GUI::decreaseSubsampling()
+void GUI::decrease_subsampling()
 {
   m_subsampling = std::max(1U, m_subsampling - 1);
   restart();
 }
 
-void GUI::initGL()
+void GUI::init_gl()
 {
   glDisable(GL_CULL_FACE);
 
@@ -58,43 +58,43 @@ void GUI::initGL()
     -1.0f,  1.0f, 0.0f
   };
 
-  GLuint positionBuffer;
-  glGenBuffers(1, &positionBuffer);
-  glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+  GLuint position_buffer;
+  glGenBuffers(1, &position_buffer);
+  glBindBuffer(GL_ARRAY_BUFFER, position_buffer);
   glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
 
   // ----------------------------------------------------------------------
   // Connect triangle data with the vertex array object
-  glGenVertexArrays(1, &m_vertexArrayObject);
-  glBindVertexArray(m_vertexArrayObject);
-  glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+  glGenVertexArrays(1, &m_vertex_array_object);
+  glBindVertexArray(m_vertex_array_object);
+  glBindBuffer(GL_ARRAY_BUFFER, position_buffer);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(0);
 
   // ----------------------------------------------------------------------
   // Create shader
-  m_shaderProgram = loadShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-  glBindAttribLocation(m_shaderProgram, 0, "position");
-  glBindFragDataLocation(m_shaderProgram, 0, "fragmentColor");
+  m_shader_program = load_shader_program(VERTEX_SHADER, FRAGMENT_SHADER);
+  glBindAttribLocation(m_shader_program, 0, "position");
+  glBindFragDataLocation(m_shader_program, 0, "color");
 
-  linkShaderProgram(m_shaderProgram);
+  link_shader_program(m_shader_program);
 
-  m_uniformFramebuffer        = glGetUniformLocation(m_shaderProgram, "framebuffer");
-  m_uniformFramebufferSamples = glGetUniformLocation(m_shaderProgram, "framebufferSamples");
+  m_uniform_framebuffer         = glGetUniformLocation(m_shader_program, "framebuffer");
+  m_uniform_framebuffer_samples = glGetUniformLocation(m_shader_program, "samples");
 
   // ----------------------------------------------------------------------
   // Create framebuffer texture
-  glGenTextures(1, &m_framebufferTexture);
+  glGenTextures(1, &m_framebuffer_texture);
 
   // ---------------------------------------------------------------------
   // Set up OpenGL state for use in Display
-  glBindVertexArray(m_vertexArrayObject);
+  glBindVertexArray(m_vertex_array_object);
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, m_framebufferTexture);
+  glBindTexture(GL_TEXTURE_2D, m_framebuffer_texture);
 
-  glUseProgram(m_shaderProgram);
-  glUniform1i(m_uniformFramebuffer, 0);
+  glUseProgram(m_shader_program);
+  glUniform1i(m_uniform_framebuffer, 0);
   glUseProgram(0);
 
   CHECK_GL_ERROR();
@@ -119,7 +119,7 @@ void GUI::trace()
 
 void GUI::render() const
 {
-  glUseProgram(m_shaderProgram);
+  glUseProgram(m_shader_program);
 
   // Create and upload raytracer framebuffer as a texture
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
@@ -128,7 +128,7 @@ void GUI::render() const
       0, GL_RGB, GL_FLOAT, m_buffer->data());
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glUniform1i(m_uniformFramebufferSamples, m_buffer->samples());
+  glUniform1i(m_uniform_framebuffer_samples, m_buffer->samples());
 
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -137,11 +137,11 @@ void GUI::render() const
   CHECK_GL_ERROR();
 }
 
-void GUI::saveScreenshot() const
+void GUI::save_screenshot() const
 {
-  string name = niceName(m_obj_file, m_width, m_height, m_buffer->samples());
-  writeImage(
-      nextFreeName(m_screenshot_dir, name, ".png").string(),
+  string name = nice_name(m_obj_file, m_width, m_height, m_buffer->samples());
+  write_image(
+      next_free_name(m_screenshot_dir, name, ".png").string(),
       *m_buffer);
 }
 

@@ -9,7 +9,7 @@ namespace trace
 {
   namespace kdtree
   {
-    bool searchTree(
+    bool search_tree(
         const KdTreeArray& tree,
         const math::Ray& ray,
         float tmin,

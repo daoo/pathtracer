@@ -11,7 +11,7 @@ namespace trace
   {
     typedef KdTreeArray KdTree;
 
-    void buildTree(KdTree& tree, const std::vector<Triangle>& triangles);
+    void build_tree(KdTree& tree, const std::vector<Triangle>& triangles);
 
     inline bool intersects(
         const KdTree& tree,
@@ -20,7 +20,7 @@ namespace trace
         float tmax,
         Intersection& isect)
     {
-      return searchTree(tree, ray, tmin, tmax, isect);
+      return search_tree(tree, ray, tmin, tmax, isect);
     }
   }
 }

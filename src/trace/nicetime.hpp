@@ -10,7 +10,7 @@ namespace util
     unsigned int hour, min, sec;
   };
 
-  NiceTime niceTime(unsigned int seconds);
+  NiceTime nice_time(unsigned int seconds);
 
   std::ostream& operator<<(std::ostream&, const NiceTime&);
 }

@@ -10,7 +10,7 @@ using namespace trace::kdtree;
 
 namespace
 {
-  bool intersectTriangles(
+  bool intersect_triangles(
       const vector<Triangle>& triangles,
       const Ray& ray,
       float mint,
@@ -58,9 +58,9 @@ namespace
 
     const KdTreeArray::Node& node = search.tree.nodes[index];
 
-    if (isLeaf(node)) {
-      bool hit = intersectTriangles(
-          getTriangles(search.tree, node),
+    if (is_leaf(node)) {
+      bool hit = intersect_triangles(
+          get_triangles(search.tree, node),
           search.ray,
           tmin,
           raymaxt,
@@ -83,14 +83,14 @@ namespace
             isect);
       }
     } else {
-      const float p = getSplit(node);
+      const float p = get_split(node);
       const float o = search.ray.origin[axis];
       const float d = search.ray.direction[axis];
 
       float t = (p - o) / d;
 
-      unsigned int first  = KdTreeArray::leftChild(index);
-      unsigned int second = KdTreeArray::rightChild(index);
+      unsigned int first  = KdTreeArray::left_child(index);
+      unsigned int second = KdTreeArray::right_child(index);
 
       if (d < 0) {
         std::swap(first, second);
@@ -100,19 +100,19 @@ namespace
         return go(
             search,
             raymaxt, tmin, tmax,
-            first, nextAxis(axis),
+            first, next_axis(axis),
             isect);
       } else if (t <= tmin) {
         return go(
             search,
             raymaxt, tmin, tmax,
-            second, nextAxis(axis),
+            second, next_axis(axis),
             isect);
       } else {
         return go(
             search,
             raymaxt, tmin, t,
-            first, nextAxis(axis),
+            first, next_axis(axis),
             isect);
       }
     }
@@ -123,7 +123,7 @@ namespace trace
 {
   namespace kdtree
   {
-    bool searchTree(
+    bool search_tree(
         const KdTreeArray& tree,
         const Ray& ray,
         float tmininit,

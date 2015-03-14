@@ -7,12 +7,12 @@
 
 namespace trace
 {
-  inline glm::vec2 uniformSampleSquare(FastRand& rand)
+  inline glm::vec2 uniform_sample_square(FastRand& rand)
   {
     return glm::vec2(rand.next(), rand.next());
   }
 
-  inline glm::vec3 uniformSampleSphere(FastRand& rand)
+  inline glm::vec3 uniform_sample_sphere(FastRand& rand)
   {
     float z = rand.next() * 2.0f - 1.0f;
     float a = rand.next() * (2.0f * glm::pi<float>());
@@ -25,9 +25,9 @@ namespace trace
     return glm::vec3(x, y, z);
   }
 
-  inline glm::vec3 uniformSampleHemisphere(FastRand& rand)
+  inline glm::vec3 uniform_sample_hemisphere(FastRand& rand)
   {
-    glm::vec2 r = uniformSampleSquare(rand);
+    glm::vec2 r = uniform_sample_square(rand);
 
     float a = 2.0f * glm::sqrt(r.y * (1.0f - r.y));
     float b = glm::pi<float>() * 2.0f * r.x;
@@ -38,7 +38,7 @@ namespace trace
       };
   }
 
-  inline glm::vec2 concentricSampleDisk(FastRand& rand)
+  inline glm::vec2 concentric_sample_disk(FastRand& rand)
   {
     float x = rand.next() * 2.0f - 1.0f;
     float y = rand.next() * 2.0f - 1.0f;
@@ -78,9 +78,9 @@ namespace trace
       };
   }
 
-  inline glm::vec3 cosineSampleHemisphere(FastRand& engine)
+  inline glm::vec3 cosine_sample_hemisphere(FastRand& engine)
   {
-    glm::vec2 ret = concentricSampleDisk(engine);
+    glm::vec2 ret = concentric_sample_disk(engine);
     return glm::vec3
       { ret.x
       , ret.y

@@ -6,10 +6,10 @@
 
 namespace util
 {
-  boost::filesystem::path nextFreeName(const boost::filesystem::path&,
+  boost::filesystem::path next_free_name(const boost::filesystem::path&,
       const std::string&, const std::string&);
 
-  std::string niceName(const boost::filesystem::path&,
+  std::string nice_name(const boost::filesystem::path&,
       unsigned int, unsigned int, unsigned int);
 }
 

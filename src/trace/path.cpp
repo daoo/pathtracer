@@ -7,7 +7,7 @@ using namespace std;
 
 namespace util
 {
-  path nextFreeName(const path& dir, const string& name, const string& ext)
+  path next_free_name(const path& dir, const string& name, const string& ext)
   {
     const string start = (dir / name).string();
 
@@ -24,7 +24,7 @@ namespace util
     return ss.str();
   }
 
-  string niceName(const path& file,
+  string nice_name(const path& file,
       unsigned int width, unsigned int height,
       unsigned int samples)
   {

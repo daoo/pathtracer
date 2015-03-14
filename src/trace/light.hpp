@@ -18,24 +18,21 @@ namespace trace
     glm::vec3 intensity;
   };
 
-  SphereLight newLight(
+  SphereLight new_light(
       const glm::vec3& center,
       const glm::vec3& color,
       float intensity,
       float radius);
 
-  glm::vec3 lightSample(const SphereLight&);
-  glm::vec3 lightEmitted(const SphereLight&, const glm::vec3&);
-
-  inline glm::vec3 lightSample(FastRand& rand, const SphereLight& light)
+  inline glm::vec3 light_sample(FastRand& rand, const SphereLight& light)
   {
-    return light.center + uniformSampleSphere(rand) * light.radius;
+    return light.center + uniform_sample_sphere(rand) * light.radius;
   }
 
   /**
    * Calculate the radiance that is emitted from the light and reaches point p.
    */
-  inline glm::vec3 lightEmitted(const SphereLight& light, const glm::vec3& p)
+  inline glm::vec3 light_emitted(const SphereLight& light, const glm::vec3& p)
   {
     return light.intensity / glm::length2(light.center - p);
   }

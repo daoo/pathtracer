@@ -2,7 +2,6 @@
 #define AABB_HPP_VOTKJJ0Y
 
 #include <glm/glm.hpp>
-#include <ostream>
 
 namespace math
 {
@@ -12,7 +11,7 @@ namespace math
     glm::vec3 half;
   };
 
-  inline float surfaceArea(const Aabb& box)
+  inline float surface_area(const Aabb& box)
   {
     return 8.0f * (
         box.half.x * box.half.y +
@@ -20,8 +19,6 @@ namespace math
         box.half.y * box.half.z
         );
   }
-
-  std::ostream& operator<<(std::ostream& stream, const Aabb& aabb);
 }
 
 #endif /* end of include guard: AABB_HPP_VOTKJJ0Y */

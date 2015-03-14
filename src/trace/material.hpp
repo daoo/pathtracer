@@ -162,9 +162,9 @@ namespace trace
           const glm::vec3&) const;
 
     private:
-      const Material* m_onReflectionMaterial;
-      const Material* m_onRefractionMaterial;
-      float m_R0;
+      const Material* m_on_reflection_material;
+      const Material* m_on_refraction_material;
+      float m_r0;
   };
 
   /**
@@ -190,8 +190,8 @@ namespace trace
           const glm::vec3&) const;
 
     private:
-      const Material* m_firstMaterial;
-      const Material* m_secondMaterial;
+      const Material* m_first_material;
+      const Material* m_second_material;
       float m_w;
   };
 }

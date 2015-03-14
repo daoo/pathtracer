@@ -64,16 +64,16 @@ void idle()
   glutPostRedisplay();
 }
 
-void handleKeys(unsigned char key, int, int)
+void handle_keys(unsigned char key, int, int)
 {
   if (key == 27 || key == 'q') {
     exit(0);
   } else if (key == 's') {
-    g_gui->increaseSubsampling();
+    g_gui->increase_subsampling();
   } else if (key == 'S') {
-    g_gui->decreaseSubsampling();
+    g_gui->decrease_subsampling();
   } else if (key == 'p') {
-    g_gui->saveScreenshot();
+    g_gui->save_screenshot();
   }
 }
 
@@ -106,8 +106,8 @@ int main(int argc, char *argv[])
       return ERROR_FILE_NOT_FOUND;
     }
 
-    const wavefront::Obj obj = wavefront::loadObj(model);
-    const wavefront::Mtl mtl = wavefront::loadMtl(model.parent_path() / obj.mtl_lib);
+    const wavefront::Obj obj = wavefront::load_obj(model);
+    const wavefront::Mtl mtl = wavefront::load_mtl(model.parent_path() / obj.mtl_lib);
     const Scene scene(obj, mtl);
 
     string name = basename(change_extension(model, ""));
@@ -116,14 +116,14 @@ int main(int argc, char *argv[])
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
     glutCreateWindow("Pathtracer GUI");
-    glutKeyboardFunc(handleKeys);
+    glutKeyboardFunc(handle_keys);
     glutReshapeFunc(reshape);
     glutIdleFunc(idle);
     glutDisplayFunc(display);
     glewInit();
 
     g_gui = new GUI(outdir, name, scene, SUBSAMPLING);
-    g_gui->initGL();
+    g_gui->init_gl();
     g_gui->resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
     glEnable(GL_FRAMEBUFFER_SRGB);

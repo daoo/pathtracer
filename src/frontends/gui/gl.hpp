@@ -4,11 +4,11 @@
 #include <string>
 #include <GL/glew.h>
 
-#define CHECK_GL_ERROR() { checkGLError(__FILE__, __LINE__); }
+#define CHECK_GL_ERROR() { check_gl_error(__FILE__, __LINE__); }
 
-void checkGLError(const std::string& file, unsigned int line);
+void check_gl_error(const std::string& file, unsigned int line);
 
-GLuint loadShaderProgram(const std::string&, const std::string&);
-void linkShaderProgram(GLuint);
+GLuint load_shader_program(const std::string&, const std::string&);
+void link_shader_program(GLuint);
 
 #endif /* end of include guard: GL_HPP_VTQYHMUI */

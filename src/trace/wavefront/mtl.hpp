@@ -13,23 +13,30 @@ namespace trace
     struct Material
     {
       std::string name;
-      std::string diffuseMap;
-      glm::vec3 diffuse, specular, emittance;
+      std::string diffuse_map;
+      glm::vec3 diffuse;
+      glm::vec3 specular;
+      glm::vec3 emittance;
       float roughness;
       float transparency;
-      float reflAt0Deg, reflAt90Deg;
+      float refl0;
+      float refl90;
       float ior;
     };
 
     struct Light
     {
-      glm::vec3 center, color;
-      float radius, intensity;
+      glm::vec3 center;
+      glm::vec3 color;
+      float radius;
+      float intensity;
     };
 
     struct Camera
     {
-      glm::vec3 position, target, up;
+      glm::vec3 position;
+      glm::vec3 target;
+      glm::vec3 up;
       float fov;
     };
 
@@ -40,7 +47,7 @@ namespace trace
       std::vector<Camera> cameras;
     };
 
-    Mtl loadMtl(const boost::filesystem::path&);
+    Mtl load_mtl(const boost::filesystem::path&);
   }
 }
 

@@ -13,7 +13,7 @@ namespace trace
     float fov;
   };
 
-  Camera newCamera(
+  Camera new_camera(
       const glm::vec3& position,
       const glm::vec3& target,
       const glm::vec3& approxup,

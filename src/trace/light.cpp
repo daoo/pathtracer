@@ -4,7 +4,7 @@ using namespace glm;
 
 namespace trace
 {
-  SphereLight newLight(
+  SphereLight new_light(
       const vec3& center,
       const vec3& color,
       float intensity,

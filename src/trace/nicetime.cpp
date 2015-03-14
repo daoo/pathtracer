@@ -4,7 +4,7 @@ using namespace std;
 
 namespace util
 {
-  NiceTime niceTime(unsigned int seconds)
+  NiceTime nice_time(unsigned int seconds)
   {
     return { seconds / 3600, (seconds % 3600) / 60, seconds % 60 };
   }

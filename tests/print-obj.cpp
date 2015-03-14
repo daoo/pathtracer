@@ -23,12 +23,12 @@ int main(int argc, char* argv[])
   try {
     Clock c1;
     c1.start();
-    wavefront::Obj obj = wavefront::loadObj(obj_file);
+    wavefront::Obj obj = wavefront::load_obj(obj_file);
     c1.stop();
 
     Clock c2;
     c2.start();
-    wavefront::Mtl mtl = wavefront::loadMtl(mtl_file);
+    wavefront::Mtl mtl = wavefront::load_mtl(mtl_file);
     c2.stop();
 
     unsigned int triangle_count = 0;

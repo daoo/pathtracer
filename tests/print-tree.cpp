@@ -20,8 +20,8 @@ int main(int argc, char* argv[])
 
   path obj_file = argv[1];
 
-  const wavefront::Obj obj = wavefront::loadObj(obj_file);
-  const wavefront::Mtl mtl = wavefront::loadMtl(obj_file.parent_path() / obj.mtl_lib);
+  const wavefront::Obj obj = wavefront::load_obj(obj_file);
+  const wavefront::Mtl mtl = wavefront::load_mtl(obj_file.parent_path() / obj.mtl_lib);
 
   Clock clock;
   clock.start();

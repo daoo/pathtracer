@@ -25,7 +25,7 @@ namespace trace
       return (a < 0 && b < 0) || (a >= 0 && b >= 0);
     }
 
-    bool sameHemisphere(const vec3& wi, const vec3& wo, const vec3& n)
+    bool same_hemisphere(const vec3& wi, const vec3& wo, const vec3& n)
     {
       return same_sign(dot(wi, n), dot(wo, n));
     }
@@ -58,7 +58,7 @@ namespace trace
   {
     vec3 tangent   = normalize(perpendicular(n));
     vec3 bitangent = cross(n, tangent);
-    vec3 s         = cosineSampleHemisphere(rand);
+    vec3 s         = cosine_sample_hemisphere(rand);
 
     vec3 wo = normalize(s.x * tangent + s.y * bitangent + s.z * n);
     return { length(s), brdf(wi, wo, n), wo };
@@ -81,7 +81,7 @@ namespace trace
       const vec3& n) const
   {
     vec3 wo   = normalize(2.0f * glm::abs<float>(dot(wi, n)) * n - wi);
-    float pdf = sameHemisphere(wi, wo, n) ? glm::abs<float>(dot(wo, n)) : 0.0f;
+    float pdf = same_hemisphere(wi, wo, n) ? glm::abs<float>(dot(wo, n)) : 0.0f;
     return { pdf, m_reflectance, wo };
   }
 
@@ -118,17 +118,21 @@ namespace trace
     return { 1.0f, one<vec3>(), wo };
   }
 
-  FresnelBlendMaterial::FresnelBlendMaterial(const Material* reflection, const Material* refraction, float r0)
-    : m_onReflectionMaterial(reflection), m_onRefractionMaterial(refraction), m_R0(r0) { }
+  FresnelBlendMaterial::FresnelBlendMaterial(
+      const Material* reflection,
+      const Material* refraction, float r0) :
+    m_on_reflection_material(reflection),
+    m_on_refraction_material(refraction),
+    m_r0(r0) { }
 
   vec3 FresnelBlendMaterial::brdf(
       const vec3& wo,
       const vec3& wi,
       const vec3& n) const
   {
-    float _R = reflectance(m_R0, wo, n);
-    return _R * m_onReflectionMaterial->brdf(wo, wi, n) +
-      (1.0f - _R) * m_onRefractionMaterial->brdf(wo, wi, n);
+    float _r = reflectance(m_r0, wo, n);
+    return _r * m_on_reflection_material->brdf(wo, wi, n) +
+      (1.0f - _r) * m_on_refraction_material->brdf(wo, wi, n);
   }
 
   LightSample FresnelBlendMaterial::sample_brdf(
@@ -136,14 +140,14 @@ namespace trace
       const vec3& wi,
       const vec3& n) const
   {
-    if (rand.next() < reflectance(m_R0, wi, n))
-      return m_onReflectionMaterial->sample_brdf(rand, wi, n);
+    if (rand.next() < reflectance(m_r0, wi, n))
+      return m_on_reflection_material->sample_brdf(rand, wi, n);
     else
-      return m_onRefractionMaterial->sample_brdf(rand, wi, n);
+      return m_on_refraction_material->sample_brdf(rand, wi, n);
   }
 
   BlendMaterial::BlendMaterial(const Material* first, const Material* second, float w)
-    : m_firstMaterial(first), m_secondMaterial(second), m_w(w) { }
+    : m_first_material(first), m_second_material(second), m_w(w) { }
 
   vec3 BlendMaterial::brdf(
       const vec3& wo,
@@ -152,8 +156,8 @@ namespace trace
   {
     return blend(
         m_w,
-        m_firstMaterial->brdf(wo, wi, n),
-        m_secondMaterial->brdf(wo, wi, n));
+        m_first_material->brdf(wo, wi, n),
+        m_second_material->brdf(wo, wi, n));
   }
 
   LightSample BlendMaterial::sample_brdf(
@@ -162,8 +166,8 @@ namespace trace
       const vec3& n) const
   {
     if (rand.next() < m_w)
-      return m_firstMaterial->sample_brdf(rand, wi, n);
+      return m_first_material->sample_brdf(rand, wi, n);
     else
-      return m_secondMaterial->sample_brdf(rand, wi, n);
+      return m_second_material->sample_brdf(rand, wi, n);
   }
 }

@@ -129,7 +129,7 @@ namespace trace
    * @param file the PNG file, is overwritten if it already exists
    * @param buffer the buffer to write
    */
-  void writeImage(const std::string& file, const SampleBuffer& buffer);
+  void write_image(const std::string& file, const SampleBuffer& buffer);
 }
 
 #endif /* end of include guard: SAMPLEBUFFER_HPP_BIC38RBM */

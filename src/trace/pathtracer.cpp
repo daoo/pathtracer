@@ -14,7 +14,7 @@ namespace trace
     constexpr unsigned int MAX_BOUNCES = 16;
     constexpr float EPSILON            = 0.00001f;
 
-    vec3 fromLight(
+    vec3 from_light(
         const Scene& scene,
         const Material* material,
         const vec3& target,
@@ -24,15 +24,15 @@ namespace trace
         const SphereLight& light,
         FastRand& rand)
     {
-      const vec3 source    = lightSample(rand, light);
+      const vec3 source    = light_sample(rand, light);
       const vec3 direction = source - target;
 
       const Ray shadow_ray { offset , direction };
 
-      if (!scene.anyIntersection(shadow_ray, 0.0f, 1.0f)) {
+      if (!scene.any_intersection(shadow_ray, 0.0f, 1.0f)) {
         const vec3 wr = normalize(direction);
 
-        const vec3 radiance = lightEmitted(light, target);
+        const vec3 radiance = light_emitted(light, target);
 
         return material->brdf(wi, wr, n) * radiance * abs(dot(wr, n));
       }
@@ -40,12 +40,12 @@ namespace trace
       return zero<vec3>();
     }
 
-    vec3 environmentLight(const Ray&)
+    vec3 environment_light(const Ray&)
     {
       return vec3(0.8f, 0.8f, 0.8f);
     }
 
-    vec3 incomingLightHelper(
+    vec3 incoming_light_helper(
         const Scene& scene,
         const Ray& ray,
         FastRand& rand,
@@ -57,8 +57,8 @@ namespace trace
         return radiance;
 
       Intersection isect;
-      if (!scene.allIntersection(ray, 0.0f, FLT_MAX, isect))
-        return radiance + transport * environmentLight(ray);
+      if (!scene.all_intersection(ray, 0.0f, FLT_MAX, isect))
+        return radiance + transport * environment_light(ray);
 
       const vec3 wi    = -ray.direction;
       const vec3 point = isect.position;
@@ -66,16 +66,16 @@ namespace trace
 
       const Material* material = isect.material;
 
-      const vec3 offset     = EPSILON * n;
-      const vec3 offsetUp   = point + offset;
-      const vec3 offsetDown = point - offset;
+      const vec3 offset      = EPSILON * n;
+      const vec3 offset_up   = point + offset;
+      const vec3 offset_down = point - offset;
 
-      vec3 sumLights = zero<vec3>();
+      vec3 sum_lights = zero<vec3>();
       for (const SphereLight& light : scene.lights()) {
-        sumLights += fromLight(scene, material, point, offsetUp, wi, n, light, rand);
+        sum_lights += from_light(scene, material, point, offset_up, wi, n, light, rand);
       }
 
-      radiance += transport * sumLights;
+      radiance += transport * sum_lights;
 
       const LightSample sample = material->sample_brdf(rand, wi, n);
 
@@ -89,11 +89,11 @@ namespace trace
         return radiance;
 
       Ray next_ray
-        { dot(sample.wo, n) >= 0 ? offsetUp : offsetDown
+        { dot(sample.wo, n) >= 0 ? offset_up : offset_down
         , sample.wo
         };
 
-      return incomingLightHelper(
+      return incoming_light_helper(
           scene,
           next_ray,
           rand,
@@ -102,12 +102,12 @@ namespace trace
           bounce + 1);
     }
 
-    vec3 incomingLight(
+    vec3 incoming_light(
         const Scene& scene,
         const Ray& ray,
         FastRand& rand)
     {
-      return incomingLightHelper(
+      return incoming_light_helper(
           scene,
           ray,
           rand,
@@ -136,16 +136,16 @@ namespace trace
     float aspect   = m_fwidth / m_fheight;
     float fov_half = camera.fov / 2.0f;
 
-    vec3 X = camera_up        * sin(radians(fov_half));
-    vec3 Y = camera_right     * sin(radians(fov_half)) * aspect;
-    vec3 Z = camera.direction * cos(radians(fov_half));
+    vec3 x = camera_up        * sin(radians(fov_half));
+    vec3 y = camera_right     * sin(radians(fov_half)) * aspect;
+    vec3 z = camera.direction * cos(radians(fov_half));
 
     m_camera_pos = camera.position;
 
-    m_min_d = Z - Y - X;
+    m_min_d = z - y - x;
 
-    m_dx = 2.0f * ((Z - X) - m_min_d);
-    m_dy = 2.0f * ((Z - Y) - m_min_d);
+    m_dx = 2.0f * ((z - x) - m_min_d);
+    m_dy = 2.0f * ((z - y) - m_min_d);
   }
 
   Pathtracer::~Pathtracer() { }
@@ -162,7 +162,7 @@ namespace trace
           , normalize(m_min_d + sx * m_dx + sy * m_dy)
           };
 
-        const vec3 light = incomingLight(m_scene, ray, rand);
+        const vec3 light = incoming_light(m_scene, ray, rand);
         buffer.add(x, y, light);
       }
     }

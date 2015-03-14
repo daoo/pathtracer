@@ -19,18 +19,18 @@ namespace trace
     unsigned int width, height;
   };
 
-  inline glm::vec3 textureSample(
+  inline glm::vec3 texture_sample(
       const Texture& texture,
       float x, float y)
   {
     assert(x >= 0.0f && x < 1.0f);
     assert(y >= 0.0f && y < 1.0f);
-    return textureSample(texture,
+    return texture_sample(texture,
         static_cast<unsigned int>(x * texture.width),
         static_cast<unsigned int>(y * texture.height));
   }
 
-  inline glm::vec3 textureSample(
+  inline glm::vec3 texture_sample(
       const Texture& texture,
       unsigned int x,
       unsigned int y)
@@ -40,7 +40,7 @@ namespace trace
     return texture.image[x + y * texture.width];
   }
 
-  inline glm::vec3& textureSample(
+  inline glm::vec3& texture_sample(
       Texture& texture,
       unsigned int x,
       unsigned int y)
@@ -53,7 +53,7 @@ namespace trace
   /**
    * Load a texture from a file.
    */
-  Texture textureLoad(const std::string&);
+  Texture texture_load(const std::string&);
 }
 
 #endif /* end of include guard: TEXTURE_HPP_NJD06RG1 */

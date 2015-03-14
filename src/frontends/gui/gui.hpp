@@ -11,7 +11,8 @@
 class GUI
 {
   public:
-    GUI(const boost::filesystem::path&,
+    GUI(
+        const boost::filesystem::path&,
         const boost::filesystem::path&,
         const trace::Scene& scene,
         unsigned int);
@@ -19,15 +20,15 @@ class GUI
     unsigned int samples() const;
     unsigned int subsampling() const;
 
-    void increaseSubsampling();
-    void decreaseSubsampling();
+    void increase_subsampling();
+    void decrease_subsampling();
 
-    void initGL();
+    void init_gl();
     void render() const;
     void resize(unsigned int, unsigned int);
     void trace();
 
-    void saveScreenshot() const;
+    void save_screenshot() const;
 
   private:
     trace::FastRand m_rand;
@@ -44,10 +45,10 @@ class GUI
     unsigned int m_width, m_height;
     unsigned int m_subsampling;
 
-    GLuint m_framebufferTexture;
-    GLuint m_shaderProgram;
-    GLuint m_uniformFramebuffer, m_uniformFramebufferSamples;
-    GLuint m_vertexArrayObject;
+    GLuint m_framebuffer_texture;
+    GLuint m_shader_program;
+    GLuint m_uniform_framebuffer, m_uniform_framebuffer_samples;
+    GLuint m_vertex_array_object;
 
     void restart();
 };

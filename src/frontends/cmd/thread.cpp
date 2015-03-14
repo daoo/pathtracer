@@ -29,45 +29,50 @@ struct WorkerStatus
   float total;
 };
 
-void printStatus(unsigned int samplesPerThread, const vector<WorkerStatus>& status)
+void print_status(
+    unsigned int samples_per_thread,
+    const vector<WorkerStatus>& status)
 {
-  const unsigned int threadCount = status.size();
-  const unsigned int samples     = samplesPerThread * threadCount;
+  const unsigned int thread_count = status.size();
+  const unsigned int samples      = samples_per_thread * thread_count;
 
-  float totalTime           = 0;
-  unsigned int totalSamples = 0;
+  float total_time           = 0;
+  unsigned int total_samples = 0;
 
-  for (unsigned int i = 0; i < threadCount; ++i) {
+  for (unsigned int i = 0; i < thread_count; ++i) {
     const WorkerStatus& ws = status[i];
 
     float avg = ws.total / ws.samples;
-    float eta = avg * (samplesPerThread - ws.samples);
+    float eta = avg * (samples_per_thread - ws.samples);
 
-    totalSamples += ws.samples;
-    totalTime    += avg;
+    total_samples += ws.samples;
+    total_time    += avg;
 
     cout << "Thread " << i << ": "
-      << ws.samples << "/" << samplesPerThread << ", "
+      << ws.samples << "/" << samples_per_thread << ", "
       << "avg: " << avg << " sec, eta: "
-      << niceTime(static_cast<unsigned int>(eta)) << "\n";
+      << nice_time(static_cast<unsigned int>(eta)) << "\n";
   }
 
-  float avg = totalTime / threadCount;
+  float avg = total_time / thread_count;
 
   cout << "Total: "
-    << totalSamples << "/" << samples << ", "
+    << total_samples << "/" << samples << ", "
     << "avg: " << avg << " sec\n\n";
 }
 
-void worker(const Pathtracer& pt, unsigned int sampleCount,
-   unsigned int thread, misc::ConcurrentQueue<MessageSample>& queue,
-   SampleBuffer& buffer)
+void worker(
+    const Pathtracer& pt,
+    unsigned int sample_count,
+    unsigned int thread,
+    misc::ConcurrentQueue<MessageSample>& queue,
+    SampleBuffer& buffer)
 {
-  assert(sampleCount > 0);
+  assert(sample_count > 0);
 
   Clock clock;
   FastRand rand;
-  while (buffer.samples() < sampleCount) {
+  while (buffer.samples() < sample_count) {
     clock.start();
     pt.trace(rand, buffer);
     clock.stop();
@@ -76,25 +81,30 @@ void worker(const Pathtracer& pt, unsigned int sampleCount,
   }
 }
 
-void program(const path& objFile, const path& outDir,
-    unsigned int w, unsigned int h, unsigned int camera,
-    unsigned int sampleCount, unsigned int threadCount)
+void program(
+    const path& obj_file,
+    const path& out_dir,
+    unsigned int w,
+    unsigned int h,
+    unsigned int camera,
+    unsigned int sample_count,
+    unsigned int thread_count)
 {
-  assert(!objFile.empty());
+  assert(!obj_file.empty());
   assert(w > 0 && h > 0);
-  assert(sampleCount > 0);
-  assert(threadCount > 0);
+  assert(sample_count > 0);
+  assert(thread_count > 0);
 
   // Setup scene
-  const wavefront::Obj obj = wavefront::loadObj(objFile);
-  const wavefront::Mtl mtl = wavefront::loadMtl(objFile.parent_path() / obj.mtl_lib);
+  const wavefront::Obj obj = wavefront::load_obj(obj_file);
+  const wavefront::Mtl mtl = wavefront::load_mtl(obj_file.parent_path() / obj.mtl_lib);
 
   const Scene scene(obj, mtl);
   const Pathtracer pt(scene, camera, w, h);
 
   // Setup one buffer for each thread
   vector<SampleBuffer> buffers;
-  for (unsigned int i = 0; i < threadCount; ++i) {
+  for (unsigned int i = 0; i < thread_count; ++i) {
     buffers.emplace_back(w, h);
   }
 
@@ -102,15 +112,20 @@ void program(const path& objFile, const path& outDir,
   misc::ConcurrentQueue<MessageSample> queue;
   vector<thread> threads;
 
-  unsigned int samplesPerThread = sampleCount / threadCount;
-  for (unsigned int i = 0; i < threadCount; ++i) {
-    threads.emplace_back(worker,
-        ref(pt), samplesPerThread, i, ref(queue), ref(buffers[i]));
+  unsigned int samples_per_thread = sample_count / thread_count;
+  for (unsigned int i = 0; i < thread_count; ++i) {
+    threads.emplace_back(
+        worker,
+        ref(pt),
+        samples_per_thread,
+        i,
+        ref(queue),
+        ref(buffers[i]));
   }
 
   // Wait for work to finish
-  vector<WorkerStatus> status(threadCount);
-  unsigned int working = threadCount;
+  vector<WorkerStatus> status(thread_count);
+  unsigned int working = thread_count;
   while (working > 0) {
     MessageSample msg;
     queue.wait_and_pop(msg);
@@ -120,10 +135,10 @@ void program(const path& objFile, const path& outDir,
     ws.samples = msg.sample;
     ws.total += msg.time;
 
-    if (msg.sample == samplesPerThread)
+    if (msg.sample == samples_per_thread)
       --working;
 
-    printStatus(samplesPerThread, status);
+    print_status(samples_per_thread, status);
   }
 
   for (thread& th : threads) {
@@ -131,14 +146,14 @@ void program(const path& objFile, const path& outDir,
   }
 
   // Merge results from each thread
-  if (!outDir.empty()) {
+  if (!out_dir.empty()) {
     SampleBuffer result(w, h);
     for (const SampleBuffer& buffer : buffers) {
       result.append(buffer);
     }
 
     // Make a nice file name and save a file without overwriting anything
-    string name = niceName(objFile, w, h, sampleCount);
-    writeImage(nextFreeName(outDir, name, ".png").string(), result);
+    string name = nice_name(obj_file, w, h, sample_count);
+    write_image(next_free_name(out_dir, name, ".png").string(), result);
   }
 }

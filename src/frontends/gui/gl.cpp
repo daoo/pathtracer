@@ -5,26 +5,26 @@
 using namespace std;
 
 namespace {
-  string getShaderInfoLog(GLuint obj)
+  string get_shader_info_log(GLuint obj)
   {
-    int logLength = 0;
-    int charsWritten  = 0;
-    char *tmpLog;
+    int log_length = 0;
+    int chars_written  = 0;
+    char *tmp_log;
     string log;
 
-    glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &logLength);
+    glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &log_length);
 
-    if (logLength > 0) {
-      tmpLog = new char[logLength];
-      glGetShaderInfoLog(obj, logLength, &charsWritten, tmpLog);
-      log = tmpLog;
-      delete[] tmpLog;
+    if (log_length > 0) {
+      tmp_log = new char[log_length];
+      glGetShaderInfoLog(obj, log_length, &chars_written, tmp_log);
+      log = tmp_log;
+      delete[] tmp_log;
     }
 
     return log;
   }
 
-  GLuint createShader(GLuint type, const string& code)
+  GLuint create_shader(GLuint type, const string& code)
   {
     const GLchar* str = code.c_str();
 
@@ -33,53 +33,55 @@ namespace {
 
     glCompileShader(id);
 
-    int compileOk = 0;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &compileOk);
-    if (!compileOk) {
-      throw getShaderInfoLog(id);
+    int compile_ok = 0;
+    glGetShaderiv(id, GL_COMPILE_STATUS, &compile_ok);
+    if (!compile_ok) {
+      throw get_shader_info_log(id);
     }
 
     return id;
   }
 }
 
-void checkGLError(const string& file, unsigned int line)
+void check_gl_error(const string& file, unsigned int line)
 {
   stringstream ss;
-  bool wasError = false;
-  for (GLenum glErr = glGetError(); glErr != GL_NO_ERROR; glErr = glGetError()) {
-    wasError = true;
-    ss << "GL Error #" << glErr << " in File " << file << " at line: " << line << "\n";
+  bool was_error = false;
+  for (GLenum gl_err = glGetError(); gl_err != GL_NO_ERROR; gl_err = glGetError()) {
+    was_error = true;
+    ss << "GL Error #" << gl_err << " in File " << file << " at line: " << line << "\n";
   }
 
-  if (wasError) {
+  if (was_error) {
     throw ss.str();
   }
 }
 
-GLuint loadShaderProgram(const string& vertexShader, const string& fragmentShader)
+GLuint load_shader_program(
+    const string& vertex_shader,
+    const string& fragment_shader)
 {
-  GLuint vShader = createShader(GL_VERTEX_SHADER, vertexShader);
-  GLuint fShader = createShader(GL_FRAGMENT_SHADER, fragmentShader);
+  GLuint vshader = create_shader(GL_VERTEX_SHADER, vertex_shader);
+  GLuint fshader = create_shader(GL_FRAGMENT_SHADER, fragment_shader);
 
-  GLuint shaderProgram = glCreateProgram();
-  glAttachShader(shaderProgram, fShader);
-  glDeleteShader(fShader);
-  glAttachShader(shaderProgram, vShader);
-  glDeleteShader(vShader);
+  GLuint shader_program = glCreateProgram();
+  glAttachShader(shader_program, fshader);
+  glDeleteShader(fshader);
+  glAttachShader(shader_program, vshader);
+  glDeleteShader(vshader);
 
   CHECK_GL_ERROR();
 
-  return shaderProgram;
+  return shader_program;
 }
 
-void linkShaderProgram(GLuint shaderProgram)
+void link_shader_program(GLuint shader_program)
 {
-  glLinkProgram(shaderProgram);
-  GLint linkOk = 0;
-  glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linkOk);
+  glLinkProgram(shader_program);
+  GLint link_ok = 0;
+  glGetProgramiv(shader_program, GL_LINK_STATUS, &link_ok);
 
-  if (!linkOk) {
-    throw getShaderInfoLog(shaderProgram);
+  if (!link_ok) {
+    throw get_shader_info_log(shader_program);
   }
 }

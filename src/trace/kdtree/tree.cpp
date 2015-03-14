@@ -17,7 +17,7 @@ namespace trace
   {
     namespace
     {
-      Aabb findBounding(const vector<Triangle>& triangles)
+      Aabb find_bounding(const vector<Triangle>& triangles)
       {
         vec3 min, max;
 
@@ -36,7 +36,7 @@ namespace trace
       }
     }
 
-    void buildTree(KdTree& tree, const vector<Triangle>& triangles)
+    void build_tree(KdTree& tree, const vector<Triangle>& triangles)
     {
       vector<const Triangle*> ptrs;
       for (const Triangle& tri : triangles) {
@@ -45,7 +45,7 @@ namespace trace
 
       KdTreeLinked tmp;
       tmp.root = new KdTreeLinked::Node;
-      buildTreeSAH(tmp.root, 0, X, findBounding(triangles), ptrs);
+      build_tree_sah(tmp.root, 0, X, find_bounding(triangles), ptrs);
 
       optimize(tree, tmp);
     }

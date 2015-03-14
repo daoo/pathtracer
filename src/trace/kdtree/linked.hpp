@@ -56,39 +56,39 @@ namespace trace
       Node* root;
     };
 
-    inline bool isLeaf(const KdTreeLinked::Node& node)
+    inline bool is_leaf(const KdTreeLinked::Node& node)
     {
       return node.type == KdTreeLinked::Node::Leaf;
     }
 
-    inline bool hasTriangles(const KdTreeLinked::Node& node)
+    inline bool has_triangles(const KdTreeLinked::Node& node)
     {
-      assert(isLeaf(node));
+      assert(is_leaf(node));
       return node.leaf.triangles != nullptr;
     }
 
-    inline const std::vector<const Triangle*>& getTriangles(
+    inline const std::vector<const Triangle*>& get_triangles(
         const KdTreeLinked::Node& node)
     {
-      assert(isLeaf(node));
-      assert(hasTriangles(node));
+      assert(is_leaf(node));
+      assert(has_triangles(node));
       return *node.leaf.triangles;
     }
 
-    inline bool isSplit(const KdTreeLinked::Node& node)
+    inline bool is_split(const KdTreeLinked::Node& node)
     {
       return node.type == KdTreeLinked::Node::Split;
     }
 
-    inline Axis getAxis(const KdTreeLinked::Node& node)
+    inline Axis get_axis(const KdTreeLinked::Node& node)
     {
-      assert(isSplit(node));
+      assert(is_split(node));
       return node.split.axis;
     }
 
-    inline float getSplit(const KdTreeLinked::Node& node)
+    inline float get_split(const KdTreeLinked::Node& node)
     {
-      assert(isSplit(node));
+      assert(is_split(node));
       return node.split.distance;
     }
   }

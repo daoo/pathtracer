@@ -18,8 +18,13 @@ namespace trace
         return stream;
       }
 
-      void helper(ostream& out, const string& label, const KdTreeArray& tree,
-          unsigned int index, Axis axis, unsigned int depth)
+      void helper(
+          ostream& out,
+          const string& label,
+          const KdTreeArray& tree,
+          unsigned int index,
+          Axis axis,
+          unsigned int depth)
       {
         for (unsigned int i = 0; i < depth; ++i) {
           out << "  ";
@@ -27,16 +32,16 @@ namespace trace
 
         KdTreeArray::Node node = tree.nodes[index];
 
-        if (isLeaf(node)) {
-          if (hasTriangles(node)) {
-            out << "Leaf: " << tree.leaf_store[getIndex(node)].size() << "\n";
+        if (is_leaf(node)) {
+          if (has_triangles(node)) {
+            out << "Leaf: " << tree.leaf_store[get_index(node)].size() << "\n";
           } else {
             out << "Leaf: 0\n";
           }
-        } else if (isSplit(node)) {
-          out << "Split: " << label << ", " << axis << ", " << getSplit(node) << "\n";
-          helper(out, "left", tree, KdTreeArray::leftChild(index), nextAxis(axis), depth + 1);
-          helper(out, "right", tree, KdTreeArray::rightChild(index), nextAxis(axis), depth + 1);
+        } else if (is_split(node)) {
+          out << "Split: " << label << ", " << axis << ", " << get_split(node) << "\n";
+          helper(out, "left", tree, KdTreeArray::left_child(index), next_axis(axis), depth + 1);
+          helper(out, "right", tree, KdTreeArray::right_child(index), next_axis(axis), depth + 1);
         } else {
           assert(false && "Node not leaf or split");
         }

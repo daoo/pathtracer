@@ -18,12 +18,19 @@ namespace trace
       Scene(const wavefront::Obj&, const wavefront::Mtl&);
       ~Scene();
 
-      inline bool allIntersection(const math::Ray& ray, float tmin, float tmax, Intersection& isect) const
+      inline bool all_intersection(
+          const math::Ray& ray,
+          float tmin,
+          float tmax,
+          Intersection& isect) const
       {
         return kdtree::intersects(m_kdtree, ray, tmin, tmax, isect);
       }
 
-      inline bool anyIntersection(const math::Ray& ray, float tmin, float tmax) const
+      inline bool any_intersection(
+          const math::Ray& ray,
+          float tmin,
+          float tmax) const
       {
         Intersection isect;
         return kdtree::intersects(m_kdtree, ray, tmin, tmax, isect);

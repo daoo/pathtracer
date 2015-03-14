@@ -40,7 +40,7 @@ namespace trace
       const char TOKEN_CAMERA_UP[]       = "cameraup";
     }
 
-    Mtl loadMtl(const path& file)
+    Mtl load_mtl(const path& file)
     {
       ifstream stream(file.string());
       if (!stream.good()) {
@@ -97,11 +97,11 @@ namespace trace
   }
 
           TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE      , parse_vec3   , diffuse      , "No material created")
-          TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE_MAP  , parse_string , diffuseMap   , "No material created")
+          TOKEN_VALUE(mtl.materials , TOKEN_MTL_DIFFUSE_MAP  , parse_string , diffuse_map  , "No material created")
           TOKEN_VALUE(mtl.materials , TOKEN_MTL_EMITTANCE    , parse_vec3   , emittance    , "No material created")
           TOKEN_VALUE(mtl.materials , TOKEN_MTL_IOR          , parse_float  , ior          , "No material created")
-          TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT0     , parse_float  , reflAt0Deg   , "No material created")
-          TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT90    , parse_float  , reflAt90Deg  , "No material created")
+          TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT0     , parse_float  , refl0        , "No material created")
+          TOKEN_VALUE(mtl.materials , TOKEN_MTL_REFLECT90    , parse_float  , refl90       , "No material created")
           TOKEN_VALUE(mtl.materials , TOKEN_MTL_ROUGHNESS    , parse_float  , roughness    , "No material created")
           TOKEN_VALUE(mtl.materials , TOKEN_MTL_SPECULAR     , parse_vec3   , specular     , "No material created")
           TOKEN_VALUE(mtl.materials , TOKEN_MTL_TRANSPARANCY , parse_float  , transparency , "No material created")
