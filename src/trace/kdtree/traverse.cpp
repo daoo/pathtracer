@@ -1,6 +1,7 @@
 #include "traverse.hpp"
 
 #include "trace/geometry/triangle.hpp"
+#include "trace/geometry/triray.hpp"
 
 using namespace glm;
 using namespace math;
@@ -23,7 +24,7 @@ namespace
     for (const Triangle& triangle : triangles) {
       float t;
       vec3 n;
-      if (intersects(triangle, ray, t, n)) {
+      if (triray(triangle, ray, t, n)) {
         if (t >= mint && t <= maxt) {
           normal   = n;
           material = triangle.material;
