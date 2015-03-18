@@ -86,6 +86,7 @@ namespace trace
         const KdTreeArray::Node& node)
     {
       assert(is_leaf(node));
+      assert(has_triangles(node));
       return tree.leaf_store[get_index(node)];
     }
 

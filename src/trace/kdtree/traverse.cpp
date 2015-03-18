@@ -59,13 +59,16 @@ namespace
     const KdTreeArray::Node& node = search.tree.nodes[index];
 
     if (is_leaf(node)) {
-      bool hit = intersect_triangles(
-          get_triangles(search.tree, node),
-          search.ray,
-          tmin,
-          raymaxt,
-          isect.normal,
-          isect.material);
+      bool hit = false;
+      if (has_triangles(node)) {
+        hit = intersect_triangles(
+            get_triangles(search.tree, node),
+            search.ray,
+            tmin,
+            raymaxt,
+            isect.normal,
+            isect.material);
+      }
 
       if (hit && raymaxt < tmax) {
         isect.position = search.ray.param(raymaxt);
