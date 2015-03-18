@@ -1,11 +1,10 @@
 #ifndef ARRAY_HPP_BBXOECNY
 #define ARRAY_HPP_BBXOECNY
 
-#include "trace/geometry/ray.hpp"
 #include "trace/geometry/triangle.hpp"
 #include "trace/kdtree/util.hpp"
 
-#include <array>
+#include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <vector>
@@ -14,14 +13,42 @@ namespace trace
 {
   namespace kdtree
   {
-    struct KdTreeArray
+    class ArrayNode
     {
-      struct Node
-      {
-        Node() : index(EMPTY_LEAF) { }
-        Node(uint32_t i) : index((i << 1) & MASK_INDEX) { }
-        Node(float distance) : distance(distance) { index |= MASK_TYPE; }
+      public:
+        ArrayNode() : index(EMPTY_LEAF) { }
+        ArrayNode(uint32_t i) : index((i << 1) & MASK_INDEX) { }
+        ArrayNode(float distance) : distance(distance) { index |= MASK_TYPE; }
 
+        bool is_leaf() const
+        {
+          return (index & MASK_TYPE) == TYPE_LEAF;
+        }
+
+        bool has_triangles() const
+        {
+          assert(is_leaf());
+          return index != EMPTY_LEAF;
+        }
+
+        uint32_t get_index() const
+        {
+          assert(is_leaf());
+          return index >> 1;
+        }
+
+        bool is_split() const
+        {
+          return (index & MASK_TYPE) == TYPE_SPLIT;
+        }
+
+        float get_split() const
+        {
+          assert(is_split());
+          return distance;
+        }
+
+      private:
         enum NodeType { Split, Leaf };
 
         union
@@ -38,69 +65,67 @@ namespace trace
 
         static constexpr uint32_t TYPE_LEAF = 0;
         static constexpr uint32_t TYPE_SPLIT = 1;
-      };
-
-      static unsigned int left_child(unsigned int index)
-      {
-        return (index << 1) + 1;
-      }
-
-      static unsigned int right_child(unsigned int index)
-      {
-        return (index << 1) + 2;
-      }
-
-      std::vector<Node> nodes;
-      std::vector<std::vector<Triangle>> leaf_store;
     };
 
-    bool is_leaf(const KdTreeArray::Node& node);
-    bool has_triangles(const KdTreeArray::Node& node);
-    const std::vector<Triangle>& get_triangles(
-        const KdTreeArray& tree,
-        const KdTreeArray::Node& node);
-    bool is_split(const KdTreeArray::Node& node);
-    uint32_t get_index(const KdTreeArray::Node& node);
-    float get_split(const KdTreeArray::Node& node);
+    static_assert(sizeof(ArrayNode) == 4, "incorrect size");
 
-    inline bool is_leaf(const KdTreeArray::Node& node)
+    class KdTreeArray
     {
-      return (node.index & KdTreeArray::Node::MASK_TYPE) ==
-        KdTreeArray::Node::TYPE_LEAF;
-    }
+      public:
+        ArrayNode get_node(unsigned int index) const
+        {
+          assert(index < nodes.size());
+          return nodes[index];
+        }
 
-    inline bool has_triangles(const KdTreeArray::Node& node)
-    {
-      assert(is_leaf(node));
-      return node.index != KdTreeArray::Node::EMPTY_LEAF;
-    }
+        const std::vector<Triangle>& get_triangles(ArrayNode node) const
+        {
+          assert(node.is_leaf());
+          assert(node.has_triangles());
+          return leaf_store[node.get_index()];
+        }
 
-    inline uint32_t get_index(const KdTreeArray::Node& node)
-    {
-      assert(is_leaf(node));
-      return node.index >> 1;
-    }
+        void set_node(unsigned int index, ArrayNode&& node)
+        {
+          if (index >= nodes.size()) {
+            nodes.resize(index + 1);
+          }
 
-    inline const std::vector<Triangle>& get_triangles(
-        const KdTreeArray& tree,
-        const KdTreeArray::Node& node)
-    {
-      assert(is_leaf(node));
-      assert(has_triangles(node));
-      return tree.leaf_store[get_index(node)];
-    }
+          nodes[index] = node;
+        }
 
-    inline bool is_split(const KdTreeArray::Node& node)
-    {
-      return (node.index & KdTreeArray::Node::MASK_TYPE) ==
-        KdTreeArray::Node::TYPE_SPLIT;
-    }
+        uint32_t store_triangles(const std::vector<const Triangle*>& triangles)
+        {
+          uint32_t i = static_cast<uint32_t>(leaf_store.size());
+          leaf_store.push_back(std::vector<Triangle>());
 
-    inline float get_split(const KdTreeArray::Node& node)
-    {
-      assert(is_split(node));
-      return node.distance;
-    }
+          std::vector<Triangle>& to = leaf_store.back();
+          for (const Triangle* tri : triangles) {
+            assert(tri != nullptr);
+            to.push_back(*tri);
+          }
+        }
+
+        void shrink_to_fit()
+        {
+          nodes.shrink_to_fit();
+          leaf_store.shrink_to_fit();
+        }
+
+        static unsigned int left_child(unsigned int index)
+        {
+          return (index << 1) + 1;
+        }
+
+        static unsigned int right_child(unsigned int index)
+        {
+          return (index << 1) + 2;
+        }
+
+      private:
+        std::vector<ArrayNode> nodes;
+        std::vector<std::vector<Triangle>> leaf_store;
+    };
   }
 }
 

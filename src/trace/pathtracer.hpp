@@ -3,7 +3,8 @@
 
 #include "trace/camera.hpp"
 #include "trace/fastrand.hpp"
-#include "trace/kdtree/tree.hpp"
+#include "trace/geometry/ray.hpp"
+#include "trace/kdtree/array.hpp"
 #include "trace/light.hpp"
 #include "trace/samplebuffer.hpp"
 #include <glm/glm.hpp>
@@ -34,7 +35,7 @@ namespace trace
   }
 
   void pathtrace(
-      const kdtree::KdTree& kdtree,
+      const kdtree::KdTreeArray& kdtree,
       const std::vector<SphereLight>& lights,
       const Pinhole& pinhole,
       FastRand& rand,

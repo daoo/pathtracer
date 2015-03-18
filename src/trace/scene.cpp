@@ -1,5 +1,9 @@
 #include "trace/scene.hpp"
 
+#include "trace/kdtree/array.hpp"
+#include "trace/kdtree/build.hpp"
+#include "trace/kdtree/linked.hpp"
+#include "trace/kdtree/optimize.hpp"
 #include "trace/mcsampling.hpp"
 #include <glm/gtc/epsilon.hpp>
 #include <map>
@@ -110,12 +114,12 @@ namespace trace
     return triangles;
   }
 
-  kdtree::KdTree kdtree_from_triangles(
+  kdtree::KdTreeArray kdtree_from_triangles(
       const vector<Triangle>& triangles)
   {
-    kdtree::KdTree kdtree;
-    kdtree::build_tree(kdtree, triangles);
-    return kdtree;
+    kdtree::KdTreeArray array;
+    kdtree::optimize(array, kdtree::build_tree_sah(triangles));
+    return array;
   }
 
   Scene new_scene(
@@ -128,7 +132,7 @@ namespace trace
     map<string, Material*> materials = materials_from_mtl(mtl);
     vector<Triangle> triangles       = triangles_from_obj(obj, materials);
 
-    kdtree::KdTree kdtree = kdtree_from_triangles(triangles);
+    kdtree::KdTreeArray kdtree = kdtree_from_triangles(triangles);
 
     return { kdtree, cameras, lights, triangles };
   }

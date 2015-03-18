@@ -1,6 +1,7 @@
 #include "trace/pathtracer.hpp"
 
-#include "trace/geometry/ray.hpp"
+#include "trace/intersection.hpp"
+#include "trace/kdtree/traverse.hpp"
 #include "trace/mcsampling.hpp"
 #include <glm/gtc/constants.hpp>
 
@@ -12,13 +13,13 @@ namespace trace
   namespace kdtree
   {
     bool any_intersects(
-        const KdTree& kdtree,
+        const KdTreeArray& kdtree,
         const Ray& ray,
         float tmin,
         float tmax)
     {
       Intersection isect;
-      return intersects(kdtree, ray, tmin, tmax, isect);
+      return search_tree(kdtree, ray, tmin, tmax, isect);
     }
   }
 
@@ -28,7 +29,7 @@ namespace trace
     constexpr float EPSILON            = 0.00001f;
 
     vec3 from_light(
-        const kdtree::KdTree& kdtree,
+        const kdtree::KdTreeArray& kdtree,
         const Material* material,
         const vec3& target,
         const vec3& offset,
@@ -59,7 +60,7 @@ namespace trace
     }
 
     vec3 incoming_light_helper(
-        const kdtree::KdTree& kdtree,
+        const kdtree::KdTreeArray& kdtree,
         const vector<SphereLight>& lights,
         const Ray& ray,
         FastRand& rand,
@@ -71,7 +72,7 @@ namespace trace
         return radiance;
 
       Intersection isect;
-      if (!kdtree::intersects(kdtree, ray, 0.0f, FLT_MAX, isect))
+      if (!kdtree::search_tree(kdtree, ray, 0.0f, FLT_MAX, isect))
         return radiance + transport * environment_light(ray);
 
       const vec3 wi    = -ray.direction;
@@ -118,7 +119,7 @@ namespace trace
     }
 
     vec3 incoming_light(
-        const kdtree::KdTree& kdtree,
+        const kdtree::KdTreeArray& kdtree,
         const vector<SphereLight>& lights,
         const Ray& ray,
         FastRand& rand)
@@ -165,7 +166,7 @@ namespace trace
   }
 
   void pathtrace(
-      const kdtree::KdTree& kdtree,
+      const kdtree::KdTreeArray& kdtree,
       const vector<SphereLight>& lights,
       const Pinhole& pinhole,
       FastRand& rand,

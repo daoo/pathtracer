@@ -9,46 +9,27 @@ namespace trace
   {
     namespace
     {
-      void set(vector<KdTreeArray::Node>& nodes, unsigned int index, KdTreeArray::Node&& node)
-      {
-        if (index >= nodes.size()) {
-          nodes.resize(index + 1);
-        }
-
-        nodes[index] = node;
-      }
-
-      void copy(vector<Triangle>& to, const vector<const Triangle*>& from)
-      {
-        for (const Triangle* tri : from) {
-          assert(tri != nullptr);
-          to.push_back(*tri);
-        }
-      }
-
-      void helper(KdTreeArray& result, unsigned int index, KdTreeLinked::Node* node)
+      void helper(KdTreeArray& result, unsigned int index, const LinkedNode* node)
       {
         assert(node != nullptr);
 
-        if (is_leaf(*node)) {
-          if (has_triangles(*node)) {
-            uint32_t i = static_cast<uint32_t>(result.leaf_store.size());
-            result.leaf_store.push_back(vector<Triangle>());
-            copy(result.leaf_store[i], get_triangles(*node));
-            set(result.nodes, index, KdTreeArray::Node(i));
+        if (node->is_leaf()) {
+          if (node->has_triangles()) {
+            uint32_t i = result.store_triangles(node->get_triangles());
+            result.set_node(index, ArrayNode(i));
           } else {
-            set(result.nodes, index, KdTreeArray::Node());
+            result.set_node(index, ArrayNode());
           }
         } else {
-          assert(is_split(*node));
+          assert(node->is_split());
 
-          KdTreeLinked::Node* left  = node->split.left;
-          KdTreeLinked::Node* right = node->split.right;
+          const LinkedNode* left  = node->get_left();
+          const LinkedNode* right = node->get_right();
 
           assert(left != nullptr);
           assert(right != nullptr);
 
-          set(result.nodes, index, KdTreeArray::Node(node->split.distance));
+          result.set_node(index, ArrayNode(node->get_split()));
 
           helper(result, KdTreeArray::left_child(index), left);
           helper(result, KdTreeArray::right_child(index), right);
@@ -58,10 +39,9 @@ namespace trace
 
     void optimize(KdTreeArray& result, const KdTreeLinked& input)
     {
-      helper(result, 0, input.root);
+      helper(result, 0, input.get_root());
 
-      result.leaf_store.shrink_to_fit();
-      result.nodes.shrink_to_fit();
+      result.shrink_to_fit();
     }
   }
 }

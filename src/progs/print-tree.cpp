@@ -1,5 +1,6 @@
 #include "trace/clock.hpp"
 #include "trace/kdtree/util.hpp"
+#include "trace/kdtree/array.hpp"
 #include "trace/scene.hpp"
 #include "trace/wavefront/obj.hpp"
 
@@ -30,16 +31,16 @@ void helper(
     cout << "  ";
   }
 
-  KdTreeArray::Node node = tree.nodes[index];
+  ArrayNode node = tree.get_node(index);
 
-  if (is_leaf(node)) {
-    if (has_triangles(node)) {
-      cout << "Leaf: " << get_triangles(tree, node).size() << "\n";
+  if (node.is_leaf()) {
+    if (node.has_triangles()) {
+      cout << "Leaf: " << tree.get_triangles(node).size() << "\n";
     } else {
       cout << "Leaf: 0\n";
     }
-  } else if (is_split(node)) {
-    cout << "Split: " << label << ", " << axis << ", " << get_split(node) << "\n";
+  } else if (node.is_split()) {
+    cout << "Split: " << label << ", " << axis << ", " << node.get_split() << "\n";
     helper("left", tree, KdTreeArray::left_child(index), next_axis(axis), depth + 1);
     helper("right", tree, KdTreeArray::right_child(index), next_axis(axis), depth + 1);
   } else {
@@ -68,7 +69,7 @@ int main(int argc, char* argv[])
 
   Clock clock;
   clock.start();
-  kdtree::KdTree kdtree = kdtree_from_triangles(triangles);
+  kdtree::KdTreeArray kdtree = kdtree_from_triangles(triangles);
   clock.stop();
 
   cout << "Built in " << clock.length<float, ratio<1>>() << " seconds.\n\n";

@@ -54,15 +54,13 @@ namespace
       Axis axis,
       Intersection& isect)
   {
-    assert(index < search.tree.nodes.size());
+    ArrayNode node = search.tree.get_node(index);
 
-    const KdTreeArray::Node& node = search.tree.nodes[index];
-
-    if (is_leaf(node)) {
+    if (node.is_leaf()) {
       bool hit = false;
-      if (has_triangles(node)) {
+      if (node.has_triangles()) {
         hit = intersect_triangles(
-            get_triangles(search.tree, node),
+            search.tree.get_triangles(node),
             search.ray,
             tmin,
             raymaxt,
@@ -86,7 +84,7 @@ namespace
             isect);
       }
     } else {
-      const float p = get_split(node);
+      const float p = node.get_split();
       const float o = search.ray.origin[axis];
       const float d = search.ray.direction[axis];
 
@@ -96,7 +94,7 @@ namespace
       unsigned int second = KdTreeArray::right_child(index);
 
       if (d < 0) {
-        std::swap(first, second);
+        swap(first, second);
       }
 
       if (t >= tmax) {

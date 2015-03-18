@@ -3,11 +3,11 @@
 
 #include "trace/camera.hpp"
 #include "trace/geometry/ray.hpp"
-#include "trace/kdtree/tree.hpp"
+#include "trace/kdtree/array.hpp"
 #include "trace/light.hpp"
 #include "trace/material.hpp"
-#include "trace/wavefront/obj.hpp"
 #include "trace/wavefront/mtl.hpp"
+#include "trace/wavefront/obj.hpp"
 
 #include <map>
 #include <string>
@@ -28,12 +28,12 @@ namespace trace
       const wavefront::Obj& obj,
       const std::map<std::string, Material*>& materials);
 
-  kdtree::KdTree kdtree_from_triangles(
+  kdtree::KdTreeArray kdtree_from_triangles(
       const std::vector<Triangle>& triangles);
 
   struct Scene
   {
-    kdtree::KdTree kdtree;
+    kdtree::KdTreeArray kdtree;
     std::vector<Camera> cameras;
     std::vector<SphereLight> lights;
     std::vector<Triangle> triangles;

@@ -1,5 +1,6 @@
-#include "build.hpp"
+#include "trace/kdtree/build.hpp"
 
+#include "trace/geometry/bounding.hpp"
 #include "trace/geometry/tribox.hpp"
 #include "trace/kdtree/util.hpp"
 #include <glm/glm.hpp>
@@ -182,8 +183,8 @@ namespace trace
       }
     }
 
-    void build_tree_sah(
-        KdTreeLinked::Node* node,
+    void go_sah(
+        LinkedNode* node,
         unsigned int depth,
         Axis axis,
         const Aabb& box,
@@ -207,22 +208,22 @@ namespace trace
           right_triangles);
 
       if (depth >= 20 || cost > COST_INTERSECT * triangles.size()) {
-        node->type           = KdTreeLinked::Node::Leaf;
+        node->type           = LinkedNode::Leaf;
         node->leaf.triangles = new vector<const Triangle*>(triangles);
       } else {
-        node->type           = KdTreeLinked::Node::Split;
+        node->type           = LinkedNode::NodeType::Split;
         node->split.axis     = axis;
         node->split.distance = split;
-        node->split.left     = new KdTreeLinked::Node;
-        node->split.right    = new KdTreeLinked::Node;
+        node->split.left     = new LinkedNode;
+        node->split.right    = new LinkedNode;
 
-        build_tree_sah(
+        go_sah(
             node->split.left,
             depth + 1,
             next_axis(axis),
             left_box,
             left_triangles);
-        build_tree_sah(
+        go_sah(
             node->split.right,
             depth + 1,
             next_axis(axis),
@@ -231,8 +232,8 @@ namespace trace
       }
     }
 
-    void build_tree_naive(
-        KdTreeLinked::Node* node,
+    void go_naive(
+        LinkedNode* node,
         unsigned int depth,
         Axis axis,
         const Aabb& box,
@@ -241,7 +242,7 @@ namespace trace
       assert(node != nullptr);
 
       if (depth >= 20 || triangles.size() <= 10) {
-        node->type           = KdTreeLinked::Node::Leaf;
+        node->type           = LinkedNode::NodeType::Leaf;
         node->leaf.triangles = new vector<const Triangle*>(triangles);
       } else {
         float split = box.center[axis];
@@ -260,25 +261,51 @@ namespace trace
             left_triangles,
             right_triangles);
 
-        node->type           = KdTreeLinked::Node::Split;
+        node->type           = LinkedNode::NodeType::Split;
         node->split.axis     = axis;
         node->split.distance = split;
-        node->split.left     = new KdTreeLinked::Node;
-        node->split.right    = new KdTreeLinked::Node;
+        node->split.left     = new LinkedNode;
+        node->split.right    = new LinkedNode;
 
-        build_tree_naive(
+        go_naive(
             node->split.left,
             depth + 1,
             next_axis(axis),
             left_box,
             left_triangles);
-        build_tree_naive(
+        go_naive(
             node->split.right,
             depth + 1,
             next_axis(axis),
             right_box,
             right_triangles);
       }
+    }
+
+    KdTreeLinked build_tree_sah(const vector<Triangle>& triangles)
+    {
+      vector<const Triangle*> ptrs;
+      for (const Triangle& tri : triangles) {
+        ptrs.push_back(&tri);
+      }
+
+      LinkedNode* root = new LinkedNode;
+      go_sah(root, 0, X, find_bounding(triangles), ptrs);
+
+      return KdTreeLinked(root);
+    }
+
+    KdTreeLinked build_tree_naive(const vector<Triangle>& triangles)
+    {
+      vector<const Triangle*> ptrs;
+      for (const Triangle& tri : triangles) {
+        ptrs.push_back(&tri);
+      }
+
+      LinkedNode* root = new LinkedNode;
+      go_naive(root, 0, X, find_bounding(triangles), ptrs);
+
+      return KdTreeLinked(root);
     }
   }
 }

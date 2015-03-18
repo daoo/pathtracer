@@ -65,7 +65,7 @@ void print_status(
 }
 
 void worker(
-    const kdtree::KdTree& kdtree,
+    const kdtree::KdTreeArray& kdtree,
     const vector<SphereLight>& lights,
     const Pinhole& pinhole,
     unsigned int sample_count,
