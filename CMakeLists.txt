@@ -21,4 +21,3 @@ message(STATUS "OpenGL frontend: ${build_gui_frontend}")
 
 add_definitions(-std=c++11)
 add_subdirectory(src)
-add_subdirectory(tests)

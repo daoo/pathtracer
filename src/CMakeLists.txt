@@ -1,4 +1,4 @@
 include_directories(.)
 
-add_subdirectory(frontends)
+add_subdirectory(progs)
 add_subdirectory(trace)

@@ -1,6 +1,5 @@
-project(tests)
-
-include_directories(. ../src/)
+add_subdirectory(cmd)
+add_subdirectory(gui)
 
 add_executable(sizes sizes.cpp)
 target_link_libraries(sizes util trace)
