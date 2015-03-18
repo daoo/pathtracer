@@ -9,13 +9,26 @@ using namespace std;
 
 namespace trace
 {
+  namespace kdtree
+  {
+    bool any_intersects(
+        const KdTree& kdtree,
+        const Ray& ray,
+        float tmin,
+        float tmax)
+    {
+      Intersection isect;
+      return intersects(kdtree, ray, tmin, tmax, isect);
+    }
+  }
+
   namespace
   {
     constexpr unsigned int MAX_BOUNCES = 16;
     constexpr float EPSILON            = 0.00001f;
 
     vec3 from_light(
-        const Scene& scene,
+        const kdtree::KdTree& kdtree,
         const Material* material,
         const vec3& target,
         const vec3& offset,
@@ -29,7 +42,7 @@ namespace trace
 
       const Ray shadow_ray { offset , direction };
 
-      if (!scene.any_intersection(shadow_ray, 0.0f, 1.0f)) {
+      if (!any_intersects(kdtree, shadow_ray, 0.0f, 1.0f)) {
         const vec3 wr = normalize(direction);
 
         const vec3 radiance = light_emitted(light, target);
@@ -46,7 +59,8 @@ namespace trace
     }
 
     vec3 incoming_light_helper(
-        const Scene& scene,
+        const kdtree::KdTree& kdtree,
+        const vector<SphereLight>& lights,
         const Ray& ray,
         FastRand& rand,
         vec3 radiance,
@@ -57,7 +71,7 @@ namespace trace
         return radiance;
 
       Intersection isect;
-      if (!scene.all_intersection(ray, 0.0f, FLT_MAX, isect))
+      if (!kdtree::intersects(kdtree, ray, 0.0f, FLT_MAX, isect))
         return radiance + transport * environment_light(ray);
 
       const vec3 wi    = -ray.direction;
@@ -71,8 +85,8 @@ namespace trace
       const vec3 offset_down = point - offset;
 
       vec3 sum_lights = zero<vec3>();
-      for (const SphereLight& light : scene.lights()) {
-        sum_lights += from_light(scene, material, point, offset_up, wi, n, light, rand);
+      for (const SphereLight& light : lights) {
+        sum_lights += from_light(kdtree, material, point, offset_up, wi, n, light, rand);
       }
 
       radiance += transport * sum_lights;
@@ -94,7 +108,8 @@ namespace trace
         };
 
       return incoming_light_helper(
-          scene,
+          kdtree,
+          lights,
           next_ray,
           rand,
           radiance,
@@ -103,12 +118,14 @@ namespace trace
     }
 
     vec3 incoming_light(
-        const Scene& scene,
+        const kdtree::KdTree& kdtree,
+        const vector<SphereLight>& lights,
         const Ray& ray,
         FastRand& rand)
     {
       return incoming_light_helper(
-          scene,
+          kdtree,
+          lights,
           ray,
           rand,
           zero<vec3>(),
@@ -119,12 +136,14 @@ namespace trace
 
   Pathtracer::Pathtracer(
       const Camera& camera,
-      const Scene& scene,
+      const kdtree::KdTree& kdtree,
+      const vector<SphereLight> lights,
       unsigned int width,
-      unsigned int height)
-    : m_scene(scene)
-    , m_fwidth(static_cast<float>(width))
-    , m_fheight(static_cast<float>(height))
+      unsigned int height) :
+    m_kdtree(kdtree),
+    m_lights(lights),
+    m_fwidth(static_cast<float>(width)),
+    m_fheight(static_cast<float>(height))
   {
     vec3 camera_right = normalize(cross(camera.direction, camera.up));
     vec3 camera_up    = normalize(cross(camera_right, camera.direction));
@@ -158,7 +177,7 @@ namespace trace
           , normalize(m_min_d + sx * m_dx + sy * m_dy)
           };
 
-        const vec3 light = incoming_light(m_scene, ray, rand);
+        const vec3 light = incoming_light(m_kdtree, m_lights, ray, rand);
         buffer.add(x, y, light);
       }
     }

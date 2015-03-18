@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 
     const wavefront::Obj obj = wavefront::load_obj(model);
     const wavefront::Mtl mtl = wavefront::load_mtl(model.parent_path() / obj.mtl_lib);
-    const Scene scene(obj, mtl);
+    const Scene scene = new_scene(obj, mtl);
 
     string name = basename(change_extension(model, ""));
 

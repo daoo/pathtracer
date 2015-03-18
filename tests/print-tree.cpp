@@ -23,13 +23,15 @@ int main(int argc, char* argv[])
   const wavefront::Obj obj = wavefront::load_obj(obj_file);
   const wavefront::Mtl mtl = wavefront::load_mtl(obj_file.parent_path() / obj.mtl_lib);
 
+  vector<Triangle> triangles = triangles_from_obj(obj, materials_from_mtl(mtl));
+
   Clock clock;
   clock.start();
-  Scene scene(obj, mtl);
+  kdtree::KdTree kdtree = kdtree_from_triangles(triangles);
   clock.stop();
 
   cout << "Built in " << clock.length<float, ratio<1>>() << " seconds.\n\n";
-  print(cout, scene.kdtree());
+  print(cout, kdtree);
 
   return 0;
 }

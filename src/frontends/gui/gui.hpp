@@ -4,8 +4,10 @@
 #include "trace/fastrand.hpp"
 #include "trace/pathtracer.hpp"
 #include "trace/samplebuffer.hpp"
+#include "trace/scene.hpp"
 
 #include <GL/glew.h>
+#include <boost/filesystem/path.hpp>
 #include <string>
 
 class GUI

@@ -7,6 +7,9 @@
 #include "trace/path.hpp"
 #include "trace/pathtracer.hpp"
 #include "trace/samplebuffer.hpp"
+#include "trace/scene.hpp"
+#include "trace/wavefront/mtl.hpp"
+#include "trace/wavefront/obj.hpp"
 
 #include <iostream>
 #include <thread>
@@ -99,8 +102,8 @@ void program(
   const wavefront::Obj obj = wavefront::load_obj(obj_file);
   const wavefront::Mtl mtl = wavefront::load_mtl(obj_file.parent_path() / obj.mtl_lib);
 
-  const Scene scene(obj, mtl);
-  const Pathtracer pt(scene.cameras()[camera], scene, w, h);
+  const Scene scene = new_scene(obj, mtl);
+  const Pathtracer pt(scene.cameras[camera], scene.kdtree, scene.lights, w, h);
 
   // Setup one buffer for each thread
   vector<SampleBuffer> buffers;

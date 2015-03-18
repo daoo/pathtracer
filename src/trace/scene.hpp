@@ -9,58 +9,39 @@
 #include "trace/wavefront/obj.hpp"
 #include "trace/wavefront/mtl.hpp"
 
+#include <map>
+#include <string>
+#include <vector>
+
 namespace trace
 {
-  class Scene
+  std::vector<SphereLight> lights_from_mtl(
+      const wavefront::Mtl& mtl);
+
+  std::vector<Camera> cameras_from_mtl(
+      const wavefront::Mtl& mtl);
+
+  std::map<std::string, Material*> materials_from_mtl(
+      const wavefront::Mtl& mtl);
+
+  std::vector<Triangle> triangles_from_obj(
+      const wavefront::Obj& obj,
+      const std::map<std::string, Material*> materials);
+
+  kdtree::KdTree kdtree_from_triangles(
+      const std::vector<Triangle>& triangles);
+
+  struct Scene
   {
-    public:
-      Scene();
-      Scene(const wavefront::Obj&, const wavefront::Mtl&);
-      ~Scene();
-
-      inline bool all_intersection(
-          const Ray& ray,
-          float tmin,
-          float tmax,
-          Intersection& isect) const
-      {
-        return kdtree::intersects(m_kdtree, ray, tmin, tmax, isect);
-      }
-
-      inline bool any_intersection(
-          const Ray& ray,
-          float tmin,
-          float tmax) const
-      {
-        Intersection isect;
-        return kdtree::intersects(m_kdtree, ray, tmin, tmax, isect);
-      }
-
-      const std::vector<Camera>& cameras() const
-      {
-        return m_cameras;
-      }
-
-      const std::vector<SphereLight>& lights() const
-      {
-        return m_lights;
-      }
-
-      const kdtree::KdTree& kdtree() const
-      {
-        return m_kdtree;
-      }
-
-    private:
-      std::vector<SphereLight> m_lights;
-      std::vector<Camera> m_cameras;
-      std::vector<Triangle> m_triangles;
-
-      kdtree::KdTree m_kdtree;
-
-      Scene(const Scene&);
-      Scene& operator=(const Scene&);
+    kdtree::KdTree kdtree;
+    std::vector<Camera> cameras;
+    std::vector<SphereLight> lights;
+    std::vector<Triangle> triangles;
   };
+
+  Scene new_scene(
+      const wavefront::Obj& obj,
+      const wavefront::Mtl& mtl);
 }
 
 #endif /* end of include guard: SCENE_HPP_BOFJZX4D */

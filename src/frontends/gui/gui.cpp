@@ -151,7 +151,7 @@ void GUI::restart()
   unsigned int h = m_height / m_subsampling;
 
   delete m_pathtracer;
-  m_pathtracer = new Pathtracer(m_scene.cameras()[m_camera], m_scene, w, h);
+  m_pathtracer = new Pathtracer(m_scene.cameras[m_camera], m_scene.kdtree, m_scene.lights, w, h);
   delete m_buffer;
   m_buffer = new SampleBuffer(w, h);
 }
