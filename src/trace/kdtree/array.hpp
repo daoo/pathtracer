@@ -63,7 +63,6 @@ namespace trace
     uint32_t get_index(const KdTreeArray::Node& node);
     float get_split(const KdTreeArray::Node& node);
 
-
     inline bool is_leaf(const KdTreeArray::Node& node)
     {
       return (node.index & KdTreeArray::Node::MASK_TYPE) ==

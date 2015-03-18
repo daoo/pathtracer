@@ -34,7 +34,7 @@ void helper(
 
   if (is_leaf(node)) {
     if (has_triangles(node)) {
-      cout << "Leaf: " << tree.leaf_store[get_index(node)].size() << "\n";
+      cout << "Leaf: " << get_triangles(tree, node).size() << "\n";
     } else {
       cout << "Leaf: 0\n";
     }
