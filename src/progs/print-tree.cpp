@@ -20,7 +20,6 @@ ostream& operator<<(ostream& stream, Axis axis)
 }
 
 void helper(
-    ostream& out,
     const string& label,
     const KdTreeArray& tree,
     unsigned int index,
@@ -28,29 +27,29 @@ void helper(
     unsigned int depth)
 {
   for (unsigned int i = 0; i < depth; ++i) {
-    out << "  ";
+    cout << "  ";
   }
 
   KdTreeArray::Node node = tree.nodes[index];
 
   if (is_leaf(node)) {
     if (has_triangles(node)) {
-      out << "Leaf: " << tree.leaf_store[get_index(node)].size() << "\n";
+      cout << "Leaf: " << tree.leaf_store[get_index(node)].size() << "\n";
     } else {
-      out << "Leaf: 0\n";
+      cout << "Leaf: 0\n";
     }
   } else if (is_split(node)) {
-    out << "Split: " << label << ", " << axis << ", " << get_split(node) << "\n";
-    helper(out, "left", tree, KdTreeArray::left_child(index), next_axis(axis), depth + 1);
-    helper(out, "right", tree, KdTreeArray::right_child(index), next_axis(axis), depth + 1);
+    cout << "Split: " << label << ", " << axis << ", " << get_split(node) << "\n";
+    helper("left", tree, KdTreeArray::left_child(index), next_axis(axis), depth + 1);
+    helper("right", tree, KdTreeArray::right_child(index), next_axis(axis), depth + 1);
   } else {
     assert(false && "Node not leaf or split");
   }
 }
 
-void print(ostream& out, const KdTreeArray& tree)
+void print(const KdTreeArray& tree)
 {
-  helper(out, "root", tree, 0, X, 0);
+  helper("root", tree, 0, X, 0);
 }
 
 int main(int argc, char* argv[])
@@ -73,7 +72,7 @@ int main(int argc, char* argv[])
   clock.stop();
 
   cout << "Built in " << clock.length<float, ratio<1>>() << " seconds.\n\n";
-  print(cout, kdtree);
+  print(kdtree);
 
   return 0;
 }
