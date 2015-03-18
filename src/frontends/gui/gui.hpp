@@ -41,8 +41,8 @@ class GUI
     const trace::Scene& m_scene;
     unsigned int m_camera;
 
-    trace::Pathtracer* m_pathtracer;
-    trace::SampleBuffer* m_buffer;
+    trace::Pinhole m_pinhole;
+    trace::SampleBuffer m_buffer;
 
     unsigned int m_width, m_height;
     unsigned int m_subsampling;

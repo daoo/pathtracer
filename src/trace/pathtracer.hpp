@@ -11,29 +11,34 @@
 
 namespace trace
 {
-  class Pathtracer
+  struct Pinhole
   {
-    public:
-      Pathtracer(
-          const Camera& camera,
-          const kdtree::KdTree& kdtree,
-          const std::vector<SphereLight> lights,
-          unsigned int width,
-          unsigned int height);
+    float width, height;
 
-      ~Pathtracer();
-
-      void trace(FastRand&, SampleBuffer&) const;
-
-    private:
-      const kdtree::KdTree& m_kdtree;
-      const std::vector<SphereLight> m_lights;
-      float m_fwidth, m_fheight;
-
-      glm::vec3 m_camera_pos;
-      glm::vec3 m_min_d;
-      glm::vec3 m_dx, m_dy;
+    glm::vec3 position;
+    glm::vec3 mind;
+    glm::vec3 dx, dy;
   };
+
+  Pinhole new_pinhole(
+      const Camera& camera,
+      unsigned int width,
+      unsigned int height);
+
+  inline Ray pinhole_ray(const Pinhole& pinhole, float x, float y)
+  {
+    return {
+      pinhole.position,
+      normalize(pinhole.mind + x * pinhole.dx + y * pinhole.dy)
+    };
+  }
+
+  void pathtrace(
+      const kdtree::KdTree& kdtree,
+      const std::vector<SphereLight>& lights,
+      const Pinhole& pinhole,
+      FastRand& rand,
+      SampleBuffer& buffer);
 }
 
 #endif /* end of include guard: PATHTRACER_HPP_NVGMZUSY */

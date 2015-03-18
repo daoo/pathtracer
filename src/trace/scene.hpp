@@ -26,7 +26,7 @@ namespace trace
 
   std::vector<Triangle> triangles_from_obj(
       const wavefront::Obj& obj,
-      const std::map<std::string, Material*> materials);
+      const std::map<std::string, Material*>& materials);
 
   kdtree::KdTree kdtree_from_triangles(
       const std::vector<Triangle>& triangles);

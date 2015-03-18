@@ -65,7 +65,9 @@ void print_status(
 }
 
 void worker(
-    const Pathtracer& pt,
+    const kdtree::KdTree& kdtree,
+    const vector<SphereLight>& lights,
+    const Pinhole& pinhole,
     unsigned int sample_count,
     unsigned int thread,
     misc::ConcurrentQueue<MessageSample>& queue,
@@ -77,7 +79,7 @@ void worker(
   FastRand rand;
   while (buffer.samples() < sample_count) {
     clock.start();
-    pt.trace(rand, buffer);
+    pathtrace(kdtree, lights, pinhole, rand, buffer);
     clock.stop();
 
     queue.push({thread, buffer.samples(), clock.length<float, ratio<1>>()});
@@ -87,14 +89,14 @@ void worker(
 void program(
     const path& obj_file,
     const path& out_dir,
-    unsigned int w,
-    unsigned int h,
+    unsigned int width,
+    unsigned int height,
     unsigned int camera,
     unsigned int sample_count,
     unsigned int thread_count)
 {
   assert(!obj_file.empty());
-  assert(w > 0 && h > 0);
+  assert(width > 0 && height > 0);
   assert(sample_count > 0);
   assert(thread_count > 0);
 
@@ -102,13 +104,13 @@ void program(
   const wavefront::Obj obj = wavefront::load_obj(obj_file);
   const wavefront::Mtl mtl = wavefront::load_mtl(obj_file.parent_path() / obj.mtl_lib);
 
-  const Scene scene = new_scene(obj, mtl);
-  const Pathtracer pt(scene.cameras[camera], scene.kdtree, scene.lights, w, h);
+  const Scene scene     = new_scene(obj, mtl);
+  const Pinhole pinhole = new_pinhole(scene.cameras[camera], width, height);
 
   // Setup one buffer for each thread
   vector<SampleBuffer> buffers;
   for (unsigned int i = 0; i < thread_count; ++i) {
-    buffers.emplace_back(w, h);
+    buffers.emplace_back(width, height);
   }
 
   // Setup threads and message queue
@@ -119,7 +121,9 @@ void program(
   for (unsigned int i = 0; i < thread_count; ++i) {
     threads.emplace_back(
         worker,
-        ref(pt),
+        ref(scene.kdtree),
+        ref(scene.lights),
+        ref(pinhole),
         samples_per_thread,
         i,
         ref(queue),
@@ -150,13 +154,13 @@ void program(
 
   // Merge results from each thread
   if (!out_dir.empty()) {
-    SampleBuffer result(w, h);
+    SampleBuffer result(width, height);
     for (const SampleBuffer& buffer : buffers) {
       result.append(buffer);
     }
 
     // Make a nice file name and save a file without overwriting anything
-    string name = nice_name(obj_file, w, h, sample_count);
+    string name = nice_name(obj_file, width, height, sample_count);
     write_image(next_free_name(out_dir, name, ".png").string(), result);
   }
 }

@@ -134,51 +134,56 @@ namespace trace
     }
   }
 
-  Pathtracer::Pathtracer(
+  Pinhole new_pinhole(
       const Camera& camera,
-      const kdtree::KdTree& kdtree,
-      const vector<SphereLight> lights,
       unsigned int width,
-      unsigned int height) :
-    m_kdtree(kdtree),
-    m_lights(lights),
-    m_fwidth(static_cast<float>(width)),
-    m_fheight(static_cast<float>(height))
+      unsigned int height)
   {
     vec3 camera_right = normalize(cross(camera.direction, camera.up));
     vec3 camera_up    = normalize(cross(camera_right, camera.direction));
 
-    float aspect   = m_fwidth / m_fheight;
+    float aspect   = static_cast<float>(width) / static_cast<float>(height);
     float fov_half = camera.fov / 2.0f;
 
     vec3 x = camera_up        * sin(fov_half);
     vec3 y = camera_right     * sin(fov_half) * aspect;
     vec3 z = camera.direction * cos(fov_half);
 
-    m_camera_pos = camera.position;
+    vec3 mind = z - y - x;
 
-    m_min_d = z - y - x;
+    vec3 dx = 2.0f * ((z - x) - mind);
+    vec3 dy = 2.0f * ((z - y) - mind);
 
-    m_dx = 2.0f * ((z - x) - m_min_d);
-    m_dy = 2.0f * ((z - y) - m_min_d);
+    return {
+      static_cast<float>(width),
+      static_cast<float>(height),
+      camera.position,
+      mind,
+      dx,
+      dy
+    };
   }
 
-  Pathtracer::~Pathtracer() { }
-
-  void Pathtracer::trace(FastRand& rand, SampleBuffer& buffer) const
+  void pathtrace(
+      const kdtree::KdTree& kdtree,
+      const vector<SphereLight>& lights,
+      const Pinhole& pinhole,
+      FastRand& rand,
+      SampleBuffer& buffer)
   {
     for (unsigned int y = 0; y < buffer.height(); ++y) {
       for (unsigned int x = 0; x < buffer.width(); ++x) {
-        float sx = (static_cast<float>(x) + rand.next()) / m_fwidth;
-        float sy = (static_cast<float>(y) + rand.next()) / m_fheight;
+        float sx = (static_cast<float>(x) + rand.next()) / pinhole.width;
+        float sy = (static_cast<float>(y) + rand.next()) / pinhole.height;
 
-        Ray ray
-          { m_camera_pos
-          , normalize(m_min_d + sx * m_dx + sy * m_dy)
-          };
-
-        const vec3 light = incoming_light(m_kdtree, m_lights, ray, rand);
-        buffer.add(x, y, light);
+        buffer.add(
+            x,
+            y,
+            incoming_light(
+              kdtree,
+              lights,
+              pinhole_ray(pinhole, sx, sy),
+              rand));
       }
     }
 

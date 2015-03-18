@@ -87,7 +87,7 @@ namespace trace
 
   vector<Triangle> triangles_from_obj(
       const wavefront::Obj& obj,
-      const map<string, Material*> materials)
+      const map<string, Material*>& materials)
   {
     vector<Triangle> triangles;
     for (const wavefront::Chunk& chunk : obj.chunks) {

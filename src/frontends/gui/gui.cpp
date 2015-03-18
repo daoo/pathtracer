@@ -12,22 +12,27 @@ using namespace std;
 using namespace trace;
 using namespace util;
 
-GUI::GUI(const path& dir, const path& file, const Scene& scene,
+GUI::GUI(
+    const path& dir,
+    const path& file,
+    const Scene& scene,
     unsigned int subsampling)
   : m_rand()
   , m_screenshot_dir(dir)
   , m_obj_file(file)
   , m_scene(scene)
   , m_camera(0)
-  , m_pathtracer(nullptr)
-  , m_buffer(nullptr)
+  , m_width(500)
+  , m_height(500)
+  , m_pinhole(new_pinhole(scene.cameras[0], 500, 500))
+  , m_buffer(500, 500)
   , m_subsampling(subsampling)
 {
 }
 
 unsigned int GUI::samples() const
 {
-  return m_buffer->samples();
+  return m_buffer.samples();
 }
 
 unsigned int GUI::subsampling() const
@@ -114,7 +119,12 @@ void GUI::resize(unsigned int w, unsigned int h)
 
 void GUI::trace()
 {
-  m_pathtracer->trace(m_rand, *m_buffer);
+  pathtrace(
+      m_scene.kdtree,
+      m_scene.lights,
+      m_pinhole,
+      m_rand,
+      m_buffer);
 }
 
 void GUI::render() const
@@ -123,12 +133,12 @@ void GUI::render() const
 
   // Create and upload raytracer framebuffer as a texture
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
-      m_buffer->width(),
-      m_buffer->height(),
-      0, GL_RGB, GL_FLOAT, m_buffer->data());
+      m_buffer.width(),
+      m_buffer.height(),
+      0, GL_RGB, GL_FLOAT, m_buffer.data());
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glUniform1i(m_uniform_framebuffer_samples, m_buffer->samples());
+  glUniform1i(m_uniform_framebuffer_samples, m_buffer.samples());
 
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -139,10 +149,10 @@ void GUI::render() const
 
 void GUI::save_screenshot() const
 {
-  string name = nice_name(m_obj_file, m_width, m_height, m_buffer->samples());
+  string name = nice_name(m_obj_file, m_width, m_height, m_buffer.samples());
   write_image(
       next_free_name(m_screenshot_dir, name, ".png").string(),
-      *m_buffer);
+      m_buffer);
 }
 
 void GUI::restart()
@@ -150,8 +160,6 @@ void GUI::restart()
   unsigned int w = m_width / m_subsampling;
   unsigned int h = m_height / m_subsampling;
 
-  delete m_pathtracer;
-  m_pathtracer = new Pathtracer(m_scene.cameras[m_camera], m_scene.kdtree, m_scene.lights, w, h);
-  delete m_buffer;
-  m_buffer = new SampleBuffer(w, h);
+  m_pinhole = new_pinhole(m_scene.cameras[m_camera], w, h);
+  m_buffer  = SampleBuffer(w, h);
 }
