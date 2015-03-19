@@ -19,22 +19,21 @@ run:
 cmake:
 	@mkdir -p build/debug
 	@mkdir -p build/debug_gcc
-	@mkdir -p build/release_clang
-	@mkdir -p build/release_gcc
+	@mkdir -p build/fast_clang
+	@mkdir -p build/fast_gcc
+	@mkdir -p build/size_gcc
 	@cd build/debug; \
 		CC=clang CXX=clang CXXOPTS="-stdlib=libc++ -lc++abi -g -Og" cmake -DCMAKE_BUILD_TYPE=debug $(path)
 	@cd build/debug_gcc; \
 		CC=gcc CXX=g++ CXXOPTS="-g -Og" cmake -DCMAKE_BUILD_TYPE=debug $(path)
-	@cd build/release_clang; \
+	@cd build/fast_clang; \
 		CC=clang CXX=clang CXXOPTS="-Ofast" cmake -DCMAKE_BUILD_TYPE=release $(path)
-	@cd build/release_gcc; \
-		CC=gcc CXX=g++ CXXOPTS="-Ofast -march=native" cmake -DCMAKE_BUILD_TYPE=release $(path)
+	@cd build/fast_gcc; \
+		CC=gcc CXX=g++ CXXOPTS="-Ofast -mopt=native -march=native" cmake -DCMAKE_BUILD_TYPE=release $(path)
+	@cd build/size_gcc; \
+		CC=gcc CXX=g++ CXXOPTS="-Os" cmake -DCMAKE_BUILD_TYPE=release $(path)
 
 distclean:
-	rm -rf \
-		build/debug \
-		build/debug_gcc \
-		build/release_clang \
-		build/release_gcc
+	rm -rf build/*
 
 .PHONY: build clean cmake links debug run
