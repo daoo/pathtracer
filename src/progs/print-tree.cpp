@@ -34,11 +34,7 @@ void helper(
   ArrayNode node = tree.get_node(index);
 
   if (node.is_leaf()) {
-    if (node.has_triangles()) {
-      cout << "Leaf: " << tree.get_triangles(node).size() << "\n";
-    } else {
-      cout << "Leaf: 0\n";
-    }
+    cout << "Leaf: " << tree.get_triangles(node).size() << "\n";
   } else if (node.is_split()) {
     cout << "Split: " << label << ", " << axis << ", " << node.get_split() << "\n";
     helper("left", tree, KdTreeArray::left_child(index), next_axis(axis), depth + 1);

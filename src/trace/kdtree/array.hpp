@@ -20,26 +20,13 @@ namespace trace
         ArrayNode(uint32_t i) : index((i << 1) & MASK_INDEX) { }
         ArrayNode(float distance) : distance(distance) { index |= MASK_TYPE; }
 
-        bool is_leaf() const
-        {
-          return (index & MASK_TYPE) == TYPE_LEAF;
-        }
-
-        bool has_triangles() const
-        {
-          assert(is_leaf());
-          return index != EMPTY_LEAF;
-        }
+        bool is_leaf()  const { return (index & MASK_TYPE) == TYPE_LEAF;  }
+        bool is_split() const { return (index & MASK_TYPE) == TYPE_SPLIT; }
 
         uint32_t get_index() const
         {
           assert(is_leaf());
           return index >> 1;
-        }
-
-        bool is_split() const
-        {
-          return (index & MASK_TYPE) == TYPE_SPLIT;
         }
 
         float get_split() const
@@ -81,29 +68,38 @@ namespace trace
         const std::vector<Triangle>& get_triangles(ArrayNode node) const
         {
           assert(node.is_leaf());
-          assert(node.has_triangles());
           return leaf_store[node.get_index()];
         }
 
-        void set_node(unsigned int index, ArrayNode&& node)
+        void add_leaf(
+            unsigned int node_index,
+            const std::vector<const Triangle*>& triangles)
         {
-          if (index >= nodes.size()) {
-            nodes.resize(index + 1);
-          }
-
-          nodes[index] = node;
-        }
-
-        uint32_t store_triangles(const std::vector<const Triangle*>& triangles)
-        {
-          uint32_t i = static_cast<uint32_t>(leaf_store.size());
+          uint32_t triangles_index = static_cast<uint32_t>(leaf_store.size());
           leaf_store.push_back(std::vector<Triangle>());
 
-          std::vector<Triangle>& to = leaf_store.back();
+          std::vector<Triangle>& to = leaf_store[triangles_index];
           for (const Triangle* tri : triangles) {
             assert(tri != nullptr);
             to.push_back(*tri);
           }
+
+          if (node_index >= nodes.size()) {
+            nodes.resize(node_index + 1);
+          }
+
+          nodes[node_index] = ArrayNode(triangles_index);
+        }
+
+        void add_split(
+            unsigned int node_index,
+            float distance)
+        {
+          if (node_index >= nodes.size()) {
+            nodes.resize(node_index + 1);
+          }
+
+          nodes[node_index] = ArrayNode(distance);
         }
 
         void shrink_to_fit()

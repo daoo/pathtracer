@@ -14,25 +14,14 @@ namespace trace
         assert(node != nullptr);
 
         if (node->is_leaf()) {
-          if (node->has_triangles()) {
-            uint32_t i = result.store_triangles(node->get_triangles());
-            result.set_node(index, ArrayNode(i));
-          } else {
-            result.set_node(index, ArrayNode());
-          }
+          result.add_leaf(index, node->get_triangles());
         } else {
           assert(node->is_split());
 
-          const LinkedNode* left  = node->get_left();
-          const LinkedNode* right = node->get_right();
+          result.add_split(index, node->get_split());
 
-          assert(left != nullptr);
-          assert(right != nullptr);
-
-          result.set_node(index, ArrayNode(node->get_split()));
-
-          helper(result, KdTreeArray::left_child(index), left);
-          helper(result, KdTreeArray::right_child(index), right);
+          helper(result, KdTreeArray::left_child(index), node->get_left());
+          helper(result, KdTreeArray::right_child(index), node->get_right());
         }
       }
     }
@@ -40,7 +29,6 @@ namespace trace
     void optimize(KdTreeArray& result, const KdTreeLinked& input)
     {
       helper(result, 0, input.get_root());
-
       result.shrink_to_fit();
     }
   }
