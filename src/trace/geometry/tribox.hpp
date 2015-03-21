@@ -24,13 +24,8 @@ namespace trace
   {
     inline void find_min_max(float x0, float x1, float x2, float& min, float& max)
     {
-      min = x0;
-      max = x0;
-
-      if (x1 < min) min = x1;
-      if (x1 > max) max = x1;
-      if (x2 < min) min = x2;
-      if (x2 > max) max = x2;
+      min = glm::min(x0, glm::min(x1, x2));
+      max = glm::max(x0, glm::max(x1, x2));
     }
 
     inline void test_axis(
