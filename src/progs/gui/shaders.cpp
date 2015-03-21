@@ -14,8 +14,7 @@ const string FRAGMENT_SHADER =
   "uniform int samples;\n"
   "\n"
   "void main() {\n"
-  "  color = (1.0 / float(samples)) *\n"
-  "    texture2D(framebuffer, texcoord);\n"
+  "  color = texture2D(framebuffer, texcoord) / float(samples);\n"
   "}\n";
 
 const string VERTEX_SHADER =
@@ -25,6 +24,6 @@ const string VERTEX_SHADER =
   "out vec2 texcoord;\n"
   "\n"
   "void main() {\n"
-    "texcoord    = (position.xy + vec2(1.0)) * 0.5;\n"
+    "texcoord    = (position.xy + vec2(1.0)) / 2.0;\n"
     "gl_Position = vec4(position, 1);\n"
   "}\n";
