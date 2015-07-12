@@ -29,36 +29,34 @@ namespace trace
     }
 
     inline void test_axis(
-        int axis,
-        const glm::vec3& normal,
-        const glm::vec3& vert,
-        const glm::vec3& maxbox,
-        glm::vec3& vmin,
-        glm::vec3& vmax)
+        float normal,
+        float vert,
+        float maxbox,
+        float& vmin,
+        float& vmax)
     {
-      float v = vert[axis];
-      if (normal[axis] > 0.0f) {
-        vmin[axis] = -maxbox[axis] - v;
-        vmax[axis] =  maxbox[axis] - v;
+      if (normal > 0.0f) {
+        vmin = vert - maxbox;
+        vmax = maxbox - vert;
       } else {
-        vmin[axis] =  maxbox[axis] - v;
-        vmax[axis] = -maxbox[axis] - v;
+        vmin = maxbox - vert;
+        vmax = vert - maxbox;
       }
     }
 
-    inline int plane_box_overlap(
+    inline bool plane_box_overlap(
         const glm::vec3& normal,
         const glm::vec3& vert,
         const glm::vec3& maxbox)
     {
       glm::vec3 vmin, vmax;
-      test_axis(0, normal, vert, maxbox, vmin, vmax);
-      test_axis(1, normal, vert, maxbox, vmin, vmax);
-      test_axis(2, normal, vert, maxbox, vmin, vmax);
-      if (glm::dot(normal, vmin) > 0.0f) return 0;
-      if (glm::dot(normal, vmax) >= 0.0f) return 1;
+      test_axis(normal.x, vert.x, maxbox.x, vmin.x, vmax.x);
+      test_axis(normal.y, vert.y, maxbox.y, vmin.y, vmax.y);
+      test_axis(normal.z, vert.z, maxbox.z, vmin.z, vmax.z);
 
-      return 0;
+      return
+        glm::dot(normal, vmin) <= 0.0f &&
+        glm::dot(normal, vmax) >= 0.0f;
     }
 
 
