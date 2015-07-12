@@ -104,8 +104,8 @@ void program(
   const wavefront::Obj obj = wavefront::load_obj(obj_file);
   const wavefront::Mtl mtl = wavefront::load_mtl(obj_file.parent_path() / obj.mtl_lib);
 
-  const Scene scene     = new_scene(obj, mtl);
-  const Pinhole pinhole = new_pinhole(scene.cameras[camera], width, height);
+  const Scene scene = new_scene(obj, mtl);
+  const Pinhole pinhole(scene.cameras[camera], width, height);
 
   // Setup one buffer for each thread
   vector<SampleBuffer> buffers;

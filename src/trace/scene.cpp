@@ -35,7 +35,7 @@ namespace trace
   {
     vector<Camera> cameras;
     for (const wavefront::Camera& camera : mtl.cameras) {
-      cameras.push_back(new_camera(
+      cameras.push_back(Camera(
             camera.position,
             camera.target,
             camera.up,

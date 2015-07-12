@@ -16,7 +16,7 @@ namespace trace
     {
       constexpr float EPSILON = 0.00001f;
 
-      void aabb_from_split(
+      void split_aabb(
           const Aabb& box,
           Axis axis,
           float split,
@@ -108,7 +108,7 @@ namespace trace
           vector<const Triangle*>& best_right_triangles)
       {
         Aabb left_box, right_box;
-        aabb_from_split(box, axis, split, left_box, right_box);
+        split_aabb(box, axis, split, left_box, right_box);
 
         vector<const Triangle*> left_triangles, right_triangles;
         intersect_test(
@@ -250,7 +250,7 @@ namespace trace
         Aabb left_box;
         Aabb right_box;
 
-        aabb_from_split(box, axis, split, left_box, right_box);
+        split_aabb(box, axis, split, left_box, right_box);
 
         vector<const Triangle*> left_triangles, right_triangles;
 

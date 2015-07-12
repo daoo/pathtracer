@@ -135,36 +135,6 @@ namespace trace
     }
   }
 
-  Pinhole new_pinhole(
-      const Camera& camera,
-      unsigned int width,
-      unsigned int height)
-  {
-    vec3 camera_right = normalize(cross(camera.direction, camera.up));
-    vec3 camera_up    = normalize(cross(camera_right, camera.direction));
-
-    float aspect   = static_cast<float>(width) / static_cast<float>(height);
-    float fov_half = camera.fov / 2.0f;
-
-    vec3 x = camera_up        * sin(fov_half);
-    vec3 y = camera_right     * sin(fov_half) * aspect;
-    vec3 z = camera.direction * cos(fov_half);
-
-    vec3 mind = z - y - x;
-
-    vec3 dx = 2.0f * ((z - x) - mind);
-    vec3 dy = 2.0f * ((z - y) - mind);
-
-    return {
-      static_cast<float>(width),
-      static_cast<float>(height),
-      camera.position,
-      mind,
-      dx,
-      dy
-    };
-  }
-
   void pathtrace(
       const kdtree::KdTreeArray& kdtree,
       const vector<SphereLight>& lights,
@@ -183,7 +153,7 @@ namespace trace
             incoming_light(
               kdtree,
               lights,
-              pinhole_ray(pinhole, sx, sy),
+              pinhole.ray(sx, sy),
               rand));
       }
     }

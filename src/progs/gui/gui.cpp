@@ -24,7 +24,7 @@ GUI::GUI(
   , m_camera(0)
   , m_width(500)
   , m_height(500)
-  , m_pinhole(new_pinhole(scene.cameras[0], 500, 500))
+  , m_pinhole(scene.cameras[0], 500, 500)
   , m_buffer(500, 500)
   , m_subsampling(subsampling)
 {
@@ -160,6 +160,6 @@ void GUI::restart()
   unsigned int w = m_width / m_subsampling;
   unsigned int h = m_height / m_subsampling;
 
-  m_pinhole = new_pinhole(m_scene.cameras[m_camera], w, h);
+  m_pinhole = Pinhole(m_scene.cameras[m_camera], w, h);
   m_buffer  = SampleBuffer(w, h);
 }

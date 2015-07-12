@@ -12,28 +12,6 @@
 
 namespace trace
 {
-  struct Pinhole
-  {
-    float width, height;
-
-    glm::vec3 position;
-    glm::vec3 mind;
-    glm::vec3 dx, dy;
-  };
-
-  Pinhole new_pinhole(
-      const Camera& camera,
-      unsigned int width,
-      unsigned int height);
-
-  inline Ray pinhole_ray(const Pinhole& pinhole, float x, float y)
-  {
-    return {
-      pinhole.position,
-      normalize(pinhole.mind + x * pinhole.dx + y * pinhole.dy)
-    };
-  }
-
   void pathtrace(
       const kdtree::KdTreeArray& kdtree,
       const std::vector<SphereLight>& lights,
