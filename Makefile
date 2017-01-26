@@ -1,39 +1,18 @@
-path = $(realpath .)
-target = debug_gcc
+default: linux-debug
 
-build:
-	+@make --no-print-directory -C build/$(target) all
+all: linux-debug linux-release linux-extreme
 
-clean:
-	+@make --no-print-directory -C build/$(target) clean
+build/%.ninja: build.ninja.template configure
+	./configure
 
-debug:
-	cgdb -- -ex "set args -m $(path)/scenes/cube.obj -o /tmp" \
-		build/debug/src/frontends/gui/pathtracer-gl
+linux-debug: build/linux-debug.ninja
+	@ninja -C build -f linux-debug.ninja
 
-run:
-	build/release_clang/src/frontends/gui/pathtracer-gl \
-		-m $(path)/scenes/cube.obj \
-		-o /tmp
+linux-release: build/linux-release.ninja
+	@ninja -C build -f linux-release.ninja
 
-cmake:
-	@mkdir -p build/debug
-	@mkdir -p build/debug_gcc
-	@mkdir -p build/fast_clang
-	@mkdir -p build/fast_gcc
-	@mkdir -p build/size_gcc
-	@cd build/debug; \
-		CC=clang CXX=clang CXXOPTS="-stdlib=libc++ -lc++abi -g -Og" cmake -DCMAKE_BUILD_TYPE=debug $(path)
-	@cd build/debug_gcc; \
-		CC=gcc CXX=g++ CXXOPTS="-g -Og" cmake -DCMAKE_BUILD_TYPE=debug $(path)
-	@cd build/fast_clang; \
-		CC=clang CXX=clang CXXOPTS="-Ofast" cmake -DCMAKE_BUILD_TYPE=release $(path)
-	@cd build/fast_gcc; \
-		CC=gcc CXX=g++ CXXOPTS="-Ofast -mopt=native -march=native" cmake -DCMAKE_BUILD_TYPE=release $(path)
-	@cd build/size_gcc; \
-		CC=gcc CXX=g++ CXXOPTS="-Os" cmake -DCMAKE_BUILD_TYPE=release $(path)
+linux-extreme: build/linux-extreme.ninja
+	@ninja -C build -f linux-extreme.ninja
 
 distclean:
-	rm -rf build/*
-
-.PHONY: build clean cmake links debug run
+	rm -fr build
