@@ -42,7 +42,7 @@ namespace trace
 
     Mtl load_mtl(const path& file)
     {
-      ifstream stream(file.string());
+      std::ifstream stream(file.string());
       if (!stream.good()) {
         string err = "Failed opening file '";
         err += file.string();
