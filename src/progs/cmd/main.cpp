@@ -2,12 +2,12 @@
 
 #include "trace/strings.hpp"
 
-#include <boost/filesystem/path.hpp>
 #include <boost/program_options.hpp>
+#include <experimental/filesystem>
 #include <iostream>
 #include <unistd.h>
 
-namespace fs = boost::filesystem;
+namespace fs = std::experimental::filesystem;
 namespace po = boost::program_options;
 
 using namespace std;

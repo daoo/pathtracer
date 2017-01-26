@@ -9,12 +9,11 @@
 #include "trace/samplebuffer.hpp"
 #include "trace/strings.hpp"
 
-#include <boost/filesystem/convenience.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/program_options.hpp>
+#include <experimental/filesystem>
 #include <iostream>
 
-namespace fs = boost::filesystem;
+namespace fs = std::experimental::filesystem;
 namespace po = boost::program_options;
 
 using namespace std;
@@ -110,8 +109,6 @@ int main(int argc, char *argv[])
     const wavefront::Mtl mtl = wavefront::load_mtl(model.parent_path() / obj.mtl_lib);
     const Scene scene = new_scene(obj, mtl);
 
-    string name = basename(change_extension(model, ""));
-
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
@@ -122,7 +119,7 @@ int main(int argc, char *argv[])
     glutDisplayFunc(display);
     glewInit();
 
-    g_gui = new GUI(outdir, name, scene, SUBSAMPLING);
+    g_gui = new GUI(outdir, model.stem(), scene, SUBSAMPLING);
     g_gui->init_gl();
     g_gui->resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 

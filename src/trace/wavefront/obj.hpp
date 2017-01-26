@@ -1,7 +1,7 @@
 #ifndef OBJ_HPP_BMTCK0HO
 #define OBJ_HPP_BMTCK0HO
 
-#include <boost/filesystem.hpp>
+#include <experimental/filesystem>
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -22,7 +22,7 @@ namespace trace
 
     struct Obj
     {
-      boost::filesystem::path mtl_lib;
+      std::experimental::filesystem::path mtl_lib;
 
       std::vector<glm::vec3> vertices;
       std::vector<glm::vec3> normals;
@@ -30,7 +30,7 @@ namespace trace
       std::vector<Chunk> chunks;
     };
 
-    Obj load_obj(const boost::filesystem::path&);
+    Obj load_obj(const std::experimental::filesystem::path&);
 
     inline glm::vec3 index_vertex(const Obj& obj, int i)
     {

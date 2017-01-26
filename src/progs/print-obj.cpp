@@ -2,10 +2,10 @@
 #include "trace/wavefront/mtl.hpp"
 #include "trace/wavefront/obj.hpp"
 
-#include <boost/filesystem.hpp>
+#include <experimental/filesystem>
 #include <iostream>
 
-using namespace boost::filesystem;
+using namespace std::experimental::filesystem;
 using namespace std;
 using namespace trace;
 using namespace util;

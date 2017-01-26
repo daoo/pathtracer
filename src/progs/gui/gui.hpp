@@ -7,15 +7,15 @@
 #include "trace/scene.hpp"
 
 #include <GL/glew.h>
-#include <boost/filesystem/path.hpp>
+#include <experimental/filesystem>
 #include <string>
 
 class GUI
 {
   public:
     GUI(
-        const boost::filesystem::path&,
-        const boost::filesystem::path&,
+        const std::experimental::filesystem::path&,
+        const std::experimental::filesystem::path&,
         const trace::Scene& scene,
         unsigned int);
 
@@ -35,8 +35,8 @@ class GUI
   private:
     trace::FastRand m_rand;
 
-    boost::filesystem::path m_screenshot_dir;
-    boost::filesystem::path m_obj_file;
+    std::experimental::filesystem::path m_screenshot_dir;
+    std::experimental::filesystem::path m_obj_file;
 
     const trace::Scene& m_scene;
     unsigned int m_camera;

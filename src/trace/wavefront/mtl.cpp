@@ -6,7 +6,7 @@
 #include <fstream>
 #include <ostream>
 
-using namespace boost::filesystem;
+using namespace std::experimental::filesystem;
 using namespace glm;
 using namespace std;
 

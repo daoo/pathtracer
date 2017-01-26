@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-using namespace boost::filesystem;
+using namespace std::experimental::filesystem;
 using namespace std;
 
 namespace util
@@ -29,8 +29,7 @@ namespace util
       unsigned int samples)
   {
     stringstream name;
-    name << basename(change_extension(file, "")) << "_"
-      << width << "x" << height << "_" << samples;
+    name << file.stem() << "_" << width << "x" << height << "_" << samples;
     return name.str();
   }
 }

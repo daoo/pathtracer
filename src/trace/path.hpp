@@ -1,15 +1,17 @@
 #ifndef PATH_HPP_KK7VPDVX
 #define PATH_HPP_KK7VPDVX
 
-#include <boost/filesystem.hpp>
+#include <experimental/filesystem>
 #include <string>
 
 namespace util
 {
-  boost::filesystem::path next_free_name(const boost::filesystem::path&,
+  std::experimental::filesystem::path next_free_name(
+      const std::experimental::filesystem::path&,
       const std::string&, const std::string&);
 
-  std::string nice_name(const boost::filesystem::path&,
+  std::string nice_name(
+      const std::experimental::filesystem::path&,
       unsigned int, unsigned int, unsigned int);
 }
 

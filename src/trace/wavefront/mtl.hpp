@@ -1,7 +1,7 @@
 #ifndef MTL_HPP_XZYN6ESW
 #define MTL_HPP_XZYN6ESW
 
-#include <boost/filesystem.hpp>
+#include <experimental/filesystem>
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
@@ -47,7 +47,7 @@ namespace trace
       std::vector<Camera> cameras;
     };
 
-    Mtl load_mtl(const boost::filesystem::path&);
+    Mtl load_mtl(const std::experimental::filesystem::path&);
   }
 }
 
