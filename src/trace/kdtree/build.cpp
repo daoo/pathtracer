@@ -1,7 +1,7 @@
 #include "trace/kdtree/build.hpp"
 
-#include "trace/geometry/bounding.hpp"
-#include "trace/geometry/tribox.hpp"
+#include "geometry/bounding.hpp"
+#include "geometry/tribox.hpp"
 #include "trace/kdtree/util.hpp"
 #include <glm/glm.hpp>
 

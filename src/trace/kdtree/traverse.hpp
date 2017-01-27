@@ -1,7 +1,7 @@
 #ifndef TRAVERSE_HPP_IJFE6LBZ
 #define TRAVERSE_HPP_IJFE6LBZ
 
-#include "trace/geometry/ray.hpp"
+#include "geometry/ray.hpp"
 #include "trace/intersection.hpp"
 #include "trace/kdtree/array.hpp"
 

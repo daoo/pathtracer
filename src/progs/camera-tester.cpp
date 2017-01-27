@@ -1,5 +1,5 @@
+#include "geometry/ray.hpp"
 #include "trace/camera.hpp"
-#include "trace/geometry/ray.hpp"
 
 #include <glm/glm.hpp>
 #include <iostream>

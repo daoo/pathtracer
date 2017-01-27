@@ -1,9 +1,9 @@
 #ifndef PATHTRACER_HPP_NVGMZUSY
 #define PATHTRACER_HPP_NVGMZUSY
 
+#include "geometry/ray.hpp"
 #include "trace/camera.hpp"
 #include "trace/fastrand.hpp"
-#include "trace/geometry/ray.hpp"
 #include "trace/kdtree/array.hpp"
 #include "trace/light.hpp"
 #include "trace/samplebuffer.hpp"

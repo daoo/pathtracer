@@ -1,8 +1,8 @@
 #ifndef SCENE_HPP_BOFJZX4D
 #define SCENE_HPP_BOFJZX4D
 
+#include "geometry/ray.hpp"
 #include "trace/camera.hpp"
-#include "trace/geometry/ray.hpp"
 #include "trace/kdtree/array.hpp"
 #include "trace/light.hpp"
 #include "trace/material.hpp"

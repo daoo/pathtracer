@@ -1,4 +1,4 @@
-#include "trace/geometry/bounding.hpp"
+#include "geometry/bounding.hpp"
 
 #include <glm/glm.hpp>
 

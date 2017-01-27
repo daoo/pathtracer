@@ -1,7 +1,7 @@
 #ifndef ARRAY_HPP_BBXOECNY
 #define ARRAY_HPP_BBXOECNY
 
-#include "trace/geometry/triangle.hpp"
+#include "geometry/triangle.hpp"
 #include "trace/kdtree/util.hpp"
 
 #include <algorithm>

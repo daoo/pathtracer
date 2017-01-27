@@ -1,7 +1,7 @@
 #ifndef LINKED_HPP_DGVBYSLC
 #define LINKED_HPP_DGVBYSLC
 
-#include "trace/geometry/triangle.hpp"
+#include "geometry/triangle.hpp"
 #include "trace/kdtree/util.hpp"
 
 #include <vector>

@@ -12,6 +12,7 @@ rule link
   command = $cxx -L$outdir $ldflags -o $out $in $libs
   description = LINK $out
 
+build $outdir/geometry/bounding.o:       cxx $src/geometry/bounding.cpp
 build $outdir/progs/camera-tester.o:     cxx $src/progs/camera-tester.cpp
 build $outdir/progs/cmd/main.o:          cxx $src/progs/cmd/main.cpp
 build $outdir/progs/cmd/thread.o:        cxx $src/progs/cmd/thread.cpp
@@ -22,7 +23,6 @@ build $outdir/progs/gui/shaders.o:       cxx $src/progs/gui/shaders.cpp
 build $outdir/progs/print-obj.o:         cxx $src/progs/print-obj.cpp
 build $outdir/progs/print-tree.o:        cxx $src/progs/print-tree.cpp
 build $outdir/progs/sizes.o:             cxx $src/progs/sizes.cpp
-build $outdir/trace/geometry/bounding.o: cxx $src/trace/geometry/bounding.cpp
 build $outdir/trace/kdtree/build.o:      cxx $src/trace/kdtree/build.cpp
 build $outdir/trace/kdtree/optimize.o:   cxx $src/trace/kdtree/optimize.cpp
 build $outdir/trace/kdtree/traverse.o:   cxx $src/trace/kdtree/traverse.cpp
@@ -38,7 +38,7 @@ build $outdir/trace/wavefront/mtl.o:     cxx $src/trace/wavefront/mtl.cpp
 build $outdir/trace/wavefront/obj.o:     cxx $src/trace/wavefront/obj.cpp
 
 build $outdir/libtrace.a: ar $
-  $outdir/trace/geometry/bounding.o $
+  $outdir/geometry/bounding.o $
   $outdir/trace/kdtree/build.o $
   $outdir/trace/kdtree/optimize.o $
   $outdir/trace/kdtree/traverse.o $

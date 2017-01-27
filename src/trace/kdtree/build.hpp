@@ -1,7 +1,7 @@
 #ifndef BUILD_HPP_EBQD1OY8
 #define BUILD_HPP_EBQD1OY8
 
-#include "trace/geometry/triangle.hpp"
+#include "geometry/triangle.hpp"
 #include "trace/kdtree/linked.hpp"
 #include <vector>
 

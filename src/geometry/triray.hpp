@@ -1,8 +1,8 @@
 #ifndef TRIRAY_HPP_KQNRL2U5
 #define TRIRAY_HPP_KQNRL2U5
 
-#include "trace/geometry/ray.hpp"
-#include "trace/geometry/triangle.hpp"
+#include "geometry/ray.hpp"
+#include "geometry/triangle.hpp"
 #include <glm/glm.hpp>
 
 namespace trace

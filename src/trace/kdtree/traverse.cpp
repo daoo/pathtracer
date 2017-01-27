@@ -1,7 +1,7 @@
 #include "traverse.hpp"
 
-#include "trace/geometry/triangle.hpp"
-#include "trace/geometry/triray.hpp"
+#include "geometry/triangle.hpp"
+#include "geometry/triray.hpp"
 
 using namespace glm;
 using namespace std;

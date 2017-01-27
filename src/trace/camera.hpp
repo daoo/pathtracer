@@ -1,7 +1,7 @@
 #ifndef CAMERA_HPP_6EER58HB
 #define CAMERA_HPP_6EER58HB
 
-#include "trace/geometry/ray.hpp"
+#include "geometry/ray.hpp"
 #include <glm/glm.hpp>
 
 namespace trace

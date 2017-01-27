@@ -1,8 +1,8 @@
 #ifndef BOUNDING_HPP_B8TQ0RYS
 #define BOUNDING_HPP_B8TQ0RYS
 
-#include "trace/geometry/aabb.hpp"
-#include "trace/geometry/triangle.hpp"
+#include "geometry/aabb.hpp"
+#include "geometry/triangle.hpp"
 #include <vector>
 
 namespace trace
