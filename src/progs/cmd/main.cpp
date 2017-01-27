@@ -1,6 +1,6 @@
 #include "thread.hpp"
 
-#include "trace/strings.hpp"
+#include "util/strings.hpp"
 
 #include <boost/program_options.hpp>
 #include <experimental/filesystem>

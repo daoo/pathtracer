@@ -1,13 +1,13 @@
 #include "thread.hpp"
 
-#include "trace/clock.hpp"
-#include "trace/concurrentqueue.hpp"
 #include "trace/fastrand.hpp"
-#include "trace/nicetime.hpp"
-#include "trace/path.hpp"
 #include "trace/pathtracer.hpp"
 #include "trace/samplebuffer.hpp"
 #include "trace/scene.hpp"
+#include "util/clock.hpp"
+#include "util/concurrentqueue.hpp"
+#include "util/nicetime.hpp"
+#include "util/path.hpp"
 #include "wavefront/mtl.hpp"
 #include "wavefront/obj.hpp"
 

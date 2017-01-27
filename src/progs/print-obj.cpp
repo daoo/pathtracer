@@ -1,4 +1,4 @@
-#include "trace/clock.hpp"
+#include "util/clock.hpp"
 #include "wavefront/mtl.hpp"
 #include "wavefront/obj.hpp"
 

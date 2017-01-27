@@ -1,7 +1,7 @@
 #include "kdtree/array.hpp"
 #include "kdtree/util.hpp"
-#include "trace/clock.hpp"
 #include "trace/scene.hpp"
+#include "util/clock.hpp"
 #include "wavefront/obj.hpp"
 
 #include <experimental/filesystem>

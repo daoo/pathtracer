@@ -3,7 +3,7 @@
 #include "gl.hpp"
 #include "shaders.hpp"
 
-#include "trace/path.hpp"
+#include "util/path.hpp"
 
 #include <algorithm>
 

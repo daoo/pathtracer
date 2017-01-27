@@ -3,11 +3,11 @@
 
 #include "gui.hpp"
 
-#include "trace/clock.hpp"
-#include "trace/path.hpp"
 #include "trace/pathtracer.hpp"
 #include "trace/samplebuffer.hpp"
-#include "trace/strings.hpp"
+#include "util/clock.hpp"
+#include "util/path.hpp"
+#include "util/strings.hpp"
 
 #include <boost/program_options.hpp>
 #include <experimental/filesystem>
