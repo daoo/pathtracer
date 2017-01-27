@@ -1,6 +1,6 @@
 #include "trace/clock.hpp"
-#include "trace/wavefront/mtl.hpp"
-#include "trace/wavefront/obj.hpp"
+#include "wavefront/mtl.hpp"
+#include "wavefront/obj.hpp"
 
 #include <experimental/filesystem>
 #include <iostream>

@@ -2,7 +2,7 @@
 #include "kdtree/util.hpp"
 #include "trace/clock.hpp"
 #include "trace/scene.hpp"
-#include "trace/wavefront/obj.hpp"
+#include "wavefront/obj.hpp"
 
 #include <experimental/filesystem>
 #include <iostream>

@@ -8,8 +8,8 @@
 #include "trace/pathtracer.hpp"
 #include "trace/samplebuffer.hpp"
 #include "trace/scene.hpp"
-#include "trace/wavefront/mtl.hpp"
-#include "trace/wavefront/obj.hpp"
+#include "wavefront/mtl.hpp"
+#include "wavefront/obj.hpp"
 
 #include <iostream>
 #include <thread>

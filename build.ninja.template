@@ -34,8 +34,8 @@ build $outdir/trace/pathtracer.o:        cxx $src/trace/pathtracer.cpp
 build $outdir/trace/samplebuffer.o:      cxx $src/trace/samplebuffer.cpp
 build $outdir/trace/scene.o:             cxx $src/trace/scene.cpp
 build $outdir/trace/texture.o:           cxx $src/trace/texture.cpp
-build $outdir/trace/wavefront/mtl.o:     cxx $src/trace/wavefront/mtl.cpp
-build $outdir/trace/wavefront/obj.o:     cxx $src/trace/wavefront/obj.cpp
+build $outdir/wavefront/mtl.o:           cxx $src/wavefront/mtl.cpp
+build $outdir/wavefront/obj.o:           cxx $src/wavefront/obj.cpp
 
 build $outdir/libtrace.a: ar $
   $outdir/geometry/bounding.o $
@@ -50,8 +50,8 @@ build $outdir/libtrace.a: ar $
   $outdir/trace/samplebuffer.o $
   $outdir/trace/scene.o $
   $outdir/trace/texture.o $
-  $outdir/trace/wavefront/mtl.o $
-  $outdir/trace/wavefront/obj.o
+  $outdir/wavefront/mtl.o $
+  $outdir/wavefront/obj.o
 
 build $outdir/pathtracer: link $
   $outdir/progs/cmd/thread.o $

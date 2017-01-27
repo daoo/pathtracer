@@ -1,6 +1,6 @@
 #include "mtl.hpp"
 
-#include "trace/wavefront/parse.hpp"
+#include "wavefront/parse.hpp"
 
 #include <exception>
 #include <fstream>

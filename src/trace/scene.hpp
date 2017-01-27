@@ -6,8 +6,8 @@
 #include "trace/camera.hpp"
 #include "trace/light.hpp"
 #include "trace/material.hpp"
-#include "trace/wavefront/mtl.hpp"
-#include "trace/wavefront/obj.hpp"
+#include "wavefront/mtl.hpp"
+#include "wavefront/obj.hpp"
 
 #include <map>
 #include <string>
