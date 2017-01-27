@@ -67,10 +67,22 @@ build $outdir/pathtracer-ui: link $
 
 build $outdir/test-camera: link $outdir/progs/camera-tester.o
 
-build $outdir/print-obj: link $outdir/progs/print-obj.o | $outdir/libtrace.a
-  libs = -lstdc++fs -ltrace
+build $outdir/print-obj: link $
+  $outdir/progs/print-obj.o $
+  $outdir/wavefront/mtl.o $
+  $outdir/wavefront/obj.o
+  libs = -lstdc++fs
 
-build $outdir/print-tree: link $outdir/progs/print-tree.o | $outdir/libtrace.a
-  libs = -lstdc++fs -ltrace
+build $outdir/print-tree: link $
+  $outdir/geometry/bounding.o $
+  $outdir/kdtree/build.o $
+  $outdir/kdtree/optimize.o $
+  $outdir/progs/print-tree.o $
+  $outdir/trace/light.o $
+  $outdir/trace/material.o $
+  $outdir/trace/scene.o $
+  $outdir/wavefront/mtl.o $
+  $outdir/wavefront/obj.o
+  libs = -lstdc++fs
 
 build $outdir/sizes: link $outdir/progs/sizes.o
