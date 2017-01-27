@@ -1,7 +1,7 @@
 #include "trace/pathtracer.hpp"
 
+#include "kdtree/traverse.hpp"
 #include "trace/intersection.hpp"
-#include "trace/kdtree/traverse.hpp"
 #include "trace/mcsampling.hpp"
 #include <glm/gtc/constants.hpp>
 

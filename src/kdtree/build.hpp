@@ -2,7 +2,7 @@
 #define BUILD_HPP_EBQD1OY8
 
 #include "geometry/triangle.hpp"
-#include "trace/kdtree/linked.hpp"
+#include "kdtree/linked.hpp"
 #include <vector>
 
 namespace trace

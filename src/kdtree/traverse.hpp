@@ -2,8 +2,8 @@
 #define TRAVERSE_HPP_IJFE6LBZ
 
 #include "geometry/ray.hpp"
+#include "kdtree/array.hpp"
 #include "trace/intersection.hpp"
-#include "trace/kdtree/array.hpp"
 
 namespace trace
 {

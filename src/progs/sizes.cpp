@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "trace/kdtree/array.hpp"
-#include "trace/kdtree/linked.hpp"
+#include "kdtree/array.hpp"
+#include "kdtree/linked.hpp"
 
 using namespace trace;
 using namespace std;

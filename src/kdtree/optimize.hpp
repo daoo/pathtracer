@@ -1,8 +1,8 @@
 #ifndef OPTIMIZE_HPP_QP6FUW2E
 #define OPTIMIZE_HPP_QP6FUW2E
 
-#include "trace/kdtree/array.hpp"
-#include "trace/kdtree/linked.hpp"
+#include "kdtree/array.hpp"
+#include "kdtree/linked.hpp"
 
 namespace trace
 {

@@ -2,7 +2,7 @@
 #define ARRAY_HPP_BBXOECNY
 
 #include "geometry/triangle.hpp"
-#include "trace/kdtree/util.hpp"
+#include "kdtree/util.hpp"
 
 #include <algorithm>
 #include <cstdint>

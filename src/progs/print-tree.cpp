@@ -1,6 +1,6 @@
+#include "kdtree/array.hpp"
+#include "kdtree/util.hpp"
 #include "trace/clock.hpp"
-#include "trace/kdtree/util.hpp"
-#include "trace/kdtree/array.hpp"
 #include "trace/scene.hpp"
 #include "trace/wavefront/obj.hpp"
 

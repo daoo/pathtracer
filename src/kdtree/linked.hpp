@@ -2,7 +2,7 @@
 #define LINKED_HPP_DGVBYSLC
 
 #include "geometry/triangle.hpp"
-#include "trace/kdtree/util.hpp"
+#include "kdtree/util.hpp"
 
 #include <vector>
 
