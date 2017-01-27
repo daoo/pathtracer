@@ -16,16 +16,16 @@ build $outdir/geometry/bounding.o:       cxx $src/geometry/bounding.cpp
 build $outdir/kdtree/build.o:            cxx $src/kdtree/build.cpp
 build $outdir/kdtree/optimize.o:         cxx $src/kdtree/optimize.cpp
 build $outdir/kdtree/traverse.o:         cxx $src/kdtree/traverse.cpp
-build $outdir/progs/camera-tester.o:     cxx $src/progs/camera-tester.cpp
-build $outdir/progs/cmd/main.o:          cxx $src/progs/cmd/main.cpp
-build $outdir/progs/cmd/thread.o:        cxx $src/progs/cmd/thread.cpp
-build $outdir/progs/gui/gl.o:            cxx $src/progs/gui/gl.cpp
-build $outdir/progs/gui/gui.o:           cxx $src/progs/gui/gui.cpp
-build $outdir/progs/gui/main.o:          cxx $src/progs/gui/main.cpp
-build $outdir/progs/gui/shaders.o:       cxx $src/progs/gui/shaders.cpp
-build $outdir/progs/print-obj.o:         cxx $src/progs/print-obj.cpp
-build $outdir/progs/print-tree.o:        cxx $src/progs/print-tree.cpp
-build $outdir/progs/sizes.o:             cxx $src/progs/sizes.cpp
+build $outdir/pathtracer-gl/gl.o:        cxx $src/pathtracer-gl/gl.cpp
+build $outdir/pathtracer-gl/gui.o:       cxx $src/pathtracer-gl/gui.cpp
+build $outdir/pathtracer-gl/main.o:      cxx $src/pathtracer-gl/main.cpp
+build $outdir/pathtracer-gl/shaders.o:   cxx $src/pathtracer-gl/shaders.cpp
+build $outdir/pathtracer/main.o:         cxx $src/pathtracer/main.cpp
+build $outdir/pathtracer/thread.o:       cxx $src/pathtracer/thread.cpp
+build $outdir/tests/camera-tester.o:     cxx $src/tests/camera-tester.cpp
+build $outdir/tests/print-obj.o:         cxx $src/tests/print-obj.cpp
+build $outdir/tests/print-tree.o:        cxx $src/tests/print-tree.cpp
+build $outdir/tests/sizes.o:             cxx $src/tests/sizes.cpp
 build $outdir/trace/light.o:             cxx $src/trace/light.cpp
 build $outdir/trace/material.o:          cxx $src/trace/material.cpp
 build $outdir/trace/pathtracer.o:        cxx $src/trace/pathtracer.cpp
@@ -53,22 +53,22 @@ build $outdir/libtrace.a: ar $
   $outdir/wavefront/mtl.o $
   $outdir/wavefront/obj.o
 
-build $outdir/pathtracer: link $
-  $outdir/progs/cmd/thread.o $
-  $outdir/progs/cmd/main.o | $outdir/libtrace.a
+build $outdir/pathtracer/pathtracer: link $
+  $outdir/pathtracer/thread.o $
+  $outdir/pathtracer/main.o | $outdir/libtrace.a
   libs = -lstdc++fs -ltrace -lfreeimage -lboost_program_options -lpthread
 
-build $outdir/pathtracer-ui: link $
-  $outdir/progs/gui/gl.o $
-  $outdir/progs/gui/gui.o $
-  $outdir/progs/gui/main.o $
-  $outdir/progs/gui/shaders.o | $outdir/libtrace.a
+build $outdir/pathtracer-gl/pathtracer-gl: link $
+  $outdir/pathtracer-gl/gl.o $
+  $outdir/pathtracer-gl/gui.o $
+  $outdir/pathtracer-gl/main.o $
+  $outdir/pathtracer-gl/shaders.o | $outdir/libtrace.a
   libs = -lstdc++fs -ltrace -lfreeimage -lGLEW -lGLU -lGL -lglut -lboost_program_options -lpthread
 
-build $outdir/test-camera: link $outdir/progs/camera-tester.o
+build $outdir/test-camera: link $outdir/tests/camera-tester.o
 
 build $outdir/print-obj: link $
-  $outdir/progs/print-obj.o $
+  $outdir/tests/print-obj.o $
   $outdir/wavefront/mtl.o $
   $outdir/wavefront/obj.o
   libs = -lstdc++fs
@@ -77,7 +77,7 @@ build $outdir/print-tree: link $
   $outdir/geometry/bounding.o $
   $outdir/kdtree/build.o $
   $outdir/kdtree/optimize.o $
-  $outdir/progs/print-tree.o $
+  $outdir/tests/print-tree.o $
   $outdir/trace/light.o $
   $outdir/trace/material.o $
   $outdir/trace/scene.o $
@@ -85,4 +85,4 @@ build $outdir/print-tree: link $
   $outdir/wavefront/obj.o
   libs = -lstdc++fs
 
-build $outdir/sizes: link $outdir/progs/sizes.o
+build $outdir/sizes: link $outdir/tests/sizes.o
