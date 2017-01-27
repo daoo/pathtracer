@@ -8,8 +8,7 @@ using namespace glm;
 using namespace std;
 using namespace trace;
 
-void print(const Pinhole& pinhole, const vec2& p)
-{
+void print(const Pinhole& pinhole, const vec2& p) {
   Ray ray = pinhole.ray(p.x, p.y);
   vec3 q = ray.param(1.0);
 
@@ -18,8 +17,7 @@ void print(const Pinhole& pinhole, const vec2& p)
   cout << "(" << q.x << ", " << q.y << ", " << q.z << ")\n";
 }
 
-int main(int, char*[])
-{
+int main(int, char* []) {
   Camera camera({0, 0, 1}, {0, 0, 0}, {0, 1, 0}, 45);
   Pinhole pinhole(camera, 100, 100);
 

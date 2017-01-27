@@ -10,14 +10,12 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-namespace trace
-{
-  void pathtrace(
-      const kdtree::KdTreeArray& kdtree,
-      const std::vector<SphereLight>& lights,
-      const Pinhole& pinhole,
-      FastRand& rand,
-      SampleBuffer& buffer);
+namespace trace {
+void pathtrace(const kdtree::KdTreeArray& kdtree,
+               const std::vector<SphereLight>& lights,
+               const Pinhole& pinhole,
+               FastRand& rand,
+               SampleBuffer& buffer);
 }
 
 #endif /* end of include guard: PATHTRACER_HPP_NVGMZUSY */

@@ -20,7 +20,7 @@ using namespace std;
 using namespace trace;
 using namespace util;
 
-constexpr unsigned int DEFAULT_WIDTH  = 512;
+constexpr unsigned int DEFAULT_WIDTH = 512;
 constexpr unsigned int DEFAULT_HEIGHT = 512;
 
 #ifdef NDEBUG
@@ -29,15 +29,14 @@ constexpr unsigned int SUBSAMPLING = 1;
 constexpr unsigned int SUBSAMPLING = 4;
 #endif
 
-constexpr int OK                   = 0;
-constexpr int ERROR_PARAMS         = 1;
+constexpr int OK = 0;
+constexpr int ERROR_PARAMS = 1;
 constexpr int ERROR_FILE_NOT_FOUND = 2;
-constexpr int ERROR_PROGRAM        = 3;
+constexpr int ERROR_PROGRAM = 3;
 
 GUI* g_gui;
 
-void display()
-{
+void display() {
   Clock clock;
   clock.start();
   g_gui->trace();
@@ -53,18 +52,15 @@ void display()
        << "\n";
 }
 
-void reshape(int w, int h)
-{
+void reshape(int w, int h) {
   g_gui->resize(w, h);
 }
 
-void idle()
-{
+void idle() {
   glutPostRedisplay();
 }
 
-void handle_keys(unsigned char key, int, int)
-{
+void handle_keys(unsigned char key, int, int) {
   if (key == 27 || key == 'q') {
     exit(0);
   } else if (key == 's') {
@@ -76,23 +72,23 @@ void handle_keys(unsigned char key, int, int)
   }
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char* argv[]) {
   fs::path outdir, model;
 
   po::options_description desc("Pathtracer GUI options");
-  desc.add_options()
-    ("help,h"   , "produce help message")
-    ("model,m"  , po::value<fs::path>(&model)  , "obj model")
-    ("outdir,o" , po::value<fs::path>(&outdir) , "output directory for screenshots")
-    ;
+  desc.add_options()("help,h", "produce help message")(
+      "model,m", po::value<fs::path>(&model), "obj model")(
+      "outdir,o", po::value<fs::path>(&outdir),
+      "output directory for screenshots");
 
   try {
     po::positional_options_description pd;
     pd.add("model", -1);
 
     po::variables_map vm;
-    po::store(po::command_line_parser(argc, argv).options(desc).positional(pd).run(), vm);
+    po::store(
+        po::command_line_parser(argc, argv).options(desc).positional(pd).run(),
+        vm);
     po::notify(vm);
 
     if (vm.count("help")) {
@@ -106,7 +102,8 @@ int main(int argc, char *argv[])
     }
 
     const wavefront::Obj obj = wavefront::load_obj(model);
-    const wavefront::Mtl mtl = wavefront::load_mtl(model.parent_path() / obj.mtl_lib);
+    const wavefront::Mtl mtl =
+        wavefront::load_mtl(model.parent_path() / obj.mtl_lib);
     const Scene scene = new_scene(obj, mtl);
 
     glutInit(&argc, argv);
@@ -124,7 +121,7 @@ int main(int argc, char *argv[])
     g_gui->resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
     glEnable(GL_FRAMEBUFFER_SRGB);
-    glutMainLoop();  /* start the program main loop */
+    glutMainLoop(); /* start the program main loop */
   } catch (const po::error& ex) {
     cerr << "ERROR: " << ex.what() << "\n\n";
     cout << desc;

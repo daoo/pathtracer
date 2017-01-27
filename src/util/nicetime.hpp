@@ -3,17 +3,14 @@
 
 #include <iostream>
 
-namespace util
-{
-  struct NiceTime
-  {
-    unsigned int hour, min, sec;
-  };
+namespace util {
+struct NiceTime {
+  unsigned int hour, min, sec;
+};
 
-  NiceTime nice_time(unsigned int seconds);
+NiceTime nice_time(unsigned int seconds);
 
-  std::ostream& operator<<(std::ostream&, const NiceTime&);
+std::ostream& operator<<(std::ostream&, const NiceTime&);
 }
 
 #endif /* end of include guard: NICETIME_HPP_MTXCTALS */
-

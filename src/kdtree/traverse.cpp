@@ -8,105 +8,92 @@ using namespace std;
 using namespace trace;
 using namespace trace::kdtree;
 
-namespace
-{
-  bool intersect_triangles(
-      const vector<Triangle>& triangles,
-      const Ray& ray,
-      float mint,
-      float& maxt,
-      vec3& normal,
-      const Material*& material)
-  {
-    bool hit = false;
+namespace {
+bool intersect_triangles(const vector<Triangle>& triangles,
+                         const Ray& ray,
+                         float mint,
+                         float& maxt,
+                         vec3& normal,
+                         const Material*& material) {
+  bool hit = false;
 
-    for (const Triangle& triangle : triangles) {
-      float t;
-      vec3 n;
-      if (triray(triangle, ray, t, n)) {
-        if (t >= mint && t <= maxt) {
-          normal   = n;
-          material = triangle.material;
+  for (const Triangle& triangle : triangles) {
+    float t;
+    vec3 n;
+    if (triray(triangle, ray, t, n)) {
+      if (t >= mint && t <= maxt) {
+        normal = n;
+        material = triangle.material;
 
-          maxt = t;
+        maxt = t;
 
-          hit = true;
-        }
+        hit = true;
       }
     }
-
-    return hit;
   }
+
+  return hit;
+}
 }
 
-namespace trace
-{
-  namespace kdtree
-  {
-    bool search_tree(
-        const KdTreeArray& tree,
-        const Ray& ray,
-        const float tmininit,
-        const float tmaxinit,
-        Intersection& isect)
-    {
-      unsigned int index = 0;
-      float raymaxt      = tmaxinit;
-      float tmin         = tmininit;
-      float tmax         = tmaxinit;
-      Axis axis          = X;
+namespace trace {
+namespace kdtree {
+bool search_tree(const KdTreeArray& tree,
+                 const Ray& ray,
+                 const float tmininit,
+                 const float tmaxinit,
+                 Intersection& isect) {
+  unsigned int index = 0;
+  float raymaxt = tmaxinit;
+  float tmin = tmininit;
+  float tmax = tmaxinit;
+  Axis axis = X;
 
-      while (true)
-      {
-        ArrayNode node = tree.get_node(index);
+  while (true) {
+    ArrayNode node = tree.get_node(index);
 
-        if (node.is_leaf()) {
-          bool hit = intersect_triangles(
-              tree.get_triangles(node),
-              ray,
-              tmin,
-              raymaxt,
-              isect.normal,
-              isect.material);
+    if (node.is_leaf()) {
+      bool hit = intersect_triangles(tree.get_triangles(node), ray, tmin,
+                                     raymaxt, isect.normal, isect.material);
 
-          if (hit && raymaxt < tmax) {
-            isect.position = ray.param(raymaxt);
-            return true;
-          } else if (tmax == tmaxinit) {
-            return false;
-          } else {
-            tmin  = tmax;
-            tmax  = tmaxinit;
-            index = 0;
-            axis  = X;
-          }
-        } else {
-          const float p = node.get_split();
-          const float o = ray.origin[axis];
-          const float d = ray.direction[axis];
+      if (hit && raymaxt < tmax) {
+        isect.position = ray.param(raymaxt);
+        return true;
+      } else if (tmax == tmaxinit) {
+        return false;
+      } else {
+        tmin = tmax;
+        tmax = tmaxinit;
+        index = 0;
+        axis = X;
+      }
+    } else {
+      const float p = node.get_split();
+      const float o = ray.origin[axis];
+      const float d = ray.direction[axis];
 
-          float t = (p - o) / d;
+      float t = (p - o) / d;
 
-          unsigned int first  = KdTreeArray::left_child(index);
-          unsigned int second = KdTreeArray::right_child(index);
+      unsigned int first = KdTreeArray::left_child(index);
+      unsigned int second = KdTreeArray::right_child(index);
 
-          if (d < 0) {
-            swap(first, second);
-          }
+      if (d < 0) {
+        swap(first, second);
+      }
 
-          if (t >= tmax) {
-            index = first;
-            axis  = next_axis(axis);
-          } else if (t <= tmin) {
-            index = second;
-            axis  = next_axis(axis);
-          } else {
-            index = first;
-            axis  = next_axis(axis);
-            tmax  = t;
-          }
-        }
+      if (t >= tmax) {
+        index = first;
+        axis = next_axis(axis);
+      } else if (t <= tmin) {
+        index = second;
+        axis = next_axis(axis);
+      } else {
+        index = first;
+        axis = next_axis(axis);
+        tmax = t;
       }
     }
   }
+}
+}
 }

@@ -8,8 +8,7 @@ using namespace std;
 
 #define PRINT_SIZE(type) cout << #type << " = " << sizeof(type) << " bytes\n"
 
-int main()
-{
+int main() {
   PRINT_SIZE(size_t);
   PRINT_SIZE(unsigned int);
   PRINT_SIZE(float);

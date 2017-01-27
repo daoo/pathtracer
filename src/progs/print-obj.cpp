@@ -10,8 +10,7 @@ using namespace std;
 using namespace trace;
 using namespace util;
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
   if (argc != 3) {
     cout << "Usage: print-obj model.obj materials.mtl\n";
     return 1;

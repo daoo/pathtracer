@@ -3,17 +3,12 @@
 
 #include <glm/glm.hpp>
 
-namespace trace
-{
-  struct Ray
-  {
-    glm::vec3 origin, direction;
+namespace trace {
+struct Ray {
+  glm::vec3 origin, direction;
 
-    glm::vec3 param(float t) const
-    {
-      return origin + t * direction;
-    }
-  };
+  glm::vec3 param(float t) const { return origin + t * direction; }
+};
 }
 
 #endif /* end of include guard: RAY_HPP_CNODB0L7 */

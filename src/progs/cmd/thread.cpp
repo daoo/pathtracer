@@ -19,27 +19,23 @@ using namespace std;
 using namespace trace;
 using namespace util;
 
-struct MessageSample
-{
+struct MessageSample {
   unsigned int thread;
   unsigned int sample;
   float time;
 };
 
-struct WorkerStatus
-{
+struct WorkerStatus {
   unsigned int samples;
   float total;
 };
 
-void print_status(
-    unsigned int samples_per_thread,
-    const vector<WorkerStatus>& status)
-{
+void print_status(unsigned int samples_per_thread,
+                  const vector<WorkerStatus>& status) {
   const unsigned int thread_count = status.size();
-  const unsigned int samples      = samples_per_thread * thread_count;
+  const unsigned int samples = samples_per_thread * thread_count;
 
-  float total_time           = 0;
+  float total_time = 0;
   unsigned int total_samples = 0;
 
   for (unsigned int i = 0; i < thread_count; ++i) {
@@ -49,30 +45,27 @@ void print_status(
     float eta = avg * (samples_per_thread - ws.samples);
 
     total_samples += ws.samples;
-    total_time    += avg;
+    total_time += avg;
 
-    cout << "Thread " << i << ": "
-      << ws.samples << "/" << samples_per_thread << ", "
-      << "avg: " << avg << " sec, eta: "
-      << nice_time(static_cast<unsigned int>(eta)) << "\n";
+    cout << "Thread " << i << ": " << ws.samples << "/" << samples_per_thread
+         << ", "
+         << "avg: " << avg
+         << " sec, eta: " << nice_time(static_cast<unsigned int>(eta)) << "\n";
   }
 
   float avg = total_time / thread_count;
 
-  cout << "Total: "
-    << total_samples << "/" << samples << ", "
-    << "avg: " << avg << " sec\n\n";
+  cout << "Total: " << total_samples << "/" << samples << ", "
+       << "avg: " << avg << " sec\n\n";
 }
 
-void worker(
-    const kdtree::KdTreeArray& kdtree,
-    const vector<SphereLight>& lights,
-    const Pinhole& pinhole,
-    unsigned int sample_count,
-    unsigned int thread,
-    misc::ConcurrentQueue<MessageSample>& queue,
-    SampleBuffer& buffer)
-{
+void worker(const kdtree::KdTreeArray& kdtree,
+            const vector<SphereLight>& lights,
+            const Pinhole& pinhole,
+            unsigned int sample_count,
+            unsigned int thread,
+            misc::ConcurrentQueue<MessageSample>& queue,
+            SampleBuffer& buffer) {
   assert(sample_count > 0);
 
   Clock clock;
@@ -86,15 +79,13 @@ void worker(
   }
 }
 
-void program(
-    const path& obj_file,
-    const path& out_dir,
-    unsigned int width,
-    unsigned int height,
-    unsigned int camera,
-    unsigned int sample_count,
-    unsigned int thread_count)
-{
+void program(const path& obj_file,
+             const path& out_dir,
+             unsigned int width,
+             unsigned int height,
+             unsigned int camera,
+             unsigned int sample_count,
+             unsigned int thread_count) {
   assert(!obj_file.empty());
   assert(width > 0 && height > 0);
   assert(sample_count > 0);
@@ -102,7 +93,8 @@ void program(
 
   // Setup scene
   const wavefront::Obj obj = wavefront::load_obj(obj_file);
-  const wavefront::Mtl mtl = wavefront::load_mtl(obj_file.parent_path() / obj.mtl_lib);
+  const wavefront::Mtl mtl =
+      wavefront::load_mtl(obj_file.parent_path() / obj.mtl_lib);
 
   const Scene scene = new_scene(obj, mtl);
   const Pinhole pinhole(scene.cameras[camera], width, height);
@@ -119,15 +111,9 @@ void program(
 
   unsigned int samples_per_thread = sample_count / thread_count;
   for (unsigned int i = 0; i < thread_count; ++i) {
-    threads.emplace_back(
-        worker,
-        ref(scene.kdtree),
-        ref(scene.lights),
-        ref(pinhole),
-        samples_per_thread,
-        i,
-        ref(queue),
-        ref(buffers[i]));
+    threads.emplace_back(worker, ref(scene.kdtree), ref(scene.lights),
+                         ref(pinhole), samples_per_thread, i, ref(queue),
+                         ref(buffers[i]));
   }
 
   // Wait for work to finish

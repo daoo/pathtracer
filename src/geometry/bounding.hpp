@@ -5,9 +5,8 @@
 #include "geometry/triangle.hpp"
 #include <vector>
 
-namespace trace
-{
-  Aabb find_bounding(const std::vector<Triangle>& triangles);
+namespace trace {
+Aabb find_bounding(const std::vector<Triangle>& triangles);
 }
 
 #endif /* end of include guard: BOUNDING_HPP_B8TQ0RYS */

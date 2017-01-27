@@ -1,10 +1,11 @@
 #ifndef GL_HPP_VTQYHMUI
 #define GL_HPP_VTQYHMUI
 
-#include <string>
 #include <GL/glew.h>
+#include <string>
 
-#define CHECK_GL_ERROR() { check_gl_error(__FILE__, __LINE__); }
+#define CHECK_GL_ERROR() \
+  { check_gl_error(__FILE__, __LINE__); }
 
 void check_gl_error(const std::string& file, unsigned int line);
 
