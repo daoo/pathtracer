@@ -6,7 +6,6 @@
 #include <vector>
 
 namespace kdtree {
-KdTreeLinked build_tree_sah(const std::vector<geometry::Triangle>& triangles);
 KdTreeLinked build_tree_naive(const std::vector<geometry::Triangle>& triangles);
 }
 

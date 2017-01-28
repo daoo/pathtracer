@@ -1,9 +1,9 @@
 #include "trace/scene.hpp"
 
 #include "kdtree/array.hpp"
-#include "kdtree/build.hpp"
 #include "kdtree/linked.hpp"
 #include "kdtree/optimize.hpp"
+#include "kdtree/surface_area_heuristic.hpp"
 #include "trace/mcsampling.hpp"
 #include <glm/gtc/epsilon.hpp>
 #include <map>
