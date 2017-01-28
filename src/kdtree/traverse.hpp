@@ -1,11 +1,13 @@
 #ifndef TRAVERSE_HPP_IJFE6LBZ
 #define TRAVERSE_HPP_IJFE6LBZ
 
-#include "geometry/ray.hpp"
-#include "kdtree/array.hpp"
-#include "kdtree/intersection.hpp"
+namespace geometry {
+struct Ray;
+}
 
 namespace kdtree {
+class KdTreeArray;
+struct Intersection;
 bool search_tree(const KdTreeArray& tree,
                  const geometry::Ray& ray,
                  float tmin,

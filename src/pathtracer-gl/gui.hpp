@@ -1,14 +1,16 @@
 #ifndef GUI_HPP_MKHN08BI
 #define GUI_HPP_MKHN08BI
 
+#include "trace/camera.hpp"
 #include "trace/fastrand.hpp"
-#include "trace/pathtracer.hpp"
 #include "trace/samplebuffer.hpp"
-#include "trace/scene.hpp"
 
 #include <GL/glew.h>
 #include <experimental/filesystem>
-#include <string>
+
+namespace trace {
+struct Scene;
+}
 
 class GUI {
  public:

@@ -1,4 +1,5 @@
 #include "geometry/bounding.hpp"
+#include "geometry/triangle.hpp"
 
 #include <glm/glm.hpp>
 

@@ -1,11 +1,17 @@
 #include "kdtree/naive.hpp"
 
+#include "geometry/aabb.hpp"
 #include "geometry/bounding.hpp"
 #include "kdtree/util.hpp"
+#include <cassert>
 #include <glm/glm.hpp>
 
 using namespace glm;
 using namespace std;
+
+namespace geometry {
+struct Triangle;
+}
 
 namespace kdtree {
 namespace {

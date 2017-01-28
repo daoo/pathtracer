@@ -1,17 +1,18 @@
-#include <GL/glew.h>
-#include <GL/glut.h>
-
-#include "gui.hpp"
-
-#include "trace/pathtracer.hpp"
-#include "trace/samplebuffer.hpp"
+#include "pathtracer-gl/gui.hpp"
+#include "trace/scene.hpp"
 #include "util/clock.hpp"
-#include "util/path.hpp"
-#include "util/strings.hpp"
-
+#include "wavefront/mtl.hpp"
+#include "wavefront/obj.hpp"
+#include <GL/freeglut_std.h>
+#include <GL/glew.h>
 #include <boost/program_options.hpp>
+#include <cstdlib>
 #include <experimental/filesystem>
 #include <iostream>
+#include <ratio>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 namespace fs = std::experimental::filesystem;
 namespace po = boost::program_options;

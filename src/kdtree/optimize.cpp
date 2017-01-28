@@ -1,6 +1,7 @@
 #include "optimize.hpp"
 
-#include <vector>
+#include "kdtree/array.hpp"
+#include <cassert>
 
 using namespace std;
 namespace kdtree {

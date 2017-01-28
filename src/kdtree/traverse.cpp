@@ -1,7 +1,14 @@
-#include "traverse.hpp"
+#include "kdtree/traverse.hpp"
 
+#include "geometry/ray.hpp"
 #include "geometry/triangle.hpp"
 #include "geometry/triray.hpp"
+#include "kdtree/array.hpp"
+#include "kdtree/intersection.hpp"
+#include "kdtree/util.hpp"
+#include <algorithm>
+#include <glm/glm.hpp>
+#include <vector>
 
 using namespace glm;
 using namespace std;

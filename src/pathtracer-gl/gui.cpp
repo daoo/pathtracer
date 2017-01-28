@@ -2,9 +2,12 @@
 
 #include "pathtracer-gl/gl.hpp"
 #include "pathtracer-gl/shaders.hpp"
+#include "trace/pathtracer.hpp"
+#include "trace/scene.hpp"
 #include "util/path.hpp"
-
 #include <algorithm>
+#include <string>
+#include <vector>
 
 using namespace std::experimental::filesystem;
 using namespace std;

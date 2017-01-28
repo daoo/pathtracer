@@ -1,5 +1,6 @@
-#include "gl.hpp"
+#include "pathtracer-gl/gl.hpp"
 
+#include <cstddef>
 #include <sstream>
 
 using namespace std;
@@ -27,7 +28,7 @@ GLuint create_shader(GLuint type, const string& code) {
   const GLchar* str = code.c_str();
 
   GLuint id = glCreateShader(type);
-  glShaderSource(id, 1, &str, NULL);
+  glShaderSource(id, 1, &str, nullptr);
 
   glCompileShader(id);
 

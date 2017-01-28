@@ -1,17 +1,15 @@
-#include "thread.hpp"
-
-#include "util/strings.hpp"
+#include "pathtracer/thread.hpp"
 
 #include <boost/program_options.hpp>
 #include <experimental/filesystem>
 #include <iostream>
-#include <unistd.h>
+#include <sstream>
+#include <string>
 
 namespace fs = std::experimental::filesystem;
 namespace po = boost::program_options;
 
 using namespace std;
-using namespace util;
 
 constexpr unsigned int WIDTH = 512;
 constexpr unsigned int HEIGHT = 512;

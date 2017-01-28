@@ -1,9 +1,12 @@
 #include "kdtree/surface_area_heuristic.hpp"
 
+#include "geometry/aabb.hpp"
 #include "geometry/bounding.hpp"
-#include "geometry/tribox.hpp"
+#include "geometry/triangle.hpp"
 #include "kdtree/util.hpp"
+#include <cassert>
 #include <glm/glm.hpp>
+#include <limits>
 #include <vector>
 
 namespace kdtree {
@@ -75,7 +78,7 @@ void find_split(const geometry::Aabb& box,
                 geometry::Aabb& right_box,
                 std::vector<const geometry::Triangle*>& left_triangles,
                 std::vector<const geometry::Triangle*>& right_triangles) {
-  cost = FLT_MAX;
+  cost = std::numeric_limits<float>::max();
   split = 0;
   for (const geometry::Triangle* triangle : triangles) {
     assert(triangle != nullptr);

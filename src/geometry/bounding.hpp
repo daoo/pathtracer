@@ -2,10 +2,11 @@
 #define BOUNDING_HPP_B8TQ0RYS
 
 #include "geometry/aabb.hpp"
-#include "geometry/triangle.hpp"
 #include <vector>
 
 namespace geometry {
+struct Triangle;
+
 Aabb find_bounding(const std::vector<Triangle>& triangles);
 }
 
