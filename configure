@@ -5,12 +5,21 @@ build="$(realpath build)"
 
 mkdir -p $build
 
-echo "$build/linux-debug.ninja"
-cat - build.ninja.template <<DOC > $build/linux-debug.ninja
+echo "$build/clang-debug.ninja"
+cat - build.ninja.template <<DOC > $build/clang-debug.ninja
 src = $root/src
-outdir = $build/linux-debug
+outdir = $build/clang-debug
 cxx = clang++
 cxxflags = -Weverything -Wno-missing-prototypes -Wno-c++98-compat -Wno-padded -Wno-weak-vtables -g -Xclang -fcolor-diagnostics
+ldflags =
+DOC
+
+echo "$build/gcc-debug.ninja"
+cat - build.ninja.template <<DOC > $build/gcc-debug.ninja
+src = $root/src
+outdir = $build/gcc-debug
+cxx = g++
+cxxflags = -Wall -Wextra -Weffc++ -Wno-padded -g -fdiagnostics-color=always
 ldflags =
 DOC
 

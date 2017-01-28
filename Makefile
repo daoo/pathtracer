@@ -1,12 +1,15 @@
-default: linux-debug
+default: clang-debug
 
-all: linux-debug linux-release linux-extreme
+all: clang-debug linux-release linux-extreme
 
 build/%.ninja: build.ninja.template configure
 	./configure
 
-linux-debug: build/linux-debug.ninja
-	@ninja -C build -f linux-debug.ninja
+clang-debug: build/clang-debug.ninja
+	@ninja -C build -f clang-debug.ninja
+
+gcc-debug: build/gcc-debug.ninja
+	@ninja -C build -f gcc-debug.ninja
 
 linux-release: build/linux-release.ninja
 	@ninja -C build -f linux-release.ninja
