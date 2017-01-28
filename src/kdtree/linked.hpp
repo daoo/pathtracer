@@ -77,8 +77,9 @@ class LinkedNode {
 
 class KdTreeLinked {
  public:
-  KdTreeLinked(const LinkedNode* root_) : root(root_) { assert(root_ != nullptr); }
-  KdTreeLinked(const KdTreeLinked&) = delete;
+  KdTreeLinked(const LinkedNode* root_) : root(root_) {
+    assert(root_ != nullptr);
+  }
   KdTreeLinked(KdTreeLinked&& other) {
     root = other.root;
     other.root = nullptr;
@@ -89,6 +90,9 @@ class KdTreeLinked {
   const LinkedNode* get_root() const { return root; }
 
  private:
+  KdTreeLinked(const KdTreeLinked&) = delete;
+  KdTreeLinked& operator=(const KdTreeLinked&) = delete;
+
   const LinkedNode* root;
 };
 }
