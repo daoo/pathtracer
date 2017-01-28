@@ -76,22 +76,28 @@ map<string, Material*> materials_from_mtl(const wavefront::Mtl& mtl) {
   return materials;
 }
 
-vector<geometry::Triangle> triangles_from_obj(
-    const wavefront::Obj& obj,
-    const map<string, Material*>& materials) {
+vector<geometry::Triangle> triangles_from_obj(const wavefront::Obj& obj) {
   vector<geometry::Triangle> triangles;
   for (const wavefront::Chunk& chunk : obj.chunks) {
-    Material* mat = materials.at(chunk.material);
     for (const wavefront::Face& polygon : chunk.polygons) {
+      // TODO: ensure the lifetime of somehow &chunk.material
       triangles.push_back(
           {index_vertex(obj, polygon.p1.v), index_vertex(obj, polygon.p2.v),
            index_vertex(obj, polygon.p3.v), index_normal(obj, polygon.p1.n),
            index_normal(obj, polygon.p2.n), index_normal(obj, polygon.p3.n),
            index_texcoord(obj, polygon.p1.t), index_texcoord(obj, polygon.p2.t),
-           index_texcoord(obj, polygon.p3.t), mat});
+           index_texcoord(obj, polygon.p3.t), &chunk.material});
     }
   }
   return triangles;
+}
+
+void update_pointer_to_material(
+    const std::map<std::string, Material*>& materials,
+    std::vector<geometry::Triangle>& triangles) {
+  for (geometry::Triangle& triangle : triangles) {
+    triangle.tag = materials.at(*static_cast<const std::string*>(triangle.tag));
+  }
 }
 
 kdtree::KdTreeArray kdtree_from_triangles(
@@ -105,8 +111,9 @@ Scene new_scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl) {
   vector<Camera> cameras = cameras_from_mtl(mtl);
   vector<SphereLight> lights = lights_from_mtl(mtl);
 
+  vector<geometry::Triangle> triangles = triangles_from_obj(obj);
   map<string, Material*> materials = materials_from_mtl(mtl);
-  vector<geometry::Triangle> triangles = triangles_from_obj(obj, materials);
+  update_pointer_to_material(materials, triangles);
 
   kdtree::KdTreeArray kdtree = kdtree_from_triangles(triangles);
 

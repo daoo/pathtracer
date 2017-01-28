@@ -2,7 +2,6 @@
 #include "kdtree/util.hpp"
 #include "trace/scene.hpp"
 #include "util/clock.hpp"
-#include "wavefront/mtl.hpp"
 #include "wavefront/obj.hpp"
 
 #include <experimental/filesystem>
@@ -52,15 +51,10 @@ int main(int argc, char* argv[]) {
     cout << "Usage: print-tree model.obj\n";
     return 1;
   }
-
   path obj_file = argv[1];
 
-  const wavefront::Obj obj = wavefront::load_obj(obj_file);
-  const wavefront::Mtl mtl =
-      wavefront::load_mtl(obj_file.parent_path() / obj.mtl_lib);
-
   vector<geometry::Triangle> triangles =
-      trace::triangles_from_obj(obj, trace::materials_from_mtl(mtl));
+    trace::triangles_from_obj(wavefront::load_obj(obj_file));
 
   util::Clock clock;
   clock.start();

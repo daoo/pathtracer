@@ -20,9 +20,11 @@ std::vector<Camera> cameras_from_mtl(const wavefront::Mtl& mtl);
 
 std::map<std::string, Material*> materials_from_mtl(const wavefront::Mtl& mtl);
 
-std::vector<geometry::Triangle> triangles_from_obj(
-    const wavefront::Obj& obj,
-    const std::map<std::string, Material*>& materials);
+std::vector<geometry::Triangle> triangles_from_obj(const wavefront::Obj& obj);
+
+void update_pointer_to_material(
+    const std::map<std::string, Material*>& materials,
+    std::vector<geometry::Triangle>& triangles);
 
 kdtree::KdTreeArray kdtree_from_triangles(
     const std::vector<geometry::Triangle>& triangles);

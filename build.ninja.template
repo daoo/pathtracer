@@ -81,7 +81,6 @@ build $outdir/print-tree: link $
   $outdir/trace/light.o $
   $outdir/trace/material.o $
   $outdir/trace/scene.o $
-  $outdir/wavefront/mtl.o $
   $outdir/wavefront/obj.o
   libs = -lstdc++fs
 
