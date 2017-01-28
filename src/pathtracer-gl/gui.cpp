@@ -1,8 +1,7 @@
-#include "gui.hpp"
+#include "pathtracer-gl/gui.hpp"
 
-#include "gl.hpp"
-#include "shaders.hpp"
-
+#include "pathtracer-gl/gl.hpp"
+#include "pathtracer-gl/shaders.hpp"
 #include "util/path.hpp"
 
 #include <algorithm>
@@ -19,13 +18,13 @@ GUI::GUI(const path& dir,
     : m_rand(),
       m_screenshot_dir(dir),
       m_obj_file(file),
-      m_scene(scene),
-      m_camera(0),
       m_width(500),
       m_height(500),
+      m_subsampling(subsampling),
+      m_scene(scene),
+      m_camera(0),
       m_pinhole(scene.cameras[0], 500, 500),
-      m_buffer(500, 500),
-      m_subsampling(subsampling) {}
+      m_buffer(500, 500) {}
 
 unsigned int GUI::samples() const {
   return m_buffer.samples();
@@ -94,13 +93,13 @@ void GUI::init_gl() {
   CHECK_GL_ERROR();
 }
 
-void GUI::resize(unsigned int w, unsigned int h) {
+void GUI::resize(GLint width, GLint height) {
   glClearColor(0.2f, 0.2f, 0.8f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glViewport(0, 0, w, h);
+  glViewport(0, 0, width, height);
 
-  m_width = w;
-  m_height = h;
+  m_width = static_cast<unsigned int>(width);
+  m_height = static_cast<unsigned int>(height);
 
   restart();
 }
@@ -113,8 +112,10 @@ void GUI::render() const {
   glUseProgram(m_shader_program);
 
   // Create and upload raytracer framebuffer as a texture
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, m_buffer.width(), m_buffer.height(),
-               0, GL_RGB, GL_FLOAT, m_buffer.data());
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
+               static_cast<GLint>(m_buffer.width()),
+               static_cast<GLint>(m_buffer.height()), 0, GL_RGB, GL_FLOAT,
+               m_buffer.data());
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glUniform1i(m_uniform_framebuffer_samples, m_buffer.samples());

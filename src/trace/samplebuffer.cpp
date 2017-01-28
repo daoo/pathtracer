@@ -16,7 +16,8 @@ float gamma_correct(float x) {
 
 void write_image(const string& file, const SampleBuffer& buffer) {
   const float samples = static_cast<float>(buffer.samples());
-  FIBITMAP* bitmap = FreeImage_Allocate(buffer.width(), buffer.height(), 24);
+  FIBITMAP* bitmap = FreeImage_Allocate(static_cast<int>(buffer.width()),
+                                        static_cast<int>(buffer.height()), 24);
 
   for (unsigned int y = 0; y < FreeImage_GetHeight(bitmap); ++y) {
     for (unsigned int x = 0; x < FreeImage_GetWidth(bitmap); ++x) {

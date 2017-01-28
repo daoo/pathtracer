@@ -6,15 +6,15 @@ using namespace std;
 
 namespace {
 string get_shader_info_log(GLuint obj) {
-  int log_length = 0;
-  int chars_written = 0;
+  GLint log_length = 0;
+  GLsizei chars_written = 0;
   char* tmp_log;
   string log;
 
   glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &log_length);
 
   if (log_length > 0) {
-    tmp_log = new char[log_length];
+    tmp_log = new char[static_cast<size_t>(log_length)];
     glGetShaderInfoLog(obj, log_length, &chars_written, tmp_log);
     log = tmp_log;
     delete[] tmp_log;

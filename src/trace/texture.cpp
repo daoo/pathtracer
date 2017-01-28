@@ -25,10 +25,10 @@ Texture texture_load(const string& file) {
 
   texture.image.reserve(texture.width * texture.height);
 
-  const unsigned int BYTESPP =
+  unsigned int BYTESPP =
       FreeImage_GetLine(rgbabitmap) / FreeImage_GetWidth(rgbabitmap);
   for (unsigned int y = 0; y < texture.height; ++y) {
-    BYTE* bits = FreeImage_GetScanLine(rgbabitmap, y);
+    BYTE* bits = FreeImage_GetScanLine(rgbabitmap, static_cast<int>(y));
 
     for (unsigned int x = 0; x < texture.width; ++x) {
       glm::vec3& c = texture_sample(texture, x, y);

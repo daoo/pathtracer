@@ -25,7 +25,7 @@ class GUI {
 
   void init_gl();
   void render() const;
-  void resize(unsigned int, unsigned int);
+  void resize(GLint, GLint);
   void trace();
 
   void save_screenshot() const;
@@ -36,18 +36,18 @@ class GUI {
   std::experimental::filesystem::path m_screenshot_dir;
   std::experimental::filesystem::path m_obj_file;
 
+  unsigned int m_width, m_height;
+  unsigned int m_subsampling;
+
   const trace::Scene& m_scene;
   unsigned int m_camera;
 
   trace::Pinhole m_pinhole;
   trace::SampleBuffer m_buffer;
 
-  unsigned int m_width, m_height;
-  unsigned int m_subsampling;
-
   GLuint m_framebuffer_texture;
   GLuint m_shader_program;
-  GLuint m_uniform_framebuffer, m_uniform_framebuffer_samples;
+  GLint m_uniform_framebuffer, m_uniform_framebuffer_samples;
   GLuint m_vertex_array_object;
 
   void restart();

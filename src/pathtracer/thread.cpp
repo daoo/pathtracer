@@ -32,8 +32,8 @@ struct WorkerStatus {
 
 void print_status(unsigned int samples_per_thread,
                   const vector<WorkerStatus>& status) {
-  const unsigned int thread_count = status.size();
-  const unsigned int samples = samples_per_thread * thread_count;
+  size_t thread_count = status.size();
+  size_t samples = samples_per_thread * thread_count;
 
   float total_time = 0;
   unsigned int total_samples = 0;
