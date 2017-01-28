@@ -36,7 +36,7 @@ inline glm::vec2 concentric_sample_disk(FastRand& rand) {
   float y = rand.next() * 2.0f - 1.0f;
 
   // Handle degeneracy at the origin
-  if (x == 0.0 && y == 0.0) {
+  if (x == 0.0f && y == 0.0f) {
     return glm::zero<glm::vec2>();
   }
 

@@ -1,8 +1,6 @@
 #include "shaders.hpp"
 
-using namespace std;
-
-const string FRAGMENT_SHADER =
+const char* const FRAGMENT_SHADER =
     "#version 130\n"
     "\n"
     "precision highp float;\n"
@@ -17,7 +15,7 @@ const string FRAGMENT_SHADER =
     "  color = texture2D(framebuffer, texcoord) / float(samples);\n"
     "}\n";
 
-const string VERTEX_SHADER =
+const char* const VERTEX_SHADER =
     "#version 130\n"
     "\n"
     "in  vec3 position;\n"

@@ -11,14 +11,14 @@ struct Camera {
   glm::vec3 approxup;
   float fov;
 
-  Camera(const glm::vec3& position,
-         const glm::vec3& target,
-         const glm::vec3& approxup,
-         float fov)
-      : position(position),
-        direction(glm::normalize(target - position)),
-        approxup(glm::normalize(approxup)),
-        fov(fov) {}
+  Camera(const glm::vec3& position_,
+         const glm::vec3& target_,
+         const glm::vec3& approxup_,
+         float fov_)
+      : position(position_),
+        direction(glm::normalize(target_ - position_)),
+        approxup(glm::normalize(approxup_)),
+        fov(fov_) {}
 };
 
 struct Pinhole {

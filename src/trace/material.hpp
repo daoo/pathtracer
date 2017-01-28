@@ -17,7 +17,7 @@ struct LightSample {
  */
 class Material {
  public:
-  virtual ~Material() {}
+  virtual ~Material() = 0;
 
   virtual glm::vec3 brdf(const glm::vec3& wo,
                          const glm::vec3& wi,
@@ -132,6 +132,7 @@ class SpecularRefractionMaterial : public Material {
 class FresnelBlendMaterial : public Material {
  public:
   FresnelBlendMaterial(const Material*, const Material*, float);
+  ~FresnelBlendMaterial();
 
   virtual glm::vec3 brdf(const glm::vec3&,
                          const glm::vec3&,
@@ -157,6 +158,7 @@ class FresnelBlendMaterial : public Material {
 class BlendMaterial : public Material {
  public:
   BlendMaterial(const Material*, const Material*, float);
+  ~BlendMaterial();
 
   virtual glm::vec3 brdf(const glm::vec3&,
                          const glm::vec3&,

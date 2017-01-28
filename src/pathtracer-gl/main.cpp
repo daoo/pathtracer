@@ -34,7 +34,7 @@ constexpr int ERROR_PARAMS = 1;
 constexpr int ERROR_FILE_NOT_FOUND = 2;
 constexpr int ERROR_PROGRAM = 3;
 
-GUI* g_gui;
+static GUI* g_gui;
 
 void display() {
   Clock clock;

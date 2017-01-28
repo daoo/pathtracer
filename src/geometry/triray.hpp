@@ -22,11 +22,11 @@ inline bool triray(const Triangle& tri,
   glm::vec3 s = ray.origin - tri.v0;
   float f = 1.0f / a;
   float u = f * glm::dot(s, q);
-  if (u < 0.0 || u > 1.0) return false;
+  if (u < 0.0f || u > 1.0f) return false;
 
   glm::vec3 r = glm::cross(s, e1);
   float v = f * glm::dot(ray.direction, r);
-  if (v < 0.0 || u + v > 1.0) return false;
+  if (v < 0.0f || u + v > 1.0f) return false;
 
   t = f * glm::dot(e2, r);
   n = glm::normalize((1.0f - (u + v)) * tri.n0 + u * tri.n1 + v * tri.n2);

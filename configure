@@ -10,7 +10,7 @@ cat - build.ninja.template <<DOC > $build/linux-debug.ninja
 src = $root/src
 outdir = $build/linux-debug
 cxx = clang++
-cxxflags = -Wall -Wextra -Wconversion -Wshadow -g -Xclang -fcolor-diagnostics
+cxxflags = -Weverything -Wno-missing-prototypes -Wno-c++98-compat -Wno-padded -Wno-weak-vtables -g -Xclang -fcolor-diagnostics
 ldflags =
 DOC
 

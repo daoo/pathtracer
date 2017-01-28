@@ -30,6 +30,8 @@ vec3 perpendicular(const vec3& v) {
 }
 }
 
+Material::~Material() {}
+
 DiffuseMaterial::DiffuseMaterial(const vec3& reflectance)
     : m_reflectance(reflectance) {}
 
@@ -101,6 +103,11 @@ FresnelBlendMaterial::FresnelBlendMaterial(const Material* reflection,
       m_on_refraction_material(refraction),
       m_r0(r0) {}
 
+FresnelBlendMaterial::~FresnelBlendMaterial() {
+  delete m_on_reflection_material;
+  delete m_on_refraction_material;
+}
+
 vec3 FresnelBlendMaterial::brdf(const vec3& wo,
                                 const vec3& wi,
                                 const vec3& n) const {
@@ -122,6 +129,11 @@ BlendMaterial::BlendMaterial(const Material* first,
                              const Material* second,
                              float w)
     : m_first_material(first), m_second_material(second), m_w(w) {}
+
+BlendMaterial::~BlendMaterial() {
+  delete m_first_material;
+  delete m_second_material;
+}
 
 vec3 BlendMaterial::brdf(const vec3& wo, const vec3& wi, const vec3& n) const {
   return blend(m_w, m_first_material->brdf(wo, wi, n),
