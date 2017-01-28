@@ -58,7 +58,7 @@ vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
                            FastRand& rand,
                            vec3 radiance,
                            vec3 transport,
-                           int bounce) {
+                           size_t bounce) {
   if (bounce >= MAX_BOUNCES)
     return radiance;
 
