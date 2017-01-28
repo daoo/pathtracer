@@ -19,7 +19,7 @@ cat - build.ninja.template <<DOC > $build/linux-release.ninja
 src = $root/src
 outdir = $build/linux-release
 cxx = clang++
-cxxflags = -Ofast
+cxxflags = -Ofast -DNDEBUG
 ldflags =
 DOC
 
@@ -28,6 +28,6 @@ cat - build.ninja.template <<DOC > $build/linux-extreme.ninja
 src = $root/src
 outdir = $build/linux-extreme
 cxx = g++
-cxxflags = -Ofast -march=native -flto
+cxxflags = -Ofast -march=native -flto -DNDEBUG
 ldflags = -flto
 DOC
