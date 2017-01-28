@@ -23,8 +23,8 @@ build $outdir/pathtracer-gl/shaders.o:   cxx $src/pathtracer-gl/shaders.cpp
 build $outdir/pathtracer/main.o:         cxx $src/pathtracer/main.cpp
 build $outdir/pathtracer/thread.o:       cxx $src/pathtracer/thread.cpp
 build $outdir/tests/camera-tester.o:     cxx $src/tests/camera-tester.cpp
-build $outdir/tests/print-obj.o:         cxx $src/tests/print-obj.cpp
 build $outdir/tests/print-tree.o:        cxx $src/tests/print-tree.cpp
+build $outdir/tests/print-wavefront.o:   cxx $src/tests/print-wavefront.cpp
 build $outdir/tests/sizes.o:             cxx $src/tests/sizes.cpp
 build $outdir/trace/light.o:             cxx $src/trace/light.cpp
 build $outdir/trace/material.o:          cxx $src/trace/material.cpp
@@ -67,8 +67,8 @@ build $outdir/pathtracer-gl/pathtracer-gl: link $
 
 build $outdir/test-camera: link $outdir/tests/camera-tester.o
 
-build $outdir/print-obj: link $
-  $outdir/tests/print-obj.o $
+build $outdir/print-wavefront: link $
+  $outdir/tests/print-wavefront.o $
   $outdir/wavefront/mtl.o $
   $outdir/wavefront/obj.o
   libs = -lstdc++fs
