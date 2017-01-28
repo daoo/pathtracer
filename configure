@@ -40,3 +40,12 @@ cxx = g++
 cxxflags = -Ofast -march=native -flto -DNDEBUG
 ldflags = -flto
 DOC
+
+echo "$build/iwyu.ninja"
+cat - build.ninja.template <<DOC > $build/iwyu.ninja
+src = $root/src
+outdir = $build/linux-extreme
+cxx = include-what-you-use -Xiwyu --mapping_file=$PWD/glm.imp
+cxxflags =
+ldflags =
+DOC

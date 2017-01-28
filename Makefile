@@ -17,5 +17,8 @@ linux-release: build/linux-release.ninja
 linux-extreme: build/linux-extreme.ninja
 	@ninja -C build -f linux-extreme.ninja
 
+iwyu: build/iwyu.ninja
+	@ninja -C build -f iwyu.ninja
+
 distclean:
 	rm -fr build
