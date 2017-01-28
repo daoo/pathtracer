@@ -59,8 +59,7 @@ vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
                            vec3 radiance,
                            vec3 transport,
                            size_t bounce) {
-  if (bounce >= MAX_BOUNCES)
-    return radiance;
+  if (bounce >= MAX_BOUNCES) return radiance;
 
   kdtree::Intersection isect;
   if (!kdtree::search_tree(kdtree, ray, 0.0f, FLT_MAX, isect))
@@ -86,14 +85,12 @@ vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
 
   const LightSample sample = material->sample_brdf(rand, wi, n);
 
-  if (sample.pdf < EPSILON)
-    return radiance;
+  if (sample.pdf < EPSILON) return radiance;
 
   const float cosineterm = abs(dot(sample.wo, n));
   transport = transport * (sample.brdf * (cosineterm / sample.pdf));
 
-  if (length2(transport) < EPSILON)
-    return radiance;
+  if (length2(transport) < EPSILON) return radiance;
 
   Ray next_ray{dot(sample.wo, n) >= 0 ? offset_up : offset_down, sample.wo};
 

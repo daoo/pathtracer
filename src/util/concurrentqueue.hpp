@@ -24,8 +24,7 @@ class ConcurrentQueue {
   bool try_pop(T& val) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    if (m_queue.empty())
-      return false;
+    if (m_queue.empty()) return false;
 
     val = m_queue.front();
     m_queue.pop();

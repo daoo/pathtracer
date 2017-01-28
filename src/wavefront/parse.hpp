@@ -19,8 +19,7 @@ inline int parse_int(const char* str, const char** end) {
     ++ptr;
   }
 
-  if (end)
-    *end = ptr;
+  if (end) *end = ptr;
   --ptr;
 
   int result = 0;
@@ -40,8 +39,7 @@ inline bool equal(const char* a, const char* b) {
   assert(b != nullptr);
 
   while (*a != 0) {
-    if (*a != *b)
-      return false;
+    if (*a != *b) return false;
 
     ++a;
     ++b;

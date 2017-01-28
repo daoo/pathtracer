@@ -128,8 +128,7 @@ void program(const path& obj_file,
     ws.samples = msg.sample;
     ws.total += msg.time;
 
-    if (msg.sample == samples_per_thread)
-      --working;
+    if (msg.sample == samples_per_thread) --working;
 
     print_status(samples_per_thread, status);
   }
