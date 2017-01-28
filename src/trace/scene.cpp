@@ -14,6 +14,39 @@ using namespace std;
 namespace trace {
 namespace {
 constexpr float EPSILON = 0.0001f;
+
+Material* blend1_from_wavefront(const wavefront::Material& material) {
+  if (epsilonEqual(material.transparency, 1.0f, EPSILON)) {
+    return new SpecularRefractionMaterial(material.ior);
+  } else if (epsilonEqual(material.transparency, 0.0f, EPSILON)) {
+    return new DiffuseMaterial(material.diffuse);
+  } else {
+    return new BlendMaterial(new SpecularRefractionMaterial(material.ior),
+                             new DiffuseMaterial(material.diffuse),
+                             material.transparency);
+  }
+}
+
+Material* blend0_from_wavefront(const wavefront::Material& material,
+                                Material* blend1) {
+  if (epsilonEqual(material.refl90, 1.0f, EPSILON)) {
+    return new FresnelBlendMaterial(
+        new SpecularReflectionMaterial(material.specular), blend1,
+        material.refl0);
+  } else if (epsilonEqual(material.refl90, 0.0f, EPSILON)) {
+    return blend1;
+  } else {
+    return new BlendMaterial(
+        new FresnelBlendMaterial(
+            new SpecularReflectionMaterial(material.specular), blend1,
+            material.refl0),
+        blend1, material.refl90);
+  }
+}
+
+Material* material_from_wavefront(const wavefront::Material& material) {
+  return blend0_from_wavefront(material, blend1_from_wavefront(material));
+}
 }
 
 vector<SphereLight> lights_from_mtl(const wavefront::Mtl& mtl) {
@@ -36,41 +69,8 @@ vector<Camera> cameras_from_mtl(const wavefront::Mtl& mtl) {
 
 map<string, Material*> materials_from_mtl(const wavefront::Mtl& mtl) {
   map<string, Material*> materials;
-  for (const wavefront::Material& mat : mtl.materials) {
-    DiffuseMaterial* diffuse = new DiffuseMaterial(mat.diffuse);
-
-    SpecularRefractionMaterial* specular_refraction =
-        new SpecularRefractionMaterial(mat.ior);
-
-    Material* blend1 = nullptr;
-    if (epsilonEqual(mat.transparency, 1.0f, EPSILON)) {
-      blend1 = specular_refraction;
-      delete diffuse;
-    } else if (epsilonEqual(mat.transparency, 0.0f, EPSILON)) {
-      blend1 = diffuse;
-      delete specular_refraction;
-    } else {
-      blend1 =
-          new BlendMaterial(specular_refraction, diffuse, mat.transparency);
-    }
-
-    SpecularReflectionMaterial* specular_reflection =
-        new SpecularReflectionMaterial(mat.specular);
-
-    FresnelBlendMaterial* fresnel =
-        new FresnelBlendMaterial(specular_reflection, blend1, mat.refl0);
-
-    Material* blend0 = nullptr;
-    if (epsilonEqual(mat.refl90, 1.0f, EPSILON)) {
-      blend0 = fresnel;
-    } else if (epsilonEqual(mat.refl90, 0.0f, EPSILON)) {
-      blend0 = blend1;
-      delete fresnel;
-    } else {
-      blend0 = new BlendMaterial(fresnel, blend1, mat.refl90);
-    }
-
-    materials[mat.name] = blend0;
+  for (const wavefront::Material& material : mtl.materials) {
+    materials[material.name] = material_from_wavefront(material);
   }
 
   return materials;
