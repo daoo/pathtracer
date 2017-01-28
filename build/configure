@@ -28,6 +28,11 @@ configure "clang_release" \
   "-Ofast -march=native -DNDEBUG" \
   ""
 
+configure "clang_sanitize" \
+  "clang++" \
+  "-Wall -g -fsanitize=address,undefined" \
+  "-fsanitize=address,undefined"
+
 configure "gcc_debug" \
   "g++" \
   "-Wall -Wextra -Weffc++ -Wno-padded -g -fdiagnostics-color=always" \
