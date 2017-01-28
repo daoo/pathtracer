@@ -143,6 +143,9 @@ class FresnelBlendMaterial : public Material {
                                   const glm::vec3&) const;
 
  private:
+  FresnelBlendMaterial(const FresnelBlendMaterial&) = delete;
+  FresnelBlendMaterial& operator=(const FresnelBlendMaterial&) = delete;
+
   const Material* m_on_reflection_material;
   const Material* m_on_refraction_material;
   float m_r0;
@@ -169,6 +172,9 @@ class BlendMaterial : public Material {
                                   const glm::vec3&) const;
 
  private:
+  BlendMaterial(const BlendMaterial&) = delete;
+  BlendMaterial& operator=(const BlendMaterial&) = delete;
+
   const Material* m_first_material;
   const Material* m_second_material;
   float m_w;
