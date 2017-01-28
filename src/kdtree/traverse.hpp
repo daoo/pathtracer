@@ -3,7 +3,7 @@
 
 #include "geometry/ray.hpp"
 #include "kdtree/array.hpp"
-#include "trace/intersection.hpp"
+#include "kdtree/intersection.hpp"
 
 namespace trace {
 namespace kdtree {

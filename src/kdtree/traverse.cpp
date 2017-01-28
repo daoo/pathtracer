@@ -14,7 +14,7 @@ bool intersect_triangles(const vector<Triangle>& triangles,
                          float mint,
                          float& maxt,
                          vec3& normal,
-                         const Material*& material) {
+                         const void*& tag) {
   bool hit = false;
 
   for (const Triangle& triangle : triangles) {
@@ -23,7 +23,7 @@ bool intersect_triangles(const vector<Triangle>& triangles,
     if (triray(triangle, ray, t, n)) {
       if (t >= mint && t <= maxt) {
         normal = n;
-        material = triangle.material;
+        tag = triangle.tag;
 
         maxt = t;
 
@@ -54,7 +54,7 @@ bool search_tree(const KdTreeArray& tree,
 
     if (node.is_leaf()) {
       bool hit = intersect_triangles(tree.get_triangles(node), ray, tmin,
-                                     raymaxt, isect.normal, isect.material);
+                                     raymaxt, isect.normal, isect.tag);
 
       if (hit && raymaxt < tmax) {
         isect.position = ray.param(raymaxt);

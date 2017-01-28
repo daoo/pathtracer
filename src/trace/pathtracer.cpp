@@ -1,7 +1,8 @@
 #include "trace/pathtracer.hpp"
 
+#include "kdtree/intersection.hpp"
 #include "kdtree/traverse.hpp"
-#include "trace/intersection.hpp"
+#include "trace/material.hpp"
 #include "trace/mcsampling.hpp"
 #include <glm/gtc/constants.hpp>
 
@@ -61,7 +62,7 @@ vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
   if (bounce >= MAX_BOUNCES)
     return radiance;
 
-  Intersection isect;
+  kdtree::Intersection isect;
   if (!kdtree::search_tree(kdtree, ray, 0.0f, FLT_MAX, isect))
     return radiance + transport * environment_light(ray);
 
@@ -69,7 +70,7 @@ vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
   const vec3 point = isect.position;
   const vec3 n = isect.normal;
 
-  const Material* material = isect.material;
+  const Material* material = static_cast<const Material*>(isect.tag);
 
   const vec3 offset = EPSILON * n;
   const vec3 offset_up = point + offset;
