@@ -20,9 +20,8 @@ int main(int argc, char* argv[]) {
 
       if (file.extension() == ".obj") {
         util::Clock clock;
-        clock.start();
         wavefront::Obj obj = wavefront::load_obj(file);
-        clock.stop();
+        float load_time = clock.measure<float, ratio<1>>();
 
         unsigned int triangle_count = 0;
         for (const wavefront::Chunk& c : obj.chunks) {
@@ -30,17 +29,16 @@ int main(int argc, char* argv[]) {
         }
 
         cout << "Loaded " << file << " in ";
-        cout << clock.length<float, ratio<1>>() << "seconds\n";
+        cout << load_time << " second(s)\n";
         cout << "  Chunks:    " << obj.chunks.size() << '\n';
         cout << "  Triangles: " << triangle_count << '\n';
       } else if (file.extension() == ".mtl") {
         util::Clock clock;
-        clock.start();
         wavefront::Mtl mtl = wavefront::load_mtl(file);
-        clock.stop();
+        float load_time = clock.measure<float, ratio<1>>();
 
         cout << "Loaded " << file << " in ";
-        cout << clock.length<float, ratio<1>>() << "seconds\n";
+        cout << load_time << " second(s)\n";
         cout << "  Materials: " << mtl.materials.size() << '\n';
       } else {
         cerr << "Error: " << file << " is not an obj or mtl file.\n";

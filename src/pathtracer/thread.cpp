@@ -68,14 +68,13 @@ void worker(const kdtree::KdTreeArray& kdtree,
             SampleBuffer& buffer) {
   assert(sample_count > 0);
 
-  Clock clock;
   FastRand rand;
   while (buffer.samples() < sample_count) {
-    clock.start();
+    Clock clock;
     pathtrace(kdtree, lights, pinhole, rand, buffer);
-    clock.stop();
+    float trace_time = clock.measure<float, ratio<1>>();
 
-    queue.push({thread, buffer.samples(), clock.length<float, ratio<1>>()});
+    queue.push({thread, buffer.samples(), trace_time});
   }
 }
 

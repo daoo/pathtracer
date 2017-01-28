@@ -57,11 +57,10 @@ int main(int argc, char* argv[]) {
     trace::triangles_from_obj(wavefront::load_obj(obj_file));
 
   util::Clock clock;
-  clock.start();
   kdtree::KdTreeArray kdtree = trace::kdtree_from_triangles(triangles);
-  clock.stop();
+  float construction_time = clock.measure<float, ratio<1>>();
 
-  cout << "Built in " << clock.length<float, ratio<1>>() << " seconds.\n\n";
+  cout << "Built in " << construction_time << " seconds.\n\n";
   print(kdtree);
 
   return 0;

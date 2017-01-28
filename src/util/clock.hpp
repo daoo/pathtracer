@@ -6,25 +6,20 @@
 namespace util {
 class Clock {
  public:
-  Clock() {}
-  ~Clock() {}
-
-  void start() { m_start = clock::now().time_since_epoch(); }
-
-  void stop() { m_stop = clock::now().time_since_epoch(); }
+  Clock() : m_start(clock::now().time_since_epoch()) {}
 
   template <typename T, typename Ratio>
-  T length() {
-    return std::chrono::duration_cast<std::chrono::duration<T, Ratio>>(m_stop -
+  T measure() {
+    clock::duration stop = clock::now().time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::duration<T, Ratio>>(stop -
                                                                        m_start)
         .count();
   }
 
  private:
   typedef std::chrono::high_resolution_clock clock;
-  typedef clock::duration time;
 
-  time m_start, m_stop;
+  clock::duration m_start;
 };
 }
 

@@ -38,15 +38,14 @@ static GUI* g_gui;
 
 void display() {
   Clock clock;
-  clock.start();
   g_gui->trace();
-  clock.stop();
+  float trace_time = clock.measure<float, ratio<1>>();
 
   g_gui->render();
   glutSwapBuffers();
 
   // Print some useful information
-  cout << "Seconds per frame: " << clock.length<float, ratio<1>>() << "\n"
+  cout << "Second(s) per frame: " << trace_time << "\n"
        << "Samples per pixel: " << g_gui->samples() << "\n"
        << "Subsampling: " << g_gui->subsampling() << "\n"
        << "\n";
