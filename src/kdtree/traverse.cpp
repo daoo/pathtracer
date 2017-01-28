@@ -5,19 +5,18 @@
 
 using namespace glm;
 using namespace std;
-using namespace trace;
-using namespace trace::kdtree;
 
+namespace kdtree {
 namespace {
-bool intersect_triangles(const vector<Triangle>& triangles,
-                         const Ray& ray,
+bool intersect_triangles(const vector<geometry::Triangle>& triangles,
+                         const geometry::Ray& ray,
                          float mint,
                          float& maxt,
                          vec3& normal,
                          const void*& tag) {
   bool hit = false;
 
-  for (const Triangle& triangle : triangles) {
+  for (const geometry::Triangle& triangle : triangles) {
     float t;
     vec3 n;
     if (triray(triangle, ray, t, n)) {
@@ -36,10 +35,8 @@ bool intersect_triangles(const vector<Triangle>& triangles,
 }
 }
 
-namespace trace {
-namespace kdtree {
 bool search_tree(const KdTreeArray& tree,
-                 const Ray& ray,
+                 const geometry::Ray& ray,
                  const float tmininit,
                  const float tmaxinit,
                  Intersection& isect) {
@@ -94,6 +91,5 @@ bool search_tree(const KdTreeArray& tree,
       }
     }
   }
-}
 }
 }

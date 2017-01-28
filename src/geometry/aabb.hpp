@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-namespace trace {
+namespace geometry {
 struct Aabb {
   glm::vec3 center;
   glm::vec3 half;

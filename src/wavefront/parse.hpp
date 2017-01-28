@@ -5,7 +5,6 @@
 #include <glm/glm.hpp>
 #include <string>
 
-namespace trace {
 namespace wavefront {
 inline int parse_int(const char* str, const char** end) {
   int negate = 1;
@@ -92,7 +91,6 @@ inline glm::vec3 parse_vec3(const char* str) {
   float y = strtof(end, &end);
   float z = strtof(end, nullptr);
   return {x, y, z};
-}
 }
 }
 

@@ -10,7 +10,6 @@ using namespace std::experimental::filesystem;
 using namespace glm;
 using namespace std;
 
-namespace trace {
 namespace wavefront {
 namespace {
 // Mtl tokens
@@ -128,6 +127,5 @@ Mtl load_mtl(const path& file) {
   }
 
   return mtl;
-}
 }
 }

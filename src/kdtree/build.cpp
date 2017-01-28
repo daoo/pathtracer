@@ -8,16 +8,15 @@
 using namespace glm;
 using namespace std;
 
-namespace trace {
 namespace kdtree {
 namespace {
 constexpr float EPSILON = 0.00001f;
 
-void split_aabb(const Aabb& box,
+void split_aabb(const geometry::Aabb& box,
                 Axis axis,
                 float split,
-                Aabb& left,
-                Aabb& right) {
+                geometry::Aabb& left,
+                geometry::Aabb& right) {
   left = box;
   right = box;
 
@@ -40,11 +39,11 @@ void split_aabb(const Aabb& box,
 constexpr float COST_TRAVERSE = 0.3f;
 constexpr float COST_INTERSECT = 1.0f;
 
-float calculate_cost(const Aabb& box,
-                     const Aabb& left_box,
-                     const Aabb& right_box,
-                     const vector<const Triangle*>& left_triangles,
-                     const vector<const Triangle*>& right_triangles) {
+float calculate_cost(const geometry::Aabb& box,
+                     const geometry::Aabb& left_box,
+                     const geometry::Aabb& right_box,
+                     const vector<const geometry::Triangle*>& left_triangles,
+                     const vector<const geometry::Triangle*>& right_triangles) {
   float area = surface_area(box);
 
   float left_area = surface_area(left_box);
@@ -61,14 +60,14 @@ float calculate_cost(const Aabb& box,
              area;
 }
 
-void intersect_test(const Aabb& left_box,
-                    const Aabb& right_box,
-                    const vector<const Triangle*>& triangles,
-                    vector<const Triangle*>& left_triangles,
-                    vector<const Triangle*>& right_triangles) {
+void intersect_test(const geometry::Aabb& left_box,
+                    const geometry::Aabb& right_box,
+                    const vector<const geometry::Triangle*>& triangles,
+                    vector<const geometry::Triangle*>& left_triangles,
+                    vector<const geometry::Triangle*>& right_triangles) {
   left_triangles.reserve(triangles.size());
   right_triangles.reserve(triangles.size());
-  for (const Triangle* tri : triangles) {
+  for (const geometry::Triangle* tri : triangles) {
     if (tri_box_overlap(left_box, tri->v0, tri->v1, tri->v2)) {
       left_triangles.push_back(tri);
     }
@@ -84,20 +83,20 @@ void intersect_test(const Aabb& left_box,
   right_triangles.shrink_to_fit();
 }
 
-void best(const Aabb& box,
+void best(const geometry::Aabb& box,
           Axis axis,
           float split,
-          const vector<const Triangle*>& triangles,
+          const vector<const geometry::Triangle*>& triangles,
           float& best_cost,
           float& best_split,
-          Aabb& best_left_box,
-          Aabb& best_right_box,
-          vector<const Triangle*>& best_left_triangles,
-          vector<const Triangle*>& best_right_triangles) {
-  Aabb left_box, right_box;
+          geometry::Aabb& best_left_box,
+          geometry::Aabb& best_right_box,
+          vector<const geometry::Triangle*>& best_left_triangles,
+          vector<const geometry::Triangle*>& best_right_triangles) {
+  geometry::Aabb left_box, right_box;
   split_aabb(box, axis, split, left_box, right_box);
 
-  vector<const Triangle *> left_triangles, right_triangles;
+  vector<const geometry::Triangle *> left_triangles, right_triangles;
   intersect_test(left_box, right_box, triangles, left_triangles,
                  right_triangles);
 
@@ -115,18 +114,18 @@ void best(const Aabb& box,
   }
 }
 
-void find_split(const Aabb& box,
+void find_split(const geometry::Aabb& box,
                 Axis axis,
-                const vector<const Triangle*>& triangles,
+                const vector<const geometry::Triangle*>& triangles,
                 float& cost,
                 float& split,
-                Aabb& left_box,
-                Aabb& right_box,
-                vector<const Triangle*>& left_triangles,
-                vector<const Triangle*>& right_triangles) {
+                geometry::Aabb& left_box,
+                geometry::Aabb& right_box,
+                vector<const geometry::Triangle*>& left_triangles,
+                vector<const geometry::Triangle*>& right_triangles) {
   cost = FLT_MAX;
   split = 0;
-  for (const Triangle* triangle : triangles) {
+  for (const geometry::Triangle* triangle : triangles) {
     assert(triangle != nullptr);
 
     vec3 vmin, vmax;
@@ -145,20 +144,20 @@ void find_split(const Aabb& box,
 void go_sah(LinkedNode* node,
             unsigned int depth,
             Axis axis,
-            const Aabb& box,
-            const vector<const Triangle*>& triangles) {
+            const geometry::Aabb& box,
+            const vector<const geometry::Triangle*>& triangles) {
   assert(node != nullptr);
 
   float cost, split;
-  vector<const Triangle *> left_triangles, right_triangles;
-  Aabb left_box, right_box;
+  vector<const geometry::Triangle *> left_triangles, right_triangles;
+  geometry::Aabb left_box, right_box;
 
   find_split(box, axis, triangles, cost, split, left_box, right_box,
              left_triangles, right_triangles);
 
   if (depth >= 20 || cost > COST_INTERSECT * triangles.size()) {
     node->type = LinkedNode::Leaf;
-    node->leaf.triangles = new vector<const Triangle*>(triangles);
+    node->leaf.triangles = new vector<const geometry::Triangle*>(triangles);
   } else {
     node->type = LinkedNode::NodeType::Split;
     node->split.axis = axis;
@@ -176,22 +175,22 @@ void go_sah(LinkedNode* node,
 void go_naive(LinkedNode* node,
               unsigned int depth,
               Axis axis,
-              const Aabb& box,
-              const vector<const Triangle*>& triangles) {
+              const geometry::Aabb& box,
+              const vector<const geometry::Triangle*>& triangles) {
   assert(node != nullptr);
 
   if (depth >= 20 || triangles.size() <= 10) {
     node->type = LinkedNode::NodeType::Leaf;
-    node->leaf.triangles = new vector<const Triangle*>(triangles);
+    node->leaf.triangles = new vector<const geometry::Triangle*>(triangles);
   } else {
     float split = box.center[axis];
 
-    Aabb left_box;
-    Aabb right_box;
+    geometry::Aabb left_box;
+    geometry::Aabb right_box;
 
     split_aabb(box, axis, split, left_box, right_box);
 
-    vector<const Triangle *> left_triangles, right_triangles;
+    vector<const geometry::Triangle *> left_triangles, right_triangles;
 
     intersect_test(left_box, right_box, triangles, left_triangles,
                    right_triangles);
@@ -209,9 +208,9 @@ void go_naive(LinkedNode* node,
   }
 }
 
-KdTreeLinked build_tree_sah(const vector<Triangle>& triangles) {
-  vector<const Triangle*> ptrs;
-  for (const Triangle& tri : triangles) {
+KdTreeLinked build_tree_sah(const vector<geometry::Triangle>& triangles) {
+  vector<const geometry::Triangle*> ptrs;
+  for (const geometry::Triangle& tri : triangles) {
     ptrs.push_back(&tri);
   }
 
@@ -221,9 +220,9 @@ KdTreeLinked build_tree_sah(const vector<Triangle>& triangles) {
   return KdTreeLinked(root);
 }
 
-KdTreeLinked build_tree_naive(const vector<Triangle>& triangles) {
-  vector<const Triangle*> ptrs;
-  for (const Triangle& tri : triangles) {
+KdTreeLinked build_tree_naive(const vector<geometry::Triangle>& triangles) {
+  vector<const geometry::Triangle*> ptrs;
+  for (const geometry::Triangle& tri : triangles) {
     ptrs.push_back(&tri);
   }
 
@@ -231,6 +230,5 @@ KdTreeLinked build_tree_naive(const vector<Triangle>& triangles) {
   go_naive(root, 0, X, find_bounding(triangles), ptrs);
 
   return KdTreeLinked(root);
-}
 }
 }

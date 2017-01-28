@@ -9,7 +9,7 @@ using namespace std;
 using namespace trace;
 
 void print(const Pinhole& pinhole, const vec2& p) {
-  Ray ray = pinhole.ray(p.x, p.y);
+  geometry::Ray ray = pinhole.ray(p.x, p.y);
   vec3 q = ray.param(1.0);
 
   cout << "(" << p.x << ", " << p.y << ")";

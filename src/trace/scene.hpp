@@ -20,18 +20,18 @@ std::vector<Camera> cameras_from_mtl(const wavefront::Mtl& mtl);
 
 std::map<std::string, Material*> materials_from_mtl(const wavefront::Mtl& mtl);
 
-std::vector<Triangle> triangles_from_obj(
+std::vector<geometry::Triangle> triangles_from_obj(
     const wavefront::Obj& obj,
     const std::map<std::string, Material*>& materials);
 
 kdtree::KdTreeArray kdtree_from_triangles(
-    const std::vector<Triangle>& triangles);
+    const std::vector<geometry::Triangle>& triangles);
 
 struct Scene {
   kdtree::KdTreeArray kdtree;
   std::vector<Camera> cameras;
   std::vector<SphereLight> lights;
-  std::vector<Triangle> triangles;
+  std::vector<geometry::Triangle> triangles;
 };
 
 Scene new_scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl);

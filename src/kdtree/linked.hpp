@@ -6,7 +6,6 @@
 
 #include <vector>
 
-namespace trace {
 namespace kdtree {
 class LinkedNode {
  public:
@@ -29,7 +28,7 @@ class LinkedNode {
     return leaf.triangles != nullptr;
   }
 
-  const std::vector<const Triangle*>& get_triangles() const {
+  const std::vector<const geometry::Triangle*>& get_triangles() const {
     assert(is_leaf());
     assert(has_triangles());
     return *leaf.triangles;
@@ -65,7 +64,7 @@ class LinkedNode {
   };
 
   struct LeafNode {
-    std::vector<const Triangle*>* triangles;
+    std::vector<const geometry::Triangle*>* triangles;
   };
 
   NodeType type;
@@ -87,7 +86,6 @@ class KdTreeLinked {
  private:
   const LinkedNode* root;
 };
-}
 }
 
 #endif /* end of include guard: LINKED_HPP_DGVBYSLC */

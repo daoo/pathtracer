@@ -1,5 +1,6 @@
 #include "trace/pathtracer.hpp"
 
+#include "kdtree/array.hpp"
 #include "kdtree/intersection.hpp"
 #include "kdtree/traverse.hpp"
 #include "trace/material.hpp"
@@ -9,10 +10,9 @@
 using namespace glm;
 using namespace std;
 
-namespace trace {
 namespace kdtree {
 bool any_intersects(const KdTreeArray& kdtree,
-                    const Ray& ray,
+                    const geometry::Ray& ray,
                     float tmin,
                     float tmax) {
   Intersection isect;
@@ -20,6 +20,7 @@ bool any_intersects(const KdTreeArray& kdtree,
 }
 }
 
+namespace trace {
 namespace {
 constexpr unsigned int MAX_BOUNCES = 16;
 constexpr float EPSILON = 0.00001f;
@@ -35,7 +36,7 @@ vec3 from_light(const kdtree::KdTreeArray& kdtree,
   const vec3 source = light_sample(rand, light);
   const vec3 direction = source - target;
 
-  const Ray shadow_ray{offset, direction};
+  const geometry::Ray shadow_ray{offset, direction};
 
   if (!any_intersects(kdtree, shadow_ray, 0.0f, 1.0f)) {
     const vec3 wr = normalize(direction);
@@ -48,13 +49,13 @@ vec3 from_light(const kdtree::KdTreeArray& kdtree,
   return zero<vec3>();
 }
 
-vec3 environment_light(const Ray&) {
+vec3 environment_light(const geometry::Ray&) {
   return vec3(0.8f, 0.8f, 0.8f);
 }
 
 vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
                            const vector<SphereLight>& lights,
-                           const Ray& ray,
+                           const geometry::Ray& ray,
                            FastRand& rand,
                            vec3 radiance,
                            vec3 transport,
@@ -92,7 +93,8 @@ vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
 
   if (length2(transport) < EPSILON) return radiance;
 
-  Ray next_ray{dot(sample.wo, n) >= 0 ? offset_up : offset_down, sample.wo};
+  geometry::Ray next_ray{dot(sample.wo, n) >= 0 ? offset_up : offset_down,
+                         sample.wo};
 
   return incoming_light_helper(kdtree, lights, next_ray, rand, radiance,
                                transport, bounce + 1);
@@ -100,7 +102,7 @@ vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
 
 vec3 incoming_light(const kdtree::KdTreeArray& kdtree,
                     const vector<SphereLight>& lights,
-                    const Ray& ray,
+                    const geometry::Ray& ray,
                     FastRand& rand) {
   return incoming_light_helper(kdtree, lights, ray, rand, zero<vec3>(),
                                one<vec3>(), 0);

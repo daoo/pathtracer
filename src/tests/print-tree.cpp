@@ -2,16 +2,15 @@
 #include "kdtree/util.hpp"
 #include "trace/scene.hpp"
 #include "util/clock.hpp"
+#include "wavefront/mtl.hpp"
 #include "wavefront/obj.hpp"
 
 #include <experimental/filesystem>
 #include <iostream>
 
+using namespace kdtree;
 using namespace std::experimental::filesystem;
 using namespace std;
-using namespace trace;
-using namespace trace::kdtree;
-using namespace util;
 
 ostream& operator<<(ostream& stream, Axis axis) {
   constexpr char AXIS[] = {'X', 'Y', 'Z'};
@@ -60,11 +59,12 @@ int main(int argc, char* argv[]) {
   const wavefront::Mtl mtl =
       wavefront::load_mtl(obj_file.parent_path() / obj.mtl_lib);
 
-  vector<Triangle> triangles = triangles_from_obj(obj, materials_from_mtl(mtl));
+  vector<geometry::Triangle> triangles =
+      trace::triangles_from_obj(obj, trace::materials_from_mtl(mtl));
 
-  Clock clock;
+  util::Clock clock;
   clock.start();
-  kdtree::KdTreeArray kdtree = kdtree_from_triangles(triangles);
+  kdtree::KdTreeArray kdtree = trace::kdtree_from_triangles(triangles);
   clock.stop();
 
   cout << "Built in " << clock.length<float, ratio<1>>() << " seconds.\n\n";

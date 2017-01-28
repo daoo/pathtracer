@@ -7,8 +7,6 @@
 
 using namespace std::experimental::filesystem;
 using namespace std;
-using namespace trace;
-using namespace util;
 
 int main(int argc, char* argv[]) {
   if (argc != 3) {
@@ -20,12 +18,12 @@ int main(int argc, char* argv[]) {
   path mtl_file = argv[2];
 
   try {
-    Clock c1;
+    util::Clock c1;
     c1.start();
     wavefront::Obj obj = wavefront::load_obj(obj_file);
     c1.stop();
 
-    Clock c2;
+    util::Clock c2;
     c2.start();
     wavefront::Mtl mtl = wavefront::load_mtl(mtl_file);
     c2.stop();

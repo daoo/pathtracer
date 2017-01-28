@@ -5,11 +5,11 @@
 using namespace glm;
 using namespace std;
 
-namespace trace {
+namespace geometry {
 Aabb find_bounding(const vector<Triangle>& triangles) {
   vec3 min, max;
 
-  for (const trace::Triangle& tri : triangles) {
+  for (const Triangle& tri : triangles) {
     min = glm::min(min, tri.v0);
     min = glm::min(min, tri.v1);
     min = glm::min(min, tri.v2);

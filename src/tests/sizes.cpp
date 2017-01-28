@@ -3,7 +3,6 @@
 #include "kdtree/array.hpp"
 #include "kdtree/linked.hpp"
 
-using namespace trace;
 using namespace std;
 
 #define PRINT_SIZE(type) cout << #type << " = " << sizeof(type) << " bytes\n"

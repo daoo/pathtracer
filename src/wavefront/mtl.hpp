@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-namespace trace {
 namespace wavefront {
 struct Material {
   std::string name;
@@ -42,7 +41,6 @@ struct Mtl {
 };
 
 Mtl load_mtl(const std::experimental::filesystem::path&);
-}
 }
 
 #endif /* end of include guard: MTL_HPP_XZYN6ESW */

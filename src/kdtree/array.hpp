@@ -9,7 +9,6 @@
 #include <limits>
 #include <vector>
 
-namespace trace {
 namespace kdtree {
 class ArrayNode {
  public:
@@ -57,18 +56,18 @@ class KdTreeArray {
     return nodes[index];
   }
 
-  const std::vector<Triangle>& get_triangles(ArrayNode node) const {
+  const std::vector<geometry::Triangle>& get_triangles(ArrayNode node) const {
     assert(node.is_leaf());
     return leaf_store[node.get_index()];
   }
 
   void add_leaf(unsigned int node_index,
-                const std::vector<const Triangle*>& triangles) {
+                const std::vector<const geometry::Triangle*>& triangles) {
     uint32_t triangles_index = static_cast<uint32_t>(leaf_store.size());
-    leaf_store.push_back(std::vector<Triangle>());
+    leaf_store.push_back(std::vector<geometry::Triangle>());
 
-    std::vector<Triangle>& to = leaf_store[triangles_index];
-    for (const Triangle* tri : triangles) {
+    std::vector<geometry::Triangle>& to = leaf_store[triangles_index];
+    for (const geometry::Triangle* tri : triangles) {
       assert(tri != nullptr);
       to.push_back(*tri);
     }
@@ -103,9 +102,8 @@ class KdTreeArray {
 
  private:
   std::vector<ArrayNode> nodes;
-  std::vector<std::vector<Triangle>> leaf_store;
+  std::vector<std::vector<geometry::Triangle>> leaf_store;
 };
-}
 }
 
 #endif /* end of include guard: ARRAY_HPP_BBXOECNY */

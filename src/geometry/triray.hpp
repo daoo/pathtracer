@@ -5,7 +5,7 @@
 #include "geometry/triangle.hpp"
 #include <glm/glm.hpp>
 
-namespace trace {
+namespace geometry {
 inline bool triray(const Triangle& tri,
                    const Ray& ray,
                    float& t,

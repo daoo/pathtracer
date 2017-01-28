@@ -5,7 +5,6 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-namespace trace {
 namespace wavefront {
 struct Point {
   int v, t, n;
@@ -53,7 +52,6 @@ inline glm::vec3 index_normal(const Obj& obj, int index) {
 
 inline glm::vec2 index_texcoord(const Obj& obj, int index) {
   return index_array(obj.texcoords, index);
-}
 }
 }
 

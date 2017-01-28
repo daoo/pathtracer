@@ -3,7 +3,6 @@
 
 #include <glm/glm.hpp>
 
-namespace trace {
 namespace kdtree {
 enum Axis { X = 0, Y = 1, Z = 2 };
 
@@ -17,7 +16,6 @@ constexpr inline Axis next_axis(Axis axis) {
 static_assert(next_axis(X) == Y, "incorrect next");
 static_assert(next_axis(Y) == Z, "incorrect next");
 static_assert(next_axis(Z) == X, "incorrect next");
-}
 }
 
 #endif /* end of include guard: UTIL_HPP_26AQ5WXE */

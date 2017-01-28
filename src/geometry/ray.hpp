@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-namespace trace {
+namespace geometry {
 struct Ray {
   glm::vec3 origin, direction;
 

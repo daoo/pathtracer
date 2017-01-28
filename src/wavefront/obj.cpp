@@ -10,7 +10,6 @@ using namespace std::experimental::filesystem;
 using namespace glm;
 using namespace std;
 
-namespace trace {
 namespace wavefront {
 namespace {
 Point parse_point(const char* str) {
@@ -87,6 +86,5 @@ Obj load_obj(const path& file) {
   }
 
   return obj;
-}
 }
 }

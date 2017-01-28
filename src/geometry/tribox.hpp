@@ -18,7 +18,7 @@
 
 #include "geometry/aabb.hpp"
 
-namespace trace {
+namespace geometry {
 namespace detail {
 inline void find_min_max(float x0, float x1, float x2, float& min, float& max) {
   min = glm::min(x0, glm::min(x1, x2));

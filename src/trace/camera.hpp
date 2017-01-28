@@ -48,7 +48,7 @@ struct Pinhole {
     dy = 2.0f * ((z - y) - mind);
   }
 
-  Ray ray(float x, float y) const {
+  geometry::Ray ray(float x, float y) const {
     return {position, normalize(mind + x * dx + y * dy)};
   }
 };

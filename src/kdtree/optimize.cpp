@@ -3,7 +3,6 @@
 #include <vector>
 
 using namespace std;
-namespace trace {
 namespace kdtree {
 namespace {
 void helper(KdTreeArray& result, unsigned int index, const LinkedNode* node) {
@@ -25,6 +24,5 @@ void helper(KdTreeArray& result, unsigned int index, const LinkedNode* node) {
 void optimize(KdTreeArray& result, const KdTreeLinked& input) {
   helper(result, 0, input.get_root());
   result.shrink_to_fit();
-}
 }
 }

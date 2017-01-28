@@ -76,9 +76,10 @@ map<string, Material*> materials_from_mtl(const wavefront::Mtl& mtl) {
   return materials;
 }
 
-vector<Triangle> triangles_from_obj(const wavefront::Obj& obj,
-                                    const map<string, Material*>& materials) {
-  vector<Triangle> triangles;
+vector<geometry::Triangle> triangles_from_obj(
+    const wavefront::Obj& obj,
+    const map<string, Material*>& materials) {
+  vector<geometry::Triangle> triangles;
   for (const wavefront::Chunk& chunk : obj.chunks) {
     Material* mat = materials.at(chunk.material);
     for (const wavefront::Face& polygon : chunk.polygons) {
@@ -93,7 +94,8 @@ vector<Triangle> triangles_from_obj(const wavefront::Obj& obj,
   return triangles;
 }
 
-kdtree::KdTreeArray kdtree_from_triangles(const vector<Triangle>& triangles) {
+kdtree::KdTreeArray kdtree_from_triangles(
+    const vector<geometry::Triangle>& triangles) {
   kdtree::KdTreeArray array;
   kdtree::optimize(array, kdtree::build_tree_sah(triangles));
   return array;
@@ -104,7 +106,7 @@ Scene new_scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl) {
   vector<SphereLight> lights = lights_from_mtl(mtl);
 
   map<string, Material*> materials = materials_from_mtl(mtl);
-  vector<Triangle> triangles = triangles_from_obj(obj, materials);
+  vector<geometry::Triangle> triangles = triangles_from_obj(obj, materials);
 
   kdtree::KdTreeArray kdtree = kdtree_from_triangles(triangles);
 
