@@ -78,49 +78,86 @@ Mtl load_mtl(const path& file) {
                                10.0f});
       }
 
-#define TOKEN_VALUE(list, constant, parse, param, error) \
-  else if (equal(constant, token)) {                     \
-    list.back().param = parse(token + sizeof(constant)); \
-  }
+      else if (equal(TOKEN_MTL_DIFFUSE, token)) {
+        mtl.materials.back().diffuse =
+            parse_vec3(token + sizeof(TOKEN_MTL_DIFFUSE));
+      }
 
-      TOKEN_VALUE(mtl.materials, TOKEN_MTL_DIFFUSE, parse_vec3, diffuse,
-                  "No material created")
-      TOKEN_VALUE(mtl.materials, TOKEN_MTL_DIFFUSE_MAP, parse_string,
-                  diffuse_map, "No material created")
-      TOKEN_VALUE(mtl.materials, TOKEN_MTL_EMITTANCE, parse_vec3, emittance,
-                  "No material created")
-      TOKEN_VALUE(mtl.materials, TOKEN_MTL_IOR, parse_float, ior,
-                  "No material created")
-      TOKEN_VALUE(mtl.materials, TOKEN_MTL_REFLECT0, parse_float, refl0,
-                  "No material created")
-      TOKEN_VALUE(mtl.materials, TOKEN_MTL_REFLECT90, parse_float, refl90,
-                  "No material created")
-      TOKEN_VALUE(mtl.materials, TOKEN_MTL_ROUGHNESS, parse_float, roughness,
-                  "No material created")
-      TOKEN_VALUE(mtl.materials, TOKEN_MTL_SPECULAR, parse_vec3, specular,
-                  "No material created")
-      TOKEN_VALUE(mtl.materials, TOKEN_MTL_TRANSPARANCY, parse_float,
-                  transparency, "No material created")
+      else if (equal(TOKEN_MTL_DIFFUSE_MAP, token)) {
+        mtl.materials.back().diffuse_map =
+            parse_string(token + sizeof(TOKEN_MTL_DIFFUSE_MAP));
+      }
 
-      TOKEN_VALUE(mtl.lights, TOKEN_LIGHT_COLOR, parse_vec3, color,
-                  "No light created")
-      TOKEN_VALUE(mtl.lights, TOKEN_LIGHT_INTENSITY, parse_float, intensity,
-                  "No light created")
-      TOKEN_VALUE(mtl.lights, TOKEN_LIGHT_POSITION, parse_vec3, center,
-                  "No light created")
-      TOKEN_VALUE(mtl.lights, TOKEN_LIGHT_RADIUS, parse_float, radius,
-                  "No light created")
+      else if (equal(TOKEN_MTL_EMITTANCE, token)) {
+        mtl.materials.back().emittance =
+            parse_vec3(token + sizeof(TOKEN_MTL_EMITTANCE));
+      }
 
-      TOKEN_VALUE(mtl.cameras, TOKEN_CAMERA_FOV, parse_float, fov,
-                  "No camera created")
-      TOKEN_VALUE(mtl.cameras, TOKEN_CAMERA_POSITION, parse_vec3, position,
-                  "No camera created")
-      TOKEN_VALUE(mtl.cameras, TOKEN_CAMERA_TARGET, parse_vec3, target,
-                  "No camera created")
-      TOKEN_VALUE(mtl.cameras, TOKEN_CAMERA_UP, parse_vec3, up,
-                  "No camera created")
+      else if (equal(TOKEN_MTL_IOR, token)) {
+        mtl.materials.back().ior = parse_float(token + sizeof(TOKEN_MTL_IOR));
+      }
 
-#undef TOKEN_VALUE
+      else if (equal(TOKEN_MTL_REFLECT0, token)) {
+        mtl.materials.back().refl0 =
+            parse_float(token + sizeof(TOKEN_MTL_REFLECT0));
+      }
+
+      else if (equal(TOKEN_MTL_REFLECT90, token)) {
+        mtl.materials.back().refl90 =
+            parse_float(token + sizeof(TOKEN_MTL_REFLECT90));
+      }
+
+      else if (equal(TOKEN_MTL_ROUGHNESS, token)) {
+        mtl.materials.back().roughness =
+            parse_float(token + sizeof(TOKEN_MTL_ROUGHNESS));
+      }
+
+      else if (equal(TOKEN_MTL_SPECULAR, token)) {
+        mtl.materials.back().specular =
+            parse_vec3(token + sizeof(TOKEN_MTL_SPECULAR));
+      }
+
+      else if (equal(TOKEN_MTL_TRANSPARANCY, token)) {
+        mtl.materials.back().transparency =
+            parse_float(token + sizeof(TOKEN_MTL_TRANSPARANCY));
+      }
+
+      else if (equal(TOKEN_LIGHT_COLOR, token)) {
+        mtl.lights.back().color = parse_vec3(token + sizeof(TOKEN_LIGHT_COLOR));
+      }
+
+      else if (equal(TOKEN_LIGHT_INTENSITY, token)) {
+        mtl.lights.back().intensity =
+            parse_float(token + sizeof(TOKEN_LIGHT_INTENSITY));
+      }
+
+      else if (equal(TOKEN_LIGHT_POSITION, token)) {
+        mtl.lights.back().center =
+            parse_vec3(token + sizeof(TOKEN_LIGHT_POSITION));
+      }
+
+      else if (equal(TOKEN_LIGHT_RADIUS, token)) {
+        mtl.lights.back().radius =
+            parse_float(token + sizeof(TOKEN_LIGHT_RADIUS));
+      }
+
+      else if (equal(TOKEN_CAMERA_FOV, token)) {
+        mtl.cameras.back().fov = parse_float(token + sizeof(TOKEN_CAMERA_FOV));
+      }
+
+      else if (equal(TOKEN_CAMERA_POSITION, token)) {
+        mtl.cameras.back().position =
+            parse_vec3(token + sizeof(TOKEN_CAMERA_POSITION));
+      }
+
+      else if (equal(TOKEN_CAMERA_TARGET, token)) {
+        mtl.cameras.back().target =
+            parse_vec3(token + sizeof(TOKEN_CAMERA_TARGET));
+      }
+
+      else if (equal(TOKEN_CAMERA_UP, token)) {
+        mtl.cameras.back().up = parse_vec3(token + sizeof(TOKEN_CAMERA_UP));
+      }
     }
 
     ++line_index;
