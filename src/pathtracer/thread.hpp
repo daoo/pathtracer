@@ -5,6 +5,7 @@
 
 void program(const std::experimental::filesystem::path&,
              const std::experimental::filesystem::path&,
+             const std::experimental::filesystem::path&,
              unsigned int,
              unsigned int,
              unsigned int,

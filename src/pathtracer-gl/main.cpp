@@ -5,7 +5,6 @@
 #include "wavefront/obj.hpp"
 #include <GL/freeglut_std.h>
 #include <GL/glew.h>
-#include <boost/program_options.hpp>
 #include <cstdlib>
 #include <experimental/filesystem>
 #include <iostream>
@@ -14,12 +13,10 @@
 #include <stdexcept>
 #include <string>
 
-namespace fs = std::experimental::filesystem;
-namespace po = boost::program_options;
-
 using namespace std;
 using namespace trace;
 using namespace util;
+using std::experimental::filesystem::path;
 
 constexpr unsigned int DEFAULT_WIDTH = 512;
 constexpr unsigned int DEFAULT_HEIGHT = 512;
@@ -73,38 +70,33 @@ void handle_keys(unsigned char key, int, int) {
 }
 
 int main(int argc, char* argv[]) {
-  fs::path outdir, model;
+  if (argc != 4) {
+    cerr << "Usage: " << argv[0] << " OBJ MTL OUTDIR\n";
+    return ERROR_PARAMS;
+  }
 
-  po::options_description desc("Pathtracer GUI options");
-  desc.add_options()("help,h", "produce help message")(
-      "model,m", po::value<fs::path>(&model), "obj model")(
-      "outdir,o", po::value<fs::path>(&outdir),
-      "output directory for screenshots");
+  const char* obj_file_str = argv[1];
+  const char* mtl_file_str = argv[2];
+  const char* out_dir_str = argv[3];
+  path obj_file(obj_file_str);
+  path mtl_file(mtl_file_str);
+  path out_dir(out_dir_str);
 
+  if (!exists(obj_file)) {
+    cerr << "Error: file " << obj_file << " does not exist.\n";
+    return ERROR_FILE_NOT_FOUND;
+  }
+  if (!exists(mtl_file)) {
+    cerr << "Error: file " << mtl_file << " does not exist.\n";
+    return ERROR_FILE_NOT_FOUND;
+  }
+  if (!is_directory(out_dir)) {
+    cerr << "Error: " << out_dir << " is not a directory.\n";
+    return ERROR_FILE_NOT_FOUND;
+  }
   try {
-    po::positional_options_description pd;
-    pd.add("model", -1);
-
-    po::variables_map vm;
-    po::store(
-        po::command_line_parser(argc, argv).options(desc).positional(pd).run(),
-        vm);
-    po::notify(vm);
-
-    if (vm.count("help")) {
-      cout << desc << '\n';
-      return OK;
-    }
-
-    if (!exists(model)) {
-      cerr << "ERROR: file " << model << " does not exist.\n";
-      return ERROR_FILE_NOT_FOUND;
-    }
-
-    const wavefront::Obj obj = wavefront::load_obj(model);
-    const wavefront::Mtl mtl =
-        wavefront::load_mtl(model.parent_path() / obj.mtl_lib);
-    const Scene scene = new_scene(obj, mtl);
+    Scene scene =
+        new_scene(wavefront::load_obj(obj_file), wavefront::load_mtl(mtl_file));
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
@@ -116,16 +108,12 @@ int main(int argc, char* argv[]) {
     glutDisplayFunc(display);
     glewInit();
 
-    g_gui = new GUI(outdir, model.stem(), scene, SUBSAMPLING);
+    g_gui = new GUI(out_dir, obj_file.stem(), scene, SUBSAMPLING);
     g_gui->init_gl();
     g_gui->resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
     glEnable(GL_FRAMEBUFFER_SRGB);
     glutMainLoop(); /* start the program main loop */
-  } catch (const po::error& ex) {
-    cerr << "ERROR: " << ex.what() << "\n\n";
-    cout << desc;
-    return ERROR_PARAMS;
   } catch (const runtime_error& ex) {
     cerr << "ERROR: " << ex.what() << '\n';
     return ERROR_PROGRAM;

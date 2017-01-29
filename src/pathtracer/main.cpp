@@ -1,20 +1,12 @@
 #include "pathtracer/thread.hpp"
-
-#include <boost/program_options.hpp>
+#include <cstdlib>
 #include <experimental/filesystem>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-namespace fs = std::experimental::filesystem;
-namespace po = boost::program_options;
-
 using namespace std;
-
-constexpr unsigned int WIDTH = 512;
-constexpr unsigned int HEIGHT = 512;
-constexpr unsigned int THREADS = 1;
-constexpr unsigned int SAMPLES = 128;
+using std::experimental::filesystem::path;
 
 constexpr int OK = 0;
 constexpr int ERROR_PARAMS = 1;
@@ -22,52 +14,61 @@ constexpr int ERROR_FILE_NOT_FOUND = 2;
 constexpr int ERROR_PROGRAM = 3;
 
 int main(int argc, char* argv[]) {
-  fs::path outdir, model;
-  unsigned int width, height;
-  unsigned int samples, threads;
-
-  po::options_description desc("Pathtracer options");
-  desc.add_options()("help,h", "produce help message")(
-      "model,m", po::value<fs::path>(&model), "obj model")(
-      "outdir,o", po::value<fs::path>(&outdir),
-      "output directory for resulting image, if not specified, no image is "
-      "written")("threads,t",
-                 po::value<unsigned int>(&threads)->default_value(THREADS),
-                 "number of threads to use")(
-      "width,x", po::value<unsigned int>(&width)->default_value(WIDTH),
-      "width of the image")(
-      "height,y", po::value<unsigned int>(&height)->default_value(HEIGHT),
-      "height of the image")(
-      "samples,s", po::value<unsigned int>(&samples)->default_value(SAMPLES),
-      "number of samples to render");
-
-  try {
-    po::positional_options_description pd;
-    pd.add("model", -1);
-
-    po::variables_map vm;
-    po::store(
-        po::command_line_parser(argc, argv).options(desc).positional(pd).run(),
-        vm);
-    po::notify(vm);
-
-    if (vm.count("help")) {
-      cout << desc << '\n';
-      return OK;
-    }
-  } catch (const po::error& ex) {
-    cerr << "ERROR: " << ex.what() << "\n\n";
-    cout << desc;
+  if (argc != 8) {
+    cerr << "Usage: " << argv[0] << " OBJ MTL OUT WIDTH HEIGHT SAMPLES JOBS\n";
     return ERROR_PARAMS;
   }
 
-  if (!exists(model)) {
-    cerr << "ERROR: file " << model << " does not exist.\n";
+  const char* obj_file_str = argv[1];
+  const char* mtl_file_str = argv[2];
+  const char* out_file_str = argv[3];
+  const char* width_str = argv[4];
+  const char* height_str = argv[5];
+  const char* samples_str = argv[6];
+  const char* jobs_str = argv[7];
+
+  path obj_file(obj_file_str);
+  path mtl_file(mtl_file_str);
+  path out_file(out_file_str);
+  int width = atoi(width_str);
+  int height = atoi(height_str);
+  int samples = atoi(samples_str);
+  int jobs = atoi(jobs_str);
+
+  if (width <= 0) {
+    cerr << "Error: invalid width: " << width_str << '\n';
+    return ERROR_PARAMS;
+  }
+  if (height <= 0) {
+    cerr << "Error: invalid height: " << height_str << '\n';
+    return ERROR_PARAMS;
+  }
+  if (samples <= 0) {
+    cerr << "Error: invalid sample count: " << samples_str << '\n';
+    return ERROR_PARAMS;
+  }
+  if (jobs <= 0) {
+    cerr << "Error: invalid job count: " << jobs_str << '\n';
+    return ERROR_PARAMS;
+  }
+  if (!exists(obj_file)) {
+    cerr << "Error: file " << obj_file << " does not exist.\n";
+    return ERROR_FILE_NOT_FOUND;
+  }
+  if (!exists(mtl_file)) {
+    cerr << "Error: file " << mtl_file << " does not exist.\n";
+    return ERROR_FILE_NOT_FOUND;
+  }
+  if (out_file.empty()) {
+    cerr << "Error: empty output file path.\n";
     return ERROR_FILE_NOT_FOUND;
   }
 
   try {
-    program(model, outdir, width, height, 0, samples, threads);
+    program(obj_file, mtl_file, out_file, static_cast<unsigned int>(width),
+            static_cast<unsigned int>(height), 0,
+            static_cast<unsigned int>(samples),
+            static_cast<unsigned int>(jobs));
   } catch (const string& str) {
     cerr << str << '\n';
     return ERROR_PROGRAM;

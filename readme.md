@@ -9,7 +9,7 @@ effects, does not yet support textures.
 Building
 ========
 
-Required libraries: Boost, FreeImage, GLM, GLEW, GLUT, OpenGL.
+Required libraries: FreeImage, GLM, GLEW, GLUT, OpenGL.
 
 Uses ninja for building.
 

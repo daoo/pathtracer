@@ -58,14 +58,14 @@ build $outdir/libtrace.a: ar $
 build $outdir/pathtracer/pathtracer: link $
   $outdir/pathtracer/thread.o $
   $outdir/pathtracer/main.o | $outdir/libtrace.a
-  libs = -lstdc++fs -ltrace -lfreeimage -lboost_program_options -lpthread
+  libs = -lstdc++fs -ltrace -lfreeimage -lpthread
 
 build $outdir/pathtracer-gl/pathtracer-gl: link $
   $outdir/pathtracer-gl/gl.o $
   $outdir/pathtracer-gl/gui.o $
   $outdir/pathtracer-gl/main.o $
   $outdir/pathtracer-gl/shaders.o | $outdir/libtrace.a
-  libs = -lstdc++fs -ltrace -lfreeimage -lGLEW -lGLU -lGL -lglut -lboost_program_options -lpthread
+  libs = -lstdc++fs -ltrace -lfreeimage -lGLEW -lGLU -lGL -lglut -lpthread
 
 build $outdir/test-camera: link $outdir/tests/camera-tester.o
 
