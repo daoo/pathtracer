@@ -15,38 +15,25 @@ struct Triangle;
 
 namespace kdtree {
 namespace {
-void go(LinkedNode* node,
-        unsigned int depth,
-        Axis axis,
-        const geometry::Aabb& box,
-        const vector<const geometry::Triangle*>& triangles) {
+void go(LinkedNode* node, unsigned int depth, Axis axis, const Box& parent) {
   assert(node != nullptr);
 
-  if (depth >= 20 || triangles.size() <= 10) {
+  if (depth >= 20 || parent.triangles.size() <= 10) {
     node->type = LinkedNode::NodeType::Leaf;
-    node->leaf.triangles = new vector<const geometry::Triangle*>(triangles);
+    node->leaf.triangles =
+        new vector<const geometry::Triangle*>(parent.triangles);
   } else {
-    float split = box.center[axis];
+    float distance = parent.boundary.center[axis];
 
-    geometry::Aabb left_box;
-    geometry::Aabb right_box;
-
-    split_aabb(box, axis, split, left_box, right_box);
-
-    vector<const geometry::Triangle *> left_triangles, right_triangles;
-
-    intersect_test(left_box, right_box, triangles, left_triangles,
-                   right_triangles);
-
+    Split split = split_box(parent, axis, distance);
     node->type = LinkedNode::NodeType::Split;
     node->split.axis = axis;
-    node->split.distance = split;
+    node->split.distance = distance;
     node->split.left = new LinkedNode;
     node->split.right = new LinkedNode;
 
-    go(node->split.left, depth + 1, next_axis(axis), left_box, left_triangles);
-    go(node->split.right, depth + 1, next_axis(axis), right_box,
-       right_triangles);
+    go(node->split.left, depth + 1, next_axis(axis), split.left);
+    go(node->split.right, depth + 1, next_axis(axis), split.right);
   }
 }
 }
@@ -58,7 +45,7 @@ KdTreeLinked build_tree_naive(const vector<geometry::Triangle>& triangles) {
   }
 
   LinkedNode* root = new LinkedNode;
-  go(root, 0, X, find_bounding(triangles), ptrs);
+  go(root, 0, X, Box{find_bounding(triangles), ptrs});
 
   return KdTreeLinked(root);
 }

@@ -5,6 +5,7 @@
 #include "geometry/tribox.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <tuple>
 #include <vector>
 
 namespace kdtree {
@@ -21,20 +22,24 @@ static_assert(next_axis(X) == Y, "incorrect next");
 static_assert(next_axis(Y) == Z, "incorrect next");
 static_assert(next_axis(Z) == X, "incorrect next");
 
-inline void split_aabb(const geometry::Aabb& box,
-                Axis axis,
-                float split,
-                geometry::Aabb& left,
-                geometry::Aabb& right) {
-  left = box;
-  right = box;
+struct Box {
+  geometry::Aabb boundary;
+  std::vector<const geometry::Triangle*> triangles;
+};
 
-  float split_clamped = glm::clamp(split, box.center[axis] - box.half[axis],
-                                   box.center[axis] + box.half[axis]);
+struct Split {
+  Axis axis;
+  float distance;
+  Box left, right;
+};
 
-  float min = box.center[axis] - box.half[axis];
-  float max = box.center[axis] + box.half[axis];
+inline std::tuple<geometry::Aabb, geometry::Aabb>
+split_aabb(const geometry::Aabb& parent, Axis axis, float split) {
+  geometry::Aabb left(parent), right(parent);
 
+  float min = parent.center[axis] - parent.half[axis];
+  float max = parent.center[axis] + parent.half[axis];
+  float split_clamped = glm::clamp(split, min, max);
   float lh = (split_clamped - min) / 2.0f + glm::epsilon<float>();
   float rh = (max - split_clamped) / 2.0f + glm::epsilon<float>();
 
@@ -43,29 +48,38 @@ inline void split_aabb(const geometry::Aabb& box,
 
   right.half[axis] = rh;
   right.center[axis] = split_clamped + rh;
+
+  return std::make_tuple(left, right);
 }
 
-inline void intersect_test(const geometry::Aabb& left_box,
-                    const geometry::Aabb& right_box,
-                    const std::vector<const geometry::Triangle*>& triangles,
-                    std::vector<const geometry::Triangle*>& left_triangles,
-                    std::vector<const geometry::Triangle*>& right_triangles) {
-  left_triangles.reserve(triangles.size());
-  right_triangles.reserve(triangles.size());
+inline std::tuple<std::vector<const geometry::Triangle*>,
+                  std::vector<const geometry::Triangle*>>
+intersect_test(const std::vector<const geometry::Triangle*>& triangles,
+               const geometry::Aabb& left_aabb,
+               const geometry::Aabb& right_aabb) {
+  std::vector<const geometry::Triangle*> left_triangles;
+  std::vector<const geometry::Triangle*> right_triangles;
   for (const geometry::Triangle* tri : triangles) {
-    if (tri_box_overlap(left_box, tri->v0, tri->v1, tri->v2)) {
+    if (tri_box_overlap(left_aabb, tri->v0, tri->v1, tri->v2)) {
       left_triangles.push_back(tri);
     }
 
-    if (tri_box_overlap(right_box, tri->v0, tri->v1, tri->v2)) {
+    if (tri_box_overlap(right_aabb, tri->v0, tri->v1, tri->v2)) {
       right_triangles.push_back(tri);
     }
   }
 
   assert(left_triangles.size() + right_triangles.size() >= triangles.size());
 
-  left_triangles.shrink_to_fit();
-  right_triangles.shrink_to_fit();
+  return std::make_tuple(left_triangles, right_triangles);
+}
+
+inline Split split_box(const Box& parent, Axis axis, float distance) {
+  auto aabbs = split_aabb(parent.boundary, axis, distance);
+  auto triangles =
+      intersect_test(parent.triangles, std::get<0>(aabbs), std::get<1>(aabbs));
+  return Split{axis, distance, Box{std::get<0>(aabbs), std::get<0>(triangles)},
+               Box{std::get<1>(aabbs), std::get<1>(triangles)}};
 }
 }
 

@@ -5,124 +5,103 @@
 #include "geometry/triangle.hpp"
 #include "kdtree/util.hpp"
 #include <cassert>
+#include <cstddef>
 #include <glm/glm.hpp>
-#include <limits>
+#include <tuple>
 #include <vector>
 
 namespace kdtree {
 namespace {
-constexpr float EPSILON = 0.00001f;
-
 constexpr float COST_TRAVERSE = 0.3f;
 constexpr float COST_INTERSECT = 1.0f;
+constexpr float EPSILON = 0.00001f;
 
-float calculate_cost(
-    const geometry::Aabb& box,
-    const geometry::Aabb& left_box,
-    const geometry::Aabb& right_box,
-    const std::vector<const geometry::Triangle*>& left_triangles,
-    const std::vector<const geometry::Triangle*>& right_triangles) {
-  float area = surface_area(box);
+struct CostSplit {
+  Split split;
+  float cost;
+};
 
-  float left_area = surface_area(left_box);
-  float left_count = left_triangles.size();
-
-  float right_area = surface_area(right_box);
-  float right_count = right_triangles.size();
-
-  assert(left_area > 0 && right_area > 0);
-  assert(right_count >= 0 && left_count >= 0);
-
-  return COST_TRAVERSE +
-         COST_INTERSECT * (left_area * left_count + right_area * right_count) /
-             area;
+std::tuple<float, float> triangle_axis_extremes(
+    const geometry::Triangle& triangle,
+    Axis axis) {
+  return std::make_tuple(
+      glm::min(triangle.v0[axis],
+               glm::min(triangle.v1[axis], triangle.v2[axis])),
+      glm::max(triangle.v0[axis],
+               glm::max(triangle.v1[axis], triangle.v2[axis])));
 }
 
-void best(const geometry::Aabb& box,
-          Axis axis,
-          float split,
-          const std::vector<const geometry::Triangle*>& triangles,
-          float& best_cost,
-          float& best_split,
-          geometry::Aabb& best_left_box,
-          geometry::Aabb& best_right_box,
-          std::vector<const geometry::Triangle*>& best_left_triangles,
-          std::vector<const geometry::Triangle*>& best_right_triangles) {
-  geometry::Aabb left_box, right_box;
-  split_aabb(box, axis, split, left_box, right_box);
+float calculate_cost(const Box& parent, const Split& split) {
+  float parent_area = parent.boundary.surface_area();
+  float left_area = split.left.boundary.surface_area();
+  float left_count = split.left.triangles.size();
+  float right_area = split.right.boundary.surface_area();
+  float right_count = split.right.triangles.size();
+  float intersect =
+      (left_area * left_count + right_area * right_count) / parent_area;
+  return COST_TRAVERSE + COST_INTERSECT * intersect;
+}
 
-  std::vector<const geometry::Triangle *> left_triangles, right_triangles;
-  intersect_test(left_box, right_box, triangles, left_triangles,
-                 right_triangles);
+CostSplit split(const Box& parent, Axis axis, float distance) {
+  Split split = split_box(parent, axis, distance);
+  float cost = calculate_cost(parent, split);
+  return CostSplit{split, cost};
+}
 
-  float cost =
-      calculate_cost(box, left_box, right_box, left_triangles, right_triangles);
-  if (cost < best_cost) {
-    best_cost = cost;
-    best_split = split;
+const CostSplit& get_best(const CostSplit& a, const CostSplit& b) {
+  return a.cost <= b.cost ? a : b;
+}
 
-    best_left_box = left_box;
-    best_right_box = right_box;
+CostSplit find_best(const Box& parent, Axis axis) {
+  assert(parent.triangles.size() > 0);
+  CostSplit best;
+  {
+    std::tuple<float, float> extremes =
+        triangle_axis_extremes(*parent.triangles[0], axis);
+    float min = std::get<0>(extremes) - EPSILON;
+    float max = std::get<1>(extremes) + EPSILON;
 
-    best_left_triangles = left_triangles;
-    best_right_triangles = right_triangles;
+    CostSplit split_min = split(parent, axis, min);
+    CostSplit split_max = split(parent, axis, max);
+    best = get_best(split_min, split_max);
   }
-}
+  for (size_t i = 1; i < parent.triangles.size(); ++i) {
+    std::tuple<float, float> extremes =
+        triangle_axis_extremes(*parent.triangles[i], axis);
+    float min = std::get<0>(extremes) - EPSILON;
+    float max = std::get<1>(extremes) + EPSILON;
 
-void find_split(const geometry::Aabb& box,
-                Axis axis,
-                const std::vector<const geometry::Triangle*>& triangles,
-                float& cost,
-                float& split,
-                geometry::Aabb& left_box,
-                geometry::Aabb& right_box,
-                std::vector<const geometry::Triangle*>& left_triangles,
-                std::vector<const geometry::Triangle*>& right_triangles) {
-  cost = std::numeric_limits<float>::max();
-  split = 0;
-  for (const geometry::Triangle* triangle : triangles) {
-    assert(triangle != nullptr);
-
-    glm::vec3 vmin, vmax;
-    triangle_extremes(*triangle, vmin, vmax);
-    float min = vmin[axis] - EPSILON;
-    float max = vmax[axis] + EPSILON;
-
-    best(box, axis, min, triangles, cost, split, left_box, right_box,
-         left_triangles, right_triangles);
-    best(box, axis, max, triangles, cost, split, left_box, right_box,
-         left_triangles, right_triangles);
+    CostSplit split_min = split(parent, axis, min);
+    CostSplit split_max = split(parent, axis, max);
+    best = get_best(best, get_best(split_min, split_max));
   }
+  return best;
 }
 
-void go(LinkedNode* node,
-        unsigned int depth,
-        Axis axis,
-        const geometry::Aabb& box,
-        const std::vector<const geometry::Triangle*>& triangles) {
+void go(LinkedNode* node, unsigned int depth, Axis axis, const Box& parent) {
   assert(node != nullptr);
-
-  float cost, split;
-  std::vector<const geometry::Triangle *> left_triangles, right_triangles;
-  geometry::Aabb left_box, right_box;
-
-  find_split(box, axis, triangles, cost, split, left_box, right_box,
-             left_triangles, right_triangles);
-
-  if (depth >= 20 || cost > COST_INTERSECT * triangles.size()) {
+  if (depth >= 20 || parent.triangles.empty()) {
     node->type = LinkedNode::Leaf;
     node->leaf.triangles =
-        new std::vector<const geometry::Triangle*>(triangles);
+        new std::vector<const geometry::Triangle*>(parent.triangles);
+    return;
+  }
+
+  CostSplit split = find_best(parent, axis);
+  float leaf_cost = COST_INTERSECT * parent.triangles.size();
+  if (split.cost > leaf_cost) {
+    node->type = LinkedNode::Leaf;
+    node->leaf.triangles =
+        new std::vector<const geometry::Triangle*>(parent.triangles);
   } else {
     node->type = LinkedNode::NodeType::Split;
     node->split.axis = axis;
-    node->split.distance = split;
+    node->split.distance = split.split.distance;
     node->split.left = new LinkedNode;
     node->split.right = new LinkedNode;
 
-    go(node->split.left, depth + 1, next_axis(axis), left_box, left_triangles);
-    go(node->split.right, depth + 1, next_axis(axis), right_box,
-       right_triangles);
+    go(node->split.left, depth + 1, next_axis(axis), split.split.left);
+    go(node->split.right, depth + 1, next_axis(axis), split.split.right);
   }
 }
 }
@@ -134,7 +113,7 @@ KdTreeLinked build_tree_sah(const std::vector<geometry::Triangle>& triangles) {
   }
 
   LinkedNode* root = new LinkedNode;
-  go(root, 0, X, find_bounding(triangles), ptrs);
+  go(root, 0, X, Box{find_bounding(triangles), ptrs});
 
   return KdTreeLinked(root);
 }

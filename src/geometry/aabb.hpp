@@ -7,12 +7,11 @@ namespace geometry {
 struct Aabb {
   glm::vec3 center;
   glm::vec3 half;
-};
 
-inline float surface_area(const Aabb& box) {
-  return 8.0f * (box.half.x * box.half.y + box.half.x * box.half.z +
-                 box.half.y * box.half.z);
-}
+  inline float surface_area() const {
+    return 8.0f * (half.x * half.y + half.x * half.z + half.y * half.z);
+  }
+};
 }
 
 #endif /* end of include guard: AABB_HPP_VOTKJJ0Y */
