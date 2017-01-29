@@ -1,8 +1,8 @@
-#ifndef FASTRAND_HPP_VIBES3D4
-#define FASTRAND_HPP_VIBES3D4
+#ifndef TRACE_FASTRAND_H_
+#define TRACE_FASTRAND_H_
 
+#include <limits>
 #include <random>
-#include <type_traits>
 
 namespace trace {
 class FastRand {
@@ -17,6 +17,6 @@ class FastRand {
  private:
   std::mt19937 m_engine;
 };
-}
+}  // namespace trace
 
-#endif /* end of include guard: FASTRAND_HPP_VIBES3D4 */
+#endif  // TRACE_FASTRAND_H_

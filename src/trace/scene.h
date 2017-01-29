@@ -1,5 +1,9 @@
-#ifndef SCENE_HPP_BOFJZX4D
-#define SCENE_HPP_BOFJZX4D
+#ifndef TRACE_SCENE_H_
+#define TRACE_SCENE_H_
+
+#include <map>
+#include <string>
+#include <vector>
 
 #include "geometry/ray.h"
 #include "kdtree/array.h"
@@ -8,10 +12,6 @@
 #include "trace/material.h"
 #include "wavefront/mtl.h"
 #include "wavefront/obj.h"
-
-#include <map>
-#include <string>
-#include <vector>
 
 namespace trace {
 std::vector<SphereLight> lights_from_mtl(const wavefront::Mtl& mtl);
@@ -37,6 +37,6 @@ struct Scene {
 };
 
 Scene new_scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl);
-}
+}  // namespace trace
 
-#endif /* end of include guard: SCENE_HPP_BOFJZX4D */
+#endif  // TRACE_SCENE_H_

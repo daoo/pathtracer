@@ -1,9 +1,10 @@
-#ifndef MCSAMPLING_HPP_AF3UKHEV
-#define MCSAMPLING_HPP_AF3UKHEV
+#ifndef TRACE_MCSAMPLING_H_
+#define TRACE_MCSAMPLING_H_
 
-#include "trace/fastrand.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+
+#include "trace/fastrand.h"
 
 namespace trace {
 inline glm::vec2 uniform_sample_square(FastRand& rand) {
@@ -72,6 +73,6 @@ inline glm::vec3 cosine_sample_hemisphere(FastRand& engine) {
   return glm::vec3{ret.x, ret.y, glm::sqrt(glm::max(0.0f, 1.0f - ret.x * ret.x -
                                                               ret.y * ret.y))};
 }
-}
+}  // namespace trace
 
-#endif /* end of include guard: MCSAMPLING_HPP_AF3UKHEV */
+#endif  // TRACE_MCSAMPLING_H_

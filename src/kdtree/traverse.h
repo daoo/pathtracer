@@ -1,9 +1,9 @@
-#ifndef TRAVERSE_HPP_IJFE6LBZ
-#define TRAVERSE_HPP_IJFE6LBZ
+#ifndef KDTREE_TRAVERSE_H_
+#define KDTREE_TRAVERSE_H_
 
 namespace geometry {
 struct Ray;
-}
+}  // namespace geometry
 
 namespace kdtree {
 class KdTreeArray;
@@ -13,6 +13,6 @@ bool search_tree(const KdTreeArray& tree,
                  float tmin,
                  float tmax,
                  Intersection& isect);
-}
+}  // namespace kdtree
 
-#endif /* end of include guard: TRAVERSE_HPP_IJFE6LBZ */
+#endif  // KDTREE_TRAVERSE_H_

@@ -1,20 +1,22 @@
-#ifndef ARRAY_HPP_BBXOECNY
-#define ARRAY_HPP_BBXOECNY
-
-#include "geometry/triangle.h"
-#include "kdtree/util.h"
+#ifndef KDTREE_ARRAY_H_
+#define KDTREE_ARRAY_H_
 
 #include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <vector>
 
+#include "geometry/triangle.h"
+#include "kdtree/util.h"
+
 namespace kdtree {
 class ArrayNode {
  public:
   ArrayNode() : index(EMPTY_LEAF) {}
-  ArrayNode(uint32_t i) : index((i << 1) & MASK_INDEX) {}
-  ArrayNode(float distance) : distance(distance) { index |= MASK_TYPE; }
+  explicit ArrayNode(uint32_t i) : index((i << 1) & MASK_INDEX) {}
+  explicit ArrayNode(float distance) : distance(distance) {
+    index |= MASK_TYPE;
+  }
 
   bool is_leaf() const { return (index & MASK_TYPE) == TYPE_LEAF; }
   bool is_split() const { return (index & MASK_TYPE) == TYPE_SPLIT; }
@@ -104,6 +106,6 @@ class KdTreeArray {
   std::vector<ArrayNode> nodes;
   std::vector<std::vector<geometry::Triangle>> leaf_store;
 };
-}
+}  // namespace kdtree
 
-#endif /* end of include guard: ARRAY_HPP_BBXOECNY */
+#endif  // KDTREE_ARRAY_H_

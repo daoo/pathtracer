@@ -1,5 +1,5 @@
-#ifndef OBJ_HPP_BMTCK0HO
-#define OBJ_HPP_BMTCK0HO
+#ifndef WAVEFRONT_OBJ_H_
+#define WAVEFRONT_OBJ_H_
 
 #include <experimental/filesystem>
 #include <glm/glm.hpp>
@@ -14,7 +14,7 @@ struct Face {
 };
 
 struct Chunk {
-  Chunk(const std::string& mtl) : material(mtl) {}
+  explicit Chunk(const std::string& mtl) : material(mtl) {}
 
   std::vector<Face> polygons;
   std::string material;
@@ -53,6 +53,6 @@ inline glm::vec3 index_normal(const Obj& obj, int index) {
 inline glm::vec2 index_texcoord(const Obj& obj, int index) {
   return index_array(obj.texcoords, index);
 }
-}
+}  // namespace wavefront
 
-#endif /* end of include guard: OBJ_HPP_BMTCK0HO */
+#endif  // WAVEFRONT_OBJ_H_

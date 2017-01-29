@@ -1,14 +1,17 @@
 #include "kdtree/surface_area_heuristic.h"
 
+#include <glm/glm.hpp>
+
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <tuple>
+#include <vector>
+
 #include "geometry/aabb.h"
 #include "geometry/bounding.h"
 #include "geometry/triangle.h"
 #include "kdtree/util.h"
-#include <cassert>
-#include <cstddef>
-#include <glm/glm.hpp>
-#include <tuple>
-#include <vector>
 
 namespace kdtree {
 namespace {
@@ -104,7 +107,7 @@ void go(LinkedNode* node, unsigned int depth, Axis axis, const Box& parent) {
     go(node->split.right, depth + 1, next_axis(axis), split.split.right);
   }
 }
-}
+}  // namespace
 
 KdTreeLinked build_tree_sah(const std::vector<geometry::Triangle>& triangles) {
   std::vector<const geometry::Triangle*> ptrs;
@@ -117,4 +120,4 @@ KdTreeLinked build_tree_sah(const std::vector<geometry::Triangle>& triangles) {
 
   return KdTreeLinked(root);
 }
-}
+}  // namespace kdtree

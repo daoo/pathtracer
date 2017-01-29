@@ -1,7 +1,7 @@
-#ifndef SHADERS_HPP_IAM6B5BK
-#define SHADERS_HPP_IAM6B5BK
+#ifndef PATHTRACER_GL_SHADERS_H_
+#define PATHTRACER_GL_SHADERS_H_
 
 extern const char* const FRAGMENT_SHADER;
 extern const char* const VERTEX_SHADER;
 
-#endif /* end of include guard: SHADERS_HPP_IAM6B5BK */
+#endif  // PATHTRACER_GL_SHADERS_H_

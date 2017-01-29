@@ -1,12 +1,13 @@
-#ifndef UTIL_HPP_26AQ5WXE
-#define UTIL_HPP_26AQ5WXE
+#ifndef KDTREE_UTIL_H_
+#define KDTREE_UTIL_H_
 
-#include "geometry/aabb.h"
-#include "geometry/tribox.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <tuple>
 #include <vector>
+
+#include "geometry/aabb.h"
+#include "geometry/tribox.h"
 
 namespace kdtree {
 enum Axis { X = 0, Y = 1, Z = 2 };
@@ -81,6 +82,6 @@ inline Split split_box(const Box& parent, Axis axis, float distance) {
   return Split{axis, distance, Box{std::get<0>(aabbs), std::get<0>(triangles)},
                Box{std::get<1>(aabbs), std::get<1>(triangles)}};
 }
-}
+}  // namespace kdtree
 
-#endif /* end of include guard: UTIL_HPP_26AQ5WXE */
+#endif  // KDTREE_UTIL_H_

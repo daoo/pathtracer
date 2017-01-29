@@ -1,14 +1,12 @@
-#include "obj.h"
-
-#include "wavefront/parse.h"
+#include "wavefront/obj.h"
 
 #include <exception>
 #include <fstream>
 #include <ostream>
 
-using namespace std::experimental::filesystem;
-using namespace glm;
-using namespace std;
+#include "wavefront/parse.h"
+
+using std::experimental::filesystem::path;
 
 namespace wavefront {
 namespace {
@@ -36,18 +34,18 @@ Face parse_face(const char* str) {
 
   return {parse_point(t0_start), parse_point(t1_start), parse_point(t2_start)};
 }
-}
+}  // namespace
 
 Obj load_obj(const path& file) {
   std::ifstream stream(file.string());
   if (!stream.good()) {
-    string err = "Failed opening file '";
+    std::string err = "Failed opening file '";
     err += file.string();
     err += "'";
-    throw runtime_error(err);
+    throw std::runtime_error(err);
   }
 
-  string line;
+  std::string line;
   unsigned int line_index = 0;
 
   Obj obj;
@@ -67,17 +65,11 @@ Obj load_obj(const path& file) {
         } else if (second == 't') {
           obj.texcoords.push_back(parse_vec2(token + 2));
         }
-      }
-
-      else if (first == 'f') {
+      } else if (first == 'f') {
         obj.chunks.back().polygons.push_back(parse_face(token + 1));
-      }
-
-      else if (equal("usemtl", token)) {
+      } else if (equal("usemtl", token)) {
         obj.chunks.push_back(Chunk(parse_string(skip_whitespace(token + 7))));
-      }
-
-      else if (equal("mtllib", token)) {
+      } else if (equal("mtllib", token)) {
         obj.mtl_lib = parse_string(skip_whitespace(token + 7));
       }
     }
@@ -87,4 +79,4 @@ Obj load_obj(const path& file) {
 
   return obj;
 }
-}
+}  // namespace wavefront

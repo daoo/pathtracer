@@ -1,11 +1,11 @@
-#ifndef CONCURRENTQUEUE_HPP_CEBSEVZN
-#define CONCURRENTQUEUE_HPP_CEBSEVZN
+#ifndef UTIL_CONCURRENTQUEUE_H_
+#define UTIL_CONCURRENTQUEUE_H_
 
 #include <condition_variable>
 #include <mutex>
 #include <queue>
 
-namespace misc {
+namespace util {
 template <typename T>
 class ConcurrentQueue {
  public:
@@ -46,6 +46,6 @@ class ConcurrentQueue {
   std::mutex m_mutex;
   std::condition_variable m_cond;
 };
-}
+}  // namespace util
 
-#endif /* end of include guard: CONCURRENTQUEUE_HPP_CEBSEVZN */
+#endif  // UTIL_CONCURRENTQUEUE_H_

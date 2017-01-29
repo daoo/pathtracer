@@ -1,11 +1,12 @@
-#include "pathtracer/thread.h"
-#include <cstdlib>
 #include <experimental/filesystem>
+
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-using namespace std;
+#include "pathtracer/thread.h"
+
 using std::experimental::filesystem::path;
 
 constexpr int OK = 0;
@@ -15,7 +16,8 @@ constexpr int ERROR_PROGRAM = 3;
 
 int main(int argc, char* argv[]) {
   if (argc != 8) {
-    cerr << "Usage: " << argv[0] << " OBJ MTL OUT WIDTH HEIGHT SAMPLES JOBS\n";
+    std::cerr << "Usage: " << argv[0]
+              << " OBJ MTL OUT WIDTH HEIGHT SAMPLES JOBS\n";
     return ERROR_PARAMS;
   }
 
@@ -36,31 +38,31 @@ int main(int argc, char* argv[]) {
   int jobs = atoi(jobs_str);
 
   if (width <= 0) {
-    cerr << "Error: invalid width: " << width_str << '\n';
+    std::cerr << "Error: invalid width: " << width_str << '\n';
     return ERROR_PARAMS;
   }
   if (height <= 0) {
-    cerr << "Error: invalid height: " << height_str << '\n';
+    std::cerr << "Error: invalid height: " << height_str << '\n';
     return ERROR_PARAMS;
   }
   if (samples <= 0) {
-    cerr << "Error: invalid sample count: " << samples_str << '\n';
+    std::cerr << "Error: invalid sample count: " << samples_str << '\n';
     return ERROR_PARAMS;
   }
   if (jobs <= 0) {
-    cerr << "Error: invalid job count: " << jobs_str << '\n';
+    std::cerr << "Error: invalid job count: " << jobs_str << '\n';
     return ERROR_PARAMS;
   }
   if (!exists(obj_file)) {
-    cerr << "Error: file " << obj_file << " does not exist.\n";
+    std::cerr << "Error: file " << obj_file << " does not exist.\n";
     return ERROR_FILE_NOT_FOUND;
   }
   if (!exists(mtl_file)) {
-    cerr << "Error: file " << mtl_file << " does not exist.\n";
+    std::cerr << "Error: file " << mtl_file << " does not exist.\n";
     return ERROR_FILE_NOT_FOUND;
   }
   if (out_file.empty()) {
-    cerr << "Error: empty output file path.\n";
+    std::cerr << "Error: empty output file path.\n";
     return ERROR_FILE_NOT_FOUND;
   }
 
@@ -69,8 +71,8 @@ int main(int argc, char* argv[]) {
             static_cast<unsigned int>(height), 0,
             static_cast<unsigned int>(samples),
             static_cast<unsigned int>(jobs));
-  } catch (const string& str) {
-    cerr << str << '\n';
+  } catch (const std::string& str) {
+    std::cerr << str << '\n';
     return ERROR_PROGRAM;
   }
 

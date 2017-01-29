@@ -1,5 +1,5 @@
-#ifndef NICETIME_HPP_MTXCTALS
-#define NICETIME_HPP_MTXCTALS
+#ifndef UTIL_NICETIME_H_
+#define UTIL_NICETIME_H_
 
 #include <iostream>
 
@@ -11,6 +11,6 @@ struct NiceTime {
 NiceTime nice_time(unsigned int seconds);
 
 std::ostream& operator<<(std::ostream&, const NiceTime&);
-}
+}  // namespace util
 
-#endif /* end of include guard: NICETIME_HPP_MTXCTALS */
+#endif  // UTIL_NICETIME_H_

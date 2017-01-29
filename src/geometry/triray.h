@@ -1,9 +1,10 @@
-#ifndef TRIRAY_HPP_KQNRL2U5
-#define TRIRAY_HPP_KQNRL2U5
+#ifndef GEOMETRY_TRIRAY_H_
+#define GEOMETRY_TRIRAY_H_
+
+#include <glm/glm.hpp>
 
 #include "geometry/ray.h"
 #include "geometry/triangle.h"
-#include <glm/glm.hpp>
 
 namespace geometry {
 inline bool triray(const Triangle& tri,
@@ -33,6 +34,6 @@ inline bool triray(const Triangle& tri,
 
   return true;
 }
-}
+}  // namespace geometry
 
-#endif /* end of include guard: TRIRAY_HPP_KQNRL2U5 */
+#endif  // GEOMETRY_TRIRAY_H_

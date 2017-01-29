@@ -1,10 +1,13 @@
 #include "geometry/bounding.h"
-#include "geometry/triangle.h"
 
 #include <glm/glm.hpp>
 
-using namespace glm;
-using namespace std;
+#include <algorithm>
+
+#include "geometry/triangle.h"
+
+using glm::vec3;
+using std::vector;
 
 namespace geometry {
 Aabb find_bounding(const vector<Triangle>& triangles) {
@@ -23,4 +26,4 @@ Aabb find_bounding(const vector<Triangle>& triangles) {
   vec3 half = (max - min) / 2.0f;
   return {min + half, half};
 }
-}
+}  // namespace geometry

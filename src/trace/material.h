@@ -1,9 +1,10 @@
-#ifndef MATERIAL_HPP_FNROXKUG
-#define MATERIAL_HPP_FNROXKUG
+#ifndef TRACE_MATERIAL_H_
+#define TRACE_MATERIAL_H_
+
+#include <glm/glm.hpp>
 
 #include "trace/fastrand.h"
 #include "trace/texture.h"
-#include <glm/glm.hpp>
 
 namespace trace {
 struct LightSample {
@@ -36,7 +37,7 @@ class Material {
  */
 class DiffuseMaterial : public Material {
  public:
-  DiffuseMaterial(const glm::vec3&);
+  explicit DiffuseMaterial(const glm::vec3&);
 
   virtual glm::vec3 brdf(const glm::vec3&,
                          const glm::vec3&,
@@ -80,7 +81,7 @@ class DiffuseTextureMaterial : public Material {
  */
 class SpecularReflectionMaterial : public Material {
  public:
-  SpecularReflectionMaterial(const glm::vec3&);
+  explicit SpecularReflectionMaterial(const glm::vec3&);
 
   virtual glm::vec3 brdf(const glm::vec3&,
                          const glm::vec3&,
@@ -105,7 +106,7 @@ class SpecularReflectionMaterial : public Material {
  */
 class SpecularRefractionMaterial : public Material {
  public:
-  SpecularRefractionMaterial(float);
+  explicit SpecularRefractionMaterial(float);
 
   virtual glm::vec3 brdf(const glm::vec3&,
                          const glm::vec3&,
@@ -179,6 +180,6 @@ class BlendMaterial : public Material {
   const Material* m_second_material;
   float m_w;
 };
-}
+}  // namespace trace
 
-#endif /* end of include guard: MATERIAL_HPP_FNROXKUG */
+#endif  // TRACE_MATERIAL_H_

@@ -1,8 +1,9 @@
-#ifndef PARSE_HPP_MASEHKSO
-#define PARSE_HPP_MASEHKSO
+#ifndef WAVEFRONT_PARSE_H_
+#define WAVEFRONT_PARSE_H_
+
+#include <glm/glm.hpp>
 
 #include <cassert>
-#include <glm/glm.hpp>
 #include <string>
 
 namespace wavefront {
@@ -92,6 +93,6 @@ inline glm::vec3 parse_vec3(const char* str) {
   float z = strtof(end, nullptr);
   return {x, y, z};
 }
-}
+}  // namespace wavefront
 
-#endif /* end of include guard: PARSE_HPP_MASEHKSO */
+#endif  // WAVEFRONT_PARSE_H_

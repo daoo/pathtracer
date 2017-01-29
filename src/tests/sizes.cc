@@ -3,9 +3,8 @@
 #include "kdtree/array.h"
 #include "kdtree/linked.h"
 
-using namespace std;
-
-#define PRINT_SIZE(type) cout << #type << " = " << sizeof(type) << " bytes\n"
+#define PRINT_SIZE(type) \
+  std::cout << #type << " = " << sizeof(type) << " bytes\n"
 
 int main() {
   PRINT_SIZE(size_t);
@@ -14,6 +13,5 @@ int main() {
 
   PRINT_SIZE(kdtree::LinkedNode);
   PRINT_SIZE(kdtree::ArrayNode);
-  PRINT_SIZE(vector<kdtree::ArrayNode>);
   return 0;
 }

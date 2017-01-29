@@ -1,8 +1,9 @@
-#ifndef CAMERA_HPP_6EER58HB
-#define CAMERA_HPP_6EER58HB
+#ifndef TRACE_CAMERA_H_
+#define TRACE_CAMERA_H_
+
+#include <glm/glm.hpp>
 
 #include "geometry/ray.h"
-#include <glm/glm.hpp>
 
 namespace trace {
 struct Camera {
@@ -51,6 +52,6 @@ struct Pinhole {
     return {position, normalize(mind + x * dx + y * dy)};
   }
 };
-}
+}  // namespace trace
 
-#endif /* end of include guard: CAMERA_HPP_6EER58HB */
+#endif  // TRACE_CAMERA_H_

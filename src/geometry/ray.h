@@ -1,5 +1,5 @@
-#ifndef RAY_HPP_CNODB0L7
-#define RAY_HPP_CNODB0L7
+#ifndef GEOMETRY_RAY_H_
+#define GEOMETRY_RAY_H_
 
 #include <glm/glm.hpp>
 
@@ -9,6 +9,6 @@ struct Ray {
 
   glm::vec3 param(float t) const { return origin + t * direction; }
 };
-}
+}  // namespace geometry
 
-#endif /* end of include guard: RAY_HPP_CNODB0L7 */
+#endif  // GEOMETRY_RAY_H_

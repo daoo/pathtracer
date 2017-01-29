@@ -1,5 +1,5 @@
-#ifndef TRIANGLE_HPP_N4FJV8PZ
-#define TRIANGLE_HPP_N4FJV8PZ
+#ifndef GEOMETRY_TRIANGLE_H_
+#define GEOMETRY_TRIANGLE_H_
 
 #include <glm/glm.hpp>
 
@@ -18,6 +18,6 @@ inline void triangle_extremes(const Triangle& tri,
   min = glm::min(glm::min(tri.v0, tri.v1), tri.v2);
   max = glm::max(glm::max(tri.v0, tri.v1), tri.v2);
 }
-}
+}  // namespace geometry
 
-#endif /* end of include guard: TRIANGLE_HPP_N4FJV8PZ */
+#endif  // GEOMETRY_TRIANGLE_H_

@@ -1,5 +1,5 @@
-#ifndef MTL_HPP_XZYN6ESW
-#define MTL_HPP_XZYN6ESW
+#ifndef WAVEFRONT_MTL_H_
+#define WAVEFRONT_MTL_H_
 
 #include <experimental/filesystem>
 #include <glm/glm.hpp>
@@ -41,6 +41,6 @@ struct Mtl {
 };
 
 Mtl load_mtl(const std::experimental::filesystem::path&);
-}
+}  // namespace wavefront
 
-#endif /* end of include guard: MTL_HPP_XZYN6ESW */
+#endif  // WAVEFRONT_MTL_H_

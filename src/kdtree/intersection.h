@@ -1,5 +1,5 @@
-#ifndef INTERSECTION_HPP_B7YTSMBV
-#define INTERSECTION_HPP_B7YTSMBV
+#ifndef KDTREE_INTERSECTION_H_
+#define KDTREE_INTERSECTION_H_
 
 #include <glm/glm.hpp>
 
@@ -9,6 +9,6 @@ struct Intersection {
   glm::vec3 normal;
   const void* tag;
 };
-}
+}  // namespace kdtree
 
-#endif /* end of include guard: INTERSECTION_HPP_B7YTSMBV */
+#endif  // KDTREE_INTERSECTION_H_

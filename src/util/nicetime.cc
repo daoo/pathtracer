@@ -1,6 +1,6 @@
-#include "nicetime.h"
+#include "util/nicetime.h"
 
-using namespace std;
+using std::ostream;
 
 namespace util {
 NiceTime nice_time(unsigned int seconds) {
@@ -11,4 +11,4 @@ ostream& operator<<(ostream& stream, const NiceTime& time) {
   stream << time.hour << " h, " << time.min << " min, " << time.sec << " sec";
   return stream;
 }
-}
+}  // namespace util

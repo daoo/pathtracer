@@ -1,10 +1,10 @@
-#ifndef LINKED_HPP_DGVBYSLC
-#define LINKED_HPP_DGVBYSLC
+#ifndef KDTREE_LINKED_H_
+#define KDTREE_LINKED_H_
+
+#include <vector>
 
 #include "geometry/triangle.h"
 #include "kdtree/util.h"
-
-#include <vector>
 
 namespace kdtree {
 class LinkedNode {
@@ -54,7 +54,6 @@ class LinkedNode {
     return split.right;
   }
 
-  // TODO: private
   struct SplitNode {
     Axis axis;
     float distance;
@@ -77,7 +76,7 @@ class LinkedNode {
 
 class KdTreeLinked {
  public:
-  KdTreeLinked(const LinkedNode* root_) : root(root_) {
+  explicit KdTreeLinked(const LinkedNode* root_) : root(root_) {
     assert(root_ != nullptr);
   }
   KdTreeLinked(KdTreeLinked&& other) {
@@ -95,6 +94,6 @@ class KdTreeLinked {
 
   const LinkedNode* root;
 };
-}
+}  // namespace kdtree
 
-#endif /* end of include guard: LINKED_HPP_DGVBYSLC */
+#endif  // KDTREE_LINKED_H_

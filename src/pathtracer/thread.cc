@@ -1,4 +1,12 @@
-#include "thread.h"
+#include "pathtracer/thread.h"
+
+#include <cassert>
+#include <cstddef>
+#include <functional>
+#include <iostream>
+#include <ratio>
+#include <thread>
+#include <vector>
 
 #include "trace/camera.h"
 #include "trace/fastrand.h"
@@ -11,19 +19,8 @@
 #include "util/nicetime.h"
 #include "wavefront/mtl.h"
 #include "wavefront/obj.h"
-#include <cassert>
-#include <cstddef>
-#include <functional>
-#include <ratio>
-#include <vector>
 
-#include <iostream>
-#include <thread>
-
-using namespace std::experimental::filesystem;
-using namespace std;
-using namespace trace;
-using namespace util;
+using std::experimental::filesystem::path;
 
 namespace kdtree {
 class KdTreeArray;
@@ -41,7 +38,7 @@ struct WorkerStatus {
 };
 
 void print_status(unsigned int samples_per_thread,
-                  const vector<WorkerStatus>& status) {
+                  const std::vector<WorkerStatus>& status) {
   size_t thread_count = status.size();
   size_t samples = samples_per_thread * thread_count;
 
@@ -57,32 +54,33 @@ void print_status(unsigned int samples_per_thread,
     total_samples += ws.samples;
     total_time += avg;
 
-    cout << "Thread " << i << ": " << ws.samples << "/" << samples_per_thread
-         << ", "
-         << "avg: " << avg
-         << " sec, eta: " << nice_time(static_cast<unsigned int>(eta)) << "\n";
+    std::cout << "Thread " << i << ": " << ws.samples << "/"
+              << samples_per_thread;
+    std::cout << ", ";
+    std::cout << "avg: " << avg << " sec, eta: "
+              << util::nice_time(static_cast<unsigned int>(eta)) << "\n";
   }
 
   float avg = total_time / thread_count;
 
-  cout << "Total: " << total_samples << "/" << samples << ", "
-       << "avg: " << avg << " sec\n\n";
+  std::cout << "Total: " << total_samples << "/" << samples << ", "
+            << "avg: " << avg << " sec\n\n";
 }
 
 void worker(const kdtree::KdTreeArray& kdtree,
-            const vector<SphereLight>& lights,
-            const Pinhole& pinhole,
+            const std::vector<trace::SphereLight>& lights,
+            const trace::Pinhole& pinhole,
             unsigned int sample_count,
             unsigned int thread,
-            misc::ConcurrentQueue<MessageSample>& queue,
-            SampleBuffer& buffer) {
+            util::ConcurrentQueue<MessageSample>& queue,
+            trace::SampleBuffer& buffer) {
   assert(sample_count > 0);
 
-  FastRand rand;
+  trace::FastRand rand;
   while (buffer.samples() < sample_count) {
-    Clock clock;
+    util::Clock clock;
     pathtrace(kdtree, lights, pinhole, rand, buffer);
-    float trace_time = clock.measure<float, ratio<1>>();
+    float trace_time = clock.measure<float, std::ratio<1>>();
 
     queue.push({thread, buffer.samples(), trace_time});
   }
@@ -102,28 +100,28 @@ void program(const path& obj_file,
   assert(thread_count > 0);
 
   // Setup scene
-  Scene scene =
-      new_scene(wavefront::load_obj(obj_file), wavefront::load_mtl(mtl_file));
-  Pinhole pinhole(scene.cameras[camera], width, height);
+  trace::Scene scene = trace::new_scene(wavefront::load_obj(obj_file),
+                                        wavefront::load_mtl(mtl_file));
+  trace::Pinhole pinhole(scene.cameras[camera], width, height);
 
   // Setup one buffer for each thread
-  vector<SampleBuffer> buffers;
+  std::vector<trace::SampleBuffer> buffers;
   for (unsigned int i = 0; i < thread_count; ++i) {
     buffers.emplace_back(width, height);
   }
 
   // Setup threads and message queue
-  misc::ConcurrentQueue<MessageSample> queue;
-  vector<thread> threads;
+  util::ConcurrentQueue<MessageSample> queue;
+  std::vector<std::thread> threads;
   unsigned int samples_per_thread = sample_count / thread_count;
   for (unsigned int i = 0; i < thread_count; ++i) {
-    threads.emplace_back(worker, ref(scene.kdtree), ref(scene.lights),
-                         ref(pinhole), samples_per_thread, i, ref(queue),
-                         ref(buffers[i]));
+    threads.emplace_back(worker, std::ref(scene.kdtree), std::ref(scene.lights),
+                         std::ref(pinhole), samples_per_thread, i,
+                         std::ref(queue), std::ref(buffers[i]));
   }
 
   // Wait for work to finish
-  vector<WorkerStatus> status(thread_count);
+  std::vector<WorkerStatus> status(thread_count);
   unsigned int working = thread_count;
   while (working > 0) {
     MessageSample msg;
@@ -139,13 +137,13 @@ void program(const path& obj_file,
     print_status(samples_per_thread, status);
   }
 
-  for (thread& th : threads) {
+  for (std::thread& th : threads) {
     th.join();
   }
 
   // Merge results from each thread
-  SampleBuffer result(width, height);
-  for (const SampleBuffer& buffer : buffers) {
+  trace::SampleBuffer result(width, height);
+  for (const trace::SampleBuffer& buffer : buffers) {
     result.append(buffer);
   }
 

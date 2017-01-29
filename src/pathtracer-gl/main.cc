@@ -1,3 +1,14 @@
+#include <experimental/filesystem>
+
+#include <algorithm>
+#include <cstdlib>
+#include <iostream>
+#include <ratio>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 #include "pathtracer-gl/gl.h"
 #include "pathtracer-gl/shaders.h"
 #include "trace/camera.h"
@@ -9,21 +20,7 @@
 #include "util/path.h"
 #include "wavefront/mtl.h"
 #include "wavefront/obj.h"
-#include <GL/freeglut_std.h>
-#include <GL/glew.h>
-#include <algorithm>
-#include <cstdlib>
-#include <experimental/filesystem>
-#include <iostream>
-#include <ratio>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-#include <vector>
 
-using namespace std;
-using namespace trace;
-using namespace util;
 using std::experimental::filesystem::path;
 
 constexpr unsigned int DEFAULT_WIDTH = 512;
@@ -66,8 +63,8 @@ void restart() {
 
   delete g_pinhole;
   delete g_buffer;
-  g_pinhole = new Pinhole(g_scene.cameras[g_camera], w, h);
-  g_buffer = new SampleBuffer(w, h);
+  g_pinhole = new trace::Pinhole(g_scene.cameras[g_camera], w, h);
+  g_buffer = new trace::SampleBuffer(w, h);
 }
 
 void increase_subsampling() {
@@ -111,19 +108,21 @@ void render() {
 }
 
 void save_screenshot() {
-  string name = nice_name(g_obj_name, g_width, g_height, g_buffer->samples());
-  write_image(next_free_name(g_out_dir, name, ".png").string(), *g_buffer);
+  std::string name =
+      util::nice_name(g_obj_name, g_width, g_height, g_buffer->samples());
+  write_image(util::next_free_name(g_out_dir, name, ".png").string(),
+              *g_buffer);
 }
 
 void display() {
-  Clock clock;
+  util::Clock clock;
   pathtrace(g_scene.kdtree, g_scene.lights, *g_pinhole, g_rand, *g_buffer);
-  float trace_time = clock.measure<float, ratio<1>>();
+  float trace_time = clock.measure<float, std::ratio<1>>();
 
   render();
   glutSwapBuffers();
 
-  cout << g_buffer->samples() << ": " << trace_time << "s\n";
+  std::cout << g_buffer->samples() << ": " << trace_time << "s\n";
 }
 
 void idle() {
@@ -203,7 +202,7 @@ void init_gl(int* argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
   if (argc != 4) {
-    cerr << "Usage: " << argv[0] << " OBJ MTL OUTDIR\n";
+    std::cerr << "Usage: " << argv[0] << " OBJ MTL OUTDIR\n";
     return ERROR_PARAMS;
   }
 
@@ -215,15 +214,15 @@ int main(int argc, char* argv[]) {
   path out_dir(out_dir_str);
 
   if (!exists(obj_file)) {
-    cerr << "Error: file " << obj_file << " does not exist.\n";
+    std::cerr << "Error: file " << obj_file << " does not exist.\n";
     return ERROR_FILE_NOT_FOUND;
   }
   if (!exists(mtl_file)) {
-    cerr << "Error: file " << mtl_file << " does not exist.\n";
+    std::cerr << "Error: file " << mtl_file << " does not exist.\n";
     return ERROR_FILE_NOT_FOUND;
   }
   if (!is_directory(out_dir)) {
-    cerr << "Error: " << out_dir << " is not a directory.\n";
+    std::cerr << "Error: " << out_dir << " is not a directory.\n";
     return ERROR_FILE_NOT_FOUND;
   }
 
@@ -231,18 +230,19 @@ int main(int argc, char* argv[]) {
     g_out_dir = out_dir;
     g_obj_name = obj_file.stem();
 
-    g_scene = new_scene(wavefront::load_obj(obj_file), wavefront::load_mtl(mtl_file));
+    g_scene = trace::new_scene(wavefront::load_obj(obj_file),
+                               wavefront::load_mtl(mtl_file));
 
     init_gl(&argc, argv);
     resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
     glEnable(GL_FRAMEBUFFER_SRGB);
     glutMainLoop(); /* start the program main loop */
-  } catch (const runtime_error& ex) {
-    cerr << "ERROR: " << ex.what() << '\n';
+  } catch (const std::runtime_error& ex) {
+    std::cerr << "ERROR: " << ex.what() << '\n';
     return ERROR_PROGRAM;
-  } catch (const string& str) {
-    cerr << "ERROR: " << str << '\n';
+  } catch (const std::string& str) {
+    std::cerr << "ERROR: " << str << '\n';
     return ERROR_PROGRAM;
   }
 

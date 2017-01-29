@@ -1,5 +1,5 @@
-#ifndef AABB_HPP_VOTKJJ0Y
-#define AABB_HPP_VOTKJJ0Y
+#ifndef GEOMETRY_AABB_H_
+#define GEOMETRY_AABB_H_
 
 #include <glm/glm.hpp>
 
@@ -12,6 +12,6 @@ struct Aabb {
     return 8.0f * (half.x * half.y + half.x * half.z + half.y * half.z);
   }
 };
-}
+}  // namespace geometry
 
-#endif /* end of include guard: AABB_HPP_VOTKJJ0Y */
+#endif  // GEOMETRY_AABB_H_

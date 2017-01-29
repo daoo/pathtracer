@@ -1,9 +1,11 @@
-#include "path.h"
+#include "util/path.h"
 
 #include <sstream>
 
-using namespace std::experimental::filesystem;
-using namespace std;
+using std::experimental::filesystem::exists;
+using std::experimental::filesystem::path;
+using std::string;
+using std::stringstream;
 
 namespace util {
 path next_free_name(const path& dir, const string& name, const string& ext) {
@@ -30,4 +32,4 @@ string nice_name(const path& file,
   name << file.stem() << "_" << width << "x" << height << "_" << samples;
   return name.str();
 }
-}
+}  // namespace util

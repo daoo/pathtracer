@@ -1,7 +1,7 @@
-#include "material.h"
-#include "mcsampling.h"
+#include "trace/material.h"
+#include "trace/mcsampling.h"
 
-using namespace glm;
+using glm::vec3;
 
 namespace trace {
 namespace {
@@ -28,7 +28,7 @@ vec3 perpendicular(const vec3& v) {
 
   return vec3(-v.z, 0.0f, v.x);
 }
-}
+}  // namespace
 
 Material::~Material() {}
 
@@ -36,7 +36,7 @@ DiffuseMaterial::DiffuseMaterial(const vec3& reflectance)
     : m_reflectance(reflectance) {}
 
 vec3 DiffuseMaterial::brdf(const vec3&, const vec3&, const vec3&) const {
-  return m_reflectance * one_over_pi<float>();
+  return m_reflectance * glm::one_over_pi<float>();
 }
 
 LightSample DiffuseMaterial::sample_brdf(FastRand& rand,
@@ -56,7 +56,7 @@ SpecularReflectionMaterial::SpecularReflectionMaterial(const vec3& reflectance)
 vec3 SpecularReflectionMaterial::brdf(const vec3&,
                                       const vec3&,
                                       const vec3&) const {
-  return zero<vec3>();
+  return glm::zero<vec3>();
 }
 
 LightSample SpecularReflectionMaterial::sample_brdf(FastRand&,
@@ -68,12 +68,12 @@ LightSample SpecularReflectionMaterial::sample_brdf(FastRand&,
 }
 
 SpecularRefractionMaterial::SpecularRefractionMaterial(float ior)
-    : m_ior(ior), m_refmat(one<vec3>()) {}
+    : m_ior(ior), m_refmat(glm::one<vec3>()) {}
 
 vec3 SpecularRefractionMaterial::brdf(const vec3&,
                                       const vec3&,
                                       const vec3&) const {
-  return zero<vec3>();
+  return glm::zero<vec3>();
 }
 
 LightSample SpecularRefractionMaterial::sample_brdf(FastRand& rand,
@@ -93,7 +93,7 @@ LightSample SpecularRefractionMaterial::sample_brdf(FastRand& rand,
 
   k = sqrt(k);
   vec3 wo = normalize(-eta * wi + (w - k) * N);
-  return {1.0f, one<vec3>(), wo};
+  return {1.0f, glm::one<vec3>(), wo};
 }
 
 FresnelBlendMaterial::FresnelBlendMaterial(const Material* reflection,
@@ -148,4 +148,4 @@ LightSample BlendMaterial::sample_brdf(FastRand& rand,
   else
     return m_second_material->sample_brdf(rand, wi, n);
 }
-}
+}  // namespace trace

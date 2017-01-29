@@ -1,15 +1,16 @@
-#ifndef BUILD_HPP_EBQD1OY8
-#define BUILD_HPP_EBQD1OY8
+#ifndef KDTREE_NAIVE_H_
+#define KDTREE_NAIVE_H_
+
+#include <vector>
 
 #include "kdtree/linked.h"
-#include <vector>
 
 namespace geometry {
 struct Triangle;
-}
+}  // namespace geometry
 
 namespace kdtree {
 KdTreeLinked build_tree_naive(const std::vector<geometry::Triangle>& triangles);
-}
+}  // namespace kdtree
 
-#endif /* end of include guard: BUILD_HPP_EBQD1OY8 */
+#endif  // KDTREE_NAIVE_H_

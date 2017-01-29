@@ -1,14 +1,12 @@
-#include "mtl.h"
-
-#include "wavefront/parse.h"
+#include "wavefront/mtl.h"
 
 #include <exception>
 #include <fstream>
 #include <ostream>
 
-using namespace std::experimental::filesystem;
-using namespace glm;
-using namespace std;
+#include "wavefront/parse.h"
+
+using std::experimental::filesystem::path;
 
 namespace wavefront {
 namespace {
@@ -34,20 +32,20 @@ const char TOKEN_CAMERA_FOV[] = "camerafov";
 const char TOKEN_CAMERA_POSITION[] = "cameraposition";
 const char TOKEN_CAMERA_TARGET[] = "cameratarget";
 const char TOKEN_CAMERA_UP[] = "cameraup";
-}
+}  // namespace
 
 Mtl load_mtl(const path& file) {
   std::ifstream stream(file.string());
   if (!stream.good()) {
-    string err = "Failed opening file '";
+    std::string err = "Failed opening file '";
     err += file.string();
     err += "'";
-    throw runtime_error(err);
+    throw std::runtime_error(err);
   }
 
   Mtl mtl;
 
-  string line;
+  std::string line;
   unsigned int line_index = 0;
   while (getline(stream, line)) {
     if (!line.empty()) {
@@ -64,98 +62,60 @@ Mtl load_mtl(const path& file) {
                                  0.0f,
                                  0.0f,
                                  1.0f});
-      }
-
-      else if (equal("newlight", token)) {
+      } else if (equal("newlight", token)) {
         mtl.lights.push_back(
             {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, 0.1f, 10.0f});
-      }
-
-      else if (equal("newcamera", token)) {
+      } else if (equal("newcamera", token)) {
         mtl.cameras.push_back({{7.0f, 5.0f, 6.0f},
                                {0.0f, 0.0f, 0.0f},
                                {0.0f, 1.0f, 0.0f},
                                10.0f});
-      }
-
-      else if (equal(TOKEN_MTL_DIFFUSE, token)) {
+      } else if (equal(TOKEN_MTL_DIFFUSE, token)) {
         mtl.materials.back().diffuse =
             parse_vec3(token + sizeof(TOKEN_MTL_DIFFUSE));
-      }
-
-      else if (equal(TOKEN_MTL_DIFFUSE_MAP, token)) {
+      } else if (equal(TOKEN_MTL_DIFFUSE_MAP, token)) {
         mtl.materials.back().diffuse_map =
             parse_string(token + sizeof(TOKEN_MTL_DIFFUSE_MAP));
-      }
-
-      else if (equal(TOKEN_MTL_EMITTANCE, token)) {
+      } else if (equal(TOKEN_MTL_EMITTANCE, token)) {
         mtl.materials.back().emittance =
             parse_vec3(token + sizeof(TOKEN_MTL_EMITTANCE));
-      }
-
-      else if (equal(TOKEN_MTL_IOR, token)) {
+      } else if (equal(TOKEN_MTL_IOR, token)) {
         mtl.materials.back().ior = parse_float(token + sizeof(TOKEN_MTL_IOR));
-      }
-
-      else if (equal(TOKEN_MTL_REFLECT0, token)) {
+      } else if (equal(TOKEN_MTL_REFLECT0, token)) {
         mtl.materials.back().refl0 =
             parse_float(token + sizeof(TOKEN_MTL_REFLECT0));
-      }
-
-      else if (equal(TOKEN_MTL_REFLECT90, token)) {
+      } else if (equal(TOKEN_MTL_REFLECT90, token)) {
         mtl.materials.back().refl90 =
             parse_float(token + sizeof(TOKEN_MTL_REFLECT90));
-      }
-
-      else if (equal(TOKEN_MTL_ROUGHNESS, token)) {
+      } else if (equal(TOKEN_MTL_ROUGHNESS, token)) {
         mtl.materials.back().roughness =
             parse_float(token + sizeof(TOKEN_MTL_ROUGHNESS));
-      }
-
-      else if (equal(TOKEN_MTL_SPECULAR, token)) {
+      } else if (equal(TOKEN_MTL_SPECULAR, token)) {
         mtl.materials.back().specular =
             parse_vec3(token + sizeof(TOKEN_MTL_SPECULAR));
-      }
-
-      else if (equal(TOKEN_MTL_TRANSPARANCY, token)) {
+      } else if (equal(TOKEN_MTL_TRANSPARANCY, token)) {
         mtl.materials.back().transparency =
             parse_float(token + sizeof(TOKEN_MTL_TRANSPARANCY));
-      }
-
-      else if (equal(TOKEN_LIGHT_COLOR, token)) {
+      } else if (equal(TOKEN_LIGHT_COLOR, token)) {
         mtl.lights.back().color = parse_vec3(token + sizeof(TOKEN_LIGHT_COLOR));
-      }
-
-      else if (equal(TOKEN_LIGHT_INTENSITY, token)) {
+      } else if (equal(TOKEN_LIGHT_INTENSITY, token)) {
         mtl.lights.back().intensity =
             parse_float(token + sizeof(TOKEN_LIGHT_INTENSITY));
-      }
-
-      else if (equal(TOKEN_LIGHT_POSITION, token)) {
+      } else if (equal(TOKEN_LIGHT_POSITION, token)) {
         mtl.lights.back().center =
             parse_vec3(token + sizeof(TOKEN_LIGHT_POSITION));
-      }
-
-      else if (equal(TOKEN_LIGHT_RADIUS, token)) {
+      } else if (equal(TOKEN_LIGHT_RADIUS, token)) {
         mtl.lights.back().radius =
             parse_float(token + sizeof(TOKEN_LIGHT_RADIUS));
-      }
-
-      else if (equal(TOKEN_CAMERA_FOV, token)) {
+      } else if (equal(TOKEN_CAMERA_FOV, token)) {
         mtl.cameras.back().fov = parse_float(token + sizeof(TOKEN_CAMERA_FOV));
-      }
-
-      else if (equal(TOKEN_CAMERA_POSITION, token)) {
+      } else if (equal(TOKEN_CAMERA_POSITION, token)) {
         mtl.cameras.back().position =
             parse_vec3(token + sizeof(TOKEN_CAMERA_POSITION));
-      }
-
-      else if (equal(TOKEN_CAMERA_TARGET, token)) {
+      } else if (equal(TOKEN_CAMERA_TARGET, token)) {
         mtl.cameras.back().target =
             parse_vec3(token + sizeof(TOKEN_CAMERA_TARGET));
-      }
-
-      else if (equal(TOKEN_CAMERA_UP, token)) {
+      } else if (equal(TOKEN_CAMERA_UP, token)) {
         mtl.cameras.back().up = parse_vec3(token + sizeof(TOKEN_CAMERA_UP));
       }
     }
@@ -165,4 +125,4 @@ Mtl load_mtl(const path& file) {
 
   return mtl;
 }
-}
+}  // namespace wavefront

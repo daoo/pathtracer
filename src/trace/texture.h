@@ -1,5 +1,5 @@
-#ifndef TEXTURE_HPP_NJD06RG1
-#define TEXTURE_HPP_NJD06RG1
+#ifndef TRACE_TEXTURE_H_
+#define TRACE_TEXTURE_H_
 
 #include <glm/glm.hpp>
 #include <string>
@@ -44,6 +44,6 @@ inline glm::vec3& texture_sample(Texture& texture,
  * Load a texture from a file.
  */
 Texture texture_load(const std::string&);
-}
+}  // namespace trace
 
-#endif /* end of include guard: TEXTURE_HPP_NJD06RG1 */
+#endif  // TRACE_TEXTURE_H_

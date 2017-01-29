@@ -1,17 +1,20 @@
 #include "kdtree/traverse.h"
 
+#include <glm/glm.hpp>
+
+#include <algorithm>
+#include <utility>
+#include <vector>
+
 #include "geometry/ray.h"
 #include "geometry/triangle.h"
 #include "geometry/triray.h"
 #include "kdtree/array.h"
 #include "kdtree/intersection.h"
 #include "kdtree/util.h"
-#include <algorithm>
-#include <glm/glm.hpp>
-#include <vector>
 
-using namespace glm;
-using namespace std;
+using glm::vec3;
+using std::vector;
 
 namespace kdtree {
 namespace {
@@ -40,7 +43,7 @@ bool intersect_triangles(const vector<geometry::Triangle>& triangles,
 
   return hit;
 }
-}
+}  // namespace
 
 bool search_tree(const KdTreeArray& tree,
                  const geometry::Ray& ray,
@@ -82,7 +85,7 @@ bool search_tree(const KdTreeArray& tree,
       unsigned int second = KdTreeArray::right_child(index);
 
       if (d < 0) {
-        swap(first, second);
+        std::swap(first, second);
       }
 
       if (t >= tmax) {
@@ -99,4 +102,4 @@ bool search_tree(const KdTreeArray& tree,
     }
   }
 }
-}
+}  // namespace kdtree

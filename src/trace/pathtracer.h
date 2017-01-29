@@ -1,5 +1,8 @@
-#ifndef PATHTRACER_HPP_NVGMZUSY
-#define PATHTRACER_HPP_NVGMZUSY
+#ifndef TRACE_PATHTRACER_H_
+#define TRACE_PATHTRACER_H_
+
+#include <glm/glm.hpp>
+#include <vector>
 
 #include "geometry/ray.h"
 #include "kdtree/array.h"
@@ -7,8 +10,6 @@
 #include "trace/fastrand.h"
 #include "trace/light.h"
 #include "trace/samplebuffer.h"
-#include <glm/glm.hpp>
-#include <vector>
 
 namespace trace {
 void pathtrace(const kdtree::KdTreeArray& kdtree,
@@ -18,4 +19,4 @@ void pathtrace(const kdtree::KdTreeArray& kdtree,
                SampleBuffer& buffer);
 }
 
-#endif /* end of include guard: PATHTRACER_HPP_NVGMZUSY */
+#endif  // TRACE_PATHTRACER_H_

@@ -1,9 +1,9 @@
-#include "optimize.h"
+#include "kdtree/optimize.h"
 
-#include "kdtree/array.h"
 #include <cassert>
 
-using namespace std;
+#include "kdtree/array.h"
+
 namespace kdtree {
 namespace {
 void helper(KdTreeArray& result, unsigned int index, const LinkedNode* node) {
@@ -20,10 +20,10 @@ void helper(KdTreeArray& result, unsigned int index, const LinkedNode* node) {
     helper(result, KdTreeArray::right_child(index), node->get_right());
   }
 }
-}
+}  // namespace
 
 void optimize(KdTreeArray& result, const KdTreeLinked& input) {
   helper(result, 0, input.get_root());
   result.shrink_to_fit();
 }
-}
+}  // namespace kdtree

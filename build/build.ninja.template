@@ -26,7 +26,6 @@ build $outdir/tests/camera-tester.o:           cxx $src/tests/camera-tester.cc
 build $outdir/tests/print-tree.o:              cxx $src/tests/print-tree.cc
 build $outdir/tests/print-wavefront.o:         cxx $src/tests/print-wavefront.cc
 build $outdir/tests/sizes.o:                   cxx $src/tests/sizes.cc
-build $outdir/trace/light.o:                   cxx $src/trace/light.cc
 build $outdir/trace/material.o:                cxx $src/trace/material.cc
 build $outdir/trace/pathtracer.o:              cxx $src/trace/pathtracer.cc
 build $outdir/trace/samplebuffer.o:            cxx $src/trace/samplebuffer.cc
@@ -43,7 +42,6 @@ build $outdir/libtrace.a: ar $
   $outdir/kdtree/optimize.o $
   $outdir/kdtree/surface_area_heuristic.o $
   $outdir/kdtree/traverse.o $
-  $outdir/trace/light.o $
   $outdir/trace/material.o $
   $outdir/trace/pathtracer.o $
   $outdir/trace/samplebuffer.o $
@@ -79,7 +77,6 @@ build $outdir/print-tree: link $
   $outdir/kdtree/optimize.o $
   $outdir/kdtree/surface_area_heuristic.o $
   $outdir/tests/print-tree.o $
-  $outdir/trace/light.o $
   $outdir/trace/material.o $
   $outdir/trace/scene.o $
   $outdir/wavefront/obj.o

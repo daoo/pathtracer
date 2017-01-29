@@ -1,5 +1,5 @@
-#ifndef CLOCK_HPP_JEKW7LSY
-#define CLOCK_HPP_JEKW7LSY
+#ifndef UTIL_CLOCK_H_
+#define UTIL_CLOCK_H_
 
 #include <chrono>
 
@@ -21,6 +21,6 @@ class Clock {
 
   clock::duration m_start;
 };
-}
+}  // namespace util
 
-#endif /* end of include guard: CLOCK_HPP_JEKW7LSY */
+#endif  // UTIL_CLOCK_H_

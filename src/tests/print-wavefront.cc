@@ -1,16 +1,15 @@
+#include <experimental/filesystem>
+#include <iostream>
+
 #include "util/clock.h"
 #include "wavefront/mtl.h"
 #include "wavefront/obj.h"
 
-#include <experimental/filesystem>
-#include <iostream>
-
-using namespace std::experimental::filesystem;
-using namespace std;
+using std::experimental::filesystem::path;
 
 int main(int argc, char* argv[]) {
   if (argc <= 1) {
-    cerr << "Usage: print-wavefront [PATH]\n";
+    std::cerr << "Usage: print-wavefront [PATH]\n";
     return 1;
   }
 
@@ -21,32 +20,32 @@ int main(int argc, char* argv[]) {
       if (file.extension() == ".obj") {
         util::Clock clock;
         wavefront::Obj obj = wavefront::load_obj(file);
-        float load_time = clock.measure<float, ratio<1>>();
+        float load_time = clock.measure<float, std::ratio<1>>();
 
         unsigned int triangle_count = 0;
         for (const wavefront::Chunk& c : obj.chunks) {
           triangle_count += c.polygons.size();
         }
 
-        cout << "Loaded " << file << " in ";
-        cout << load_time << " second(s)\n";
-        cout << "  Chunks:    " << obj.chunks.size() << '\n';
-        cout << "  Triangles: " << triangle_count << '\n';
+        std::cout << "Loaded " << file << " in ";
+        std::cout << load_time << " second(s)\n";
+        std::cout << "  Chunks:    " << obj.chunks.size() << '\n';
+        std::cout << "  Triangles: " << triangle_count << '\n';
       } else if (file.extension() == ".mtl") {
         util::Clock clock;
         wavefront::Mtl mtl = wavefront::load_mtl(file);
-        float load_time = clock.measure<float, ratio<1>>();
+        float load_time = clock.measure<float, std::ratio<1>>();
 
-        cout << "Loaded " << file << " in ";
-        cout << load_time << " second(s)\n";
-        cout << "  Materials: " << mtl.materials.size() << '\n';
+        std::cout << "Loaded " << file << " in ";
+        std::cout << load_time << " second(s)\n";
+        std::cout << "  Materials: " << mtl.materials.size() << '\n';
       } else {
-        cerr << "Error: " << file << " is not an obj or mtl file.\n";
+        std::cerr << "Error: " << file << " is not an obj or mtl file.\n";
         return 1;
       }
     }
-  } catch (const runtime_error& ex) {
-    cerr << ex.what();
+  } catch (const std::runtime_error& ex) {
+    std::cerr << ex.what();
     return 1;
   }
   return 0;

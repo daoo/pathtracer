@@ -1,17 +1,19 @@
 #include "kdtree/naive.h"
 
+#include <glm/glm.hpp>
+
+#include <cassert>
+
 #include "geometry/aabb.h"
 #include "geometry/bounding.h"
 #include "kdtree/util.h"
-#include <cassert>
-#include <glm/glm.hpp>
 
-using namespace glm;
-using namespace std;
+using glm::vec3;
+using std::vector;
 
 namespace geometry {
 struct Triangle;
-}
+}  // kdtree geometry
 
 namespace kdtree {
 namespace {
@@ -36,7 +38,7 @@ void go(LinkedNode* node, unsigned int depth, Axis axis, const Box& parent) {
     go(node->split.right, depth + 1, next_axis(axis), split.right);
   }
 }
-}
+}  // namespace
 
 KdTreeLinked build_tree_naive(const vector<geometry::Triangle>& triangles) {
   vector<const geometry::Triangle*> ptrs;
@@ -49,4 +51,4 @@ KdTreeLinked build_tree_naive(const vector<geometry::Triangle>& triangles) {
 
   return KdTreeLinked(root);
 }
-}
+}  // namespace kdtree

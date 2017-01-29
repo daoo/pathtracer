@@ -1,24 +1,27 @@
 #include "trace/scene.h"
 
+#include <glm/gtc/epsilon.hpp>
+#include <map>
+
 #include "kdtree/array.h"
 #include "kdtree/linked.h"
 #include "kdtree/optimize.h"
 #include "kdtree/surface_area_heuristic.h"
 #include "trace/mcsampling.h"
-#include <glm/gtc/epsilon.hpp>
-#include <map>
 
-using namespace glm;
-using namespace std;
+using glm::vec3;
+using std::map;
+using std::string;
+using std::vector;
 
 namespace trace {
 namespace {
 constexpr float EPSILON = 0.0001f;
 
 Material* blend1_from_wavefront(const wavefront::Material& material) {
-  if (epsilonEqual(material.transparency, 1.0f, EPSILON)) {
+  if (glm::epsilonEqual(material.transparency, 1.0f, EPSILON)) {
     return new SpecularRefractionMaterial(material.ior);
-  } else if (epsilonEqual(material.transparency, 0.0f, EPSILON)) {
+  } else if (glm::epsilonEqual(material.transparency, 0.0f, EPSILON)) {
     return new DiffuseMaterial(material.diffuse);
   } else {
     return new BlendMaterial(new SpecularRefractionMaterial(material.ior),
@@ -29,11 +32,11 @@ Material* blend1_from_wavefront(const wavefront::Material& material) {
 
 Material* blend0_from_wavefront(const wavefront::Material& material,
                                 Material* blend1) {
-  if (epsilonEqual(material.refl90, 1.0f, EPSILON)) {
+  if (glm::epsilonEqual(material.refl90, 1.0f, EPSILON)) {
     return new FresnelBlendMaterial(
         new SpecularReflectionMaterial(material.specular), blend1,
         material.refl0);
-  } else if (epsilonEqual(material.refl90, 0.0f, EPSILON)) {
+  } else if (glm::epsilonEqual(material.refl90, 0.0f, EPSILON)) {
     return blend1;
   } else {
     return new BlendMaterial(
@@ -47,13 +50,13 @@ Material* blend0_from_wavefront(const wavefront::Material& material,
 Material* material_from_wavefront(const wavefront::Material& material) {
   return blend0_from_wavefront(material, blend1_from_wavefront(material));
 }
-}
+}  // namespace
 
 vector<SphereLight> lights_from_mtl(const wavefront::Mtl& mtl) {
   vector<SphereLight> lights;
   for (const wavefront::Light& light : mtl.lights) {
     lights.push_back(
-        new_light(light.center, light.color, light.intensity, light.radius));
+        {light.center, light.color, light.intensity, light.radius});
   }
   return lights;
 }
@@ -61,8 +64,8 @@ vector<SphereLight> lights_from_mtl(const wavefront::Mtl& mtl) {
 vector<Camera> cameras_from_mtl(const wavefront::Mtl& mtl) {
   vector<Camera> cameras;
   for (const wavefront::Camera& camera : mtl.cameras) {
-    cameras.push_back(
-        Camera(camera.position, camera.target, camera.up, radians(camera.fov)));
+    cameras.push_back(Camera(camera.position, camera.target, camera.up,
+                             glm::radians(camera.fov)));
   }
   return cameras;
 }
@@ -119,4 +122,4 @@ Scene new_scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl) {
 
   return {kdtree, cameras, lights, triangles};
 }
-}
+}  // namespace trace

@@ -1,5 +1,5 @@
-#ifndef PATH_HPP_KK7VPDVX
-#define PATH_HPP_KK7VPDVX
+#ifndef UTIL_PATH_H_
+#define UTIL_PATH_H_
 
 #include <experimental/filesystem>
 #include <string>
@@ -14,6 +14,6 @@ std::string nice_name(const std::experimental::filesystem::path&,
                       unsigned int,
                       unsigned int,
                       unsigned int);
-}
+}  // namespace util
 
-#endif /* end of include guard: PATH_HPP_KK7VPDVX */
+#endif  // UTIL_PATH_H_

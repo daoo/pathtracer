@@ -1,14 +1,15 @@
 #include "trace/pathtracer.h"
 
+#include <glm/gtc/constants.hpp>
+
 #include "kdtree/array.h"
 #include "kdtree/intersection.h"
 #include "kdtree/traverse.h"
 #include "trace/material.h"
 #include "trace/mcsampling.h"
-#include <glm/gtc/constants.hpp>
 
-using namespace glm;
-using namespace std;
+using glm::vec3;
+using std::vector;
 
 namespace kdtree {
 bool any_intersects(const KdTreeArray& kdtree,
@@ -18,7 +19,7 @@ bool any_intersects(const KdTreeArray& kdtree,
   Intersection isect;
   return search_tree(kdtree, ray, tmin, tmax, isect);
 }
-}
+}  // namespace kdtree
 
 namespace trace {
 namespace {
@@ -33,7 +34,7 @@ vec3 from_light(const kdtree::KdTreeArray& kdtree,
                 const vec3& n,
                 const SphereLight& light,
                 FastRand& rand) {
-  const vec3 source = light_sample(rand, light);
+  const vec3 source = light.light_sample(rand);
   const vec3 direction = source - target;
 
   const geometry::Ray shadow_ray{offset, direction};
@@ -41,12 +42,12 @@ vec3 from_light(const kdtree::KdTreeArray& kdtree,
   if (!any_intersects(kdtree, shadow_ray, 0.0f, 1.0f)) {
     const vec3 wr = normalize(direction);
 
-    const vec3 radiance = light_emitted(light, target);
+    const vec3 radiance = light.light_emitted(target);
 
     return material->brdf(wi, wr, n) * radiance * abs(dot(wr, n));
   }
 
-  return zero<vec3>();
+  return glm::zero<vec3>();
 }
 
 vec3 environment_light(const geometry::Ray&) {
@@ -76,7 +77,7 @@ vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
   const vec3 offset_up = point + offset;
   const vec3 offset_down = point - offset;
 
-  vec3 sum_lights = zero<vec3>();
+  vec3 sum_lights = glm::zero<vec3>();
   for (const SphereLight& light : lights) {
     sum_lights +=
         from_light(kdtree, material, point, offset_up, wi, n, light, rand);
@@ -104,10 +105,10 @@ vec3 incoming_light(const kdtree::KdTreeArray& kdtree,
                     const vector<SphereLight>& lights,
                     const geometry::Ray& ray,
                     FastRand& rand) {
-  return incoming_light_helper(kdtree, lights, ray, rand, zero<vec3>(),
-                               one<vec3>(), 0);
+  return incoming_light_helper(kdtree, lights, ray, rand, glm::zero<vec3>(),
+                               glm::one<vec3>(), 0);
 }
-}
+}  // namespace
 
 void pathtrace(const kdtree::KdTreeArray& kdtree,
                const vector<SphereLight>& lights,
@@ -126,4 +127,4 @@ void pathtrace(const kdtree::KdTreeArray& kdtree,
 
   buffer.inc();
 }
-}
+}  // namespace trace

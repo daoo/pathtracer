@@ -1,4 +1,4 @@
-#include "shaders.h"
+#include "pathtracer-gl/shaders.h"
 
 const char* const FRAGMENT_SHADER =
     "#version 130\n"

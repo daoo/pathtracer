@@ -1,16 +1,13 @@
-#include "texture.h"
+#include "trace/texture.h"
 
 #include <FreeImage.h>
 
-using namespace glm;
-using namespace std;
-
 namespace trace {
-Texture texture_load(const string& file) {
+Texture texture_load(const std::string& file) {
   FIBITMAP* bitmap = FreeImage_Load(FIF_PNG, file.c_str());
 
   if (!bitmap) {
-    string err = "Failed to load texture '";
+    std::string err = "Failed to load texture '";
     err += file;
     err += '\'';
     throw err;
@@ -43,4 +40,4 @@ Texture texture_load(const string& file) {
 
   return texture;
 }
-}
+}  // namespace trace

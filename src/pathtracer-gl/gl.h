@@ -1,7 +1,8 @@
-#ifndef GL_HPP_VTQYHMUI
-#define GL_HPP_VTQYHMUI
+#ifndef PATHTRACER_GL_GL_H_
+#define PATHTRACER_GL_GL_H_
 
 #include <GL/glew.h>
+#include <GL/freeglut_std.h>
 #include <string>
 
 #define CHECK_GL_ERROR() \
@@ -9,7 +10,7 @@
 
 void check_gl_error(const std::string& file, unsigned int line);
 
-GLuint load_shader_program(const std::string&, const std::string&);
+GLuint load_shader_program(const char*, const char*);
 void link_shader_program(GLuint);
 
-#endif /* end of include guard: GL_HPP_VTQYHMUI */
+#endif  // PATHTRACER_GL_GL_H_

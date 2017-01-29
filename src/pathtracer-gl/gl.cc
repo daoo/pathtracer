@@ -3,14 +3,12 @@
 #include <cstddef>
 #include <sstream>
 
-using namespace std;
-
 namespace {
-string get_shader_info_log(GLuint obj) {
+std::string get_shader_info_log(GLuint obj) {
   GLint log_length = 0;
   GLsizei chars_written = 0;
   char* tmp_log;
-  string log;
+  std::string log;
 
   glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &log_length);
 
@@ -24,11 +22,9 @@ string get_shader_info_log(GLuint obj) {
   return log;
 }
 
-GLuint create_shader(GLuint type, const string& code) {
-  const GLchar* str = code.c_str();
-
+GLuint create_shader(GLuint type, const char* code) {
   GLuint id = glCreateShader(type);
-  glShaderSource(id, 1, &str, nullptr);
+  glShaderSource(id, 1, &code, nullptr);
 
   glCompileShader(id);
 
@@ -40,10 +36,10 @@ GLuint create_shader(GLuint type, const string& code) {
 
   return id;
 }
-}
+}  // namespace
 
-void check_gl_error(const string& file, unsigned int line) {
-  stringstream ss;
+void check_gl_error(const std::string& file, unsigned int line) {
+  std::stringstream ss;
   bool was_error = false;
   for (GLenum gl_err = glGetError(); gl_err != GL_NO_ERROR;
        gl_err = glGetError()) {
@@ -57,8 +53,8 @@ void check_gl_error(const string& file, unsigned int line) {
   }
 }
 
-GLuint load_shader_program(const string& vertex_shader,
-                           const string& fragment_shader) {
+GLuint load_shader_program(const char* vertex_shader,
+                           const char* fragment_shader) {
   GLuint vshader = create_shader(GL_VERTEX_SHADER, vertex_shader);
   GLuint fshader = create_shader(GL_FRAGMENT_SHADER, fragment_shader);
 

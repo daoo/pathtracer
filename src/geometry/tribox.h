@@ -1,5 +1,5 @@
-#ifndef TRIBOX_HPP_R6COW5OF
-#define TRIBOX_HPP_R6COW5OF
+#ifndef GEOMETRY_TRIBOX_H_
+#define GEOMETRY_TRIBOX_H_
 
 /********************************************************/
 /* AABB-triangle overlap test code                      */
@@ -131,7 +131,7 @@ inline bool plane_box_overlap(const glm::vec3& normal,
   }                                          \
   rad = fa * aabb.half.x + fb * aabb.half.y; \
   if (min > rad || max < -rad) return 0;
-}
+}  // namespace detail
 
 inline bool tri_box_overlap(const Aabb& aabb,
                             const glm::vec3& triv0,
@@ -212,6 +212,6 @@ inline bool tri_box_overlap(const Aabb& aabb,
 
   return detail::plane_box_overlap(normal, v0, aabb.half);
 }
-}
+}  // namespace geometry
 
-#endif /* end of include guard: TRIBOX_HPP_R6COW5OF */
+#endif  // GEOMETRY_TRIBOX_H_

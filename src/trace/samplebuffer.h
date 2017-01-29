@@ -1,5 +1,5 @@
-#ifndef SAMPLEBUFFER_HPP_BIC38RBM
-#define SAMPLEBUFFER_HPP_BIC38RBM
+#ifndef TRACE_SAMPLEBUFFER_H_
+#define TRACE_SAMPLEBUFFER_H_
 
 #include <glm/glm.hpp>
 #include <string>
@@ -73,6 +73,6 @@ class SampleBuffer {
  * @param buffer the buffer to write
  */
 void write_image(const std::string& file, const SampleBuffer& buffer);
-}
+}  // namespace trace
 
-#endif /* end of include guard: SAMPLEBUFFER_HPP_BIC38RBM */
+#endif  // TRACE_SAMPLEBUFFER_H_

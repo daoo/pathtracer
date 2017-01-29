@@ -1,5 +1,5 @@
-#ifndef STRINGS_HPP_EZTZBDSY
-#define STRINGS_HPP_EZTZBDSY
+#ifndef UTIL_STRINGS_H_
+#define UTIL_STRINGS_H_
 
 #include <sstream>
 #include <string>
@@ -14,4 +14,4 @@ T parse(const std::string& str) {
 }
 }
 
-#endif /* end of include guard: STRINGS_HPP_EZTZBDSY */
+#endif  // UTIL_STRINGS_H_
