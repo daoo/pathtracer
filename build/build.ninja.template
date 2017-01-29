@@ -12,30 +12,30 @@ rule link
   command = $cxx -L$outdir $ldflags -o $out $in $libs
   description = LINK $out
 
-build $outdir/geometry/bounding.o:             cxx $src/geometry/bounding.cpp
-build $outdir/kdtree/naive.o:                  cxx $src/kdtree/naive.cpp
-build $outdir/kdtree/optimize.o:               cxx $src/kdtree/optimize.cpp
-build $outdir/kdtree/surface_area_heuristic.o: cxx $src/kdtree/surface_area_heuristic.cpp
-build $outdir/kdtree/traverse.o:               cxx $src/kdtree/traverse.cpp
-build $outdir/pathtracer-gl/gl.o:              cxx $src/pathtracer-gl/gl.cpp
-build $outdir/pathtracer-gl/main.o:            cxx $src/pathtracer-gl/main.cpp
-build $outdir/pathtracer-gl/shaders.o:         cxx $src/pathtracer-gl/shaders.cpp
-build $outdir/pathtracer/main.o:               cxx $src/pathtracer/main.cpp
-build $outdir/pathtracer/thread.o:             cxx $src/pathtracer/thread.cpp
-build $outdir/tests/camera-tester.o:           cxx $src/tests/camera-tester.cpp
-build $outdir/tests/print-tree.o:              cxx $src/tests/print-tree.cpp
-build $outdir/tests/print-wavefront.o:         cxx $src/tests/print-wavefront.cpp
-build $outdir/tests/sizes.o:                   cxx $src/tests/sizes.cpp
-build $outdir/trace/light.o:                   cxx $src/trace/light.cpp
-build $outdir/trace/material.o:                cxx $src/trace/material.cpp
-build $outdir/trace/pathtracer.o:              cxx $src/trace/pathtracer.cpp
-build $outdir/trace/samplebuffer.o:            cxx $src/trace/samplebuffer.cpp
-build $outdir/trace/scene.o:                   cxx $src/trace/scene.cpp
-build $outdir/trace/texture.o:                 cxx $src/trace/texture.cpp
-build $outdir/util/nicetime.o:                 cxx $src/util/nicetime.cpp
-build $outdir/util/path.o:                     cxx $src/util/path.cpp
-build $outdir/wavefront/mtl.o:                 cxx $src/wavefront/mtl.cpp
-build $outdir/wavefront/obj.o:                 cxx $src/wavefront/obj.cpp
+build $outdir/geometry/bounding.o:             cxx $src/geometry/bounding.cc
+build $outdir/kdtree/naive.o:                  cxx $src/kdtree/naive.cc
+build $outdir/kdtree/optimize.o:               cxx $src/kdtree/optimize.cc
+build $outdir/kdtree/surface_area_heuristic.o: cxx $src/kdtree/surface_area_heuristic.cc
+build $outdir/kdtree/traverse.o:               cxx $src/kdtree/traverse.cc
+build $outdir/pathtracer-gl/gl.o:              cxx $src/pathtracer-gl/gl.cc
+build $outdir/pathtracer-gl/main.o:            cxx $src/pathtracer-gl/main.cc
+build $outdir/pathtracer-gl/shaders.o:         cxx $src/pathtracer-gl/shaders.cc
+build $outdir/pathtracer/main.o:               cxx $src/pathtracer/main.cc
+build $outdir/pathtracer/thread.o:             cxx $src/pathtracer/thread.cc
+build $outdir/tests/camera-tester.o:           cxx $src/tests/camera-tester.cc
+build $outdir/tests/print-tree.o:              cxx $src/tests/print-tree.cc
+build $outdir/tests/print-wavefront.o:         cxx $src/tests/print-wavefront.cc
+build $outdir/tests/sizes.o:                   cxx $src/tests/sizes.cc
+build $outdir/trace/light.o:                   cxx $src/trace/light.cc
+build $outdir/trace/material.o:                cxx $src/trace/material.cc
+build $outdir/trace/pathtracer.o:              cxx $src/trace/pathtracer.cc
+build $outdir/trace/samplebuffer.o:            cxx $src/trace/samplebuffer.cc
+build $outdir/trace/scene.o:                   cxx $src/trace/scene.cc
+build $outdir/trace/texture.o:                 cxx $src/trace/texture.cc
+build $outdir/util/nicetime.o:                 cxx $src/util/nicetime.cc
+build $outdir/util/path.o:                     cxx $src/util/path.cc
+build $outdir/wavefront/mtl.o:                 cxx $src/wavefront/mtl.cc
+build $outdir/wavefront/obj.o:                 cxx $src/wavefront/obj.cc
 
 build $outdir/libtrace.a: ar $
   $outdir/geometry/bounding.o $
