@@ -18,7 +18,6 @@ build $outdir/kdtree/optimize.o:               cxx $src/kdtree/optimize.cpp
 build $outdir/kdtree/surface_area_heuristic.o: cxx $src/kdtree/surface_area_heuristic.cpp
 build $outdir/kdtree/traverse.o:               cxx $src/kdtree/traverse.cpp
 build $outdir/pathtracer-gl/gl.o:              cxx $src/pathtracer-gl/gl.cpp
-build $outdir/pathtracer-gl/gui.o:             cxx $src/pathtracer-gl/gui.cpp
 build $outdir/pathtracer-gl/main.o:            cxx $src/pathtracer-gl/main.cpp
 build $outdir/pathtracer-gl/shaders.o:         cxx $src/pathtracer-gl/shaders.cpp
 build $outdir/pathtracer/main.o:               cxx $src/pathtracer/main.cpp
@@ -62,7 +61,6 @@ build $outdir/pathtracer/pathtracer: link $
 
 build $outdir/pathtracer-gl/pathtracer-gl: link $
   $outdir/pathtracer-gl/gl.o $
-  $outdir/pathtracer-gl/gui.o $
   $outdir/pathtracer-gl/main.o $
   $outdir/pathtracer-gl/shaders.o | $outdir/libtrace.a
   libs = -lstdc++fs -ltrace -lfreeimage -lGLEW -lGLU -lGL -lglut -lpthread
