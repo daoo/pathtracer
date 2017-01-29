@@ -42,11 +42,7 @@ void display() {
   g_gui->render();
   glutSwapBuffers();
 
-  // Print some useful information
-  cout << "Second(s) per frame: " << trace_time << "\n"
-       << "Samples per pixel: " << g_gui->samples() << "\n"
-       << "Subsampling: " << g_gui->subsampling() << "\n"
-       << "\n";
+  cout << g_gui->samples() << ": " << trace_time << "s\n";
 }
 
 void reshape(int w, int h) {
