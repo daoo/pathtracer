@@ -11,7 +11,7 @@ int main() {
   PRINT_SIZE(unsigned int);
   PRINT_SIZE(float);
 
-  PRINT_SIZE(kdtree::LinkedNode);
-  PRINT_SIZE(kdtree::ArrayNode);
+  PRINT_SIZE(kdtree::KdNodeLinked);
+  PRINT_SIZE(kdtree::KdNodeArray);
   return 0;
 }

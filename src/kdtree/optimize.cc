@@ -3,27 +3,28 @@
 #include <cassert>
 
 #include "kdtree/array.h"
+#include "kdtree/linked.h"
 
 namespace kdtree {
 namespace {
-void helper(KdTreeArray& result, unsigned int index, const LinkedNode* node) {
+void helper(KdTreeArray& result, unsigned int index, const KdNodeLinked* node) {
   assert(node != nullptr);
 
-  if (node->is_leaf()) {
-    result.add_leaf(index, node->get_triangles());
+  if (node->triangles != nullptr) {
+    result.add_leaf(index, *node->triangles);
   } else {
-    assert(node->is_split());
+    result.add_split(index, node->distance);
 
-    result.add_split(index, node->get_split());
-
-    helper(result, KdTreeArray::left_child(index), node->get_left());
-    helper(result, KdTreeArray::right_child(index), node->get_right());
+    helper(result, KdTreeArray::left_child(index), node->left);
+    helper(result, KdTreeArray::right_child(index), node->right);
   }
 }
 }  // namespace
 
-void optimize(KdTreeArray& result, const KdTreeLinked& input) {
-  helper(result, 0, input.get_root());
+KdTreeArray optimize(const KdNodeLinked* root) {
+  KdTreeArray result;
+  helper(result, 0, root);
   result.shrink_to_fit();
+  return result;
 }
 }  // namespace kdtree

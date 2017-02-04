@@ -7,92 +7,36 @@
 #include "kdtree/util.h"
 
 namespace kdtree {
-class LinkedNode {
- public:
-  enum NodeType { Split, Leaf };
+struct KdNodeLinked {
+  KdNodeLinked(Axis axis,
+               float distance,
+               KdNodeLinked* left,
+               KdNodeLinked* right)
+      : axis(axis),
+        distance(distance),
+        triangles(nullptr),
+        left(left),
+        right(right) {}
 
-  ~LinkedNode() {
-    if (type == Leaf) {
-      delete leaf.triangles;
-    } else if (type == Split) {
-      delete split.left;
-      delete split.right;
-    }
+  KdNodeLinked(std::vector<const geometry::Triangle*>* triangles)
+      : axis(),
+        distance(),
+        triangles(triangles),
+        left(nullptr),
+        right(nullptr) {}
+
+  ~KdNodeLinked() {
+    delete left;
+    delete right;
+    delete triangles;
   }
 
-  bool is_leaf() const { return type == NodeType::Leaf; }
-  bool is_split() const { return type == NodeType::Split; }
+  Axis axis;
+  float distance;
+  std::vector<const geometry::Triangle*>* triangles;
 
-  bool has_triangles() const {
-    assert(is_leaf());
-    return leaf.triangles != nullptr;
-  }
-
-  const std::vector<const geometry::Triangle*>& get_triangles() const {
-    assert(is_leaf());
-    assert(has_triangles());
-    return *leaf.triangles;
-  }
-
-  Axis get_axis() const {
-    assert(is_split());
-    return split.axis;
-  }
-
-  float get_split() const {
-    assert(is_split());
-    return split.distance;
-  }
-
-  const LinkedNode* get_left() const {
-    assert(is_split());
-    return split.left;
-  }
-
-  const LinkedNode* get_right() const {
-    assert(is_split());
-    return split.right;
-  }
-
-  struct SplitNode {
-    Axis axis;
-    float distance;
-
-    LinkedNode* left;
-    LinkedNode* right;
-  };
-
-  struct LeafNode {
-    std::vector<const geometry::Triangle*>* triangles;
-  };
-
-  NodeType type;
-
-  union {
-    LeafNode leaf;
-    SplitNode split;
-  };
-};
-
-class KdTreeLinked {
- public:
-  explicit KdTreeLinked(const LinkedNode* root_) : root(root_) {
-    assert(root_ != nullptr);
-  }
-  KdTreeLinked(KdTreeLinked&& other) {
-    root = other.root;
-    other.root = nullptr;
-  }
-
-  ~KdTreeLinked() { delete root; }
-
-  const LinkedNode* get_root() const { return root; }
-
- private:
-  KdTreeLinked(const KdTreeLinked&) = delete;
-  KdTreeLinked& operator=(const KdTreeLinked&) = delete;
-
-  const LinkedNode* root;
+  KdNodeLinked* left;
+  KdNodeLinked* right;
 };
 }  // namespace kdtree
 

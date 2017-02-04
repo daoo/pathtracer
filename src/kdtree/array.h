@@ -10,11 +10,11 @@
 #include "kdtree/util.h"
 
 namespace kdtree {
-class ArrayNode {
+class KdNodeArray {
  public:
-  ArrayNode() : index(EMPTY_LEAF) {}
-  explicit ArrayNode(uint32_t i) : index((i << 1) & MASK_INDEX) {}
-  explicit ArrayNode(float distance) : distance(distance) {
+  KdNodeArray() : index(EMPTY_LEAF) {}
+  explicit KdNodeArray(uint32_t i) : index((i << 1) & MASK_INDEX) {}
+  explicit KdNodeArray(float distance) : distance(distance) {
     index |= MASK_TYPE;
   }
 
@@ -49,36 +49,36 @@ class ArrayNode {
   static constexpr uint32_t TYPE_SPLIT = 1;
 };
 
-static_assert(sizeof(ArrayNode) == 4, "incorrect size");
+static_assert(sizeof(KdNodeArray) == 4, "incorrect size");
 
 class KdTreeArray {
  public:
-  ArrayNode get_node(unsigned int index) const {
+  KdNodeArray get_node(unsigned int index) const {
     assert(index < nodes.size());
     return nodes[index];
   }
 
-  const std::vector<geometry::Triangle>& get_triangles(ArrayNode node) const {
+  const std::vector<geometry::Triangle>& get_triangles(KdNodeArray node) const {
     assert(node.is_leaf());
     return leaf_store[node.get_index()];
   }
 
   void add_leaf(unsigned int node_index,
                 const std::vector<const geometry::Triangle*>& triangles) {
-    uint32_t triangles_index = static_cast<uint32_t>(leaf_store.size());
-    leaf_store.push_back(std::vector<geometry::Triangle>());
-
-    std::vector<geometry::Triangle>& to = leaf_store[triangles_index];
+    std::vector<geometry::Triangle> to;
     for (const geometry::Triangle* tri : triangles) {
       assert(tri != nullptr);
       to.push_back(*tri);
     }
 
+    uint32_t triangles_index = static_cast<uint32_t>(leaf_store.size());
+    leaf_store.push_back(to);
+
     if (node_index >= nodes.size()) {
       nodes.resize(node_index + 1);
     }
 
-    nodes[node_index] = ArrayNode(triangles_index);
+    nodes[node_index] = KdNodeArray(triangles_index);
   }
 
   void add_split(unsigned int node_index, float distance) {
@@ -86,7 +86,7 @@ class KdTreeArray {
       nodes.resize(node_index + 1);
     }
 
-    nodes[node_index] = ArrayNode(distance);
+    nodes[node_index] = KdNodeArray(distance);
   }
 
   void shrink_to_fit() {
@@ -103,7 +103,7 @@ class KdTreeArray {
   }
 
  private:
-  std::vector<ArrayNode> nodes;
+  std::vector<KdNodeArray> nodes;
   std::vector<std::vector<geometry::Triangle>> leaf_store;
 };
 }  // namespace kdtree

@@ -105,8 +105,9 @@ void update_pointer_to_material(
 
 kdtree::KdTreeArray kdtree_from_triangles(
     const vector<geometry::Triangle>& triangles) {
-  kdtree::KdTreeArray array;
-  kdtree::optimize(array, kdtree::build_tree_sah(triangles));
+  kdtree::KdNodeLinked* linked = kdtree::build_tree_sah(triangles);
+  kdtree::KdTreeArray array = kdtree::optimize(linked);
+  delete linked;
   return array;
 }
 

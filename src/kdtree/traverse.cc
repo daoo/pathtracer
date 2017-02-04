@@ -3,7 +3,6 @@
 #include <glm/glm.hpp>
 
 #include <algorithm>
-#include <utility>
 #include <vector>
 
 #include "geometry/ray.h"
@@ -57,7 +56,7 @@ bool search_tree(const KdTreeArray& tree,
   Axis axis = X;
 
   while (true) {
-    ArrayNode node = tree.get_node(index);
+    KdNodeArray node = tree.get_node(index);
 
     if (node.is_leaf()) {
       bool hit = intersect_triangles(tree.get_triangles(node), ray, tmin,

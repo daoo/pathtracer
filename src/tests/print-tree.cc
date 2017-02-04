@@ -24,7 +24,7 @@ void helper(const std::string& label,
     std::cout << "  ";
   }
 
-  kdtree::ArrayNode node = tree.get_node(index);
+  kdtree::KdNodeArray node = tree.get_node(index);
 
   if (node.is_leaf()) {
     std::cout << "Leaf: " << tree.get_triangles(node).size() << "\n";

@@ -1,11 +1,10 @@
 #ifndef KDTREE_OPTIMIZE_H_
 #define KDTREE_OPTIMIZE_H_
 
-#include "kdtree/linked.h"
-
 namespace kdtree {
+struct KdNodeLinked;
 class KdTreeArray;
-void optimize(KdTreeArray&, const KdTreeLinked&);
+KdTreeArray optimize(const KdNodeLinked*);
 }  // namespace kdtree
 
 #endif  // KDTREE_OPTIMIZE_H_

@@ -2,7 +2,6 @@
 
 #include <glm/glm.hpp>
 
-#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <tuple>
@@ -11,6 +10,7 @@
 #include "geometry/aabb.h"
 #include "geometry/bounding.h"
 #include "geometry/triangle.h"
+#include "kdtree/linked.h"
 #include "kdtree/util.h"
 
 namespace kdtree {
@@ -81,43 +81,31 @@ CostSplit find_best(const Box& parent, Axis axis) {
   return best;
 }
 
-void go(LinkedNode* node, unsigned int depth, Axis axis, const Box& parent) {
-  assert(node != nullptr);
+KdNodeLinked* go(unsigned int depth, Axis axis, const Box& parent) {
   if (depth >= 20 || parent.triangles.empty()) {
-    node->type = LinkedNode::Leaf;
-    node->leaf.triangles =
-        new std::vector<const geometry::Triangle*>(parent.triangles);
-    return;
+    return new KdNodeLinked(
+        new std::vector<const geometry::Triangle*>(parent.triangles));
   }
 
   CostSplit split = find_best(parent, axis);
   float leaf_cost = COST_INTERSECT * parent.triangles.size();
   if (split.cost > leaf_cost) {
-    node->type = LinkedNode::Leaf;
-    node->leaf.triangles =
-        new std::vector<const geometry::Triangle*>(parent.triangles);
+    return new KdNodeLinked(
+        new std::vector<const geometry::Triangle*>(parent.triangles));
   } else {
-    node->type = LinkedNode::NodeType::Split;
-    node->split.axis = axis;
-    node->split.distance = split.split.distance;
-    node->split.left = new LinkedNode;
-    node->split.right = new LinkedNode;
-
-    go(node->split.left, depth + 1, next_axis(axis), split.split.left);
-    go(node->split.right, depth + 1, next_axis(axis), split.split.right);
+    return new KdNodeLinked(axis, split.split.distance,
+                            go(depth + 1, next_axis(axis), split.split.left),
+                            go(depth + 1, next_axis(axis), split.split.right));
   }
 }
 }  // namespace
 
-KdTreeLinked build_tree_sah(const std::vector<geometry::Triangle>& triangles) {
+KdNodeLinked* build_tree_sah(const std::vector<geometry::Triangle>& triangles) {
   std::vector<const geometry::Triangle*> ptrs;
   for (const geometry::Triangle& tri : triangles) {
     ptrs.push_back(&tri);
   }
 
-  LinkedNode* root = new LinkedNode;
-  go(root, 0, X, Box{find_bounding(triangles), ptrs});
-
-  return KdTreeLinked(root);
+  return go(0, X, Box{find_bounding(triangles), ptrs});
 }
 }  // namespace kdtree
