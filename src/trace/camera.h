@@ -21,7 +21,7 @@ struct Camera {
         direction(glm::normalize(target - position_)),
         right(glm::normalize(glm::cross(direction, glm::normalize(approxup)))),
         up(glm::normalize(glm::cross(right, direction))),
-        fov(fov_) { }
+        fov(fov_) {}
 };
 
 struct Pinhole {
