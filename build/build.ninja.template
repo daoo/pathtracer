@@ -73,8 +73,10 @@ build $outdir/print-wavefront: link $
 
 build $outdir/print-tree: link $
   $outdir/geometry/bounding.o $
+  $outdir/kdtree/optimize.o $
   $outdir/kdtree/surface_area_heuristic.o $
   $outdir/tests/print-tree.o $
+  $outdir/trace/material.o $
   $outdir/trace/scene.o $
   $outdir/wavefront/obj.o
   libs = -lstdc++fs
