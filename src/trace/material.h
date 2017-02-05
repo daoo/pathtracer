@@ -20,13 +20,13 @@ class Material {
  public:
   virtual ~Material() = 0;
 
-  virtual glm::vec3 brdf(const glm::vec3& wo,
-                         const glm::vec3& wi,
-                         const glm::vec3& normal) const = 0;
+  virtual glm::vec3 brdf(const glm::vec3&,
+                         const glm::vec3&,
+                         const glm::vec3&) const = 0;
 
   virtual LightSample sample_brdf(FastRand&,
-                                  const glm::vec3& wi,
-                                  const glm::vec3& normal) const = 0;
+                                  const glm::vec3&,
+                                  const glm::vec3&) const = 0;
 };
 
 /**
@@ -48,7 +48,7 @@ class DiffuseMaterial : public Material {
                                   const glm::vec3&) const;
 
  private:
-  glm::vec3 m_reflectance;
+  glm::vec3 reflectance_;
 };
 
 /**
@@ -67,8 +67,8 @@ class DiffuseTextureMaterial : public Material {
                                   const glm::vec3&) const;
 
  private:
-  glm::vec3 m_reflectance;
-  Texture m_texture;
+  glm::vec3 reflectance_;
+  Texture texture_;
 };
 
 /**
@@ -93,7 +93,7 @@ class SpecularReflectionMaterial : public Material {
 
  private:
   // The reflectance (color) of the specular reflection
-  glm::vec3 m_reflectance;
+  glm::vec3 reflectance_;
 };
 
 /**
@@ -117,10 +117,8 @@ class SpecularRefractionMaterial : public Material {
                                   const glm::vec3&) const;
 
  private:
-  // Index of refraction
-  float m_ior;
-
-  SpecularReflectionMaterial m_refmat;
+  float index_of_refraction_;
+  SpecularReflectionMaterial specular_reflection_;
 };
 
 /**
@@ -147,9 +145,9 @@ class FresnelBlendMaterial : public Material {
   FresnelBlendMaterial(const FresnelBlendMaterial&) = delete;
   FresnelBlendMaterial& operator=(const FresnelBlendMaterial&) = delete;
 
-  const Material* m_on_reflection_material;
-  const Material* m_on_refraction_material;
-  float m_r0;
+  const Material* reflection_;
+  const Material* refraction_;
+  float r0_;
 };
 
 /**
@@ -176,9 +174,9 @@ class BlendMaterial : public Material {
   BlendMaterial(const BlendMaterial&) = delete;
   BlendMaterial& operator=(const BlendMaterial&) = delete;
 
-  const Material* m_first_material;
-  const Material* m_second_material;
-  float m_w;
+  const Material* first_;
+  const Material* second_;
+  float factor_;
 };
 }  // namespace trace
 

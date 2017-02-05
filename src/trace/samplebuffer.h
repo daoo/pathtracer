@@ -19,29 +19,29 @@ class SampleBuffer {
    * @param height the height of the buffer, must be greater than 0
    */
   SampleBuffer(unsigned int width, unsigned int height)
-      : m_width(width),
-        m_height(height),
-        m_samples(0),
-        m_buffer(width * height, glm::vec3(0, 0, 0)) {
+      : width_(width),
+        height_(height),
+        samples_(0),
+        buffer_(width * height, glm::vec3(0, 0, 0)) {
     assert(width > 0 && height > 0);
   }
 
-  unsigned int width() const { return m_width; }
-  unsigned int height() const { return m_height; }
+  unsigned int width() const { return width_; }
+  unsigned int height() const { return height_; }
 
-  unsigned int samples() const { return m_samples; }
+  unsigned int samples() const { return samples_; }
 
-  void inc() { ++m_samples; }
+  void inc() { ++samples_; }
 
   const glm::vec3& get(unsigned int x, unsigned int y) const {
-    return m_buffer[y * m_width + x];
+    return buffer_[y * width_ + x];
   }
 
   void add(unsigned int x, unsigned int y, const glm::vec3& v) {
-    m_buffer[y * m_width + x] += v;
+    buffer_[y * width_ + x] += v;
   }
 
-  const glm::vec3* data() const { return m_buffer.data(); }
+  const glm::vec3* data() const { return buffer_.data(); }
 
   /**
    * Append another buffer to this one.
@@ -49,22 +49,22 @@ class SampleBuffer {
    */
   void append(const SampleBuffer& other) {
     assert(width() == other.width() && height() == other.height());
-    auto it = m_buffer.begin();
-    auto io = other.m_buffer.cbegin();
-    while (it < m_buffer.cend()) {
+    auto it = buffer_.begin();
+    auto io = other.buffer_.cbegin();
+    while (it < buffer_.cend()) {
       *it += *io;
       ++it;
       ++io;
     }
 
-    m_samples += other.samples();
+    samples_ += other.samples();
   }
 
  private:
-  unsigned int m_width, m_height;
-  unsigned int m_samples;
+  unsigned int width_, height_;
+  unsigned int samples_;
 
-  std::vector<glm::vec3> m_buffer;
+  std::vector<glm::vec3> buffer_;
 };
 
 /**

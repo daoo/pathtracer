@@ -10,41 +10,41 @@ template <typename T>
 class ConcurrentQueue {
  public:
   void push(const T& data) {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_queue.push(data);
+    std::unique_lock<std::mutex> lock(mutex_);
+    queue_.push(data);
     lock.unlock();
-    m_cond.notify_one();
+    cond_.notify_one();
   }
 
   bool empty() const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_queue.empty();
+    std::lock_guard<std::mutex> lock(mutex_);
+    return queue_.empty();
   }
 
   bool try_pop(T& val) {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::mutex> lock(mutex_);
 
-    if (m_queue.empty()) return false;
+    if (queue_.empty()) return false;
 
-    val = m_queue.front();
-    m_queue.pop();
+    val = queue_.front();
+    queue_.pop();
     return true;
   }
 
   void wait_and_pop(T& val) {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::unique_lock<std::mutex> lock(mutex_);
 
-    while (m_queue.empty())
-      m_cond.wait(lock);
+    while (queue_.empty())
+      cond_.wait(lock);
 
-    val = m_queue.front();
-    m_queue.pop();
+    val = queue_.front();
+    queue_.pop();
   }
 
  private:
-  std::queue<T> m_queue;
-  std::mutex m_mutex;
-  std::condition_variable m_cond;
+  std::queue<T> queue_;
+  std::mutex mutex_;
+  std::condition_variable cond_;
 };
 }  // namespace util
 

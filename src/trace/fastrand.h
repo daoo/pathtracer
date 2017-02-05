@@ -7,15 +7,15 @@
 namespace trace {
 class FastRand {
  public:
-  FastRand() : m_engine(std::random_device()()) {}
+  FastRand() : engine_(std::random_device()()) {}
 
   float next() {
     return std::generate_canonical<float, std::numeric_limits<float>::digits>(
-        m_engine);
+        engine_);
   }
 
  private:
-  std::mt19937 m_engine;
+  std::mt19937 engine_;
 };
 }  // namespace trace
 
