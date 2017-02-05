@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <iomanip>
 #include <iostream>
 #include <ratio>
 #include <sstream>
@@ -17,6 +18,7 @@
 #include "trace/samplebuffer.h"
 #include "trace/scene.h"
 #include "util/clock.h"
+#include "util/nicetime.h"
 #include "util/path.h"
 #include "wavefront/mtl.h"
 #include "wavefront/obj.h"
@@ -122,7 +124,9 @@ void display() {
   render();
   glutSwapBuffers();
 
-  std::cout << g_buffer->samples() << ": " << trace_time << "s\n";
+  std::cout << "\r" << g_buffer->samples() << ": " << std::fixed
+            << std::setprecision(1) << util::TimeAutoUnit(trace_time)
+            << std::flush;
 }
 
 void idle() {

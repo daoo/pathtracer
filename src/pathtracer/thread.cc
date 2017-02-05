@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstddef>
 #include <functional>
+#include <iomanip>
 #include <iostream>
 #include <ratio>
 #include <thread>
@@ -29,42 +30,31 @@ class KdTreeArray;
 struct MessageSample {
   unsigned int thread;
   unsigned int sample;
-  float time;
+  double time;
 };
 
 struct WorkerStatus {
   unsigned int samples;
-  float total;
+  double total;
 };
 
-void print_status(unsigned int samples_per_thread,
+void print_status(unsigned int total_samples,
                   const std::vector<WorkerStatus>& status) {
-  size_t thread_count = status.size();
-  size_t samples = samples_per_thread * thread_count;
-
-  float total_time = 0;
-  unsigned int total_samples = 0;
-
-  for (unsigned int i = 0; i < thread_count; ++i) {
-    const WorkerStatus& ws = status[i];
-
-    float avg = ws.total / ws.samples;
-    float eta = avg * (samples_per_thread - ws.samples);
-
-    total_samples += ws.samples;
-    total_time += avg;
-
-    std::cout << "Thread " << i << ": " << ws.samples << "/"
-              << samples_per_thread;
-    std::cout << ", ";
-    std::cout << "avg: " << avg << " sec, eta: "
-              << util::nice_time(static_cast<unsigned int>(eta)) << "\n";
+  double completed_time = 0;
+  unsigned int completed_samples = 0;
+  for (const WorkerStatus& ws : status) {
+    completed_samples += ws.samples;
+    completed_time += ws.total;
   }
 
-  float avg = total_time / thread_count;
-
-  std::cout << "Total: " << total_samples << "/" << samples << ", "
-            << "avg: " << avg << " sec\n\n";
+  double mean_sample_time = completed_time / completed_samples;
+  unsigned int samples_left = total_samples - completed_samples;
+  double time_left = samples_left * mean_sample_time / status.size();
+  std::cout << "\r[" << completed_samples << "/" << total_samples << "] ";
+  std::cout << "mean sample time: " << std::fixed << std::setprecision(1)
+            << util::TimeAutoUnit(mean_sample_time) << ", ";
+  std::cout << "time left: " << util::TimeSplit(time_left);
+  std::cout << std::flush;
 }
 
 void worker(const kdtree::KdTreeArray& kdtree,
@@ -80,7 +70,7 @@ void worker(const kdtree::KdTreeArray& kdtree,
   while (buffer.samples() < sample_count) {
     util::Clock clock;
     pathtrace(kdtree, lights, pinhole, rand, buffer);
-    float trace_time = clock.measure<float, std::ratio<1>>();
+    double trace_time = clock.measure<double, std::ratio<1>>();
 
     queue.push({thread, buffer.samples(), trace_time});
   }
@@ -134,8 +124,10 @@ void program(const path& obj_file,
 
     if (msg.sample == samples_per_thread) --working;
 
-    print_status(samples_per_thread, status);
+    print_status(sample_count, status);
   }
+
+  std::cout << '\n';
 
   for (std::thread& th : threads) {
     th.join();
