@@ -17,7 +17,7 @@ struct Triangle;
 namespace kdtree {
 namespace {
 KdNodeLinked* go(unsigned int depth, Axis axis, const Box& parent) {
-  if (depth >= 20 || parent.triangles.size() <= 10) {
+  if (depth >= 20 || parent.triangles.size() <= 6) {
     return new KdNodeLinked(
         new vector<const geometry::Triangle*>(parent.triangles));
   } else {
