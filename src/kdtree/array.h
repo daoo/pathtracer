@@ -32,8 +32,6 @@ class KdNodeArray {
   }
 
  private:
-  enum NodeType { Split, Leaf };
-
   union {
     uint32_t index_;
     float distance_;
