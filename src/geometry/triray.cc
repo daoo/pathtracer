@@ -5,34 +5,34 @@
 #include "geometry/ray.h"
 #include "geometry/triangle.h"
 
+using std::experimental::optional;
+
 namespace {
 constexpr float epsilon = 0.00001f;
 }  // namespace
 
 namespace geometry {
-bool triray(const Triangle& tri, const Ray& ray, float& t, glm::vec3& n) {
+optional<TriRayIntersection> intersect(const Triangle& tri, const Ray& ray) {
   glm::vec3 e1 = tri.v1 - tri.v0;
   glm::vec3 e2 = tri.v2 - tri.v0;
   glm::vec3 q = glm::cross(ray.direction, e2);
 
   float a = glm::dot(e1, q);
-  if (a > -epsilon && a < epsilon) return false;
+  if (a > -epsilon && a < epsilon) return optional<TriRayIntersection>();
 
   glm::vec3 s = ray.origin - tri.v0;
   float f = 1.0f / a;
   float u = f * glm::dot(s, q);
-  if (u < 0.0f || u > 1.0f) return false;
+  if (u < 0.0f || u > 1.0f) return optional<TriRayIntersection>();
 
   glm::vec3 r = glm::cross(s, e1);
   float v = f * glm::dot(ray.direction, r);
-  if (v < 0.0f || u + v > 1.0f) return false;
+  if (v < 0.0f || u + v > 1.0f) return optional<TriRayIntersection>();
 
-  t = f * glm::dot(e2, r);
-  n = glm::normalize((1.0f - (u + v)) * tri.n0 + u * tri.n1 + v * tri.n2);
+  float t = f * glm::dot(e2, r);
 
-  return true;
+  return optional<TriRayIntersection>({&tri, &ray, t, u, v});
 }
-
 bool intersect_triangles(const std::vector<Triangle>& triangles,
                          const Ray& ray,
                          float mint,
@@ -42,17 +42,12 @@ bool intersect_triangles(const std::vector<Triangle>& triangles,
   bool hit = false;
 
   for (const geometry::Triangle& triangle : triangles) {
-    float t;
-    glm::vec3 n;
-    if (triray(triangle, ray, t, n)) {
-      if (t >= mint && t <= maxt) {
-        normal = n;
-        tag = triangle.tag;
-
-        maxt = t;
-
-        hit = true;
-      }
+    optional<TriRayIntersection> result = intersect(triangle, ray);
+    if (result && result->t >= mint && result->t <= maxt) {
+      normal = result->get_normal();
+      tag = triangle.tag;
+      maxt = result->t;
+      hit = true;
     }
   }
 

@@ -1,14 +1,29 @@
 #ifndef GEOMETRY_TRIRAY_H_
 #define GEOMETRY_TRIRAY_H_
 
+#include <experimental/optional>
 #include <glm/glm.hpp>
 #include <vector>
 
-namespace geometry {
-struct Ray;
-struct Triangle;
+#include "geometry/ray.h"
+#include "geometry/triangle.h"
 
-bool triray(const Triangle& tri, const Ray& ray, float& t, glm::vec3& n);
+namespace geometry {
+struct TriRayIntersection {
+  const Triangle* triangle;
+  const Ray* ray;
+  float t, u, v;
+
+  inline glm::vec3 get_position() const { return ray->param(t); }
+
+  inline glm::vec3 get_normal() const {
+    return glm::normalize((1.0f - (u + v)) * triangle->n0 + u * triangle->n1 +
+                          v * triangle->n2);
+  }
+};
+
+std::experimental::optional<TriRayIntersection> intersect(const Triangle& tri,
+                                                          const Ray& ray);
 
 bool intersect_triangles(const std::vector<Triangle>& triangles,
                          const Ray& ray,
