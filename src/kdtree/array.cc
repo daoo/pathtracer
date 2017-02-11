@@ -3,24 +3,19 @@
 #include <glm/glm.hpp>
 
 #include <algorithm>
-#include <vector>
 
 #include "geometry/ray.h"
 #include "geometry/triray.h"
-#include "kdtree/intersection.h"
 #include "kdtree/util.h"
 
-using glm::vec3;
-using std::vector;
+using std::experimental::optional;
 
 namespace kdtree {
-bool search_tree(const KdTreeArray& tree,
-                 const geometry::Ray& ray,
-                 const float tmininit,
-                 const float tmaxinit,
-                 Intersection& isect) {
+optional<geometry::TriRayIntersection> search_tree(const KdTreeArray& tree,
+                                                   const geometry::Ray& ray,
+                                                   float tmininit,
+                                                   float tmaxinit) {
   unsigned int index = 0;
-  float raymaxt = tmaxinit;
   float tmin = tmininit;
   float tmax = tmaxinit;
   Axis axis = X;
@@ -30,18 +25,11 @@ bool search_tree(const KdTreeArray& tree,
 
     if (node.is_leaf()) {
       optional<geometry::TriRayIntersection> result =
-          find_closest(tree.get_triangles(node), ray, tmin, raymaxt);
+          find_closest(tree.get_triangles(node), ray, tmin, tmax);
       if (result) {
-        raymaxt = result->t;
-      }
-
-      if (result && raymaxt < tmax) {
-        isect.position = result->get_position();
-        isect.normal = result->get_normal();
-        isect.tag = result->triangle.tag;
-        return true;
+        return result;
       } else if (tmax == tmaxinit) {
-        return false;
+        return optional<geometry::TriRayIntersection>();
       } else {
         tmin = tmax;
         tmax = tmaxinit;
@@ -49,12 +37,10 @@ bool search_tree(const KdTreeArray& tree,
         axis = X;
       }
     } else {
-      const float p = node.get_split();
-      const float o = ray.origin[axis];
-      const float d = ray.direction[axis];
-
+      float p = node.get_split();
+      float o = ray.origin[axis];
+      float d = ray.direction[axis];
       float t = (p - o) / d;
-
       unsigned int first = KdTreeArray::left_child(index);
       unsigned int second = KdTreeArray::right_child(index);
 

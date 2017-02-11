@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <experimental/optional>
 #include <limits>
 #include <vector>
 
@@ -10,6 +11,7 @@
 
 namespace geometry {
 struct Ray;
+struct TriRayIntersection;
 }  // namespace geometry
 
 namespace kdtree {
@@ -110,11 +112,11 @@ class KdTreeArray {
   std::vector<std::vector<geometry::Triangle>> leaf_store_;
 };
 
-bool search_tree(const KdTreeArray& tree,
-                 const geometry::Ray& ray,
-                 const float tmininit,
-                 const float tmaxinit,
-                 Intersection& isect);
+std::experimental::optional<geometry::TriRayIntersection> search_tree(
+    const KdTreeArray& tree,
+    const geometry::Ray& ray,
+    float tmin,
+    float tmax);
 }  // namespace kdtree
 
 #endif  // KDTREE_ARRAY_H_

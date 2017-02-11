@@ -1,13 +1,16 @@
 #include "trace/pathtracer.h"
 
+#include <experimental/optional>
 #include <glm/gtc/constants.hpp>
 
+#include "geometry/triray.h"
 #include "kdtree/array.h"
 #include "kdtree/intersection.h"
 #include "trace/material.h"
 #include "trace/mcsampling.h"
 
 using glm::vec3;
+using std::experimental::optional;
 using std::vector;
 
 namespace kdtree {
@@ -15,8 +18,7 @@ bool any_intersects(const KdTreeArray& kdtree,
                     const geometry::Ray& ray,
                     float tmin,
                     float tmax) {
-  Intersection isect;
-  return search_tree(kdtree, ray, tmin, tmax, isect);
+  return static_cast<bool>(search_tree(kdtree, ray, tmin, tmax));
 }
 }  // namespace kdtree
 
@@ -62,15 +64,16 @@ vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
                            size_t bounce) {
   if (bounce >= MAX_BOUNCES) return radiance;
 
-  kdtree::Intersection isect;
-  if (!kdtree::search_tree(kdtree, ray, 0.0f, FLT_MAX, isect))
-    return radiance + transport * environment_light(ray);
+  optional<geometry::TriRayIntersection> intersection =
+      kdtree::search_tree(kdtree, ray, 0.0f, FLT_MAX);
+  if (!intersection) return radiance + transport * environment_light(ray);
 
   const vec3 wi = -ray.direction;
-  const vec3 point = isect.position;
-  const vec3 n = isect.normal;
+  const vec3 point = intersection->get_position();
+  const vec3 n = intersection->get_normal();
 
-  const Material* material = static_cast<const Material*>(isect.tag);
+  const Material* material =
+      static_cast<const Material*>(intersection->triangle->tag);
 
   const vec3 offset = EPSILON * n;
   const vec3 offset_up = point + offset;
