@@ -29,11 +29,16 @@ bool search_tree(const KdTreeArray& tree,
     KdNodeArray node = tree.get_node(index);
 
     if (node.is_leaf()) {
-      bool hit = intersect_triangles(tree.get_triangles(node), ray, tmin,
-                                     raymaxt, isect.normal, isect.tag);
+      optional<geometry::TriRayIntersection> result =
+          find_closest(tree.get_triangles(node), ray, tmin, raymaxt);
+      if (result) {
+        raymaxt = result->t;
+      }
 
-      if (hit && raymaxt < tmax) {
-        isect.position = ray.param(raymaxt);
+      if (result && raymaxt < tmax) {
+        isect.position = result->get_position();
+        isect.normal = result->get_normal();
+        isect.tag = result->triangle.tag;
         return true;
       } else if (tmax == tmaxinit) {
         return false;

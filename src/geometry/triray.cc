@@ -33,24 +33,21 @@ optional<TriRayIntersection> intersect(const Triangle& tri, const Ray& ray) {
 
   return optional<TriRayIntersection>({&tri, &ray, t, u, v});
 }
-bool intersect_triangles(const std::vector<Triangle>& triangles,
-                         const Ray& ray,
-                         float mint,
-                         float& maxt,
-                         glm::vec3& normal,
-                         const void*& tag) {
-  bool hit = false;
 
+optional<TriRayIntersection> find_closest(
+    const std::vector<Triangle>& triangles,
+    const Ray& ray,
+    float mint,
+    float maxt) {
+  optional<TriRayIntersection> closest;
   for (const geometry::Triangle& triangle : triangles) {
     optional<TriRayIntersection> result = intersect(triangle, ray);
     if (result && result->t >= mint && result->t <= maxt) {
-      normal = result->get_normal();
-      tag = triangle.tag;
       maxt = result->t;
-      hit = true;
+      closest = result;
     }
   }
 
-  return hit;
+  return closest;
 }
 }  // namespace geometry

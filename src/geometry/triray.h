@@ -25,12 +25,11 @@ struct TriRayIntersection {
 std::experimental::optional<TriRayIntersection> intersect(const Triangle& tri,
                                                           const Ray& ray);
 
-bool intersect_triangles(const std::vector<Triangle>& triangles,
-                         const Ray& ray,
-                         float mint,
-                         float& maxt,
-                         glm::vec3& normal,
-                         const void*& tag);
+std::experimental::optional<TriRayIntersection> find_closest(
+    const std::vector<Triangle>& triangles,
+    const Ray& ray,
+    float mint,
+    float maxt);
 }  // namespace geometry
 
 #endif  // GEOMETRY_TRIRAY_H_
