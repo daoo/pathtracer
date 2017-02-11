@@ -35,24 +35,32 @@ struct MessageSample {
 
 struct WorkerStatus {
   unsigned int samples;
-  double total;
+  double total_time;
+  double total_squared_time;
 };
 
 void print_status(unsigned int total_samples,
                   const std::vector<WorkerStatus>& status) {
-  double completed_time = 0;
+  double total_time = 0;
+  double total_squared_time = 0;
   unsigned int completed_samples = 0;
   for (const WorkerStatus& ws : status) {
     completed_samples += ws.samples;
-    completed_time += ws.total;
+    total_time += ws.total_time;
+    total_squared_time += ws.total_squared_time;
   }
 
-  double mean_sample_time = completed_time / completed_samples;
+  double mean_time = total_time / completed_samples;
+  double mean_squared_time = total_squared_time / completed_samples;
+  double standard_deviation =
+      glm::sqrt(mean_squared_time - mean_time * mean_time);
   unsigned int samples_left = total_samples - completed_samples;
-  double time_left = samples_left * mean_sample_time / status.size();
+  double time_left = samples_left * mean_time / status.size();
   std::cout << "\r[" << completed_samples << "/" << total_samples << "] ";
-  std::cout << "mean sample time: " << std::fixed << std::setprecision(1)
-            << util::TimeAutoUnit(mean_sample_time) << ", ";
+  std::cout << "mean: " << std::fixed << std::setprecision(1)
+            << util::TimeAutoUnit(mean_time) << ", ";
+  std::cout << "sdev: " << std::fixed << std::setprecision(1)
+            << util::TimeAutoUnit(standard_deviation) << ", ";
   std::cout << "time left: " << util::TimeSplit(time_left);
   std::cout << std::flush;
 }
@@ -120,7 +128,8 @@ void program(const path& obj_file,
     WorkerStatus& ws = status[msg.thread];
 
     ws.samples = msg.sample;
-    ws.total += msg.time;
+    ws.total_time += msg.time;
+    ws.total_squared_time += msg.time * msg.time;
 
     if (msg.sample == samples_per_thread) --working;
 
