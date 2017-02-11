@@ -4,7 +4,6 @@
 
 #include "kdtree/array.h"
 #include "kdtree/intersection.h"
-#include "kdtree/traverse.h"
 #include "trace/material.h"
 #include "trace/mcsampling.h"
 

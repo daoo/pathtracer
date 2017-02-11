@@ -1,4 +1,4 @@
-#include "kdtree/traverse.h"
+#include "kdtree/array.h"
 
 #include <glm/glm.hpp>
 
@@ -8,7 +8,6 @@
 #include "geometry/ray.h"
 #include "geometry/triangle.h"
 #include "geometry/triray.h"
-#include "kdtree/array.h"
 #include "kdtree/intersection.h"
 #include "kdtree/util.h"
 

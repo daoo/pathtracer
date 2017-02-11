@@ -1,15 +1,20 @@
 #ifndef KDTREE_ARRAY_H_
 #define KDTREE_ARRAY_H_
 
-#include <algorithm>
+#include <cassert>
 #include <cstdint>
 #include <limits>
 #include <vector>
 
 #include "geometry/triangle.h"
-#include "kdtree/util.h"
+
+namespace geometry {
+struct Ray;
+}  // namespace geometry
 
 namespace kdtree {
+struct Intersection;
+
 class KdNodeArray {
  public:
   KdNodeArray() : index_(EMPTY_LEAF) {}
@@ -104,6 +109,12 @@ class KdTreeArray {
   std::vector<KdNodeArray> nodes_;
   std::vector<std::vector<geometry::Triangle>> leaf_store_;
 };
+
+bool search_tree(const KdTreeArray& tree,
+                 const geometry::Ray& ray,
+                 const float tmininit,
+                 const float tmaxinit,
+                 Intersection& isect);
 }  // namespace kdtree
 
 #endif  // KDTREE_ARRAY_H_
