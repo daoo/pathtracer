@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "geometry/ray.h"
-#include "geometry/triangle.h"
 #include "geometry/triray.h"
 #include "kdtree/intersection.h"
 #include "kdtree/util.h"
@@ -15,34 +14,6 @@ using glm::vec3;
 using std::vector;
 
 namespace kdtree {
-namespace {
-bool intersect_triangles(const vector<geometry::Triangle>& triangles,
-                         const geometry::Ray& ray,
-                         float mint,
-                         float& maxt,
-                         vec3& normal,
-                         const void*& tag) {
-  bool hit = false;
-
-  for (const geometry::Triangle& triangle : triangles) {
-    float t;
-    vec3 n;
-    if (triray(triangle, ray, t, n)) {
-      if (t >= mint && t <= maxt) {
-        normal = n;
-        tag = triangle.tag;
-
-        maxt = t;
-
-        hit = true;
-      }
-    }
-  }
-
-  return hit;
-}
-}  // namespace
-
 bool search_tree(const KdTreeArray& tree,
                  const geometry::Ray& ray,
                  const float tmininit,

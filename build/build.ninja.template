@@ -13,6 +13,7 @@ rule link
   description = LINK $out
 
 build $outdir/geometry/bounding.o:             cxx $src/geometry/bounding.cc
+build $outdir/geometry/triray.o:               cxx $src/geometry/triray.cc
 build $outdir/kdtree/array.o:                  cxx $src/kdtree/array.cc
 build $outdir/kdtree/naive.o:                  cxx $src/kdtree/naive.cc
 build $outdir/kdtree/optimize.o:               cxx $src/kdtree/optimize.cc
@@ -38,6 +39,7 @@ build $outdir/wavefront/obj.o:                 cxx $src/wavefront/obj.cc
 
 build $outdir/libtrace.a: ar $
   $outdir/geometry/bounding.o $
+  $outdir/geometry/triray.o $
   $outdir/kdtree/array.o $
   $outdir/kdtree/naive.o $
   $outdir/kdtree/optimize.o $
