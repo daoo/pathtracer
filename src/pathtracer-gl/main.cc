@@ -119,7 +119,7 @@ void save_screenshot() {
 void display() {
   util::Clock clock;
   pathtrace(g_scene.kdtree, g_scene.lights, *g_pinhole, g_rand, *g_buffer);
-  float trace_time = clock.measure<float, std::ratio<1>>();
+  double trace_time = clock.measure<double, std::ratio<1>>();
 
   render();
   glutSwapBuffers();
