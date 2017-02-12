@@ -35,15 +35,15 @@ vec3 from_light(const kdtree::KdTreeArray& kdtree,
                 const vec3& n,
                 const SphereLight& light,
                 FastRand& rand) {
-  const vec3 source = light.light_sample(rand);
-  const vec3 direction = source - target;
+  vec3 source = light.light_sample(rand);
+  vec3 direction = source - target;
 
-  const geometry::Ray shadow_ray{offset, direction};
+  geometry::Ray shadow_ray{offset, direction};
 
   if (!any_intersects(kdtree, shadow_ray, 0.0f, 1.0f)) {
-    const vec3 wr = normalize(direction);
+    vec3 wr = normalize(direction);
 
-    const vec3 radiance = light.light_emitted(target);
+    vec3 radiance = light.light_emitted(target);
 
     return material->brdf(wi, wr, n) * radiance * abs(dot(wr, n));
   }
@@ -68,16 +68,16 @@ vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
       kdtree::search_tree(kdtree, ray, 0.0f, FLT_MAX);
   if (!intersection) return radiance + transport * environment_light(ray);
 
-  const vec3 wi = -ray.direction;
-  const vec3 point = intersection->get_position();
-  const vec3 n = intersection->get_normal();
+  vec3 wi = -ray.direction;
+  vec3 point = intersection->get_position();
+  vec3 n = intersection->get_normal();
 
   const Material* material =
       static_cast<const Material*>(intersection->triangle->tag);
 
-  const vec3 offset = EPSILON * n;
-  const vec3 offset_up = point + offset;
-  const vec3 offset_down = point - offset;
+  vec3 offset = EPSILON * n;
+  vec3 offset_up = point + offset;
+  vec3 offset_down = point - offset;
 
   vec3 sum_lights = glm::zero<vec3>();
   for (const SphereLight& light : lights) {
@@ -87,11 +87,11 @@ vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
 
   radiance += transport * sum_lights;
 
-  const LightSample sample = material->sample_brdf(rand, wi, n);
+  LightSample sample = material->sample_brdf(rand, wi, n);
 
   if (sample.pdf < EPSILON) return radiance;
 
-  const float cosineterm = abs(dot(sample.wo, n));
+  float cosineterm = abs(dot(sample.wo, n));
   transport = transport * (sample.brdf * (cosineterm / sample.pdf));
 
   if (length2(transport) < EPSILON) return radiance;
