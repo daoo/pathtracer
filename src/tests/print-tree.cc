@@ -20,13 +20,13 @@ void helper(const std::string& label,
             const kdtree::KdNodeLinked* node,
             unsigned int depth) {
   std::cout << std::string(depth * 2, ' ');
-  if (node->triangles != nullptr) {
-    std::cout << "Leaf: " << node->triangles->size() << "\n";
+  if (node->GetTriangles() != nullptr) {
+    std::cout << "Leaf: " << node->GetTriangles()->size() << "\n";
   } else {
-    std::cout << "Split: " << label << ", " << node->axis << ", "
-              << node->distance << "\n";
-    helper("left", node->left, depth + 1);
-    helper("right", node->right, depth + 1);
+    std::cout << "Split: " << label << ", " << node->GetAxis() << ", "
+              << node->GetDistance() << "\n";
+    helper("left", node->GetLeft(), depth + 1);
+    helper("right", node->GetRight(), depth + 1);
   }
 }
 

@@ -2,7 +2,7 @@
 #define KDTREE_OPTIMIZE_H_
 
 namespace kdtree {
-struct KdNodeLinked;
+class KdNodeLinked;
 class KdTreeArray;
 KdTreeArray optimize(const KdNodeLinked*);
 }  // namespace kdtree

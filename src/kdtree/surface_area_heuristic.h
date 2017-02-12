@@ -8,7 +8,7 @@ struct Triangle;
 }
 
 namespace kdtree {
-struct KdNodeLinked;
+class KdNodeLinked;
 KdNodeLinked* build_tree_sah(const std::vector<geometry::Triangle>& triangles);
 }
 

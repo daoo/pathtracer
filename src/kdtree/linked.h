@@ -7,36 +7,47 @@
 #include "kdtree/util.h"
 
 namespace kdtree {
-struct KdNodeLinked {
+class KdNodeLinked {
+ public:
   KdNodeLinked(Axis axis,
                float distance,
                KdNodeLinked* left,
                KdNodeLinked* right)
-      : axis(axis),
-        distance(distance),
-        triangles(nullptr),
-        left(left),
-        right(right) {}
+      : axis_(axis),
+        distance_(distance),
+        triangles_(nullptr),
+        left_(left),
+        right_(right) {}
 
   KdNodeLinked(std::vector<const geometry::Triangle*>* triangles)
-      : axis(),
-        distance(),
-        triangles(triangles),
-        left(nullptr),
-        right(nullptr) {}
+      : axis_(),
+        distance_(),
+        triangles_(triangles),
+        left_(nullptr),
+        right_(nullptr) {}
 
   ~KdNodeLinked() {
-    delete left;
-    delete right;
-    delete triangles;
+    delete left_;
+    delete right_;
+    delete triangles_;
   }
 
-  Axis axis;
-  float distance;
-  std::vector<const geometry::Triangle*>* triangles;
+  inline Axis GetAxis() const { return axis_; }
+  inline float GetDistance() const { return distance_; }
+  inline std::vector<const geometry::Triangle*>* GetTriangles() const {
+    return triangles_;
+  }
 
-  KdNodeLinked* left;
-  KdNodeLinked* right;
+  inline const KdNodeLinked* GetLeft() const { return left_; }
+  inline const KdNodeLinked* GetRight() const { return right_; }
+
+ private:
+  Axis axis_;
+  float distance_;
+  std::vector<const geometry::Triangle*>* triangles_;
+
+  KdNodeLinked* left_;
+  KdNodeLinked* right_;
 };
 }  // namespace kdtree
 

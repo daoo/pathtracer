@@ -10,13 +10,13 @@ namespace {
 void helper(KdTreeArray& result, unsigned int index, const KdNodeLinked* node) {
   assert(node != nullptr);
 
-  if (node->triangles != nullptr) {
-    result.add_leaf(index, *node->triangles);
+  if (node->GetTriangles() != nullptr) {
+    result.add_leaf(index, *node->GetTriangles());
   } else {
-    result.add_split(index, node->distance);
+    result.add_split(index, node->GetDistance());
 
-    helper(result, KdTreeArray::left_child(index), node->left);
-    helper(result, KdTreeArray::right_child(index), node->right);
+    helper(result, KdTreeArray::left_child(index), node->GetLeft());
+    helper(result, KdTreeArray::right_child(index), node->GetRight());
   }
 }
 }  // namespace
