@@ -4,18 +4,28 @@
 #include <iostream>
 
 namespace util {
-struct TimeSplit {
-  TimeSplit(double total_seconds)
-      : hours(total_seconds / 3600),
-        minutes((total_seconds - (hours * 3600)) / 60),
-        seconds(total_seconds - (hours * 3600) - (minutes * 60)) {}
+class TimeSplit {
+ public:
+  TimeSplit(double seconds)
+      : hours_(static_cast<size_t>(seconds / 3600.0)),
+        minutes_(static_cast<size_t>((seconds - (hours_ * 3600.0)) / 60.0)),
+        seconds_(static_cast<size_t>(seconds - (hours_ * 3600.0) -
+                                     (minutes_ * 60.0))) {}
 
-  size_t hours, minutes, seconds;
+ private:
+  friend std::ostream& operator<<(std::ostream&, const TimeSplit&);
+
+  size_t hours_, minutes_, seconds_;
 };
 
-struct TimeAutoUnit {
-  TimeAutoUnit(double seconds) : seconds(seconds) {}
-  double seconds;
+class TimeAutoUnit {
+ public:
+  TimeAutoUnit(double seconds) : seconds_(seconds) {}
+
+ private:
+  friend std::ostream& operator<<(std::ostream&, const TimeAutoUnit&);
+
+  double seconds_;
 };
 
 std::ostream& operator<<(std::ostream&, const TimeSplit&);
