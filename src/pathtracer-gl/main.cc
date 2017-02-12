@@ -39,25 +39,25 @@ constexpr int ERROR_PARAMS = 1;
 constexpr int ERROR_FILE_NOT_FOUND = 2;
 constexpr int ERROR_PROGRAM = 3;
 
-trace::FastRand g_rand;
+static trace::FastRand g_rand;
 
-std::experimental::filesystem::path g_out_dir;
-std::experimental::filesystem::path g_obj_name;
+static std::experimental::filesystem::path g_out_dir;
+static std::experimental::filesystem::path g_obj_name;
 
-unsigned int g_width = DEFAULT_WIDTH;
-unsigned int g_height = DEFAULT_HEIGHT;
-unsigned int g_subsampling = SUBSAMPLING;
+static unsigned int g_width = DEFAULT_WIDTH;
+static unsigned int g_height = DEFAULT_HEIGHT;
+static unsigned int g_subsampling = SUBSAMPLING;
 
-trace::Scene g_scene;
-unsigned int g_camera;
+static trace::Scene g_scene;
+static unsigned int g_camera;
 
-trace::Pinhole* g_pinhole = nullptr;
-trace::SampleBuffer* g_buffer = nullptr;
+static trace::Pinhole* g_pinhole = nullptr;
+static trace::SampleBuffer* g_buffer = nullptr;
 
-GLuint g_framebuffer_texture;
-GLuint g_shader_program;
-GLint g_uniforg_framebuffer, g_uniforg_framebuffer_samples;
-GLuint g_vertex_array_object;
+static GLuint g_framebuffer_texture;
+static GLuint g_shader_program;
+static GLint g_uniforg_framebuffer, g_uniforg_framebuffer_samples;
+static GLuint g_vertex_array_object;
 
 void restart() {
   unsigned int w = g_width / g_subsampling;
