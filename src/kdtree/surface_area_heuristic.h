@@ -8,8 +8,8 @@ struct Triangle;
 }
 
 namespace kdtree {
-class KdNodeLinked;
-KdNodeLinked* build_tree_sah(const std::vector<geometry::Triangle>& triangles);
+class KdTreeLinked;
+KdTreeLinked build_tree_sah(const std::vector<geometry::Triangle>& triangles);
 }
 
 #endif  // KDTREE_SURFACE_AREA_HEURISTIC_H_

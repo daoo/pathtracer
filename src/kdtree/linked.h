@@ -49,6 +49,26 @@ class KdNodeLinked {
   KdNodeLinked* left_;
   KdNodeLinked* right_;
 };
+
+class KdTreeLinked {
+ public:
+  KdTreeLinked(const KdNodeLinked* root,
+               const std::vector<geometry::Triangle>& triangles)
+      : root_(root), triangles_(triangles) {}
+
+  KdTreeLinked(KdTreeLinked&& other)
+      : root_(other.root_), triangles_(std::move(other.triangles_)) {
+    other.root_ = nullptr;
+  }
+
+  ~KdTreeLinked() { delete root_; }
+
+  const KdNodeLinked* GetRoot() const { return root_; }
+
+ private:
+  const KdNodeLinked* root_;
+  const std::vector<geometry::Triangle>& triangles_;
+};
 }  // namespace kdtree
 
 #endif  // KDTREE_LINKED_H_

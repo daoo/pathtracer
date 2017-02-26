@@ -105,9 +105,8 @@ void update_pointer_to_material(
 
 kdtree::KdTreeArray kdtree_from_triangles(
     const vector<geometry::Triangle>& triangles) {
-  kdtree::KdNodeLinked* linked = kdtree::build_tree_sah(triangles);
+  kdtree::KdTreeLinked linked = kdtree::build_tree_sah(triangles);
   kdtree::KdTreeArray array = kdtree::optimize(linked);
-  delete linked;
   return array;
 }
 
@@ -121,6 +120,6 @@ Scene new_scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl) {
 
   kdtree::KdTreeArray kdtree = kdtree_from_triangles(triangles);
 
-  return {kdtree, cameras, lights, triangles};
+  return {kdtree, cameras, lights};
 }
 }  // namespace trace

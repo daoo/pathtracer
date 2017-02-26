@@ -33,7 +33,6 @@ struct Scene {
   kdtree::KdTreeArray kdtree;
   std::vector<Camera> cameras;
   std::vector<SphereLight> lights;
-  std::vector<geometry::Triangle> triangles;
 };
 
 Scene new_scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl);

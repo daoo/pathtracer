@@ -100,12 +100,12 @@ KdNodeLinked* go(unsigned int depth, Axis axis, const Box& parent) {
 }
 }  // namespace
 
-KdNodeLinked* build_tree_sah(const std::vector<geometry::Triangle>& triangles) {
+KdTreeLinked build_tree_sah(const std::vector<geometry::Triangle>& triangles) {
   std::vector<const geometry::Triangle*> ptrs;
   for (const geometry::Triangle& tri : triangles) {
     ptrs.push_back(&tri);
   }
 
-  return go(0, X, Box{find_bounding(triangles), ptrs});
+  return {go(0, X, Box{find_bounding(triangles), ptrs}), triangles};
 }
 }  // namespace kdtree

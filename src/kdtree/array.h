@@ -69,15 +69,9 @@ class KdTreeArray {
   }
 
   void add_leaf(unsigned int node_index,
-                const std::vector<const geometry::Triangle*>& triangles) {
-    std::vector<geometry::Triangle> to;
-    for (const geometry::Triangle* tri : triangles) {
-      assert(tri != nullptr);
-      to.push_back(*tri);
-    }
-
+                const std::vector<geometry::Triangle>& triangles) {
     uint32_t triangles_index = static_cast<uint32_t>(leaf_store_.size());
-    leaf_store_.push_back(to);
+    leaf_store_.emplace_back(triangles);
 
     if (node_index >= nodes_.size()) {
       nodes_.resize(node_index + 1);

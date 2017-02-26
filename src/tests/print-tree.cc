@@ -30,8 +30,8 @@ void helper(const std::string& label,
   }
 }
 
-void print(const kdtree::KdNodeLinked* tree) {
-  helper("root", tree, 0);
+void print(const kdtree::KdTreeLinked& tree) {
+  helper("root", tree.GetRoot(), 0);
 }
 
 int main(int argc, char* argv[]) {
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
       trace::triangles_from_obj(wavefront::load_obj(obj_file));
 
   util::Clock clock;
-  kdtree::KdNodeLinked* kdtree = kdtree::build_tree_sah(triangles);
+  kdtree::KdTreeLinked kdtree = kdtree::build_tree_sah(triangles);
   float construction_time = clock.measure<float, std::ratio<1>>();
   std::cerr << "Built in " << construction_time << "s.\n";
   print(kdtree);

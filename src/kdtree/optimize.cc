@@ -11,7 +11,11 @@ void helper(KdTreeArray& result, unsigned int index, const KdNodeLinked* node) {
   assert(node != nullptr);
 
   if (node->GetTriangles() != nullptr) {
-    result.add_leaf(index, *node->GetTriangles());
+    std::vector<geometry::Triangle> copies;
+    for (const geometry::Triangle* ptr : *node->GetTriangles()) {
+      copies.emplace_back(*ptr);
+    }
+    result.add_leaf(index, copies);
   } else {
     result.add_split(index, node->GetDistance());
 
@@ -21,9 +25,9 @@ void helper(KdTreeArray& result, unsigned int index, const KdNodeLinked* node) {
 }
 }  // namespace
 
-KdTreeArray optimize(const KdNodeLinked* root) {
+KdTreeArray optimize(const KdTreeLinked& tree) {
   KdTreeArray result;
-  helper(result, 0, root);
+  helper(result, 0, tree.GetRoot());
   result.shrink_to_fit();
   return result;
 }
