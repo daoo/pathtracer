@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <ratio>
 #include <sstream>
 #include <stdexcept>
@@ -51,8 +52,8 @@ static unsigned int g_subsampling = SUBSAMPLING;
 static trace::Scene g_scene;
 static unsigned int g_camera;
 
-static trace::Pinhole* g_pinhole = nullptr;
-static trace::SampleBuffer* g_buffer = nullptr;
+static std::unique_ptr<trace::Pinhole> g_pinhole;
+static std::unique_ptr<trace::SampleBuffer> g_buffer;
 
 static GLuint g_framebuffer_texture;
 static GLuint g_shader_program;
@@ -63,10 +64,8 @@ void restart() {
   unsigned int w = g_width / g_subsampling;
   unsigned int h = g_height / g_subsampling;
 
-  delete g_pinhole;
-  delete g_buffer;
-  g_pinhole = new trace::Pinhole(g_scene.cameras[g_camera], w, h);
-  g_buffer = new trace::SampleBuffer(w, h);
+  g_pinhole.reset(new trace::Pinhole(g_scene.cameras[g_camera], w, h));
+  g_buffer.reset(new trace::SampleBuffer(w, h));
 }
 
 void increase_subsampling() {
