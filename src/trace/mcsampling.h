@@ -70,8 +70,8 @@ inline glm::vec2 concentric_sample_disk(FastRand& rand) {
 
 inline glm::vec3 cosine_sample_hemisphere(FastRand& engine) {
   glm::vec2 ret = concentric_sample_disk(engine);
-  return glm::vec3{ret.x, ret.y, glm::sqrt(glm::max(0.0f, 1.0f - ret.x * ret.x -
-                                                              ret.y * ret.y))};
+  float z = glm::sqrt(glm::max(0.0f, 1.0f - ret.x * ret.x - ret.y * ret.y));
+  return glm::vec3{ret.x, ret.y, z};
 }
 }  // namespace trace
 
