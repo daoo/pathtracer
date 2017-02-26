@@ -10,10 +10,6 @@ float reflectance(float r0, const vec3& wo, const vec3& n) {
          (1.0f - r0) * glm::pow(1.0f - glm::abs<float>(glm::dot(wo, n)), 5.0f);
 }
 
-vec3 blend(float factor, const vec3& a, const vec3& b) {
-  return factor * a + (1.0f - factor) * b;
-}
-
 constexpr int same_sign(float a, float b) {
   return (a < 0 && b < 0) || (a >= 0 && b >= 0);
 }
@@ -111,9 +107,8 @@ FresnelBlendMaterial::~FresnelBlendMaterial() {
 vec3 FresnelBlendMaterial::brdf(const vec3& wo,
                                 const vec3& wi,
                                 const vec3& n) const {
-  float r = reflectance(r0_, wo, n);
-  return r * reflection_->brdf(wo, wi, n) +
-         (1.0f - r) * refraction_->brdf(wo, wi, n);
+  return glm::mix(refraction_->brdf(wo, wi, n), reflection_->brdf(wo, wi, n),
+                  reflectance(r0_, wo, n));
 }
 
 LightSample FresnelBlendMaterial::sample_brdf(FastRand& rand,
@@ -136,7 +131,7 @@ BlendMaterial::~BlendMaterial() {
 }
 
 vec3 BlendMaterial::brdf(const vec3& wo, const vec3& wi, const vec3& n) const {
-  return blend(factor_, first_->brdf(wo, wi, n), second_->brdf(wo, wi, n));
+  return glm::mix(second_->brdf(wo, wi, n), first_->brdf(wo, wi, n), factor_);
 }
 
 LightSample BlendMaterial::sample_brdf(FastRand& rand,
