@@ -33,9 +33,8 @@ void helper(unsigned int index,
     }
     nodes[index] = KdNodeArray(node->GetDistance());
 
-    helper(KdTreeArray::left_child(index), node->GetLeft(), nodes, leaf_store);
-    helper(KdTreeArray::right_child(index), node->GetRight(), nodes,
-           leaf_store);
+    helper(KdTreeArray::LeftChild(index), node->GetLeft(), nodes, leaf_store);
+    helper(KdTreeArray::RightChild(index), node->GetRight(), nodes, leaf_store);
   }
 }
 }  // namespace

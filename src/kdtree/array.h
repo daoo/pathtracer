@@ -25,16 +25,16 @@ class KdNodeArray {
     index_ |= MASK_TYPE;
   }
 
-  bool is_leaf() const { return (index_ & MASK_TYPE) == TYPE_LEAF; }
-  bool is_split() const { return (index_ & MASK_TYPE) == TYPE_SPLIT; }
+  bool IsLeaf() const { return (index_ & MASK_TYPE) == TYPE_LEAF; }
+  bool IsSplit() const { return (index_ & MASK_TYPE) == TYPE_SPLIT; }
 
-  uint32_t get_index() const {
-    assert(is_leaf());
+  uint32_t GetIndex() const {
+    assert(IsLeaf());
     return index_ >> 1;
   }
 
-  float get_split() const {
-    assert(is_split());
+  float GetSplit() const {
+    assert(IsSplit());
     return distance_;
   }
 
@@ -62,21 +62,21 @@ class KdTreeArray {
               const std::vector<std::vector<geometry::Triangle>>& leaf_store)
       : nodes_(nodes), leaf_store_(leaf_store) {}
 
-  KdNodeArray get_node(unsigned int index) const {
+  KdNodeArray GetNode(unsigned int index) const {
     assert(index < nodes_.size());
     return nodes_[index];
   }
 
-  const std::vector<geometry::Triangle>& get_triangles(KdNodeArray node) const {
-    assert(node.is_leaf());
-    return leaf_store_[node.get_index()];
+  const std::vector<geometry::Triangle>& GetTriangles(KdNodeArray node) const {
+    assert(node.IsLeaf());
+    return leaf_store_[node.GetIndex()];
   }
 
-  static unsigned int left_child(unsigned int index) {
+  static unsigned int LeftChild(unsigned int index) {
     return (index << 1) + 1;
   }
 
-  static unsigned int right_child(unsigned int index) {
+  static unsigned int RightChild(unsigned int index) {
     return (index << 1) + 2;
   }
 

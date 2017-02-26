@@ -21,11 +21,11 @@ optional<geometry::TriRayIntersection> search_tree(const KdTreeArray& tree,
   Axis axis = X;
 
   while (true) {
-    KdNodeArray node = tree.get_node(index);
+    KdNodeArray node = tree.GetNode(index);
 
-    if (node.is_leaf()) {
+    if (node.IsLeaf()) {
       optional<geometry::TriRayIntersection> result =
-          find_closest(tree.get_triangles(node), ray, tmin, tmax);
+          find_closest(tree.GetTriangles(node), ray, tmin, tmax);
       if (result) {
         return result;
       } else if (tmax == tmaxinit) {
@@ -37,12 +37,12 @@ optional<geometry::TriRayIntersection> search_tree(const KdTreeArray& tree,
         axis = X;
       }
     } else {
-      float p = node.get_split();
+      float p = node.GetSplit();
       float o = ray.origin[axis];
       float d = ray.direction[axis];
       float t = (p - o) / d;
-      unsigned int first = KdTreeArray::left_child(index);
-      unsigned int second = KdTreeArray::right_child(index);
+      unsigned int first = KdTreeArray::LeftChild(index);
+      unsigned int second = KdTreeArray::RightChild(index);
 
       if (d < 0) {
         std::swap(first, second);
