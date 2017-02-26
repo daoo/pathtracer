@@ -114,10 +114,9 @@ vec3 FresnelBlendMaterial::brdf(const vec3& wo,
 LightSample FresnelBlendMaterial::sample_brdf(FastRand& rand,
                                               const vec3& wi,
                                               const vec3& n) const {
-  if (rand.next() < reflectance(r0_, wi, n))
-    return reflection_->sample_brdf(rand, wi, n);
-  else
-    return refraction_->sample_brdf(rand, wi, n);
+  return rand.next() < reflectance(r0_, wi, n)
+             ? reflection_->sample_brdf(rand, wi, n)
+             : refraction_->sample_brdf(rand, wi, n);
 }
 
 BlendMaterial::BlendMaterial(const Material* first,
