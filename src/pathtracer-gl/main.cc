@@ -233,9 +233,8 @@ int main(int argc, char* argv[]) {
     g_out_dir = out_dir;
     g_obj_name = obj_file.stem();
 
-    trace::Scene scene = trace::new_scene(wavefront::load_obj(obj_file),
-                                          wavefront::load_mtl(mtl_file));
-    g_scene.reset(new trace::Scene(scene));
+    g_scene.reset(new trace::Scene(wavefront::load_obj(obj_file),
+                                   wavefront::load_mtl(mtl_file)));
 
     init_gl(&argc, argv);
     resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);

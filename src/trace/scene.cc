@@ -50,13 +50,29 @@ Material* blend0_from_wavefront(const wavefront::Material& material,
 Material* material_from_wavefront(const wavefront::Material& material) {
   return blend0_from_wavefront(material, blend1_from_wavefront(material));
 }
+
+void update_pointer_to_material(
+    const std::map<std::string, Material*>& materials,
+    std::vector<geometry::Triangle>& triangles) {
+  for (geometry::Triangle& triangle : triangles) {
+    triangle.tag = materials.at(*static_cast<const std::string*>(triangle.tag));
+  }
+}
+
+kdtree::KdTreeArray kdtree_from_obj_mtl(const wavefront::Obj& obj,
+                                        const wavefront::Mtl& mtl) {
+  vector<geometry::Triangle> triangles = triangles_from_obj(obj);
+  map<string, Material*> materials = materials_from_mtl(mtl);
+  update_pointer_to_material(materials, triangles);
+  return kdtree::optimize(kdtree::build_tree_sah(triangles));
+}
 }  // namespace
 
 vector<SphereLight> lights_from_mtl(const wavefront::Mtl& mtl) {
   vector<SphereLight> lights;
   for (const wavefront::Light& light : mtl.lights) {
-    lights.push_back(
-        {light.center, light.color, light.intensity, light.radius});
+    lights.emplace_back(light.center, light.color, light.intensity,
+                        light.radius);
   }
   return lights;
 }
@@ -64,8 +80,8 @@ vector<SphereLight> lights_from_mtl(const wavefront::Mtl& mtl) {
 vector<Camera> cameras_from_mtl(const wavefront::Mtl& mtl) {
   vector<Camera> cameras;
   for (const wavefront::Camera& camera : mtl.cameras) {
-    cameras.push_back(Camera(camera.position, camera.target, camera.up,
-                             glm::radians(camera.fov)));
+    cameras.emplace_back(camera.position, camera.target, camera.up,
+                         glm::radians(camera.fov));
   }
   return cameras;
 }
@@ -75,7 +91,6 @@ map<string, Material*> materials_from_mtl(const wavefront::Mtl& mtl) {
   for (const wavefront::Material& material : mtl.materials) {
     materials[material.name] = material_from_wavefront(material);
   }
-
   return materials;
 }
 
@@ -95,31 +110,8 @@ vector<geometry::Triangle> triangles_from_obj(const wavefront::Obj& obj) {
   return triangles;
 }
 
-void update_pointer_to_material(
-    const std::map<std::string, Material*>& materials,
-    std::vector<geometry::Triangle>& triangles) {
-  for (geometry::Triangle& triangle : triangles) {
-    triangle.tag = materials.at(*static_cast<const std::string*>(triangle.tag));
-  }
-}
-
-kdtree::KdTreeArray kdtree_from_triangles(
-    const vector<geometry::Triangle>& triangles) {
-  kdtree::KdTreeLinked linked = kdtree::build_tree_sah(triangles);
-  kdtree::KdTreeArray array = kdtree::optimize(linked);
-  return array;
-}
-
-Scene new_scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl) {
-  vector<Camera> cameras = cameras_from_mtl(mtl);
-  vector<SphereLight> lights = lights_from_mtl(mtl);
-
-  vector<geometry::Triangle> triangles = triangles_from_obj(obj);
-  map<string, Material*> materials = materials_from_mtl(mtl);
-  update_pointer_to_material(materials, triangles);
-
-  kdtree::KdTreeArray kdtree = kdtree_from_triangles(triangles);
-
-  return {kdtree, cameras, lights};
-}
+Scene::Scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl)
+    : cameras(cameras_from_mtl(mtl)),
+      lights(lights_from_mtl(mtl)),
+      kdtree(kdtree_from_obj_mtl(obj, mtl)) {}
 }  // namespace trace
