@@ -49,7 +49,7 @@ static unsigned int g_width = DEFAULT_WIDTH;
 static unsigned int g_height = DEFAULT_HEIGHT;
 static unsigned int g_subsampling = SUBSAMPLING;
 
-static trace::Scene g_scene;
+static std::unique_ptr<trace::Scene> g_scene;
 static unsigned int g_camera;
 
 static std::unique_ptr<trace::Pinhole> g_pinhole;
@@ -64,7 +64,7 @@ void restart() {
   unsigned int w = g_width / g_subsampling;
   unsigned int h = g_height / g_subsampling;
 
-  g_pinhole.reset(new trace::Pinhole(g_scene.cameras[g_camera], w, h));
+  g_pinhole.reset(new trace::Pinhole(g_scene->cameras[g_camera], w, h));
   g_buffer.reset(new trace::SampleBuffer(w, h));
 }
 
@@ -117,7 +117,7 @@ void save_screenshot() {
 
 void display() {
   util::Clock clock;
-  pathtrace(g_scene.kdtree, g_scene.lights, *g_pinhole, g_rand, *g_buffer);
+  pathtrace(g_scene->kdtree, g_scene->lights, *g_pinhole, g_rand, *g_buffer);
   double trace_time = clock.measure<double, std::ratio<1>>();
 
   render();
@@ -233,8 +233,9 @@ int main(int argc, char* argv[]) {
     g_out_dir = out_dir;
     g_obj_name = obj_file.stem();
 
-    g_scene = trace::new_scene(wavefront::load_obj(obj_file),
-                               wavefront::load_mtl(mtl_file));
+    trace::Scene scene = trace::new_scene(wavefront::load_obj(obj_file),
+                                          wavefront::load_mtl(mtl_file));
+    g_scene.reset(new trace::Scene(scene));
 
     init_gl(&argc, argv);
     resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);

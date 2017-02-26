@@ -58,6 +58,10 @@ static_assert(sizeof(KdNodeArray) == 4, "incorrect size");
 
 class KdTreeArray {
  public:
+  KdTreeArray(const std::vector<KdNodeArray>& nodes,
+              const std::vector<std::vector<geometry::Triangle>>& leaf_store)
+      : nodes_(nodes), leaf_store_(leaf_store) {}
+
   KdNodeArray get_node(unsigned int index) const {
     assert(index < nodes_.size());
     return nodes_[index];
@@ -66,31 +70,6 @@ class KdTreeArray {
   const std::vector<geometry::Triangle>& get_triangles(KdNodeArray node) const {
     assert(node.is_leaf());
     return leaf_store_[node.get_index()];
-  }
-
-  void add_leaf(unsigned int node_index,
-                const std::vector<geometry::Triangle>& triangles) {
-    uint32_t triangles_index = static_cast<uint32_t>(leaf_store_.size());
-    leaf_store_.emplace_back(triangles);
-
-    if (node_index >= nodes_.size()) {
-      nodes_.resize(node_index + 1);
-    }
-
-    nodes_[node_index] = KdNodeArray(triangles_index);
-  }
-
-  void add_split(unsigned int node_index, float distance) {
-    if (node_index >= nodes_.size()) {
-      nodes_.resize(node_index + 1);
-    }
-
-    nodes_[node_index] = KdNodeArray(distance);
-  }
-
-  void shrink_to_fit() {
-    nodes_.shrink_to_fit();
-    leaf_store_.shrink_to_fit();
   }
 
   static unsigned int left_child(unsigned int index) {
