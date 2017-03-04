@@ -10,14 +10,10 @@ struct Triangle {
   glm::vec2 uv0, uv1, uv2;
 
   const void* tag;
-};
 
-inline void triangle_extremes(const Triangle& tri,
-                              glm::vec3& min,
-                              glm::vec3& max) {
-  min = glm::min(glm::min(tri.v0, tri.v1), tri.v2);
-  max = glm::max(glm::max(tri.v0, tri.v1), tri.v2);
-}
+  inline glm::vec3 GetMin() const { return glm::min(glm::min(v0, v1), v2); }
+  inline glm::vec3 GetMax() const { return glm::max(glm::max(v0, v1), v2); }
+};
 }  // namespace geometry
 
 #endif  // GEOMETRY_TRIANGLE_H_

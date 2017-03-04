@@ -4,7 +4,6 @@
 
 #include <cassert>
 #include <cstddef>
-#include <tuple>
 #include <vector>
 
 #include "geometry/aabb.h"
@@ -23,16 +22,6 @@ struct CostSplit {
   Split split;
   float cost;
 };
-
-std::tuple<float, float> triangle_axis_extremes(
-    const geometry::Triangle& triangle,
-    Axis axis) {
-  return std::make_tuple(
-      glm::min(triangle.v0[axis],
-               glm::min(triangle.v1[axis], triangle.v2[axis])),
-      glm::max(triangle.v0[axis],
-               glm::max(triangle.v1[axis], triangle.v2[axis])));
-}
 
 float calculate_cost(const Box& parent, const Split& split) {
   float parent_area = parent.boundary.surface_area();
@@ -58,9 +47,8 @@ const CostSplit& get_best(const CostSplit& a, const CostSplit& b) {
 CostSplit find_best(const Box& parent,
                     Axis axis,
                     const geometry::Triangle& triangle) {
-  std::tuple<float, float> extremes = triangle_axis_extremes(triangle, axis);
-  float min = std::get<0>(extremes) - EPSILON;
-  float max = std::get<1>(extremes) + EPSILON;
+  float min = triangle.GetMin()[axis] - EPSILON;
+  float max = triangle.GetMax()[axis] + EPSILON;
   return get_best(split(parent, axis, min), split(parent, axis, max));
 }
 
