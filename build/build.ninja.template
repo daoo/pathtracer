@@ -18,6 +18,7 @@ build $outdir/kdtree/array.o:                  cxx $src/kdtree/array.cc
 build $outdir/kdtree/naive.o:                  cxx $src/kdtree/naive.cc
 build $outdir/kdtree/optimize.o:               cxx $src/kdtree/optimize.cc
 build $outdir/kdtree/surface_area_heuristic.o: cxx $src/kdtree/surface_area_heuristic.cc
+build $outdir/kdtree/util.o:                   cxx $src/kdtree/util.cc
 build $outdir/pathtracer-gl/gl.o:              cxx $src/pathtracer-gl/gl.cc
 build $outdir/pathtracer-gl/main.o:            cxx $src/pathtracer-gl/main.cc
 build $outdir/pathtracer-gl/shaders.o:         cxx $src/pathtracer-gl/shaders.cc
@@ -44,6 +45,7 @@ build $outdir/libtrace.a: ar $
   $outdir/kdtree/naive.o $
   $outdir/kdtree/optimize.o $
   $outdir/kdtree/surface_area_heuristic.o $
+  $outdir/kdtree/util.o $
   $outdir/trace/material.o $
   $outdir/trace/pathtracer.o $
   $outdir/trace/samplebuffer.o $
@@ -77,6 +79,7 @@ build $outdir/print-tree: link $
   $outdir/geometry/bounding.o $
   $outdir/kdtree/optimize.o $
   $outdir/kdtree/surface_area_heuristic.o $
+  $outdir/kdtree/util.o $
   $outdir/tests/print-tree.o $
   $outdir/trace/material.o $
   $outdir/trace/scene.o $
