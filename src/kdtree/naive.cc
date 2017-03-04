@@ -21,7 +21,7 @@ KdNodeLinked* go(unsigned int depth, Axis axis, const Box& parent) {
     return new KdNodeLinked(
         new vector<const geometry::Triangle*>(parent.triangles));
   } else {
-    float distance = parent.boundary.center[axis];
+    float distance = parent.boundary.GetCenter()[axis];
     Split split = split_box(parent, axis, distance);
     return new KdNodeLinked(axis, distance,
                             go(depth + 1, next_axis(axis), split.left),

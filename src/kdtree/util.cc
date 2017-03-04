@@ -16,21 +16,22 @@ using std::vector;
 namespace kdtree {
 namespace {
 tuple<Aabb, Aabb> split_aabb(const Aabb& parent, Axis axis, float split) {
-  Aabb left(parent), right(parent);
-
-  float min = parent.center[axis] - parent.half[axis];
-  float max = parent.center[axis] + parent.half[axis];
+  float min = parent.GetMin()[axis];
+  float max = parent.GetMax()[axis];
   float split_clamped = glm::clamp(split, min, max);
   float lh = (split_clamped - min) / 2.0f + glm::epsilon<float>();
   float rh = (max - split_clamped) / 2.0f + glm::epsilon<float>();
 
-  left.half[axis] = lh;
-  left.center[axis] = split_clamped - lh;
+  glm::vec3 left_center(parent.GetCenter()), left_half(parent.GetHalf());
+  left_center[axis] = split_clamped - lh;
+  left_half[axis] = lh;
 
-  right.half[axis] = rh;
-  right.center[axis] = split_clamped + rh;
+  glm::vec3 right_center(parent.GetCenter()), right_half(parent.GetHalf());
+  right_center[axis] = split_clamped + rh;
+  right_half[axis] = rh;
 
-  return std::make_tuple(left, right);
+  return std::make_tuple(Aabb(left_center, left_half),
+                         Aabb(right_center, right_half));
 }
 
 tuple<vector<const Triangle*>, vector<const Triangle*>> intersect_test(

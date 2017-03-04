@@ -51,85 +51,85 @@ inline bool plane_box_overlap(const glm::vec3& normal,
 }
 
 /*======================== X-tests ========================*/
-#define AXISTEST_X01(a, b, fa, fb)           \
-  p0 = a * v0.y - b * v0.z;                  \
-  p2 = a * v2.y - b * v2.z;                  \
-  if (p0 < p2) {                             \
-    min = p0;                                \
-    max = p2;                                \
-  } else {                                   \
-    min = p2;                                \
-    max = p0;                                \
-  }                                          \
-  rad = fa * aabb.half.y + fb * aabb.half.z; \
+#define AXISTEST_X01(a, b, fa, fb)                     \
+  p0 = a * v0.y - b * v0.z;                            \
+  p2 = a * v2.y - b * v2.z;                            \
+  if (p0 < p2) {                                       \
+    min = p0;                                          \
+    max = p2;                                          \
+  } else {                                             \
+    min = p2;                                          \
+    max = p0;                                          \
+  }                                                    \
+  rad = fa * aabb.GetHalf().y + fb * aabb.GetHalf().z; \
   if (min > rad || max < -rad) return 0;
 
-#define AXISTEST_X2(a, b, fa, fb)            \
-  p0 = a * v0.y - b * v0.z;                  \
-  p1 = a * v1.y - b * v1.z;                  \
-  if (p0 < p1) {                             \
-    min = p0;                                \
-    max = p1;                                \
-  } else {                                   \
-    min = p1;                                \
-    max = p0;                                \
-  }                                          \
-  rad = fa * aabb.half.y + fb * aabb.half.z; \
+#define AXISTEST_X2(a, b, fa, fb)                      \
+  p0 = a * v0.y - b * v0.z;                            \
+  p1 = a * v1.y - b * v1.z;                            \
+  if (p0 < p1) {                                       \
+    min = p0;                                          \
+    max = p1;                                          \
+  } else {                                             \
+    min = p1;                                          \
+    max = p0;                                          \
+  }                                                    \
+  rad = fa * aabb.GetHalf().y + fb * aabb.GetHalf().z; \
   if (min > rad || max < -rad) return 0;
 
 /*======================== Y-tests ========================*/
-#define AXISTEST_Y02(a, b, fa, fb)           \
-  p0 = -a * v0.x + b * v0.z;                 \
-  p2 = -a * v2.x + b * v2.z;                 \
-  if (p0 < p2) {                             \
-    min = p0;                                \
-    max = p2;                                \
-  } else {                                   \
-    min = p2;                                \
-    max = p0;                                \
-  }                                          \
-  rad = fa * aabb.half.x + fb * aabb.half.z; \
+#define AXISTEST_Y02(a, b, fa, fb)                     \
+  p0 = -a * v0.x + b * v0.z;                           \
+  p2 = -a * v2.x + b * v2.z;                           \
+  if (p0 < p2) {                                       \
+    min = p0;                                          \
+    max = p2;                                          \
+  } else {                                             \
+    min = p2;                                          \
+    max = p0;                                          \
+  }                                                    \
+  rad = fa * aabb.GetHalf().x + fb * aabb.GetHalf().z; \
   if (min > rad || max < -rad) return 0;
 
-#define AXISTEST_Y1(a, b, fa, fb)            \
-  p0 = -a * v0.x + b * v0.z;                 \
-  p1 = -a * v1.x + b * v1.z;                 \
-  if (p0 < p1) {                             \
-    min = p0;                                \
-    max = p1;                                \
-  } else {                                   \
-    min = p1;                                \
-    max = p0;                                \
-  }                                          \
-  rad = fa * aabb.half.x + fb * aabb.half.z; \
+#define AXISTEST_Y1(a, b, fa, fb)                      \
+  p0 = -a * v0.x + b * v0.z;                           \
+  p1 = -a * v1.x + b * v1.z;                           \
+  if (p0 < p1) {                                       \
+    min = p0;                                          \
+    max = p1;                                          \
+  } else {                                             \
+    min = p1;                                          \
+    max = p0;                                          \
+  }                                                    \
+  rad = fa * aabb.GetHalf().x + fb * aabb.GetHalf().z; \
   if (min > rad || max < -rad) return 0;
 
 /*======================== Z-tests ========================*/
 
-#define AXISTEST_Z12(a, b, fa, fb)           \
-  p1 = a * v1.x - b * v1.y;                  \
-  p2 = a * v2.x - b * v2.y;                  \
-  if (p2 < p1) {                             \
-    min = p2;                                \
-    max = p1;                                \
-  } else {                                   \
-    min = p1;                                \
-    max = p2;                                \
-  }                                          \
-  rad = fa * aabb.half.x + fb * aabb.half.y; \
+#define AXISTEST_Z12(a, b, fa, fb)                     \
+  p1 = a * v1.x - b * v1.y;                            \
+  p2 = a * v2.x - b * v2.y;                            \
+  if (p2 < p1) {                                       \
+    min = p2;                                          \
+    max = p1;                                          \
+  } else {                                             \
+    min = p1;                                          \
+    max = p2;                                          \
+  }                                                    \
+  rad = fa * aabb.GetHalf().x + fb * aabb.GetHalf().y; \
   if (min > rad || max < -rad) return 0;
 
-#define AXISTEST_Z0(a, b, fa, fb)            \
-  p0 = a * v0.x - b * v0.y;                  \
-  p1 = a * v1.x - b * v1.y;                  \
-  if (p0 < p1) {                             \
-    min = p0;                                \
-    max = p1;                                \
-  } else {                                   \
-    min = p1;                                \
-    max = p0;                                \
-  }                                          \
-  rad = fa * aabb.half.x + fb * aabb.half.y; \
+#define AXISTEST_Z0(a, b, fa, fb)                      \
+  p0 = a * v0.x - b * v0.y;                            \
+  p1 = a * v1.x - b * v1.y;                            \
+  if (p0 < p1) {                                       \
+    min = p0;                                          \
+    max = p1;                                          \
+  } else {                                             \
+    min = p1;                                          \
+    max = p0;                                          \
+  }                                                    \
+  rad = fa * aabb.GetHalf().x + fb * aabb.GetHalf().y; \
   if (min > rad || max < -rad) return 0;
 }  // namespace detail
 
@@ -146,9 +146,9 @@ inline bool tri_box_overlap(const Aabb& aabb,
   /*    tests */
   /* move everything so that the boxcenter is in (0,0,0) */
   glm::vec3 v0, v1, v2;
-  v0 = triv0 - aabb.center;
-  v1 = triv1 - aabb.center;
-  v2 = triv2 - aabb.center;
+  v0 = triv0 - aabb.GetCenter();
+  v1 = triv1 - aabb.GetCenter();
+  v2 = triv2 - aabb.GetCenter();
 
   /* compute triangle edges */
   glm::vec3 e0, e1, e2;
@@ -195,22 +195,22 @@ inline bool tri_box_overlap(const Aabb& aabb,
 
   /* test in X-direction */
   detail::find_min_max(v0.x, v1.x, v2.x, min, max);
-  if (min > aabb.half.x || max < -aabb.half.x) return false;
+  if (min > aabb.GetHalf().x || max < -aabb.GetHalf().x) return false;
 
   /* test in Y-direction */
   detail::find_min_max(v0.y, v1.y, v2.y, min, max);
-  if (min > aabb.half.y || max < -aabb.half.y) return false;
+  if (min > aabb.GetHalf().y || max < -aabb.GetHalf().y) return false;
 
   /* test in Z-direction */
   detail::find_min_max(v0.z, v1.z, v2.z, min, max);
-  if (min > aabb.half.z || max < -aabb.half.z) return false;
+  if (min > aabb.GetHalf().z || max < -aabb.GetHalf().z) return false;
 
   /* Bullet 2: */
   /*  test if the box intersects the plane of the triangle */
   /*  compute plane equation of triangle: normal*x+d=0 */
   glm::vec3 normal = glm::cross(e0, e1);
 
-  return detail::plane_box_overlap(normal, v0, aabb.half);
+  return detail::plane_box_overlap(normal, v0, aabb.GetHalf());
 }
 }  // namespace geometry
 

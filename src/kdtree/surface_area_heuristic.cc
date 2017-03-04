@@ -24,10 +24,10 @@ struct CostSplit {
 };
 
 float calculate_cost(const Box& parent, const Split& split) {
-  float parent_area = parent.boundary.surface_area();
-  float left_area = split.left.boundary.surface_area();
+  float parent_area = parent.boundary.GetSurfaceArea();
+  float left_area = split.left.boundary.GetSurfaceArea();
   float left_count = split.left.triangles.size();
-  float right_area = split.right.boundary.surface_area();
+  float right_area = split.right.boundary.GetSurfaceArea();
   float right_count = split.right.triangles.size();
   float intersect =
       (left_area * left_count + right_area * right_count) / parent_area;
