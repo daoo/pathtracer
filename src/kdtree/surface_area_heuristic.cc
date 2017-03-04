@@ -55,28 +55,20 @@ const CostSplit& get_best(const CostSplit& a, const CostSplit& b) {
   return a.cost <= b.cost ? a : b;
 }
 
+CostSplit find_best(const Box& parent,
+                    Axis axis,
+                    const geometry::Triangle& triangle) {
+  std::tuple<float, float> extremes = triangle_axis_extremes(triangle, axis);
+  float min = std::get<0>(extremes) - EPSILON;
+  float max = std::get<1>(extremes) + EPSILON;
+  return get_best(split(parent, axis, min), split(parent, axis, max));
+}
+
 CostSplit find_best(const Box& parent, Axis axis) {
   assert(parent.triangles.size() > 0);
-  CostSplit best;
-  {
-    std::tuple<float, float> extremes =
-        triangle_axis_extremes(*parent.triangles[0], axis);
-    float min = std::get<0>(extremes) - EPSILON;
-    float max = std::get<1>(extremes) + EPSILON;
-
-    CostSplit split_min = split(parent, axis, min);
-    CostSplit split_max = split(parent, axis, max);
-    best = get_best(split_min, split_max);
-  }
+  CostSplit best = find_best(parent, axis, *parent.triangles[0]);
   for (size_t i = 1; i < parent.triangles.size(); ++i) {
-    std::tuple<float, float> extremes =
-        triangle_axis_extremes(*parent.triangles[i], axis);
-    float min = std::get<0>(extremes) - EPSILON;
-    float max = std::get<1>(extremes) + EPSILON;
-
-    CostSplit split_min = split(parent, axis, min);
-    CostSplit split_max = split(parent, axis, max);
-    best = get_best(best, get_best(split_min, split_max));
+    best = get_best(best, find_best(parent, axis, *parent.triangles[i]));
   }
   return best;
 }
