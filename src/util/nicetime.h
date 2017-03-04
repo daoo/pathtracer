@@ -6,7 +6,7 @@
 namespace util {
 class TimeSplit {
  public:
-  TimeSplit(double seconds)
+  explicit TimeSplit(double seconds)
       : hours_(static_cast<size_t>(seconds / 3600.0)),
         minutes_(static_cast<size_t>((seconds - (hours_ * 3600.0)) / 60.0)),
         seconds_(static_cast<size_t>(seconds - (hours_ * 3600.0) -
@@ -20,7 +20,7 @@ class TimeSplit {
 
 class TimeAutoUnit {
  public:
-  TimeAutoUnit(double seconds) : seconds_(seconds) {}
+  explicit TimeAutoUnit(double seconds) : seconds_(seconds) {}
 
  private:
   friend std::ostream& operator<<(std::ostream&, const TimeAutoUnit&);

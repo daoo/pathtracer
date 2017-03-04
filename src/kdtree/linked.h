@@ -19,7 +19,7 @@ class KdNodeLinked {
         left_(left),
         right_(right) {}
 
-  KdNodeLinked(std::vector<const geometry::Triangle*>* triangles)
+  explicit KdNodeLinked(std::vector<const geometry::Triangle*>* triangles)
       : axis_(),
         distance_(),
         triangles_(triangles),
