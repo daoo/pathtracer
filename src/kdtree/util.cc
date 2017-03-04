@@ -39,6 +39,8 @@ tuple<vector<const Triangle*>, vector<const Triangle*>> intersect_test(
     const Aabb& right_aabb) {
   vector<const Triangle*> left_triangles;
   vector<const Triangle*> right_triangles;
+  left_triangles.reserve(triangles.size());
+  right_triangles.reserve(triangles.size());
   for (const Triangle* tri : triangles) {
     if (tri_box_overlap(left_aabb, tri->v0, tri->v1, tri->v2)) {
       left_triangles.emplace_back(tri);
@@ -51,6 +53,8 @@ tuple<vector<const Triangle*>, vector<const Triangle*>> intersect_test(
 
   assert(left_triangles.size() + right_triangles.size() >= triangles.size());
 
+  left_triangles.shrink_to_fit();
+  right_triangles.shrink_to_fit();
   return std::make_tuple(left_triangles, right_triangles);
 }
 }  // namespace
