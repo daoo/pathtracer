@@ -1,10 +1,16 @@
 #ifndef KDTREE_LINKED_H_
 #define KDTREE_LINKED_H_
 
+#include <experimental/optional>
 #include <vector>
 
 #include "geometry/triangle.h"
 #include "kdtree/util.h"
+
+namespace geometry {
+struct Ray;
+struct TriRayIntersection;
+}  // namespace geometry
 
 namespace kdtree {
 class KdNodeLinked {
@@ -69,6 +75,12 @@ class KdTreeLinked {
   const KdNodeLinked* root_;
   const std::vector<geometry::Triangle>& triangles_;
 };
+
+std::experimental::optional<geometry::TriRayIntersection> search_tree(
+    const KdTreeLinked& tree,
+    const geometry::Ray& ray,
+    float tmin,
+    float tmax);
 }  // namespace kdtree
 
 #endif  // KDTREE_LINKED_H_

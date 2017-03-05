@@ -50,4 +50,21 @@ optional<TriRayIntersection> find_closest(
 
   return closest;
 }
+
+optional<TriRayIntersection> find_closest(
+    const std::vector<const Triangle*>& triangles,
+    const Ray& ray,
+    float mint,
+    float maxt) {
+  optional<TriRayIntersection> closest;
+  for (const geometry::Triangle* triangle : triangles) {
+    optional<TriRayIntersection> result = intersect(*triangle, ray);
+    if (result && result->t >= mint && result->t <= maxt) {
+      maxt = result->t;
+      closest = result;
+    }
+  }
+
+  return closest;
+}
 }  // namespace geometry

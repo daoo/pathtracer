@@ -30,6 +30,12 @@ std::experimental::optional<TriRayIntersection> find_closest(
     const Ray& ray,
     float mint,
     float maxt);
+
+std::experimental::optional<TriRayIntersection> find_closest(
+    const std::vector<const Triangle*>& triangles,
+    const Ray& ray,
+    float mint,
+    float maxt);
 }  // namespace geometry
 
 #endif  // GEOMETRY_TRIRAY_H_
