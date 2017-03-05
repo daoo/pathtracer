@@ -3,9 +3,7 @@
 #include <glm/gtc/epsilon.hpp>
 #include <map>
 
-#include "kdtree/array.h"
 #include "kdtree/linked.h"
-#include "kdtree/optimize.h"
 #include "kdtree/surface_area_heuristic.h"
 #include "trace/mcsampling.h"
 
@@ -59,12 +57,12 @@ void update_pointer_to_material(
   }
 }
 
-kdtree::KdTreeArray kdtree_from_obj_mtl(const wavefront::Obj& obj,
-                                        const wavefront::Mtl& mtl) {
+kdtree::KdTreeLinked kdtree_from_obj_mtl(const wavefront::Obj& obj,
+                                         const wavefront::Mtl& mtl) {
   vector<geometry::Triangle> triangles = triangles_from_obj(obj);
   map<string, Material*> materials = materials_from_mtl(mtl);
   update_pointer_to_material(materials, triangles);
-  return kdtree::optimize(kdtree::build_tree_sah(triangles));
+  return kdtree::build_tree_sah(triangles);
 }
 }  // namespace
 

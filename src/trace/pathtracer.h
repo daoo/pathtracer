@@ -5,14 +5,14 @@
 #include <vector>
 
 #include "geometry/ray.h"
-#include "kdtree/array.h"
+#include "kdtree/linked.h"
 #include "trace/camera.h"
 #include "trace/fastrand.h"
 #include "trace/light.h"
 #include "trace/samplebuffer.h"
 
 namespace trace {
-void pathtrace(const kdtree::KdTreeArray& kdtree,
+void pathtrace(const kdtree::KdTreeLinked& kdtree,
                const std::vector<SphereLight>& lights,
                const Pinhole& pinhole,
                FastRand& rand,

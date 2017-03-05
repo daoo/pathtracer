@@ -5,8 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "geometry/ray.h"
-#include "kdtree/array.h"
+#include "kdtree/linked.h"
 #include "trace/camera.h"
 #include "trace/light.h"
 #include "trace/material.h"
@@ -27,7 +26,7 @@ struct Scene {
 
   std::vector<Camera> cameras;
   std::vector<SphereLight> lights;
-  kdtree::KdTreeArray kdtree;
+  kdtree::KdTreeLinked kdtree;
 };
 }  // namespace trace
 

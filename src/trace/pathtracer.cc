@@ -4,8 +4,8 @@
 #include <glm/gtc/constants.hpp>
 
 #include "geometry/triray.h"
-#include "kdtree/array.h"
 #include "kdtree/intersection.h"
+#include "kdtree/linked.h"
 #include "trace/material.h"
 #include "trace/mcsampling.h"
 
@@ -14,7 +14,7 @@ using std::experimental::optional;
 using std::vector;
 
 namespace kdtree {
-bool any_intersects(const KdTreeArray& kdtree,
+bool any_intersects(const KdTreeLinked& kdtree,
                     const geometry::Ray& ray,
                     float tmin,
                     float tmax) {
@@ -27,7 +27,7 @@ namespace {
 constexpr unsigned int MAX_BOUNCES = 16;
 constexpr float EPSILON = 0.00001f;
 
-vec3 from_light(const kdtree::KdTreeArray& kdtree,
+vec3 from_light(const kdtree::KdTreeLinked& kdtree,
                 const Material* material,
                 const vec3& target,
                 const vec3& offset,
@@ -55,7 +55,7 @@ vec3 environment_light(const geometry::Ray&) {
   return vec3(0.8f, 0.8f, 0.8f);
 }
 
-vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
+vec3 incoming_light_helper(const kdtree::KdTreeLinked& kdtree,
                            const vector<SphereLight>& lights,
                            const geometry::Ray& ray,
                            FastRand& rand,
@@ -103,7 +103,7 @@ vec3 incoming_light_helper(const kdtree::KdTreeArray& kdtree,
                                transport, bounce + 1);
 }
 
-vec3 incoming_light(const kdtree::KdTreeArray& kdtree,
+vec3 incoming_light(const kdtree::KdTreeLinked& kdtree,
                     const vector<SphereLight>& lights,
                     const geometry::Ray& ray,
                     FastRand& rand) {
@@ -112,7 +112,7 @@ vec3 incoming_light(const kdtree::KdTreeArray& kdtree,
 }
 }  // namespace
 
-void pathtrace(const kdtree::KdTreeArray& kdtree,
+void pathtrace(const kdtree::KdTreeLinked& kdtree,
                const vector<SphereLight>& lights,
                const Pinhole& pinhole,
                FastRand& rand,

@@ -24,7 +24,7 @@
 using std::experimental::filesystem::path;
 
 namespace kdtree {
-class KdTreeArray;
+class KdTreeLinked;
 }
 
 struct MessageSample {
@@ -65,7 +65,7 @@ void print_status(unsigned int total_samples,
   std::cout << std::flush;
 }
 
-void worker(const kdtree::KdTreeArray& kdtree,
+void worker(const kdtree::KdTreeLinked& kdtree,
             const std::vector<trace::SphereLight>& lights,
             const trace::Pinhole& pinhole,
             unsigned int sample_count,
