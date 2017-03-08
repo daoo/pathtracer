@@ -44,38 +44,50 @@ const CostSplit& get_best(const CostSplit& a, const CostSplit& b) {
   return a.cost <= b.cost ? a : b;
 }
 
+const CostSplit& get_best(const CostSplit& a,
+                          const CostSplit& b,
+                          const CostSplit& c) {
+  return get_best(a, get_best(b, c));
+}
+
 CostSplit find_best(const Box& parent,
-                    Axis axis,
-                    const geometry::Triangle& triangle) {
+                    const geometry::Triangle& triangle,
+                    Axis axis) {
   float min = triangle.GetMin()[axis] - EPSILON;
   float max = triangle.GetMax()[axis] + EPSILON;
   return get_best(split(parent, axis, min), split(parent, axis, max));
 }
 
-CostSplit find_best(const Box& parent, Axis axis) {
+CostSplit find_best(const Box& parent, const geometry::Triangle& triangle) {
+  return get_best(find_best(parent, triangle, X),
+                  find_best(parent, triangle, Y),
+                  find_best(parent, triangle, Z));
+}
+
+CostSplit find_best(const Box& parent) {
   assert(parent.triangles.size() > 0);
-  CostSplit best = find_best(parent, axis, *parent.triangles[0]);
+  CostSplit best = find_best(parent, *parent.triangles[0]);
   for (size_t i = 1; i < parent.triangles.size(); ++i) {
-    best = get_best(best, find_best(parent, axis, *parent.triangles[i]));
+    best = get_best(best, find_best(parent, *parent.triangles[i]));
   }
   return best;
 }
 
-KdNodeLinked* go(unsigned int depth, Axis axis, const Box& parent) {
+KdNodeLinked* go(unsigned int depth, const Box& parent) {
   if (depth >= 20 || parent.triangles.empty()) {
     return new KdNodeLinked(
         new std::vector<const geometry::Triangle*>(parent.triangles));
   }
 
-  CostSplit split = find_best(parent, axis);
+  CostSplit split = find_best(parent);
   float leaf_cost = COST_INTERSECT * parent.triangles.size();
   if (split.cost > leaf_cost) {
     return new KdNodeLinked(
         new std::vector<const geometry::Triangle*>(parent.triangles));
   } else {
-    return new KdNodeLinked(axis, split.split.distance,
-                            go(depth + 1, next_axis(axis), split.split.left),
-                            go(depth + 1, next_axis(axis), split.split.right));
+    return new KdNodeLinked(split.split.axis, split.split.distance,
+                            go(depth + 1, split.split.left),
+                            go(depth + 1, split.split.right));
   }
 }
 }  // namespace
@@ -87,6 +99,6 @@ KdTreeLinked build_tree_sah(const std::vector<geometry::Triangle>& triangles) {
     ptrs.emplace_back(&tri);
   }
 
-  return {go(0, X, Box{find_bounding(triangles), ptrs}), triangles};
+  return {go(0, Box{find_bounding(triangles), ptrs}), triangles};
 }
 }  // namespace kdtree
