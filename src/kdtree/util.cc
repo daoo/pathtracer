@@ -9,26 +9,28 @@
 #include "geometry/tribox.h"
 
 using geometry::Aabb;
+using geometry::Aap;
+using geometry::Axis;
 using geometry::Triangle;
 using std::tuple;
 using std::vector;
 
 namespace kdtree {
 namespace {
-tuple<Aabb, Aabb> split_aabb(const Aabb& parent, Axis axis, float split) {
-  float min = parent.GetMin()[axis];
-  float max = parent.GetMax()[axis];
-  float split_clamped = glm::clamp(split, min, max);
+tuple<Aabb, Aabb> split_aabb(const Aabb& parent, const Aap& plane) {
+  float min = parent.GetMin()[plane.GetAxis()];
+  float max = parent.GetMax()[plane.GetAxis()];
+  float split_clamped = glm::clamp(plane.GetDistance(), min, max);
   float lh = (split_clamped - min) / 2.0f + glm::epsilon<float>();
   float rh = (max - split_clamped) / 2.0f + glm::epsilon<float>();
 
   glm::vec3 left_center(parent.GetCenter()), left_half(parent.GetHalf());
-  left_center[axis] = split_clamped - lh;
-  left_half[axis] = lh;
+  left_center[plane.GetAxis()] = split_clamped - lh;
+  left_half[plane.GetAxis()] = lh;
 
   glm::vec3 right_center(parent.GetCenter()), right_half(parent.GetHalf());
-  right_center[axis] = split_clamped + rh;
-  right_half[axis] = rh;
+  right_center[plane.GetAxis()] = split_clamped + rh;
+  right_half[plane.GetAxis()] = rh;
 
   return std::make_tuple(Aabb(left_center, left_half),
                          Aabb(right_center, right_half));
@@ -60,11 +62,11 @@ tuple<vector<const Triangle*>, vector<const Triangle*>> intersect_test(
 }
 }  // namespace
 
-Split split_box(const Box& parent, Axis axis, float distance) {
-  auto aabbs = split_aabb(parent.boundary, axis, distance);
+Split split_box(const Box& parent, const Aap& plane) {
+  auto aabbs = split_aabb(parent.boundary, plane);
   auto triangles =
       intersect_test(parent.triangles, std::get<0>(aabbs), std::get<1>(aabbs));
-  return Split{axis, distance, Box{std::get<0>(aabbs), std::get<0>(triangles)},
+  return Split{plane, Box{std::get<0>(aabbs), std::get<0>(triangles)},
                Box{std::get<1>(aabbs), std::get<1>(triangles)}};
 }
 }  // namespace kdtree

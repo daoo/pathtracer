@@ -15,19 +15,16 @@ struct TriRayIntersection;
 namespace kdtree {
 class KdNodeLinked {
  public:
-  KdNodeLinked(Axis axis,
-               float distance,
+  KdNodeLinked(geometry::Aap plane,
                KdNodeLinked* left,
                KdNodeLinked* right)
-      : axis_(axis),
-        distance_(distance),
+      : plane_(plane),
         triangles_(nullptr),
         left_(left),
         right_(right) {}
 
   explicit KdNodeLinked(std::vector<const geometry::Triangle*>* triangles)
-      : axis_(),
-        distance_(),
+      : plane_(geometry::X, 0),
         triangles_(triangles),
         left_(nullptr),
         right_(nullptr) {}
@@ -38,8 +35,7 @@ class KdNodeLinked {
     delete triangles_;
   }
 
-  inline Axis GetAxis() const { return axis_; }
-  inline float GetDistance() const { return distance_; }
+  inline geometry::Aap GetPlane() const { return plane_; }
   inline std::vector<const geometry::Triangle*>* GetTriangles() const {
     return triangles_;
   }
@@ -48,8 +44,7 @@ class KdNodeLinked {
   inline const KdNodeLinked* GetRight() const { return right_; }
 
  private:
-  Axis axis_;
-  float distance_;
+  geometry::Aap plane_;
   std::vector<const geometry::Triangle*>* triangles_;
 
   KdNodeLinked* left_;

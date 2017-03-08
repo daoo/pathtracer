@@ -8,6 +8,7 @@
 #include "geometry/triray.h"
 #include "kdtree/util.h"
 
+using geometry::Axis;
 using std::experimental::optional;
 
 namespace kdtree {
@@ -18,7 +19,7 @@ optional<geometry::TriRayIntersection> search_tree(const KdTreeArray& tree,
   unsigned int index = 0;
   float tmin = tmininit;
   float tmax = tmaxinit;
-  Axis axis = X;
+  Axis axis = geometry::X;
 
   while (true) {
     KdNodeArray node = tree.GetNode(index);
@@ -34,7 +35,7 @@ optional<geometry::TriRayIntersection> search_tree(const KdTreeArray& tree,
         tmin = tmax;
         tmax = tmaxinit;
         index = 0;
-        axis = X;
+        axis = geometry::X;
       }
     } else {
       float p = node.GetSplit();

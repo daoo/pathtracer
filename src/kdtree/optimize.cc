@@ -31,7 +31,7 @@ void helper(unsigned int index,
     if (index >= nodes.size()) {
       nodes.resize(index + 1);
     }
-    nodes[index] = KdNodeArray(node->GetDistance());
+    nodes[index] = KdNodeArray(node->GetPlane().GetDistance());
 
     helper(KdTreeArray::LeftChild(index), node->GetLeft(), nodes, leaf_store);
     helper(KdTreeArray::RightChild(index), node->GetRight(), nodes, leaf_store);

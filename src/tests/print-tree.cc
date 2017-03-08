@@ -1,6 +1,7 @@
 #include <experimental/filesystem>
 #include <iostream>
 
+#include "geometry/aap.h"
 #include "kdtree/linked.h"
 #include "kdtree/surface_area_heuristic.h"
 #include "kdtree/util.h"
@@ -10,9 +11,14 @@
 
 using std::experimental::filesystem::path;
 
-std::ostream& operator<<(std::ostream& stream, kdtree::Axis axis) {
+std::ostream& operator<<(std::ostream& stream, geometry::Axis axis) {
   constexpr char AXIS[] = {'X', 'Y', 'Z'};
   stream << AXIS[axis];
+  return stream;
+}
+
+std::ostream& operator<<(std::ostream& stream, geometry::Aap plane) {
+  stream << plane.GetAxis() << "@" << plane.GetDistance();
   return stream;
 }
 
@@ -23,8 +29,7 @@ void helper(const std::string& label,
   if (node->GetTriangles() != nullptr) {
     std::cout << "Leaf: " << node->GetTriangles()->size() << "\n";
   } else {
-    std::cout << "Split: " << label << ", " << node->GetAxis() << ", "
-              << node->GetDistance() << "\n";
+    std::cout << "Split: " << label << ", " << node->GetPlane() << "\n";
     helper("left", node->GetLeft(), depth + 1);
     helper("right", node->GetRight(), depth + 1);
   }

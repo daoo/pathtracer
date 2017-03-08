@@ -16,15 +16,14 @@ struct Triangle;
 
 namespace kdtree {
 namespace {
-KdNodeLinked* go(unsigned int depth, Axis axis, const Box& parent) {
+KdNodeLinked* go(unsigned int depth, geometry::Axis axis, const Box& parent) {
   if (depth >= 20 || parent.triangles.size() <= 6) {
     return new KdNodeLinked(
         new vector<const geometry::Triangle*>(parent.triangles));
   } else {
-    float distance = parent.boundary.GetCenter()[axis];
-    Split split = split_box(parent, axis, distance);
-    return new KdNodeLinked(axis, distance,
-                            go(depth + 1, next_axis(axis), split.left),
+    geometry::Aap plane(axis, parent.boundary.GetCenter()[axis]);
+    Split split = split_box(parent, plane);
+    return new KdNodeLinked(plane, go(depth + 1, next_axis(axis), split.left),
                             go(depth + 1, next_axis(axis), split.right));
   }
 }
@@ -37,6 +36,6 @@ KdTreeLinked build_tree_naive(const vector<geometry::Triangle>& triangles) {
     ptrs.emplace_back(&tri);
   }
 
-  return {go(0, X, Box{find_bounding(triangles), ptrs}), triangles};
+  return {go(0, geometry::X, Box{find_bounding(triangles), ptrs}), triangles};
 }
 }  // namespace kdtree

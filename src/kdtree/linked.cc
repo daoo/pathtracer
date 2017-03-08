@@ -33,9 +33,9 @@ optional<geometry::TriRayIntersection> search_tree(const KdTreeLinked& tree,
         node = tree.GetRoot();
       }
     } else {
-      float p = node->GetDistance();
-      float o = ray.origin[node->GetAxis()];
-      float d = ray.direction[node->GetAxis()];
+      float p = node->GetPlane().GetDistance();
+      float o = ray.origin[node->GetPlane().GetAxis()];
+      float d = ray.direction[node->GetPlane().GetAxis()];
       float t = (p - o) / d;
       const KdNodeLinked* first = node->GetLeft();
       const KdNodeLinked* second = node->GetRight();
