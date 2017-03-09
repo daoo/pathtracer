@@ -19,9 +19,12 @@
 
 namespace geometry {
 namespace {
-void find_min_max(float x0, float x1, float x2, float& min, float& max) {
-  min = glm::min(x0, glm::min(x1, x2));
-  max = glm::max(x0, glm::max(x1, x2));
+struct MinMax {
+  float min, max;
+};
+
+MinMax find_min_max(float x0, float x1, float x2) {
+  return {glm::min(x0, glm::min(x1, x2)), glm::max(x0, glm::max(x1, x2))};
 }
 
 void test_axis(float normal,
@@ -193,16 +196,16 @@ bool tri_box_overlap(const Aabb& aabb,
   /*  the triangle against the AABB */
 
   /* test in X-direction */
-  find_min_max(v0.x, v1.x, v2.x, min, max);
-  if (min > aabb.GetHalf().x || max < -aabb.GetHalf().x) return false;
+  MinMax xext = find_min_max(v0.x, v1.x, v2.x);
+  if (xext.min > aabb.GetHalf().x || xext.max < -aabb.GetHalf().x) return false;
 
   /* test in Y-direction */
-  find_min_max(v0.y, v1.y, v2.y, min, max);
-  if (min > aabb.GetHalf().y || max < -aabb.GetHalf().y) return false;
+  MinMax yext = find_min_max(v0.y, v1.y, v2.y);
+  if (yext.min > aabb.GetHalf().y || yext.max < -aabb.GetHalf().y) return false;
 
   /* test in Z-direction */
-  find_min_max(v0.z, v1.z, v2.z, min, max);
-  if (min > aabb.GetHalf().z || max < -aabb.GetHalf().z) return false;
+  MinMax zext = find_min_max(v0.z, v1.z, v2.z);
+  if (zext.min > aabb.GetHalf().z || zext.max < -aabb.GetHalf().z) return false;
 
   /* Bullet 2: */
   /*  test if the box intersects the plane of the triangle */
