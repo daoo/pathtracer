@@ -44,13 +44,13 @@ tuple<vector<const Triangle*>, vector<const Triangle*>> intersect_test(
   vector<const Triangle*> right_triangles;
   left_triangles.reserve(triangles.size());
   right_triangles.reserve(triangles.size());
-  for (const Triangle* tri : triangles) {
-    if (tri_box_overlap(left_aabb, tri->v0, tri->v1, tri->v2)) {
-      left_triangles.emplace_back(tri);
+  for (const Triangle* triangle : triangles) {
+    if (tri_box_overlap(left_aabb, triangle->v0, triangle->v1, triangle->v2)) {
+      left_triangles.emplace_back(triangle);
     }
 
-    if (tri_box_overlap(right_aabb, tri->v0, tri->v1, tri->v2)) {
-      right_triangles.emplace_back(tri);
+    if (tri_box_overlap(right_aabb, triangle->v0, triangle->v1, triangle->v2)) {
+      right_triangles.emplace_back(triangle);
     }
   }
 

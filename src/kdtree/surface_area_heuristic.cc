@@ -94,8 +94,8 @@ KdNodeLinked* go(unsigned int depth, const Box& parent) {
 KdTreeLinked build_tree_sah(const std::vector<Triangle>& triangles) {
   std::vector<const Triangle*> ptrs;
   ptrs.reserve(triangles.size());
-  for (const Triangle& tri : triangles) {
-    ptrs.emplace_back(&tri);
+  for (const Triangle& triangle : triangles) {
+    ptrs.emplace_back(&triangle);
   }
 
   return {go(0, Box{find_bounding(triangles), ptrs}), triangles};
