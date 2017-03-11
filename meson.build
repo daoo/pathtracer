@@ -91,6 +91,14 @@ executable(
 )
 
 executable(
+    'print-tree-sah-fast',
+    tree_source,
+    'kdtree/surface_area_heuristic_fast.cc',
+    link_args: '-lstdc++fs',
+    dependencies: [glm]
+)
+
+executable(
     'test-camera',
     'tests/camera-tester.cc',
     dependencies: [glm]
