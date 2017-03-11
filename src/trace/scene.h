@@ -24,6 +24,8 @@ std::vector<geometry::Triangle> triangles_from_obj(const wavefront::Obj& obj);
 struct Scene {
   Scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl);
 
+  std::vector<geometry::Triangle> triangles;
+  std::map<std::string, Material*> materials;
   std::vector<Camera> cameras;
   std::vector<SphereLight> lights;
   kdtree::KdTreeLinked kdtree;
