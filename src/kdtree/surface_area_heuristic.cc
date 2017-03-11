@@ -15,6 +15,7 @@
 using geometry::Aap;
 using geometry::Axis;
 using geometry::Triangle;
+using std::vector;
 
 namespace kdtree {
 namespace {
@@ -78,13 +79,13 @@ CostSplit find_best(const Box& parent) {
 KdNodeLinked* go(unsigned int depth, const Box& parent) {
   // sizeof(KdNodeLinked) * node count = 32 * 2^20 = 32 MB
   if (depth >= 20 || parent.triangles.empty()) {
-    return new KdNodeLinked(new std::vector<const Triangle*>(parent.triangles));
+    return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   }
 
   CostSplit split = find_best(parent);
   float leaf_cost = COST_INTERSECT * parent.triangles.size();
   if (split.cost > leaf_cost) {
-    return new KdNodeLinked(new std::vector<const Triangle*>(parent.triangles));
+    return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   } else {
     return new KdNodeLinked(split.split.plane, go(depth + 1, split.split.left),
                             go(depth + 1, split.split.right));
@@ -92,8 +93,8 @@ KdNodeLinked* go(unsigned int depth, const Box& parent) {
 }
 }  // namespace
 
-KdTreeLinked build_tree_sah(const std::vector<Triangle>& triangles) {
-  std::vector<const Triangle*> ptrs;
+KdTreeLinked build_tree_sah(const vector<Triangle>& triangles) {
+  vector<const Triangle*> ptrs;
   ptrs.reserve(triangles.size());
   for (const Triangle& triangle : triangles) {
     ptrs.emplace_back(&triangle);
