@@ -76,6 +76,7 @@ CostSplit find_best(const Box& parent) {
 }
 
 KdNodeLinked* go(unsigned int depth, const Box& parent) {
+  // sizeof(KdNodeLinked) * node count = 32 * 2^20 = 32 MB
   if (depth >= 20 || parent.triangles.empty()) {
     return new KdNodeLinked(new std::vector<const Triangle*>(parent.triangles));
   }
