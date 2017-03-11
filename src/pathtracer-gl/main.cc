@@ -1,7 +1,10 @@
-#include <experimental/filesystem>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdlib>
+#include <experimental/filesystem>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -11,7 +14,6 @@
 #include <string>
 #include <vector>
 
-#include "pathtracer-gl/gl.h"
 #include "pathtracer-gl/shaders.h"
 #include "trace/camera.h"
 #include "trace/fastrand.h"
@@ -40,167 +42,146 @@ constexpr int ERROR_PARAMS = 1;
 constexpr int ERROR_FILE_NOT_FOUND = 2;
 constexpr int ERROR_PROGRAM = 3;
 
-static trace::FastRand g_rand;
+class State {
+ public:
+  State(path out_dir, path obj, path mtl)
+      : out_dir_(out_dir),
+        obj_name_(obj.stem()),
+        scene_(wavefront::load_obj(obj), wavefront::load_mtl(mtl)) {
+    glEnable(GL_FRAMEBUFFER_SRGB);
+    glDisable(GL_CULL_FACE);
 
-static std::experimental::filesystem::path g_out_dir;
-static std::experimental::filesystem::path g_obj_name;
+    const float positions[] = {1.0f,  -1.0f, 0.0f, 1.0f,  1.0f, 0.0f,
+                               -1.0f, -1.0f, 0.0f, -1.0f, 1.0f, 0.0f};
 
-static unsigned int g_width = DEFAULT_WIDTH;
-static unsigned int g_height = DEFAULT_HEIGHT;
-static unsigned int g_subsampling = SUBSAMPLING;
+    GLuint position_buffer;
+    glGenBuffers(1, &position_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, position_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
 
-static std::unique_ptr<trace::Scene> g_scene;
-static unsigned int g_camera;
+    // ----------------------------------------------------------------------
+    // Connect triangle data with the vertex array object
+    GLuint vertex_array_object;
+    glGenVertexArrays(1, &vertex_array_object);
+    glBindVertexArray(vertex_array_object);
+    glBindBuffer(GL_ARRAY_BUFFER, position_buffer);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
 
-static std::unique_ptr<trace::Pinhole> g_pinhole;
-static std::unique_ptr<trace::SampleBuffer> g_buffer;
+    // ----------------------------------------------------------------------
+    // Create shader
+    GLuint vshader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vshader, 1, &VERTEX_SHADER, nullptr);
+    glCompileShader(vshader);
+    GLuint fshader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fshader, 1, &FRAGMENT_SHADER, nullptr);
+    glCompileShader(fshader);
+    GLuint shader_program = glCreateProgram();
+    glAttachShader(shader_program, fshader);
+    glAttachShader(shader_program, vshader);
+    glBindAttribLocation(shader_program, 0, "position");
+    glBindFragDataLocation(shader_program, 0, "color");
+    glLinkProgram(shader_program);
+    GLint uniform_framebuffer =
+        glGetUniformLocation(shader_program, "framebuffer");
+    uniform_framebuffer_samples_ =
+        glGetUniformLocation(shader_program, "samples");
 
-static GLuint g_framebuffer_texture;
-static GLuint g_shader_program;
-static GLint g_uniforg_framebuffer, g_uniforg_framebuffer_samples;
-static GLuint g_vertex_array_object;
+    // ----------------------------------------------------------------------
+    // Create framebuffer texture
+    GLuint framebuffer_texture;
+    glGenTextures(1, &framebuffer_texture);
 
-void restart() {
-  unsigned int w = g_width / g_subsampling;
-  unsigned int h = g_height / g_subsampling;
-
-  g_pinhole.reset(new trace::Pinhole(g_scene->cameras[g_camera], w, h));
-  g_buffer.reset(new trace::SampleBuffer(w, h));
-}
-
-void increase_subsampling() {
-  g_subsampling += 1;
-  restart();
-}
-
-void decrease_subsampling() {
-  g_subsampling = std::max(1U, g_subsampling - 1);
-  restart();
-}
-
-void resize(GLint width, GLint height) {
-  glClearColor(0.2f, 0.2f, 0.8f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glViewport(0, 0, width, height);
-
-  g_width = static_cast<unsigned int>(width);
-  g_height = static_cast<unsigned int>(height);
-
-  restart();
-}
-
-void render() {
-  glUseProgram(g_shader_program);
-
-  // Create and upload raytracer framebuffer as a texture
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
-               static_cast<GLint>(g_buffer->width()),
-               static_cast<GLint>(g_buffer->height()), 0, GL_RGB, GL_FLOAT,
-               g_buffer->data());
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glUniform1i(g_uniforg_framebuffer_samples, g_buffer->samples());
-
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-  glUseProgram(0);
-
-  CHECK_GL_ERROR();
-}
-
-void save_screenshot() {
-  std::string name =
-      util::nice_name(g_obj_name, g_width, g_height, g_buffer->samples());
-  write_image(util::next_free_name(g_out_dir, name, ".png").string(),
-              *g_buffer);
-}
-
-void display() {
-  util::Clock clock;
-  pathtrace(g_scene->kdtree, g_scene->lights, *g_pinhole, g_rand, *g_buffer);
-  double trace_time = clock.measure<double, std::ratio<1>>();
-
-  render();
-  glutSwapBuffers();
-
-  std::cout << "\r" << g_buffer->samples() << ": " << std::fixed
-            << std::setprecision(1) << util::TimeAutoUnit(trace_time)
-            << std::flush;
-}
-
-void idle() {
-  glutPostRedisplay();
-}
-
-void handle_keys(unsigned char key, int, int) {
-  if (key == 27 || key == 'q') {
-    exit(0);
-  } else if (key == 's') {
-    increase_subsampling();
-  } else if (key == 'S') {
-    decrease_subsampling();
-  } else if (key == 'p') {
-    save_screenshot();
+    // ---------------------------------------------------------------------
+    // Set up OpenGL state for use in Display
+    glBindVertexArray(vertex_array_object);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, framebuffer_texture);
+    glUseProgram(shader_program);
+    glUniform1i(uniform_framebuffer, 0);
   }
-}
 
-void init_gl(int* argc, char* argv[]) {
-  glutInit(argc, argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-  glutInitWindowSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-  glutCreateWindow("Pathtracer GL");
-  glutKeyboardFunc(handle_keys);
-  glutReshapeFunc(resize);
-  glutIdleFunc(idle);
-  glutDisplayFunc(display);
-  glewInit();
+  void Render() const {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
+                 static_cast<GLint>(buffer_->width()),
+                 static_cast<GLint>(buffer_->height()), 0, GL_RGB, GL_FLOAT,
+                 buffer_->data());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glUniform1i(uniform_framebuffer_samples_, buffer_->samples());
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  }
 
-  glDisable(GL_CULL_FACE);
+  void Update() {
+    util::Clock clock;
+    pathtrace(scene_.kdtree, scene_.lights, *pinhole_, rand_, *buffer_);
+    double trace_time = clock.measure<double, std::ratio<1>>();
+    std::cout << "\r" << buffer_->samples() << ": " << std::fixed
+              << std::setprecision(1) << util::TimeAutoUnit(trace_time)
+              << std::flush;
+  }
 
-  const float positions[] = {1.0f,  -1.0f, 0.0f, 1.0f,  1.0f, 0.0f,
-                             -1.0f, -1.0f, 0.0f, -1.0f, 1.0f, 0.0f};
+  void UpdateWindowSize(unsigned int width, unsigned int height) {
+    if (width != window_width_ || height != window_height_) {
+      window_width_ = width;
+      window_height_ = height;
+      Reset();
+    }
+  }
 
-  GLuint position_buffer;
-  glGenBuffers(1, &position_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, position_buffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+  void IncreaseSubsampling() {
+    subsampling_ += 1;
+    Reset();
+  }
 
-  // ----------------------------------------------------------------------
-  // Connect triangle data with the vertex array object
-  glGenVertexArrays(1, &g_vertex_array_object);
-  glBindVertexArray(g_vertex_array_object);
-  glBindBuffer(GL_ARRAY_BUFFER, position_buffer);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(0);
+  void DecreaseSubsampling() {
+    subsampling_ = std::max(1U, subsampling_ - 1);
+    Reset();
+  }
 
-  // ----------------------------------------------------------------------
-  // Create shader
-  g_shader_program = load_shader_program(VERTEX_SHADER, FRAGMENT_SHADER);
-  glBindAttribLocation(g_shader_program, 0, "position");
-  glBindFragDataLocation(g_shader_program, 0, "color");
+  void SaveScreenshot() const {
+    std::string name = util::nice_name(obj_name_, window_width_, window_height_,
+                                       buffer_->samples());
+    write_image(util::next_free_name(out_dir_, name, ".png").string(),
+                *buffer_);
+  }
 
-  link_shader_program(g_shader_program);
+ private:
+  path out_dir_;
+  path obj_name_;
 
-  g_uniforg_framebuffer = glGetUniformLocation(g_shader_program, "framebuffer");
-  g_uniforg_framebuffer_samples =
-      glGetUniformLocation(g_shader_program, "samples");
+  trace::FastRand rand_;
 
-  // ----------------------------------------------------------------------
-  // Create framebuffer texture
-  glGenTextures(1, &g_framebuffer_texture);
+  unsigned int subsampling_ = SUBSAMPLING;
+  unsigned int window_width_ = 0, window_height_ = 0;
 
-  // ---------------------------------------------------------------------
-  // Set up OpenGL state for use in Display
-  glBindVertexArray(g_vertex_array_object);
+  trace::Scene scene_;
+  unsigned int camera_ = 0;
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, g_framebuffer_texture);
+  std::unique_ptr<trace::Pinhole> pinhole_;
+  std::unique_ptr<trace::SampleBuffer> buffer_;
 
-  glUseProgram(g_shader_program);
-  glUniform1i(g_uniforg_framebuffer, 0);
-  glUseProgram(0);
+  GLint uniform_framebuffer_samples_;
 
-  CHECK_GL_ERROR();
+  void Reset() {
+    buffer_.reset(new trace::SampleBuffer(window_width_ / subsampling_,
+                                          window_height_ / subsampling_));
+    pinhole_.reset(new trace::Pinhole(scene_.cameras[camera_], buffer_->width(),
+                                      buffer_->height()));
+  }
+};
+
+static void key_callback(GLFWwindow* window, int key, int, int, int) {
+  State* state = static_cast<State*>(glfwGetWindowUserPointer(window));
+  if (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q) {
+    glfwSetWindowShouldClose(window, GLFW_TRUE);
+  } else if (key == GLFW_KEY_RIGHT) {
+    state->IncreaseSubsampling();
+  } else if (key == GLFW_KEY_LEFT) {
+    state->DecreaseSubsampling();
+  } else if (key == 'p') {
+    state->SaveScreenshot();
+  }
 }
 
 int main(int argc, char* argv[]) {
@@ -230,17 +211,40 @@ int main(int argc, char* argv[]) {
   }
 
   try {
-    g_out_dir = out_dir;
-    g_obj_name = obj_file.stem();
+    if (!glfwInit()) {
+      std::cerr << "Error: failed to initialize GLFW.\n";
+      return ERROR_PROGRAM;
+    }
 
-    g_scene.reset(new trace::Scene(wavefront::load_obj(obj_file),
-                                   wavefront::load_mtl(mtl_file)));
+    GLFWwindow* window = glfwCreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT,
+                                          "C++ Pathtracer", NULL, NULL);
+    if (!window) {
+      std::cerr << "Error: failed to create GLFW Window.\n";
+      glfwTerminate();
+      return ERROR_PROGRAM;
+    }
 
-    init_gl(&argc, argv);
-    resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+    glfwMakeContextCurrent(window);
+    glfwSetKeyCallback(window, key_callback);
 
-    glEnable(GL_FRAMEBUFFER_SRGB);
-    glutMainLoop(); /* start the program main loop */
+    glewInit();
+
+    State state(out_dir, obj_file, mtl_file);
+    glfwSetWindowUserPointer(window, &state);
+    while (!glfwWindowShouldClose(window)) {
+      int width, height;
+      glfwGetFramebufferSize(window, &width, &height);
+      state.UpdateWindowSize(static_cast<unsigned int>(width),
+                             static_cast<unsigned int>(height));
+      state.Update();
+      glViewport(0, 0, width, height);
+      state.Render();
+      glfwSwapBuffers(window);
+      glfwPollEvents();
+    }
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
   } catch (const std::runtime_error& ex) {
     std::cerr << "ERROR: " << ex.what() << '\n';
     return ERROR_PROGRAM;
