@@ -49,7 +49,7 @@ struct Pinhole {
   }
 
   geometry::Ray ray(float x, float y) const {
-    return {position, normalize(mind + x * dx + y * dy)};
+    return {position, glm::normalize(mind + x * dx + y * dy)};
   }
 };
 }  // namespace trace
