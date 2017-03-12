@@ -44,8 +44,8 @@ struct Pinhole {
 
     mind = z - y - x;
 
-    dx = 2.0f * ((z - x) - mind);
-    dy = 2.0f * ((z - y) - mind);
+    dx = 2.0f * y;
+    dy = 2.0f * x;
   }
 
   geometry::Ray ray(float x, float y) const {
