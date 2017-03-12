@@ -126,6 +126,16 @@ class State {
     }
   }
 
+  void NextCamera() {
+    camera_ = (camera_ + 1) % static_cast<unsigned int>(scene_.cameras.size());
+    Reset();
+  }
+
+  void PreviousCamera() {
+    camera_ = (camera_ - 1) % static_cast<unsigned int>(scene_.cameras.size());
+    Reset();
+  }
+
   void IncreaseSubsampling() {
     subsampling_ += 1;
     Reset();
@@ -180,6 +190,10 @@ static void key_callback(GLFWwindow* window, int key, int, int action, int) {
     state->IncreaseSubsampling();
   } else if (key == GLFW_KEY_LEFT) {
     state->DecreaseSubsampling();
+  } else if (key == GLFW_KEY_HOME && action == GLFW_RELEASE) {
+    state->PreviousCamera();
+  } else if (key == GLFW_KEY_END && action == GLFW_RELEASE) {
+    state->NextCamera();
   } else if (key == GLFW_KEY_F12 && action == GLFW_RELEASE) {
     state->SaveScreenshot();
   }
