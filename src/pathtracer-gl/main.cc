@@ -3,11 +3,9 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <cstdlib>
 #include <experimental/filesystem>
 #include <iomanip>
 #include <iostream>
-#include <memory>
 #include <ratio>
 #include <sstream>
 #include <stdexcept>
@@ -28,15 +26,6 @@
 
 using std::experimental::filesystem::path;
 
-constexpr unsigned int DEFAULT_WIDTH = 512;
-constexpr unsigned int DEFAULT_HEIGHT = 512;
-
-#ifdef NDEBUG
-constexpr unsigned int SUBSAMPLING = 1;
-#else
-constexpr unsigned int SUBSAMPLING = 4;
-#endif
-
 constexpr int OK = 0;
 constexpr int ERROR_PARAMS = 1;
 constexpr int ERROR_FILE_NOT_FOUND = 2;
@@ -44,10 +33,18 @@ constexpr int ERROR_PROGRAM = 3;
 
 class State {
  public:
-  State(path out_dir, path obj, path mtl)
+  State(path out_dir,
+        path obj,
+        path mtl,
+        unsigned int width,
+        unsigned int height)
       : out_dir_(out_dir),
         obj_name_(obj.stem()),
-        scene_(wavefront::load_obj(obj), wavefront::load_mtl(mtl)) {
+        scene_(wavefront::load_obj(obj), wavefront::load_mtl(mtl)),
+        window_width_(width),
+        window_height_(height),
+        buffer_(width / subsampling_, height / subsampling_),
+        pinhole_(scene_.cameras[camera_], buffer_.width(), buffer_.height()) {
     glEnable(GL_FRAMEBUFFER_SRGB);
     glDisable(GL_CULL_FACE);
 
@@ -103,20 +100,20 @@ class State {
 
   void Render() const {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F,
-                 static_cast<GLint>(buffer_->width()),
-                 static_cast<GLint>(buffer_->height()), 0, GL_RGB, GL_FLOAT,
-                 buffer_->data());
+                 static_cast<GLint>(buffer_.width()),
+                 static_cast<GLint>(buffer_.height()), 0, GL_RGB, GL_FLOAT,
+                 buffer_.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glUniform1i(uniform_framebuffer_samples_, buffer_->samples());
+    glUniform1i(uniform_framebuffer_samples_, buffer_.samples());
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   }
 
   void Update() {
     util::Clock clock;
-    pathtrace(scene_.kdtree, scene_.lights, *pinhole_, rand_, *buffer_);
+    pathtrace(scene_.kdtree, scene_.lights, pinhole_, rand_, buffer_);
     double trace_time = clock.measure<double, std::ratio<1>>();
-    std::cout << "\r" << buffer_->samples() << ": " << std::fixed
+    std::cout << "\r" << buffer_.samples() << ": " << std::fixed
               << std::setprecision(1) << util::TimeAutoUnit(trace_time)
               << std::flush;
   }
@@ -141,33 +138,37 @@ class State {
 
   void SaveScreenshot() const {
     std::string name = util::nice_name(obj_name_, window_width_, window_height_,
-                                       buffer_->samples());
-    write_image(util::next_free_name(out_dir_, name, ".png").string(),
-                *buffer_);
+                                       buffer_.samples());
+    write_image(util::next_free_name(out_dir_, name, ".png").string(), buffer_);
   }
 
  private:
+  trace::FastRand rand_;
+
   path out_dir_;
   path obj_name_;
 
-  trace::FastRand rand_;
-
-  unsigned int subsampling_ = SUBSAMPLING;
-  unsigned int window_width_ = 0, window_height_ = 0;
+#ifdef NDEBUG
+  unsigned int subsampling_ = 1;
+#else
+  unsigned int subsampling_ = 4;
+#endif
 
   trace::Scene scene_;
   unsigned int camera_ = 0;
 
-  std::unique_ptr<trace::Pinhole> pinhole_;
-  std::unique_ptr<trace::SampleBuffer> buffer_;
+  unsigned int window_width_, window_height_;
+
+  trace::SampleBuffer buffer_;
+  trace::Pinhole pinhole_;
 
   GLint uniform_framebuffer_samples_;
 
   void Reset() {
-    buffer_.reset(new trace::SampleBuffer(window_width_ / subsampling_,
-                                          window_height_ / subsampling_));
-    pinhole_.reset(new trace::Pinhole(scene_.cameras[camera_], buffer_->width(),
-                                      buffer_->height()));
+    buffer_ = trace::SampleBuffer(window_width_ / subsampling_,
+                                  window_height_ / subsampling_);
+    pinhole_ = trace::Pinhole(scene_.cameras[camera_], buffer_.width(),
+                              buffer_.height());
   }
 };
 
@@ -216,8 +217,9 @@ int main(int argc, char* argv[]) {
       return ERROR_PROGRAM;
     }
 
-    GLFWwindow* window = glfwCreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT,
-                                          "C++ Pathtracer", NULL, NULL);
+    int width = 512, height = 512;
+    GLFWwindow* window =
+        glfwCreateWindow(width, height, "C++ Pathtracer", NULL, NULL);
     if (!window) {
       std::cerr << "Error: failed to create GLFW Window.\n";
       glfwTerminate();
@@ -229,10 +231,11 @@ int main(int argc, char* argv[]) {
 
     glewInit();
 
-    State state(out_dir, obj_file, mtl_file);
+    glfwGetFramebufferSize(window, &width, &height);
+    State state(out_dir, obj_file, mtl_file, static_cast<unsigned int>(width),
+                static_cast<unsigned int>(height));
     glfwSetWindowUserPointer(window, &state);
     while (!glfwWindowShouldClose(window)) {
-      int width, height;
       glfwGetFramebufferSize(window, &width, &height);
       state.UpdateWindowSize(static_cast<unsigned int>(width),
                              static_cast<unsigned int>(height));
