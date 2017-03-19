@@ -9,24 +9,28 @@
 #include "trace/material.h"
 #include "trace/mcsampling.h"
 
+using geometry::Ray;
+using geometry::TriRayIntersection;
 using glm::vec3;
+using kdtree::KdTreeLinked;
 using std::experimental::optional;
 using std::vector;
+using trace::FastRand;
+using trace::LightSample;
+using trace::Material;
+using trace::SphereLight;
 
-namespace kdtree {
+namespace {
+constexpr float EPSILON = 0.00001f;
+
 bool any_intersects(const KdTreeLinked& kdtree,
-                    const geometry::Ray& ray,
+                    const Ray& ray,
                     float tmin,
                     float tmax) {
   return static_cast<bool>(search_tree(kdtree, ray, tmin, tmax));
 }
-}  // namespace kdtree
 
-namespace trace {
-namespace {
-constexpr float EPSILON = 0.00001f;
-
-vec3 from_light(const kdtree::KdTreeLinked& kdtree,
+vec3 from_light(const KdTreeLinked& kdtree,
                 const Material* material,
                 const vec3& target,
                 const vec3& offset,
@@ -36,7 +40,7 @@ vec3 from_light(const kdtree::KdTreeLinked& kdtree,
                 FastRand& rand) {
   vec3 source = light.light_sample(rand);
   vec3 direction = source - target;
-  geometry::Ray shadow_ray{offset, direction};
+  Ray shadow_ray{offset, direction};
   if (!any_intersects(kdtree, shadow_ray, 0.0f, 1.0f)) {
     vec3 wr = normalize(direction);
     vec3 radiance = light.light_emitted(target);
@@ -45,25 +49,25 @@ vec3 from_light(const kdtree::KdTreeLinked& kdtree,
   return glm::zero<vec3>();
 }
 
-vec3 environment_light(const geometry::Ray&) {
+vec3 environment_light(const Ray&) {
   return vec3(0.8f, 0.8f, 0.8f);
 }
 
 struct Context {
-  const kdtree::KdTreeLinked& kdtree;
+  const KdTreeLinked& kdtree;
   const vector<SphereLight>& lights;
   const unsigned int bounces;
   FastRand& rand;
 };
 
 vec3 incoming_light_helper(Context& context,
-                           const geometry::Ray& ray,
+                           const Ray& ray,
                            vec3 radiance,
                            vec3 transport,
                            unsigned int bounce) {
   if (bounce >= context.bounces) return radiance;
 
-  optional<geometry::TriRayIntersection> intersection =
+  optional<TriRayIntersection> intersection =
       kdtree::search_tree(context.kdtree, ray, 0.0f, FLT_MAX);
   if (!intersection) return radiance + transport * environment_light(ray);
 
@@ -95,20 +99,20 @@ vec3 incoming_light_helper(Context& context,
 
   if (length2(transport) < EPSILON) return radiance;
 
-  geometry::Ray next_ray{dot(sample.wo, n) >= 0 ? offset_up : offset_down,
-                         sample.wo};
+  Ray next_ray{dot(sample.wo, n) >= 0 ? offset_up : offset_down, sample.wo};
 
   return incoming_light_helper(context, next_ray, radiance, transport,
                                bounce + 1);
 }
 
-vec3 incoming_light(Context& context, const geometry::Ray& ray) {
+vec3 incoming_light(Context& context, const Ray& ray) {
   return incoming_light_helper(context, ray, glm::zero<vec3>(),
                                glm::one<vec3>(), 0);
 }
 }  // namespace
 
-void pathtrace(const kdtree::KdTreeLinked& kdtree,
+namespace trace {
+void pathtrace(const KdTreeLinked& kdtree,
                const vector<SphereLight>& lights,
                const Pinhole& pinhole,
                unsigned int bounces,
