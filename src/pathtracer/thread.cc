@@ -71,17 +71,17 @@ void worker(const kdtree::KdTreeLinked& kdtree,
             unsigned int sample_count,
             unsigned int thread,
             util::ConcurrentQueue<MessageSample>& queue,
-            trace::SampleBuffer& buffer) {
+            trace::SampleBuffer* buffer) {
   assert(sample_count > 0);
 
   unsigned int bounces = 16;
   trace::FastRand rand;
-  while (buffer.samples() < sample_count) {
+  while (buffer->samples() < sample_count) {
     util::Clock clock;
     pathtrace(kdtree, lights, pinhole, bounces, &rand, buffer);
     double trace_time = clock.measure<double, std::ratio<1>>();
 
-    queue.push({thread, buffer.samples(), trace_time});
+    queue.push({thread, buffer->samples(), trace_time});
   }
 }
 
@@ -116,7 +116,7 @@ void program(const path& obj_file,
   for (unsigned int i = 0; i < thread_count; ++i) {
     threads.emplace_back(worker, std::ref(scene.kdtree), std::ref(scene.lights),
                          std::ref(pinhole), samples_per_thread, i,
-                         std::ref(queue), std::ref(buffers[i]));
+                         std::ref(queue), &buffers[i]);
   }
 
   // Wait for work to finish

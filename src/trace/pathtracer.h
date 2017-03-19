@@ -22,7 +22,7 @@ void pathtrace(const kdtree::KdTreeLinked& kdtree,
                const Pinhole& pinhole,
                unsigned int bounces,
                FastRand* rand,
-               SampleBuffer& buffer);
+               SampleBuffer* buffer);
 }  // namespace trace
 
 #endif  // TRACE_PATHTRACER_H_

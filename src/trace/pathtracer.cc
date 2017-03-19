@@ -123,17 +123,17 @@ void pathtrace(const KdTreeLinked& kdtree,
                const Pinhole& pinhole,
                unsigned int bounces,
                FastRand* rand,
-               SampleBuffer& buffer) {
+               SampleBuffer* buffer) {
   Context context{kdtree, lights, bounces, rand};
-  for (unsigned int y = 0; y < buffer.height(); ++y) {
-    for (unsigned int x = 0; x < buffer.width(); ++x) {
+  for (unsigned int y = 0; y < buffer->height(); ++y) {
+    for (unsigned int x = 0; x < buffer->width(); ++x) {
       float sx = (static_cast<float>(x) + rand->next()) / pinhole.width;
       float sy = (static_cast<float>(y) + rand->next()) / pinhole.height;
 
-      buffer.add(x, y, incoming_light(context, pinhole.ray(sx, sy)));
+      buffer->add(x, y, incoming_light(context, pinhole.ray(sx, sy)));
     }
   }
 
-  buffer.inc();
+  buffer->inc();
 }
 }  // namespace trace
