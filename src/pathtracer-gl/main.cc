@@ -185,6 +185,10 @@ class State {
 };
 
 static void key_callback(GLFWwindow* window, int key, int, int action, int) {
+  if (action != GLFW_PRESS) {
+    return;
+  }
+
   State* state = static_cast<State*>(glfwGetWindowUserPointer(window));
   if (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q) {
     glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -192,11 +196,11 @@ static void key_callback(GLFWwindow* window, int key, int, int action, int) {
     state->IncreaseSubsampling();
   } else if (key == GLFW_KEY_LEFT) {
     state->DecreaseSubsampling();
-  } else if (key == GLFW_KEY_HOME && action == GLFW_RELEASE) {
+  } else if (key == GLFW_KEY_HOME) {
     state->PreviousCamera();
-  } else if (key == GLFW_KEY_END && action == GLFW_RELEASE) {
+  } else if (key == GLFW_KEY_END) {
     state->NextCamera();
-  } else if (key == GLFW_KEY_F12 && action == GLFW_RELEASE) {
+  } else if (key == GLFW_KEY_F12) {
     state->SaveScreenshot();
   }
 }
