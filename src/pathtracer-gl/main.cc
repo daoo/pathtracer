@@ -1,9 +1,10 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <experimental/filesystem>
+
 #include <algorithm>
 #include <cstddef>
-#include <experimental/filesystem>
 #include <iomanip>
 #include <iostream>
 #include <ratio>

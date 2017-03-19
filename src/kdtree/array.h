@@ -1,9 +1,10 @@
 #ifndef KDTREE_ARRAY_H_
 #define KDTREE_ARRAY_H_
 
+#include <experimental/optional>
+
 #include <cassert>
 #include <cstdint>
-#include <experimental/optional>
 #include <limits>
 #include <vector>
 

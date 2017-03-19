@@ -1,6 +1,6 @@
 #include "kdtree/util.h"
 
-#include <cassert>
+#include <assert.h>
 #include <glm/gtc/constants.hpp>
 
 #include "geometry/aabb.h"
