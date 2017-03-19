@@ -23,16 +23,17 @@ struct AabbResults {
 AabbResults split_aabb(const Aabb& parent, const Aap& plane) {
   float min = parent.GetMin()[plane.GetAxis()];
   float max = parent.GetMax()[plane.GetAxis()];
-  float split_clamped = glm::clamp(plane.GetDistance(), min, max);
-  float lh = (split_clamped - min) / 2.0f + glm::epsilon<float>();
-  float rh = (max - split_clamped) / 2.0f + glm::epsilon<float>();
+  float split = plane.GetDistance();
+  float lh = (split - min) / 2.0f + glm::epsilon<float>();
+  float rh = (max - split) / 2.0f + glm::epsilon<float>();
+  assert(lh > 0 && rh > 0);
 
   glm::vec3 left_center(parent.GetCenter()), left_half(parent.GetHalf());
-  left_center[plane.GetAxis()] = split_clamped - lh;
+  left_center[plane.GetAxis()] = split - lh;
   left_half[plane.GetAxis()] = lh;
 
   glm::vec3 right_center(parent.GetCenter()), right_half(parent.GetHalf());
-  right_center[plane.GetAxis()] = split_clamped + rh;
+  right_center[plane.GetAxis()] = split + rh;
   right_half[plane.GetAxis()] = rh;
 
   return {Aabb(left_center, left_half), Aabb(right_center, right_half)};

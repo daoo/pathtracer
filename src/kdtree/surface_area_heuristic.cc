@@ -13,6 +13,7 @@
 #include "kdtree/linked.h"
 #include "kdtree/util.h"
 
+using geometry::Aabb;
 using geometry::Aap;
 using geometry::Axis;
 using geometry::Triangle;
@@ -51,25 +52,30 @@ const CostSplit& get_best(const CostSplit& a, const CostSplit& b) {
   return a.cost <= b.cost ? a : b;
 }
 
-void find_perfect_splits(const Triangle& triangle,
+void find_perfect_splits(const Aabb& boundary,
+                         const Triangle& triangle,
                          Axis axis,
                          set<Aap>* splits) {
+  float boundary_min = boundary.GetMin()[axis];
+  float boundary_max = boundary.GetMax()[axis];
   float min = triangle.GetMin()[axis] - EPSILON;
   float max = triangle.GetMax()[axis] + EPSILON;
-  splits->emplace(axis, min);
-  splits->emplace(axis, max);
+  splits->emplace(axis, glm::clamp(min, boundary_min, boundary_max));
+  splits->emplace(axis, glm::clamp(max, boundary_min, boundary_max));
 }
 
-void find_perfect_splits(const Triangle& triangle, set<Aap>* splits) {
-  find_perfect_splits(triangle, geometry::X, splits);
-  find_perfect_splits(triangle, geometry::Y, splits);
-  find_perfect_splits(triangle, geometry::Z, splits);
+void find_perfect_splits(const Aabb& boundary,
+                         const Triangle& triangle,
+                         set<Aap>* splits) {
+  find_perfect_splits(boundary, triangle, geometry::X, splits);
+  find_perfect_splits(boundary, triangle, geometry::Y, splits);
+  find_perfect_splits(boundary, triangle, geometry::Z, splits);
 }
 
-set<Aap> find_perfect_splits(const vector<const Triangle*>& triangles) {
+set<Aap> find_perfect_splits(const Box& box) {
   set<Aap> splits;
-  for (const Triangle* triangle : triangles) {
-    find_perfect_splits(*triangle, &splits);
+  for (const Triangle* triangle : box.triangles) {
+    find_perfect_splits(box.boundary, *triangle, &splits);
   }
   return splits;
 }
@@ -92,7 +98,7 @@ KdNodeLinked* go(unsigned int depth, const Box& parent) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   }
 
-  set<Aap> splits = find_perfect_splits(parent.triangles);
+  set<Aap> splits = find_perfect_splits(parent);
   CostSplit split = find_best(parent, splits);
   float leaf_cost = COST_INTERSECT * parent.triangles.size();
   if (split.cost > leaf_cost) {
