@@ -177,6 +177,10 @@ class State {
   GLint uniform_framebuffer_samples_;
 
   void Reset() {
+    std::cout << '\n';
+    std::cout << "window=" << window_width_ << 'x' << window_height_ << ' ';
+    std::cout << "subsampling=" << subsampling_ << ' ';
+    std::cout << "camera=" << camera_ << '\n';
     buffer_ = trace::SampleBuffer(window_width_ / subsampling_,
                                   window_height_ / subsampling_);
     pinhole_ = trace::Pinhole(scene_.cameras[camera_], buffer_.width(),
