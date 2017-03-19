@@ -3,9 +3,8 @@
 
 #include <vector>
 
-#include "geometry/aabb.h"
-
 namespace geometry {
+class Aabb;
 struct Triangle;
 
 Aabb find_bounding(const std::vector<Triangle>& triangles);

@@ -1,4 +1,6 @@
 #include "trace/material.h"
+
+#include "trace/fastrand.h"
 #include "trace/mcsampling.h"
 
 using glm::vec3;

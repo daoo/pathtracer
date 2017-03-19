@@ -6,13 +6,21 @@
 #include <vector>
 
 #include "kdtree/linked.h"
-#include "trace/camera.h"
 #include "trace/light.h"
-#include "trace/material.h"
-#include "wavefront/mtl.h"
-#include "wavefront/obj.h"
+
+namespace geometry {
+struct Triangle;
+}  // namespace geometry
+
+namespace wavefront {
+struct Mtl;
+struct Obj;
+}  // namespace wavefront
 
 namespace trace {
+struct Camera;
+class Material;
+
 std::vector<SphereLight> lights_from_mtl(const wavefront::Mtl& mtl);
 
 std::vector<Camera> cameras_from_mtl(const wavefront::Mtl& mtl);

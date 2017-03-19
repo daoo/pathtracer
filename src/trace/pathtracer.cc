@@ -1,13 +1,19 @@
 #include "trace/pathtracer.h"
 
 #include <experimental/optional>
+#include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
+#include "geometry/ray.h"
 #include "geometry/triray.h"
 #include "kdtree/intersection.h"
 #include "kdtree/linked.h"
+#include "trace/camera.h"
+#include "trace/fastrand.h"
+#include "trace/light.h"
 #include "trace/material.h"
 #include "trace/mcsampling.h"
+#include "trace/samplebuffer.h"
 
 using geometry::Ray;
 using geometry::TriRayIntersection;

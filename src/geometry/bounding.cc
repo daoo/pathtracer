@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 
+#include "geometry/aabb.h"
 #include "geometry/triangle.h"
 
 using glm::vec3;

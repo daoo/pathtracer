@@ -3,9 +3,14 @@
 #include <glm/gtc/epsilon.hpp>
 #include <map>
 
+#include "geometry/triangle.h"
 #include "kdtree/linked.h"
 #include "kdtree/surface_area_heuristic.h"
+#include "trace/camera.h"
+#include "trace/material.h"
 #include "trace/mcsampling.h"
+#include "wavefront/mtl.h"
+#include "wavefront/obj.h"
 
 using glm::vec3;
 using std::map;

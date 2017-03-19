@@ -3,10 +3,11 @@
 
 #include <glm/glm.hpp>
 
-#include "trace/fastrand.h"
 #include "trace/texture.h"
 
 namespace trace {
+class FastRand;
+
 struct LightSample {
   float pdf;
   glm::vec3 brdf;

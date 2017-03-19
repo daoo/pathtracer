@@ -1,23 +1,28 @@
 #ifndef TRACE_PATHTRACER_H_
 #define TRACE_PATHTRACER_H_
 
-#include <glm/glm.hpp>
 #include <vector>
 
-#include "geometry/ray.h"
-#include "kdtree/linked.h"
-#include "trace/camera.h"
-#include "trace/fastrand.h"
-#include "trace/light.h"
-#include "trace/samplebuffer.h"
+namespace geometry {
+struct Ray;
+}  // namespace geometry
+
+namespace kdtree {
+class KdTreeLinked;
+}  // namespace kdtree
 
 namespace trace {
+class FastRand;
+class SampleBuffer;
+class SphereLight;
+struct Pinhole;
+
 void pathtrace(const kdtree::KdTreeLinked& kdtree,
                const std::vector<SphereLight>& lights,
                const Pinhole& pinhole,
                unsigned int bounces,
                FastRand* rand,
                SampleBuffer& buffer);
-}
+}  // namespace trace
 
 #endif  // TRACE_PATHTRACER_H_
