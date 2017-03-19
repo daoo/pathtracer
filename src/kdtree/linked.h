@@ -48,12 +48,9 @@ class KdNodeLinked {
 
 class KdTreeLinked {
  public:
-  KdTreeLinked(const KdNodeLinked* root,
-               const std::vector<geometry::Triangle>& triangles)
-      : root_(root), triangles_(triangles) {}
+  KdTreeLinked(const KdNodeLinked* root) : root_(root) {}
 
-  KdTreeLinked(KdTreeLinked&& other)
-      : root_(other.root_), triangles_(std::move(other.triangles_)) {
+  KdTreeLinked(KdTreeLinked&& other) : root_(other.root_) {
     other.root_ = nullptr;
   }
 
@@ -63,7 +60,6 @@ class KdTreeLinked {
 
  private:
   const KdNodeLinked* root_;
-  const std::vector<geometry::Triangle>& triangles_;
 };
 
 std::experimental::optional<geometry::TriRayIntersection> search_tree(
