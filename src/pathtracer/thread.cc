@@ -74,10 +74,11 @@ void worker(const kdtree::KdTreeLinked& kdtree,
             trace::SampleBuffer& buffer) {
   assert(sample_count > 0);
 
+  unsigned int bounces = 16;
   trace::FastRand rand;
   while (buffer.samples() < sample_count) {
     util::Clock clock;
-    pathtrace(kdtree, lights, pinhole, rand, buffer);
+    pathtrace(kdtree, lights, pinhole, bounces, rand, buffer);
     double trace_time = clock.measure<double, std::ratio<1>>();
 
     queue.push({thread, buffer.samples(), trace_time});

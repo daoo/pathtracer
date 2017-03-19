@@ -15,6 +15,7 @@ namespace trace {
 void pathtrace(const kdtree::KdTreeLinked& kdtree,
                const std::vector<SphereLight>& lights,
                const Pinhole& pinhole,
+               unsigned int bounces,
                FastRand& rand,
                SampleBuffer& buffer);
 }
