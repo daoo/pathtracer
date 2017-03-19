@@ -7,13 +7,13 @@
 #include "trace/fastrand.h"
 
 namespace trace {
-inline glm::vec2 uniform_sample_square(FastRand& rand) {
-  return glm::vec2(rand.next(), rand.next());
+inline glm::vec2 uniform_sample_square(FastRand* rand) {
+  return glm::vec2(rand->next(), rand->next());
 }
 
-inline glm::vec3 uniform_sample_sphere(FastRand& rand) {
-  float z = rand.next() * 2.0f - 1.0f;
-  float a = rand.next() * (2.0f * glm::pi<float>());
+inline glm::vec3 uniform_sample_sphere(FastRand* rand) {
+  float z = rand->next() * 2.0f - 1.0f;
+  float a = rand->next() * (2.0f * glm::pi<float>());
 
   float r = glm::sqrt(1.0f - z * z);
 
@@ -23,7 +23,7 @@ inline glm::vec3 uniform_sample_sphere(FastRand& rand) {
   return glm::vec3(x, y, z);
 }
 
-inline glm::vec3 uniform_sample_hemisphere(FastRand& rand) {
+inline glm::vec3 uniform_sample_hemisphere(FastRand* rand) {
   glm::vec2 r = uniform_sample_square(rand);
 
   float a = 2.0f * glm::sqrt(r.y * (1.0f - r.y));
@@ -32,9 +32,9 @@ inline glm::vec3 uniform_sample_hemisphere(FastRand& rand) {
                    glm::abs(1.0f - 2.0f * r.y)};
 }
 
-inline glm::vec2 concentric_sample_disk(FastRand& rand) {
-  float x = rand.next() * 2.0f - 1.0f;
-  float y = rand.next() * 2.0f - 1.0f;
+inline glm::vec2 concentric_sample_disk(FastRand* rand) {
+  float x = rand->next() * 2.0f - 1.0f;
+  float y = rand->next() * 2.0f - 1.0f;
 
   // Handle degeneracy at the origin
   if (x == 0.0f && y == 0.0f) {
@@ -68,7 +68,7 @@ inline glm::vec2 concentric_sample_disk(FastRand& rand) {
   return glm::vec2{r * glm::cos(theta), r * glm::sin(theta)};
 }
 
-inline glm::vec3 cosine_sample_hemisphere(FastRand& engine) {
+inline glm::vec3 cosine_sample_hemisphere(FastRand* engine) {
   glm::vec2 ret = concentric_sample_disk(engine);
   float z = glm::sqrt(glm::max(0.0f, 1.0f - ret.x * ret.x - ret.y * ret.y));
   return glm::vec3{ret.x, ret.y, z};

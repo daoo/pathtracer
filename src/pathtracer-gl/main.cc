@@ -111,7 +111,7 @@ class State {
 
   void Update() {
     util::Clock clock;
-    pathtrace(scene_.kdtree, scene_.lights, pinhole_, bounces_, rand_, buffer_);
+    pathtrace(scene_.kdtree, scene_.lights, pinhole_, bounces_, &rand_, buffer_);
     double trace_time = clock.measure<double, std::ratio<1>>();
     std::cout << "\r" << buffer_.samples() << ": " << std::fixed
               << std::setprecision(1) << util::TimeAutoUnit(trace_time)

@@ -37,7 +37,7 @@ vec3 from_light(const KdTreeLinked& kdtree,
                 const vec3& wi,
                 const vec3& n,
                 const SphereLight& light,
-                FastRand& rand) {
+                FastRand* rand) {
   vec3 source = light.light_sample(rand);
   vec3 direction = source - target;
   Ray shadow_ray{offset, direction};
@@ -57,10 +57,10 @@ struct Context {
   const KdTreeLinked& kdtree;
   const vector<SphereLight>& lights;
   const unsigned int bounces;
-  FastRand& rand;
+  FastRand* rand;
 };
 
-vec3 incoming_light_helper(Context& context,
+vec3 incoming_light_helper(const Context& context,
                            const Ray& ray,
                            vec3 radiance,
                            vec3 transport,
@@ -90,7 +90,7 @@ vec3 incoming_light_helper(Context& context,
 
   radiance += transport * sum_lights;
 
-  LightSample sample = material->sample_brdf(context.rand, wi, n);
+  LightSample sample = material->sample_brdf(wi, n, context.rand);
 
   if (sample.pdf < EPSILON) return radiance;
 
@@ -105,7 +105,7 @@ vec3 incoming_light_helper(Context& context,
                                bounce + 1);
 }
 
-vec3 incoming_light(Context& context, const Ray& ray) {
+vec3 incoming_light(const Context& context, const Ray& ray) {
   return incoming_light_helper(context, ray, glm::zero<vec3>(),
                                glm::one<vec3>(), 0);
 }
@@ -116,13 +116,13 @@ void pathtrace(const KdTreeLinked& kdtree,
                const vector<SphereLight>& lights,
                const Pinhole& pinhole,
                unsigned int bounces,
-               FastRand& rand,
+               FastRand* rand,
                SampleBuffer& buffer) {
   Context context{kdtree, lights, bounces, rand};
   for (unsigned int y = 0; y < buffer.height(); ++y) {
     for (unsigned int x = 0; x < buffer.width(); ++x) {
-      float sx = (static_cast<float>(x) + rand.next()) / pinhole.width;
-      float sy = (static_cast<float>(y) + rand.next()) / pinhole.height;
+      float sx = (static_cast<float>(x) + rand->next()) / pinhole.width;
+      float sy = (static_cast<float>(y) + rand->next()) / pinhole.height;
 
       buffer.add(x, y, incoming_light(context, pinhole.ray(sx, sy)));
     }

@@ -36,9 +36,9 @@ vec3 DiffuseMaterial::brdf(const vec3&, const vec3&, const vec3&) const {
   return reflectance_ * glm::one_over_pi<float>();
 }
 
-LightSample DiffuseMaterial::sample_brdf(FastRand& rand,
-                                         const vec3& wi,
-                                         const vec3& n) const {
+LightSample DiffuseMaterial::sample_brdf(const vec3& wi,
+                                         const vec3& n,
+                                         FastRand* rand) const {
   vec3 tangent = normalize(perpendicular(n));
   vec3 bitangent = cross(n, tangent);
   vec3 s = cosine_sample_hemisphere(rand);
@@ -56,9 +56,9 @@ vec3 SpecularReflectionMaterial::brdf(const vec3&,
   return glm::zero<vec3>();
 }
 
-LightSample SpecularReflectionMaterial::sample_brdf(FastRand&,
-                                                    const vec3& wi,
-                                                    const vec3& n) const {
+LightSample SpecularReflectionMaterial::sample_brdf(const vec3& wi,
+                                                    const vec3& n,
+                                                    FastRand*) const {
   vec3 wo = normalize(2.0f * glm::abs<float>(glm::dot(wi, n)) * n - wi);
   float pdf =
       same_hemisphere(wi, wo, n) ? glm::abs<float>(glm::dot(wo, n)) : 0.0f;
@@ -74,9 +74,9 @@ vec3 SpecularRefractionMaterial::brdf(const vec3&,
   return glm::zero<vec3>();
 }
 
-LightSample SpecularRefractionMaterial::sample_brdf(FastRand& rand,
-                                                    const vec3& wi,
-                                                    const vec3& n) const {
+LightSample SpecularRefractionMaterial::sample_brdf(const vec3& wi,
+                                                    const vec3& n,
+                                                    FastRand* rand) const {
   float a = glm::dot(-wi, n);
   float eta = a < 0.0f ? 1.0f / index_of_refraction_ : index_of_refraction_;
   vec3 N = a < 0.0f ? n : -n;
@@ -86,7 +86,7 @@ LightSample SpecularRefractionMaterial::sample_brdf(FastRand& rand,
 
   if (k < 0.0f) {
     // Total internal reflection
-    return specular_reflection_.sample_brdf(rand, wi, N);
+    return specular_reflection_.sample_brdf(wi, N, rand);
   }
 
   k = glm::sqrt(k);
@@ -111,12 +111,12 @@ vec3 FresnelBlendMaterial::brdf(const vec3& wo,
                   reflectance(r0_, wo, n));
 }
 
-LightSample FresnelBlendMaterial::sample_brdf(FastRand& rand,
-                                              const vec3& wi,
-                                              const vec3& n) const {
-  return rand.next() < reflectance(r0_, wi, n)
-             ? reflection_->sample_brdf(rand, wi, n)
-             : refraction_->sample_brdf(rand, wi, n);
+LightSample FresnelBlendMaterial::sample_brdf(const vec3& wi,
+                                              const vec3& n,
+                                              FastRand* rand) const {
+  return rand->next() < reflectance(r0_, wi, n)
+             ? reflection_->sample_brdf(wi, n, rand)
+             : refraction_->sample_brdf(wi, n, rand);
 }
 
 BlendMaterial::BlendMaterial(const Material* first,
@@ -133,10 +133,10 @@ vec3 BlendMaterial::brdf(const vec3& wo, const vec3& wi, const vec3& n) const {
   return glm::mix(second_->brdf(wo, wi, n), first_->brdf(wo, wi, n), factor_);
 }
 
-LightSample BlendMaterial::sample_brdf(FastRand& rand,
-                                       const vec3& wi,
-                                       const vec3& n) const {
-  return rand.next() < factor_ ? first_->sample_brdf(rand, wi, n)
-                               : second_->sample_brdf(rand, wi, n);
+LightSample BlendMaterial::sample_brdf(const vec3& wi,
+                                       const vec3& n,
+                                       FastRand* rand) const {
+  return rand->next() < factor_ ? first_->sample_brdf(wi, n, rand)
+                                : second_->sample_brdf(wi, n, rand);
 }
 }  // namespace trace
