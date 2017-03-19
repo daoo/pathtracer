@@ -21,23 +21,23 @@ class ConcurrentQueue {
     return queue_.empty();
   }
 
-  bool try_pop(T& val) {
+  bool try_pop(T* val) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (queue_.empty()) return false;
 
-    val = queue_.front();
+    *val = queue_.front();
     queue_.pop();
     return true;
   }
 
-  void wait_and_pop(T& val) {
+  void wait_and_pop(T* val) {
     std::unique_lock<std::mutex> lock(mutex_);
 
     while (queue_.empty())
       cond_.wait(lock);
 
-    val = queue_.front();
+    *val = queue_.front();
     queue_.pop();
   }
 

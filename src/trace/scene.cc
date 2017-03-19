@@ -56,8 +56,8 @@ Material* material_from_wavefront(const wavefront::Material& material) {
 
 void update_pointer_to_material(
     const std::map<std::string, Material*>& materials,
-    std::vector<geometry::Triangle>& triangles) {
-  for (geometry::Triangle& triangle : triangles) {
+    std::vector<geometry::Triangle>* triangles) {
+  for (geometry::Triangle& triangle : *triangles) {
     triangle.tag = materials.at(*static_cast<const std::string*>(triangle.tag));
   }
 }
@@ -111,6 +111,6 @@ Scene::Scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl)
       cameras(cameras_from_mtl(mtl)),
       lights(lights_from_mtl(mtl)),
       kdtree(kdtree::build_tree_sah(triangles)) {
-  update_pointer_to_material(materials, triangles);
+  update_pointer_to_material(materials, &triangles);
 }
 }  // namespace trace
