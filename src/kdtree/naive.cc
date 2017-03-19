@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 
 #include "geometry/aabb.h"
+#include "geometry/aap.h"
 #include "geometry/bounding.h"
 #include "kdtree/linked.h"
 #include "kdtree/util.h"

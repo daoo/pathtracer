@@ -1,1 +1,4 @@
-[ { include: ["@<glm/detail/.*>", "private", "<glm/glm.hpp>", "public"] } ]
+[
+  { include : ["@<glm/detail/.*>", "private", "<glm/glm.hpp>", "public"] },
+  { include : ["@<glm/gtc/constants.inl>", "private", "<glm/gtc/constants.hpp>", "public"] }
+]

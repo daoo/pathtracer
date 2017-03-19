@@ -3,11 +3,11 @@
 #include <glm/glm.hpp>
 
 #include <cassert>
-#include <cstddef>
 #include <set>
 #include <vector>
 
 #include "geometry/aabb.h"
+#include "geometry/aap.h"
 #include "geometry/bounding.h"
 #include "geometry/triangle.h"
 #include "kdtree/linked.h"

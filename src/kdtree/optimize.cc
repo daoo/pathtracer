@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "geometry/aap.h"
 #include "geometry/triangle.h"
 #include "kdtree/array.h"
 #include "kdtree/linked.h"

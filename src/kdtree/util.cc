@@ -1,6 +1,7 @@
 #include "kdtree/util.h"
 
 #include <assert.h>
+#include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
 #include "geometry/aabb.h"
