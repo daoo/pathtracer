@@ -146,6 +146,16 @@ class State {
     Reset();
   }
 
+  void IncreaseBounces() {
+    bounces_ += 1;
+    Reset();
+  }
+
+  void DecreaseBounces() {
+    bounces_ = std::max(1U, bounces_ - 1);
+    Reset();
+  }
+
   void SaveScreenshot() const {
     std::string name = util::nice_name(obj_name_, window_width_, window_height_,
                                        buffer_.samples());
@@ -180,7 +190,8 @@ class State {
     std::cout << '\n';
     std::cout << "window=" << window_width_ << 'x' << window_height_ << ' ';
     std::cout << "subsampling=" << subsampling_ << ' ';
-    std::cout << "camera=" << camera_ << '\n';
+    std::cout << "camera=" << camera_ << ' ';
+    std::cout << "bounces=" << bounces_ << '\n';
     buffer_ = trace::SampleBuffer(window_width_ / subsampling_,
                                   window_height_ / subsampling_);
     pinhole_ = trace::Pinhole(scene_.cameras[camera_], buffer_.width(),
@@ -200,6 +211,10 @@ static void key_callback(GLFWwindow* window, int key, int, int action, int) {
     state->IncreaseSubsampling();
   } else if (key == GLFW_KEY_LEFT) {
     state->DecreaseSubsampling();
+  } else if (key == GLFW_KEY_UP) {
+    state->IncreaseBounces();
+  } else if (key == GLFW_KEY_DOWN) {
+    state->DecreaseBounces();
   } else if (key == GLFW_KEY_HOME) {
     state->PreviousCamera();
   } else if (key == GLFW_KEY_END) {
