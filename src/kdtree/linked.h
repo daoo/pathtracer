@@ -15,13 +15,8 @@ struct TriRayIntersection;
 namespace kdtree {
 class KdNodeLinked {
  public:
-  KdNodeLinked(geometry::Aap plane,
-               KdNodeLinked* left,
-               KdNodeLinked* right)
-      : plane_(plane),
-        triangles_(nullptr),
-        left_(left),
-        right_(right) {}
+  KdNodeLinked(geometry::Aap plane, KdNodeLinked* left, KdNodeLinked* right)
+      : plane_(plane), triangles_(nullptr), left_(left), right_(right) {}
 
   explicit KdNodeLinked(std::vector<const geometry::Triangle*>* triangles)
       : plane_(geometry::X, 0),

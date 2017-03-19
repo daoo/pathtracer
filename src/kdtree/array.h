@@ -73,9 +73,7 @@ class KdTreeArray {
     return leaf_store_[node.GetIndex()];
   }
 
-  static unsigned int LeftChild(unsigned int index) {
-    return (index << 1) + 1;
-  }
+  static unsigned int LeftChild(unsigned int index) { return (index << 1) + 1; }
 
   static unsigned int RightChild(unsigned int index) {
     return (index << 1) + 2;
