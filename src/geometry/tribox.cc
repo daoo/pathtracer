@@ -30,14 +30,14 @@ MinMax find_min_max(float x0, float x1, float x2) {
 void test_axis(float normal,
                float vert,
                float maxbox,
-               float& vmin,
-               float& vmax) {
+               float* vmin,
+               float* vmax) {
   if (normal > 0.0f) {
-    vmin = vert - maxbox;
-    vmax = maxbox - vert;
+    *vmin = vert - maxbox;
+    *vmax = maxbox - vert;
   } else {
-    vmin = maxbox - vert;
-    vmax = vert - maxbox;
+    *vmin = maxbox - vert;
+    *vmax = vert - maxbox;
   }
 }
 
@@ -45,9 +45,9 @@ bool plane_box_overlap(const glm::vec3& normal,
                        const glm::vec3& vert,
                        const glm::vec3& maxbox) {
   glm::vec3 vmin, vmax;
-  test_axis(normal.x, vert.x, maxbox.x, vmin.x, vmax.x);
-  test_axis(normal.y, vert.y, maxbox.y, vmin.y, vmax.y);
-  test_axis(normal.z, vert.z, maxbox.z, vmin.z, vmax.z);
+  test_axis(normal.x, vert.x, maxbox.x, &vmin.x, &vmax.x);
+  test_axis(normal.y, vert.y, maxbox.y, &vmin.y, &vmax.y);
+  test_axis(normal.z, vert.z, maxbox.z, &vmin.z, &vmax.z);
 
   return glm::dot(normal, vmin) <= 0.0f && glm::dot(normal, vmax) >= 0.0f;
 }
