@@ -23,26 +23,28 @@ trace = static_library('trace',
 threads = dependency('threads')
 glew = dependency('glew')
 glfw = dependency('glfw3')
+glm = dependency('glm')
 
 executable('pathtracer',
   'pathtracer/thread.cc',
   'pathtracer/main.cc',
   link_args: ['-lstdc++fs', '-lfreeimage'],
   link_with: trace,
-  dependencies: threads)
+  dependencies: [threads, glm])
 
 executable('pathtracer-gl',
   'pathtracer-gl/main.cc',
   'pathtracer-gl/shaders.cc',
   link_args: ['-lstdc++fs', '-lfreeimage'],
   link_with: trace,
-  dependencies: [threads, glew, glfw])
+  dependencies: [threads, glm, glew, glfw])
 
 executable('print-wavefront',
   'tests/print-wavefront.cc',
   'wavefront/mtl.cc',
   'wavefront/obj.cc',
-  link_args: '-lstdc++fs')
+  link_args: '-lstdc++fs',
+  dependencies: [glm])
 
 executable('print-tree',
   'geometry/bounding.cc',
@@ -54,8 +56,13 @@ executable('print-tree',
   'trace/material.cc',
   'trace/scene.cc',
   'wavefront/obj.cc',
-  link_args: '-lstdc++fs')
+  link_args: '-lstdc++fs',
+  dependencies: [glm])
 
-executable('test-camera', 'tests/camera-tester.cc')
+executable('test-camera',
+  'tests/camera-tester.cc',
+  dependencies: [glm])
 
-executable('sizes', 'tests/sizes.cc')
+executable('sizes',
+  'tests/sizes.cc',
+  dependencies: [glm])
