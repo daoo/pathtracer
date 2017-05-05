@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CXX="clang++" CXXFLAGS="-Weverything -Wno-missing-prototypes -Wno-c++98-compat -Wno-padded -Wno-weak-vtables -g -Xclang -fcolor-diagnostics" \
+CXX="clang++" CXXFLAGS="-Weverything -Wno-missing-prototypes -Wno-c++98-compat -Wno-padded -Wno-weak-vtables -Wno-exit-time-destructors -g -Xclang -fcolor-diagnostics" \
   meson "out_clang_debug"
 
 CXX="clang++" CXXFLAGS="-Ofast -march=native -DNDEBUG" \
