@@ -66,3 +66,9 @@ executable('test-camera',
 executable('sizes',
   'tests/sizes.cc',
   dependencies: [glm])
+
+tests = executable('unit-tests',
+  'tests/unit-tests.cc',
+  dependencies: [glm])
+
+test('unit tests', tests)
