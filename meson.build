@@ -84,6 +84,7 @@ executable(
 tests = executable(
     'unit-tests',
     'geometry/tribox.cc',
+    'kdtree/util.cc',
     'tests/unit-tests.cc',
     dependencies: [glm]
 )
