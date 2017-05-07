@@ -1,7 +1,6 @@
 project('pathtrace', 'cpp', default_options: ['cpp_std=c++1z'])
 
-trace = static_library(
-    'trace',
+trace_source = [
     'geometry/bounding.cc',
     'geometry/tribox.cc',
     'geometry/triray.cc',
@@ -20,7 +19,7 @@ trace = static_library(
     'util/path.cc',
     'wavefront/mtl.cc',
     'wavefront/obj.cc'
-)
+]
 
 threads = dependency('threads')
 glew = dependency('glew')
@@ -31,8 +30,8 @@ executable(
     'pathtracer',
     'pathtracer/thread.cc',
     'pathtracer/main.cc',
+    trace_source,
     link_args: ['-lstdc++fs', '-lfreeimage'],
-    link_with: trace,
     dependencies: [threads, glm]
 )
 
@@ -40,8 +39,8 @@ executable(
     'pathtracer-gl',
     'pathtracer-gl/main.cc',
     'pathtracer-gl/shaders.cc',
+    trace_source,
     link_args: ['-lstdc++fs', '-lfreeimage'],
-    link_with: trace,
     dependencies: [threads, glm, glew, glfw]
 )
 
