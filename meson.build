@@ -83,6 +83,7 @@ executable(
 
 tests = executable(
     'unit-tests',
+    'geometry/tribox.cc',
     'tests/unit-tests.cc',
     dependencies: [glm]
 )
