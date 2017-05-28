@@ -49,7 +49,7 @@ inline bool equal(const char* a, const char* b) {
 }
 
 inline const char* skip_whitespace(const char* str) {
-  while (*str == ' ' || *str == '\t') {
+  while (*str != 0 && (*str == ' ' || *str == '\t')) {
     ++str;
   }
   return str;
@@ -57,7 +57,7 @@ inline const char* skip_whitespace(const char* str) {
 
 inline const char* next_word(const char* str) {
   // If we point at a word we skip it first
-  while (*str != ' ' && *str != '\t') {
+  while (*str != 0 && (*str != ' ' && *str != '\t')) {
     ++str;
   }
 
@@ -72,25 +72,41 @@ inline std::string parse_string(const char* str) {
 
 inline float parse_float(const char* str) {
   assert(str != nullptr);
-  return strtof(str, nullptr);
+  char* end;
+  float x = strtof(str, &end);
+  if (str == end) throw std::runtime_error("invalid float");
+  return x;
 }
 
 inline glm::vec2 parse_vec2(const char* str) {
   assert(str != nullptr);
 
-  char* end;
-  float x = strtof(str, &end);
-  float y = strtof(end, nullptr);
+  char* endx;
+  float x = strtof(str, &endx);
+  if (str == endx) throw std::runtime_error("invalid float");
+
+  char* endy;
+  float y = strtof(endx, &endy);
+  if (endx == endy) throw std::runtime_error("invalid float");
+
   return {x, y};
 }
 
 inline glm::vec3 parse_vec3(const char* str) {
   assert(str != nullptr);
 
-  char* end;
-  float x = strtof(str, &end);
-  float y = strtof(end, &end);
-  float z = strtof(end, nullptr);
+  char* endx;
+  float x = strtof(str, &endx);
+  if (str == endx) throw std::runtime_error("invalid float");
+
+  char* endy;
+  float y = strtof(endx, &endy);
+  if (endx == endy) throw std::runtime_error("invalid float");
+
+  char* endz;
+  float z = strtof(endy, &endz);
+  if (endy == endz) throw std::runtime_error("invalid float");
+
   return {x, y, z};
 }
 }  // namespace wavefront

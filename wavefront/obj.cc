@@ -19,9 +19,6 @@ Point parse_point(const char* str) {
   int t = parse_int(end1 + 1, &end2);
   int n = parse_int(end2 + 1, nullptr);
 
-  assert(v != 0);
-  assert(n != 0);
-
   return {v, t, n};
 }
 
@@ -45,36 +42,34 @@ Obj load_obj(const path& file) {
     throw std::runtime_error(err);
   }
 
-  std::string line;
-  unsigned int line_index = 0;
-
   Obj obj;
-
+  std::string line;
   while (getline(stream, line)) {
-    if (!line.empty()) {
-      const char* token = skip_whitespace(line.c_str());
+    const char* token = skip_whitespace(line.c_str());
+    char first = *token;
+    if (first == 0) continue;
 
-      char first = *token;
-
-      if (first == 'v') {
-        char second = *(token + 1);
-        if (second == ' ') {
-          obj.vertices.push_back(parse_vec3(token + 1));
-        } else if (second == 'n') {
-          obj.normals.push_back(parse_vec3(token + 2));
-        } else if (second == 't') {
-          obj.texcoords.push_back(parse_vec2(token + 2));
-        }
-      } else if (first == 'f') {
-        obj.chunks.back().polygons.push_back(parse_face(token + 1));
-      } else if (equal("usemtl", token)) {
-        obj.chunks.push_back(Chunk(parse_string(skip_whitespace(token + 7))));
-      } else if (equal("mtllib", token)) {
-        obj.mtl_lib = parse_string(skip_whitespace(token + 7));
+    if (first == 'v') {
+      char second = *(token + 1);
+      if (second == ' ') {
+        obj.vertices.push_back(parse_vec3(token + 1));
+      } else if (second == 'n') {
+        obj.normals.push_back(parse_vec3(token + 2));
+      } else if (second == 't') {
+        obj.texcoords.push_back(parse_vec2(token + 2));
       }
+    } else if (first == 'f') {
+      if (obj.chunks.empty()) {
+        throw std::runtime_error("must start chunk before pushing faces to it");
+      }
+      obj.chunks.back().polygons.push_back(parse_face(token + 1));
+    } else if (equal("usemtl", token)) {
+      obj.chunks.push_back(Chunk(parse_string(skip_whitespace(token + 7))));
+    } else if (equal("mtllib", token)) {
+      obj.mtl_lib = parse_string(skip_whitespace(token + 7));
+    } else {
+      throw std::runtime_error("didn't understand line");
     }
-
-    ++line_index;
   }
 
   return obj;
