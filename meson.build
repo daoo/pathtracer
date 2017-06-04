@@ -97,6 +97,7 @@ tests = executable(
     'kdtree/util.cc',
     'kdtree/util_unittest.cc',
     'tests/unit-tests.cc',
+    'wavefront/parse_unittest.cc',
     dependencies: [glm]
 )
 

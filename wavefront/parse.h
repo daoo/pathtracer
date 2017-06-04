@@ -8,13 +8,14 @@
 
 namespace wavefront {
 inline int parse_int(const char* str, const char** end) {
+  const char* start = str;
   int negate = 1;
   if (*str == '-') {
-    ++str;
+    start = str + 1;
     negate = -1;
   }
 
-  const char* ptr = str;
+  const char* ptr = start;
   while (*ptr >= '0' && *ptr <= '9') {
     ++ptr;
   }
@@ -24,7 +25,7 @@ inline int parse_int(const char* str, const char** end) {
 
   int result = 0;
   int power = 1;
-  while (ptr >= str) {
+  while (ptr >= start) {
     result += static_cast<int>(*ptr - 48) * power;
     power *= 10;
     --ptr;
@@ -34,16 +35,12 @@ inline int parse_int(const char* str, const char** end) {
 }
 
 inline bool equal(const char* a, const char* b) {
-  assert(a != nullptr);
-  assert(*a != 0);
-  assert(b != nullptr);
-
-  while (*a != 0) {
+  do {
     if (*a != *b) return false;
 
     ++a;
     ++b;
-  }
+  } while (*a != 0 && *b != 0);
 
   return true;
 }
