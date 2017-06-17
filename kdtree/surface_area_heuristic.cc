@@ -1,6 +1,7 @@
 #include "kdtree/surface_area_heuristic.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 #include <cassert>
 #include <set>
@@ -24,7 +25,6 @@ namespace kdtree {
 namespace {
 constexpr float COST_TRAVERSE = 0.3f;
 constexpr float COST_INTERSECT = 1.0f;
-constexpr float EPSILON = 0.00001f;
 
 struct CostSplit {
   Split split;
@@ -58,8 +58,8 @@ void find_perfect_splits(const Aabb& boundary,
                          set<Aap>* splits) {
   float boundary_min = boundary.GetMin()[axis];
   float boundary_max = boundary.GetMax()[axis];
-  float min = triangle.GetMin()[axis] - EPSILON;
-  float max = triangle.GetMax()[axis] + EPSILON;
+  float min = triangle.GetMin()[axis] - glm::epsilon<float>();
+  float max = triangle.GetMax()[axis] + glm::epsilon<float>();
   splits->emplace(axis, glm::clamp(min, boundary_min, boundary_max));
   splits->emplace(axis, glm::clamp(max, boundary_min, boundary_max));
 }
