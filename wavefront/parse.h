@@ -7,105 +7,101 @@
 #include <string>
 
 namespace wavefront {
-inline int parse_int(const char* str, const char** end) {
-  const char* start = str;
-  int negate = 1;
-  if (*str == '-') {
-    start = str + 1;
-    negate = -1;
+
+class Parse {
+ public:
+  Parse(const char* ptr) : ptr_(ptr) { assert(ptr != nullptr); }
+
+  char ParseChar() {
+    char chr = *ptr_;
+    ++ptr_;
+    return chr;
   }
 
-  const char* ptr = start;
-  while (*ptr >= '0' && *ptr <= '9') {
-    ++ptr;
+  std::string ParseString() {
+    std::string str(ptr_);
+    ptr_ += str.size();
+    return str;
   }
 
-  if (end) *end = ptr;
-  --ptr;
+  unsigned int ParseUInt() {
+    int result = 0;
+    const char* num_start = ptr_;
+    const char* num_end = ptr_;
+    while (*num_end >= '0' && *num_end <= '9') {
+      ++num_end;
+    }
 
-  int result = 0;
-  int power = 1;
-  while (ptr >= start) {
-    result += static_cast<int>(*ptr - 48) * power;
-    power *= 10;
-    --ptr;
+    const char* ptr = num_end - 1;
+    int power = 1;
+    while (ptr >= num_start) {
+      result += static_cast<int>(*ptr - 48) * power;
+      power *= 10;
+      --ptr;
+    }
+    ptr_ = num_end;
+    return result;
   }
 
-  return negate * result;
-}
-
-inline bool equal(const char* a, const char* b) {
-  do {
-    if (*a != *b) return false;
-
-    ++a;
-    ++b;
-  } while (*a != 0 && *b != 0);
-
-  return true;
-}
-
-inline const char* skip_whitespace(const char* str) {
-  while (*str != 0 && (*str == ' ' || *str == '\t')) {
-    ++str;
-  }
-  return str;
-}
-
-inline const char* next_word(const char* str) {
-  // If we point at a word we skip it first
-  while (*str != 0 && (*str != ' ' && *str != '\t')) {
-    ++str;
+  int ParseInt() {
+    int factor = 1;
+    if (*ptr_ == '-') {
+      ptr_ += 1;
+      factor = -1;
+    }
+    return factor * ParseUInt();
   }
 
-  // Then skip any whitespace to the next word
-  return skip_whitespace(str);
-}
+  float ParseFloat() {
+    char* end;
+    float x = strtof(ptr_, &end);
+    if (ptr_ == end) throw std::runtime_error("invalid float");
+    ptr_ = end;
+    return x;
+  }
 
-inline std::string parse_string(const char* str) {
-  assert(str != nullptr);
-  return std::string(str);
-}
+  glm::vec2 ParseVec2() {
+    float x = ParseFloat();
+    float y = ParseFloat();
+    return {x, y};
+  }
 
-inline float parse_float(const char* str) {
-  assert(str != nullptr);
-  char* end;
-  float x = strtof(str, &end);
-  if (str == end) throw std::runtime_error("invalid float");
-  return x;
-}
+  glm::vec3 ParseVec3() {
+    float x = ParseFloat();
+    float y = ParseFloat();
+    float z = ParseFloat();
+    return {x, y, z};
+  }
 
-inline glm::vec2 parse_vec2(const char* str) {
-  assert(str != nullptr);
+  void Skip(int count) { ptr_ += count; }
 
-  char* endx;
-  float x = strtof(str, &endx);
-  if (str == endx) throw std::runtime_error("invalid float");
+  void SkipWhitespace() {
+    while (*ptr_ != 0 && (*ptr_ == ' ' || *ptr_ == '\t')) {
+      ++ptr_;
+    }
+  }
 
-  char* endy;
-  float y = strtof(endx, &endy);
-  if (endx == endy) throw std::runtime_error("invalid float");
+  bool Match(const char* str) {
+    const char* a = ptr_;
+    const char* b = str;
+    do {
+      if (*a != *b) return false;
 
-  return {x, y};
-}
+      ++a;
+      ++b;
+    } while (*a != 0 && *b != 0);
 
-inline glm::vec3 parse_vec3(const char* str) {
-  assert(str != nullptr);
+    ptr_ = a;
 
-  char* endx;
-  float x = strtof(str, &endx);
-  if (str == endx) throw std::runtime_error("invalid float");
+    return true;
+  }
 
-  char* endy;
-  float y = strtof(endx, &endy);
-  if (endx == endy) throw std::runtime_error("invalid float");
+  bool AtEnd() { return *ptr_ == 0; }
 
-  char* endz;
-  float z = strtof(endy, &endz);
-  if (endy == endz) throw std::runtime_error("invalid float");
+ private:
+  const char* ptr_;
+};
 
-  return {x, y, z};
-}
 }  // namespace wavefront
 
 #endif  // WAVEFRONT_PARSE_H_
