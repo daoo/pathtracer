@@ -1,11 +1,10 @@
 #ifndef KDTREE_ARRAY_H_
 #define KDTREE_ARRAY_H_
 
-#include <experimental/optional>
-
 #include <cassert>
 #include <cstdint>
 #include <limits>
+#include <optional>
 #include <vector>
 
 #include "geometry/triangle.h"
@@ -84,7 +83,7 @@ class KdTreeArray {
   std::vector<std::vector<geometry::Triangle>> leaf_store_;
 };
 
-std::experimental::optional<geometry::TriRayIntersection> search_tree(
+std::optional<geometry::TriRayIntersection> search_tree(
     const KdTreeArray& tree,
     const geometry::Ray& ray,
     float tmin,

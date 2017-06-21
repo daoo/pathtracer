@@ -1,8 +1,8 @@
 #include "trace/pathtracer.h"
 
-#include <experimental/optional>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <optional>
 
 #include "geometry/ray.h"
 #include "geometry/triray.h"
@@ -19,7 +19,7 @@ using geometry::Ray;
 using geometry::TriRayIntersection;
 using glm::vec3;
 using kdtree::KdTreeLinked;
-using std::experimental::optional;
+using std::optional;
 using std::vector;
 using trace::FastRand;
 using trace::LightSample;

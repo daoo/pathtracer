@@ -5,7 +5,7 @@
 #include "geometry/ray.h"
 #include "geometry/triangle.h"
 
-using std::experimental::optional;
+using std::optional;
 
 namespace {
 constexpr float epsilon = 0.00001f;

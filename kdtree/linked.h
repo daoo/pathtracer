@@ -1,7 +1,7 @@
 #ifndef KDTREE_LINKED_H_
 #define KDTREE_LINKED_H_
 
-#include <experimental/optional>
+#include <optional>
 #include <vector>
 
 #include "geometry/triangle.h"
@@ -62,7 +62,7 @@ class KdTreeLinked {
   const KdNodeLinked* root_;
 };
 
-std::experimental::optional<geometry::TriRayIntersection> search_tree(
+std::optional<geometry::TriRayIntersection> search_tree(
     const KdTreeLinked& tree,
     const geometry::Ray& ray,
     float tmin,

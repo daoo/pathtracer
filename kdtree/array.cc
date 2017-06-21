@@ -9,7 +9,7 @@
 #include "kdtree/util.h"
 
 using geometry::Axis;
-using std::experimental::optional;
+using std::optional;
 
 namespace kdtree {
 optional<geometry::TriRayIntersection> search_tree(const KdTreeArray& tree,

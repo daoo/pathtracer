@@ -8,7 +8,7 @@
 #include "geometry/triray.h"
 #include "kdtree/util.h"
 
-using std::experimental::optional;
+using std::optional;
 
 namespace kdtree {
 optional<geometry::TriRayIntersection> search_tree(const KdTreeLinked& tree,

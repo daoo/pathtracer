@@ -1,8 +1,8 @@
 #ifndef GEOMETRY_TRIRAY_H_
 #define GEOMETRY_TRIRAY_H_
 
-#include <experimental/optional>
 #include <glm/glm.hpp>
+#include <optional>
 #include <vector>
 
 #include "geometry/ray.h"
@@ -22,16 +22,16 @@ struct TriRayIntersection {
   }
 };
 
-std::experimental::optional<TriRayIntersection> intersect(const Triangle& tri,
-                                                          const Ray& ray);
+std::optional<TriRayIntersection> intersect(const Triangle& tri,
+                                            const Ray& ray);
 
-std::experimental::optional<TriRayIntersection> find_closest(
+std::optional<TriRayIntersection> find_closest(
     const std::vector<Triangle>& triangles,
     const Ray& ray,
     float mint,
     float maxt);
 
-std::experimental::optional<TriRayIntersection> find_closest(
+std::optional<TriRayIntersection> find_closest(
     const std::vector<const Triangle*>& triangles,
     const Ray& ray,
     float mint,
