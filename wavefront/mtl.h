@@ -40,7 +40,7 @@ struct Mtl {
   std::vector<Camera> cameras;
 };
 
-Mtl load_mtl(const std::experimental::filesystem::path&);
+Mtl LoadMtl(const std::experimental::filesystem::path&);
 }  // namespace wavefront
 
 #endif  // WAVEFRONT_MTL_H_

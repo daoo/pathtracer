@@ -29,10 +29,10 @@ struct Obj {
   std::vector<Chunk> chunks;
 };
 
-Obj load_obj(const std::experimental::filesystem::path&);
+Obj LoadObj(const std::experimental::filesystem::path&);
 
 template <typename T>
-inline T index_array(const std::vector<T>& arr, int index) {
+inline T IndexArray(const std::vector<T>& arr, int index) {
   if (index == 0) {
     return T();
   } else if (index < 0) {
@@ -42,16 +42,16 @@ inline T index_array(const std::vector<T>& arr, int index) {
   }
 }
 
-inline glm::vec3 index_vertex(const Obj& obj, int index) {
-  return index_array(obj.vertices, index);
+inline glm::vec3 IndexVertex(const Obj& obj, int index) {
+  return IndexArray(obj.vertices, index);
 }
 
-inline glm::vec3 index_normal(const Obj& obj, int index) {
-  return index_array(obj.normals, index);
+inline glm::vec3 IndexNormal(const Obj& obj, int index) {
+  return IndexArray(obj.normals, index);
 }
 
-inline glm::vec2 index_texcoord(const Obj& obj, int index) {
-  return index_array(obj.texcoords, index);
+inline glm::vec2 IndexTexcoord(const Obj& obj, int index) {
+  return IndexArray(obj.texcoords, index);
 }
 }  // namespace wavefront
 

@@ -4,15 +4,15 @@
 #include <fstream>
 #include <ostream>
 
-#include "wavefront/parse.h"
+#include "wavefront/parser.h"
 
 using std::experimental::filesystem::path;
 
 namespace wavefront {
 namespace {
-class ParseObj : public Parse {
+class ObjParser : public Parser {
  public:
-  ParseObj(const char* ptr) : Parse(ptr) {}
+  ObjParser(const char* ptr) : Parser(ptr) {}
 
   Point ParsePoint() {
     int v = ParseInt();
@@ -35,19 +35,11 @@ class ParseObj : public Parse {
 };
 }  // namespace
 
-Obj load_obj(const path& file) {
-  std::ifstream stream(file.string());
-  if (!stream.good()) {
-    std::string err = "Failed opening file '";
-    err += file.string();
-    err += "'";
-    throw std::runtime_error(err);
-  }
-
+Obj ParseObj(std::ifstream& stream) {
   Obj obj;
   std::string line;
   while (getline(stream, line)) {
-    ParseObj parse(line.c_str());
+    ObjParser parse(line.c_str());
     parse.SkipWhitespace();
     if (parse.AtEnd()) continue;
 
@@ -78,5 +70,16 @@ Obj load_obj(const path& file) {
   }
 
   return obj;
+}
+
+Obj LoadObj(const path& file) {
+  std::ifstream stream(file.string());
+  if (!stream.good()) {
+    std::string err = "Failed opening file '";
+    err += file.string();
+    err += "'";
+    throw std::runtime_error(err);
+  }
+  return ParseObj(stream);
 }
 }  // namespace wavefront

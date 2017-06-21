@@ -95,11 +95,11 @@ vector<geometry::Triangle> triangles_from_obj(const wavefront::Obj& obj) {
     for (const wavefront::Face& polygon : chunk.polygons) {
       // TODO: ensure the lifetime of somehow &chunk.material
       triangles.push_back(
-          {index_vertex(obj, polygon.p1.v), index_vertex(obj, polygon.p2.v),
-           index_vertex(obj, polygon.p3.v), index_normal(obj, polygon.p1.n),
-           index_normal(obj, polygon.p2.n), index_normal(obj, polygon.p3.n),
-           index_texcoord(obj, polygon.p1.t), index_texcoord(obj, polygon.p2.t),
-           index_texcoord(obj, polygon.p3.t), &chunk.material});
+          {IndexVertex(obj, polygon.p1.v), IndexVertex(obj, polygon.p2.v),
+           IndexVertex(obj, polygon.p3.v), IndexNormal(obj, polygon.p1.n),
+           IndexNormal(obj, polygon.p2.n), IndexNormal(obj, polygon.p3.n),
+           IndexTexcoord(obj, polygon.p1.t), IndexTexcoord(obj, polygon.p2.t),
+           IndexTexcoord(obj, polygon.p3.t), &chunk.material});
     }
   }
   return triangles;

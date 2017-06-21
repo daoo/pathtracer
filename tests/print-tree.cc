@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
   path obj_file = argv[1];
 
   std::vector<geometry::Triangle> triangles =
-      trace::triangles_from_obj(wavefront::load_obj(obj_file));
+      trace::triangles_from_obj(wavefront::LoadObj(obj_file));
 
   util::Clock clock;
   kdtree::KdTreeLinked kdtree = kdtree::build_tree_sah(triangles);

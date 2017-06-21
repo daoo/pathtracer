@@ -4,7 +4,7 @@
 #include <fstream>
 #include <ostream>
 
-#include "wavefront/parse.h"
+#include "wavefront/parser.h"
 
 using std::experimental::filesystem::path;
 
@@ -34,21 +34,12 @@ const char TOKEN_CAMERA_TARGET[] = "cameratarget";
 const char TOKEN_CAMERA_UP[] = "cameraup";
 }  // namespace
 
-Mtl load_mtl(const path& file) {
-  std::ifstream stream(file.string());
-  if (!stream.good()) {
-    std::string err = "Failed opening file '";
-    err += file.string();
-    err += "'";
-    throw std::runtime_error(err);
-  }
-
+Mtl ParseMtl(std::ifstream& stream) {
   Mtl mtl;
-
   std::string line;
   unsigned int line_index = 0;
   while (getline(stream, line)) {
-    Parse parse(line.c_str());
+    Parser parse(line.c_str());
     parse.SkipWhitespace();
 
     if (parse.AtEnd()) continue;
@@ -128,5 +119,17 @@ Mtl load_mtl(const path& file) {
   }
 
   return mtl;
+}
+
+Mtl LoadMtl(const path& file) {
+  std::ifstream stream(file.string());
+  if (!stream.good()) {
+    std::string err = "Failed opening file '";
+    err += file.string();
+    err += "'";
+    throw std::runtime_error(err);
+  }
+
+  return ParseMtl(stream);
 }
 }  // namespace wavefront

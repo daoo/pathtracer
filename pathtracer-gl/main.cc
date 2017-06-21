@@ -41,7 +41,7 @@ class State {
         unsigned int height)
       : out_dir_(out_dir),
         obj_name_(obj.stem()),
-        scene_(wavefront::load_obj(obj), wavefront::load_mtl(mtl)),
+        scene_(wavefront::LoadObj(obj), wavefront::LoadMtl(mtl)),
         window_width_(width),
         window_height_(height),
         buffer_(width / subsampling_, height / subsampling_),

@@ -4,13 +4,14 @@
 #include <glm/glm.hpp>
 
 #include <cassert>
+#include <stdexcept>
 #include <string>
 
 namespace wavefront {
 
-class Parse {
+class Parser {
  public:
-  Parse(const char* ptr) : ptr_(ptr) { assert(ptr != nullptr); }
+  Parser(const char* ptr) : ptr_(ptr) { assert(ptr != nullptr); }
 
   char ParseChar() {
     char chr = *ptr_;

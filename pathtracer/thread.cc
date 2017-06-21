@@ -99,8 +99,8 @@ void program(const path& obj_file,
   assert(thread_count > 0);
 
   // Setup scene
-  trace::Scene scene(wavefront::load_obj(obj_file),
-                     wavefront::load_mtl(mtl_file));
+  trace::Scene scene(wavefront::LoadObj(obj_file),
+                     wavefront::LoadMtl(mtl_file));
   trace::Pinhole pinhole(scene.cameras[camera], width, height);
 
   // Setup one buffer for each thread
