@@ -5,6 +5,7 @@
 #include "util/nicetime.h"
 #include "wavefront/mtl.h"
 #include "wavefront/obj.h"
+#include "wavefront/parser.h"
 
 using std::experimental::filesystem::path;
 
@@ -45,8 +46,8 @@ int main(int argc, char* argv[]) {
         return 1;
       }
     }
-  } catch (const std::runtime_error& ex) {
-    std::cerr << ex.what();
+  } catch (const wavefront::FileException& ex) {
+    std::cerr << ex.what() << '\n';
     return 1;
   }
   return 0;

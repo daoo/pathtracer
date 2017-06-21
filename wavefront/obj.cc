@@ -10,9 +10,9 @@ using std::experimental::filesystem::path;
 
 namespace wavefront {
 namespace {
-class ObjParser : public Parser {
+class ObjParser : public StringParser {
  public:
-  ObjParser(const char* ptr) : Parser(ptr) {}
+  ObjParser(const std::string& str) : StringParser(str) {}
 
   Point ParsePoint() {
     int v = ParseInt();
@@ -38,35 +38,42 @@ class ObjParser : public Parser {
 Obj ParseObj(std::ifstream& stream) {
   Obj obj;
   std::string line;
+  int line_number = 0;
   while (getline(stream, line)) {
-    ObjParser parse(line.c_str());
-    parse.SkipWhitespace();
-    if (parse.AtEnd()) continue;
+    try {
+      ObjParser parse(line);
+      parse.SkipWhitespace();
+      if (parse.AtEnd()) continue;
 
-    if (parse.Match("vn")) {
-      parse.SkipWhitespace();
-      obj.normals.push_back(parse.ParseVec3());
-    } else if (parse.Match("vt")) {
-      parse.SkipWhitespace();
-      obj.texcoords.push_back(parse.ParseVec2());
-    } else if (parse.Match("v")) {
-      parse.SkipWhitespace();
-      obj.vertices.push_back(parse.ParseVec3());
-    } else if (parse.Match("f")) {
-      if (obj.chunks.empty()) {
-        throw std::runtime_error("must start chunk before pushing faces to it");
+      if (parse.Match("vn")) {
+        parse.SkipWhitespace();
+        obj.normals.push_back(parse.ParseVec3());
+      } else if (parse.Match("vt")) {
+        parse.SkipWhitespace();
+        obj.texcoords.push_back(parse.ParseVec2());
+      } else if (parse.Match("v")) {
+        parse.SkipWhitespace();
+        obj.vertices.push_back(parse.ParseVec3());
+      } else if (parse.Match("f")) {
+        if (obj.chunks.empty()) {
+          throw StringException(line, line.c_str(),
+                                "must start chunk before pushing faces to it");
+        }
+        parse.SkipWhitespace();
+        obj.chunks.back().polygons.push_back(parse.ParseFace());
+      } else if (parse.Match("usemtl")) {
+        parse.SkipWhitespace();
+        obj.chunks.push_back(Chunk(parse.ParseString()));
+      } else if (parse.Match("mtllib")) {
+        parse.SkipWhitespace();
+        obj.mtl_lib = parse.ParseString();
+      } else {
+        throw StringException(line, line.c_str(), "unknown expression");
       }
-      parse.SkipWhitespace();
-      obj.chunks.back().polygons.push_back(parse.ParseFace());
-    } else if (parse.Match("usemtl")) {
-      parse.SkipWhitespace();
-      obj.chunks.push_back(Chunk(parse.ParseString()));
-    } else if (parse.Match("mtllib")) {
-      parse.SkipWhitespace();
-      obj.mtl_lib = parse.ParseString();
-    } else {
-      throw std::runtime_error("didn't understand line");
+    } catch (const StringException& ex) {
+      throw LineException(line_number, ex);
     }
+    ++line_number;
   }
 
   return obj;
@@ -80,6 +87,10 @@ Obj LoadObj(const path& file) {
     err += "'";
     throw std::runtime_error(err);
   }
-  return ParseObj(stream);
+  try {
+    return ParseObj(stream);
+  } catch (const LineException& ex) {
+    throw FileException(file, ex);
+  }
 }
 }  // namespace wavefront

@@ -39,7 +39,7 @@ Mtl ParseMtl(std::ifstream& stream) {
   std::string line;
   unsigned int line_index = 0;
   while (getline(stream, line)) {
-    Parser parse(line.c_str());
+    StringParser parse(line);
     parse.SkipWhitespace();
 
     if (parse.AtEnd()) continue;

@@ -1,17 +1,79 @@
 #ifndef WAVEFRONT_PARSE_H_
 #define WAVEFRONT_PARSE_H_
 
+#include <experimental/filesystem>
 #include <glm/glm.hpp>
 
 #include <cassert>
-#include <stdexcept>
 #include <string>
 
 namespace wavefront {
 
-class Parser {
+class StringException {
  public:
-  Parser(const char* ptr) : ptr_(ptr) { assert(ptr != nullptr); }
+  StringException(const std::string& str,
+                  const char* ptr,
+                  const std::string& message)
+      // TODO: Column calculation assumes no unicode characters
+      : str_(str), message_(message), column_(ptr - str.c_str()) {}
+
+  explicit StringException(const StringException& other)
+      : str_(other.str_), message_(other.message_), column_(other.column_) {}
+
+  const std::string& GetString() const { return str_; }
+
+  const std::string& GetMessage() const { return message_; }
+
+  int GetColumnOffset() const { return column_; }
+
+ private:
+  std::string str_;
+  std::string message_;
+  int column_;
+};
+
+class LineException : public StringException {
+ public:
+  LineException(int line, const StringException& inner)
+      : StringException(inner), line_(line) {}
+
+  LineException(const LineException& other)
+      : StringException(other), line_(other.line_) {}
+
+  int GetLineOffset() const { return line_; }
+
+ private:
+  int line_;
+};
+
+class FileException : public LineException {
+ public:
+  FileException(const std::experimental::filesystem::path& path,
+                const LineException& inner)
+      : LineException(inner), path_(path) {}
+
+  const std::experimental::filesystem::path& GetPath() const { return path_; }
+
+  std::string what() const {
+    std::ostringstream stream;
+    stream << GetPath() << ':' << GetLineOffset() + 1 << ':'
+           << GetColumnOffset() + 1 << ": error: " << GetMessage() << '\n'
+           << GetString() << '\n';
+    for (int i = 0; i < GetColumnOffset(); ++i) {
+      stream << ' ';
+    }
+    stream << '^';
+    return stream.str();
+  }
+
+ private:
+  std::experimental::filesystem::path path_;
+};
+
+class StringParser {
+ public:
+  explicit StringParser(const std::string& str)
+      : str_(str), ptr_(str.c_str()) {}
 
   char ParseChar() {
     char chr = *ptr_;
@@ -56,7 +118,7 @@ class Parser {
   float ParseFloat() {
     char* end;
     float x = strtof(ptr_, &end);
-    if (ptr_ == end) throw std::runtime_error("invalid float");
+    if (ptr_ == end) throw StringException(str_, ptr_, "invalid float");
     ptr_ = end;
     return x;
   }
@@ -100,6 +162,7 @@ class Parser {
   bool AtEnd() const { return *ptr_ == 0; }
 
  private:
+  const std::string& str_;
   const char* ptr_;
 };
 
