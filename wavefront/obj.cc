@@ -44,6 +44,7 @@ Obj ParseObj(std::ifstream& stream) {
       ObjParser parse(line);
       parse.SkipWhitespace();
       if (parse.AtEnd()) continue;
+      if (parse.Match("#")) continue;
 
       if (parse.Match("vn")) {
         parse.SkipWhitespace();

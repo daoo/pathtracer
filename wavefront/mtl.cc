@@ -43,6 +43,7 @@ Mtl ParseMtl(std::ifstream& stream) {
     parse.SkipWhitespace();
 
     if (parse.AtEnd()) continue;
+    if (parse.Match("#")) continue;
 
     if (parse.Match("newmtl")) {
       parse.SkipWhitespace();
