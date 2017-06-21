@@ -48,7 +48,7 @@ class KdNodeLinked {
 
 class KdTreeLinked {
  public:
-  KdTreeLinked(const KdNodeLinked* root) : root_(root) {}
+  explicit KdTreeLinked(const KdNodeLinked* root) : root_(root) {}
 
   KdTreeLinked(KdTreeLinked&& other) : root_(other.root_) {
     other.root_ = nullptr;

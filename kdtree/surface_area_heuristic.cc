@@ -117,6 +117,6 @@ KdTreeLinked build_tree_sah(const vector<Triangle>& triangles) {
     ptrs.emplace_back(&triangle);
   }
 
-  return {go(0, Box{find_bounding(triangles), ptrs})};
+  return KdTreeLinked(go(0, Box{find_bounding(triangles), ptrs}));
 }
 }  // namespace kdtree

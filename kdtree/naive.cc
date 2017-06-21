@@ -40,6 +40,6 @@ KdTreeLinked build_tree_naive(const vector<Triangle>& triangles) {
     ptrs.emplace_back(&triangle);
   }
 
-  return {go(0, geometry::X, Box{find_bounding(triangles), ptrs})};
+  return KdTreeLinked(go(0, geometry::X, Box{find_bounding(triangles), ptrs}));
 }
 }  // namespace kdtree
