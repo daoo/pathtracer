@@ -96,7 +96,7 @@ class Parse {
     return true;
   }
 
-  bool AtEnd() { return *ptr_ == 0; }
+  bool AtEnd() const { return *ptr_ == 0; }
 
  private:
   const char* ptr_;
