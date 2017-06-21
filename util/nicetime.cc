@@ -18,8 +18,10 @@ ostream& operator<<(ostream& stream, const TimeAutoUnit& time) {
     stream << time.seconds_ / 60.0 << "m";
   } else if (time.seconds_ > 1.0) {
     stream << time.seconds_ << "s";
-  } else {
+  } else if (time.seconds_ > 0.001) {
     stream << time.seconds_ * 1000.0 << "ms";
+  } else {
+    stream << time.seconds_ * 1000000.0 << "µs";
   }
   return stream;
 }

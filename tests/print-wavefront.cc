@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "util/clock.h"
+#include "util/nicetime.h"
 #include "wavefront/mtl.h"
 #include "wavefront/obj.h"
 
@@ -28,7 +29,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "Loaded " << file << " in ";
-        std::cout << load_time << " second(s)\n";
+        std::cout << util::TimeAutoUnit(load_time) << "\n";
         std::cout << "  Chunks:    " << obj.chunks.size() << '\n';
         std::cout << "  Triangles: " << triangle_count << '\n';
       } else if (file.extension() == ".mtl") {
@@ -37,7 +38,7 @@ int main(int argc, char* argv[]) {
         float load_time = clock.measure<float, std::ratio<1>>();
 
         std::cout << "Loaded " << file << " in ";
-        std::cout << load_time << " second(s)\n";
+        std::cout << util::TimeAutoUnit(load_time) << "\n";
         std::cout << "  Materials: " << mtl.materials.size() << '\n';
       } else {
         std::cerr << "Error: " << file << " is not an obj or mtl file.\n";

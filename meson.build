@@ -56,6 +56,7 @@ executable(
 executable(
     'print-wavefront',
     'tests/print-wavefront.cc',
+    'util/nicetime.cc',
     'wavefront/mtl.cc',
     'wavefront/obj.cc',
     link_args: '-lstdc++fs',
@@ -72,6 +73,7 @@ executable(
     'tests/print-tree.cc',
     'trace/material.cc',
     'trace/scene.cc',
+    'util/nicetime.cc',
     'wavefront/obj.cc',
     link_args: '-lstdc++fs',
     dependencies: [glm]

@@ -7,6 +7,7 @@
 #include "kdtree/util.h"
 #include "trace/scene.h"
 #include "util/clock.h"
+#include "util/nicetime.h"
 #include "wavefront/obj.h"
 
 using std::experimental::filesystem::path;
@@ -52,7 +53,7 @@ int main(int argc, char* argv[]) {
   util::Clock clock;
   kdtree::KdTreeLinked kdtree = kdtree::build_tree_sah(triangles);
   float construction_time = clock.measure<float, std::ratio<1>>();
-  std::cerr << "Built in " << construction_time << "s.\n";
+  std::cerr << "Built in " << util::TimeAutoUnit(construction_time) << ".\n";
   print(kdtree);
 
   return 0;
