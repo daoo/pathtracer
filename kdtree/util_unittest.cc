@@ -1,5 +1,5 @@
-#include <vector>
 #include <glm/glm.hpp>
+#include <vector>
 
 #include "geometry/aabb.h"
 #include "geometry/aap.h"

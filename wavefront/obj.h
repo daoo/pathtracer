@@ -3,6 +3,7 @@
 
 #include <experimental/filesystem>
 #include <glm/glm.hpp>
+#include <string>
 #include <vector>
 
 namespace wavefront {
