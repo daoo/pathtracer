@@ -68,6 +68,12 @@ Obj ParseObj(std::ifstream& stream) {
       } else if (parse.Match("mtllib")) {
         parse.SkipWhitespace();
         obj.mtl_lib = parse.ParseString();
+      } else if (parse.Match("o")) {
+        // skip object grouping
+        continue;
+      } else if (parse.Match("s")) {
+        // skip smooth shading setting
+        continue;
       } else {
         throw StringException(line, line.c_str(), "unknown expression");
       }
