@@ -6,6 +6,7 @@
 
 #include "geometry/ray.h"
 #include "geometry/triray.h"
+#include "kdtree/axis.h"
 #include "kdtree/util.h"
 
 using geometry::Axis;
@@ -51,13 +52,13 @@ optional<geometry::TriRayIntersection> search_tree(const KdTreeArray& tree,
 
       if (t >= tmax) {
         index = first;
-        axis = next_axis(axis);
+        axis = kdtree::next_axis(axis);
       } else if (t <= tmin) {
         index = second;
-        axis = next_axis(axis);
+        axis = kdtree::next_axis(axis);
       } else {
         index = first;
-        axis = next_axis(axis);
+        axis = kdtree::next_axis(axis);
         tmax = t;
       }
     }
