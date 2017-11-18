@@ -12,6 +12,7 @@ endif
 trace_source = [
     'geometry/bounding.cc',
     'geometry/tribox.cc',
+    'geometry/triplane.cc',
     'geometry/triray.cc',
     'kdtree/array.cc',
     'kdtree/linked.cc',
@@ -67,6 +68,7 @@ executable(
     'print-tree',
     'geometry/bounding.cc',
     'geometry/tribox.cc',
+    'geometry/triplane.cc',
     'kdtree/optimize.cc',
     'kdtree/surface_area_heuristic.cc',
     'kdtree/util.cc',
@@ -96,6 +98,7 @@ tests = executable(
     'geometry/triangle_unittest.cc',
     'geometry/tribox.cc',
     'geometry/tribox_unittest.cc',
+    'geometry/triplane.cc',
     'geometry/triray.cc',
     'geometry/triray_unittest.cc',
     'kdtree/util.cc',
