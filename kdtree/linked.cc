@@ -6,7 +6,6 @@
 
 #include "geometry/ray.h"
 #include "geometry/triray.h"
-#include "kdtree/util.h"
 
 using std::optional;
 

@@ -7,7 +7,6 @@
 #include "geometry/ray.h"
 #include "geometry/triray.h"
 #include "kdtree/axis.h"
-#include "kdtree/util.h"
 
 using geometry::Axis;
 using std::optional;

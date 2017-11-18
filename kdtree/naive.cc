@@ -1,39 +1,98 @@
 #include "kdtree/naive.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
+#include <cassert>
 #include "geometry/aabb.h"
 #include "geometry/aap.h"
 #include "geometry/bounding.h"
+#include "geometry/split.h"
+#include "geometry/tribox.h"
 #include "kdtree/axis.h"
 #include "kdtree/linked.h"
-#include "kdtree/util.h"
 
 namespace geometry {
 struct Triangle;
-}  // kdtree geometry
+}  // namespace geometry
 
+using geometry::Aabb;
+using geometry::AabbSplit;
 using geometry::Aap;
 using geometry::Axis;
 using geometry::Triangle;
 using glm::vec3;
+using kdtree::KdNodeLinked;
 using std::vector;
 
-namespace kdtree {
 namespace {
+
+struct IntersectResults {
+  vector<const Triangle*> left;
+  vector<const Triangle*> right;
+};
+
+IntersectResults intersect_test(const vector<const Triangle*>& triangles,
+                                const Aabb& left_aabb,
+                                const Aabb& right_aabb) {
+  IntersectResults results;
+  results.left.reserve(triangles.size());
+  results.right.reserve(triangles.size());
+  for (const Triangle* triangle : triangles) {
+    bool in_left =
+        tri_box_overlap(left_aabb, triangle->v0, triangle->v1, triangle->v2);
+    bool in_right =
+        tri_box_overlap(right_aabb, triangle->v0, triangle->v1, triangle->v2);
+    assert(in_left || in_right);
+    if (in_left) results.left.emplace_back(triangle);
+    if (in_right) results.right.emplace_back(triangle);
+  }
+
+  results.left.shrink_to_fit();
+  results.right.shrink_to_fit();
+  return results;
+}
+
+struct Box {
+  geometry::Aabb boundary;
+  std::vector<const geometry::Triangle*> triangles;
+};
+
+struct Split {
+  geometry::Aap plane;
+  Box left, right;
+};
+
+Split split_box(const Box& parent, const Aap& plane) {
+  AabbSplit aabbs = split(parent.boundary, plane);
+  glm::vec3 delta(0, 0, 0);
+  delta[plane.GetAxis()] = glm::epsilon<float>();
+  Aabb left_aabb = aabbs.left.Translate(-delta).Enlarge(delta);
+  Aabb right_aabb = aabbs.right.Translate(delta).Enlarge(delta);
+  IntersectResults triangles =
+      intersect_test(parent.triangles, left_aabb, right_aabb);
+  Box left{left_aabb, triangles.left};
+  Box right{right_aabb, triangles.right};
+  return Split{plane, left, right};
+}
+
 KdNodeLinked* go(unsigned int depth, Axis axis, const Box& parent) {
   if (depth >= 20 || parent.triangles.size() <= 6) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   } else {
     Aap plane(axis, parent.boundary.GetCenter()[axis]);
     Split split = split_box(parent, plane);
-    KdNodeLinked* left_child = go(depth + 1, next_axis(axis), split.left);
-    KdNodeLinked* right_child = go(depth + 1, next_axis(axis), split.right);
+    KdNodeLinked* left_child =
+        go(depth + 1, kdtree::next_axis(axis), split.left);
+    KdNodeLinked* right_child =
+        go(depth + 1, kdtree::next_axis(axis), split.right);
     return new KdNodeLinked(plane, left_child, right_child);
   }
 }
+
 }  // namespace
 
+namespace kdtree {
 KdTreeLinked build_tree_naive(const vector<Triangle>& triangles) {
   vector<const Triangle*> ptrs;
   ptrs.reserve(triangles.size());

@@ -4,7 +4,6 @@
 #include "geometry/aap.h"
 #include "kdtree/linked.h"
 #include "kdtree/surface_area_heuristic.h"
-#include "kdtree/util.h"
 #include "trace/scene.h"
 #include "util/clock.h"
 #include "util/nicetime.h"

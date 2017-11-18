@@ -4,8 +4,8 @@
 #include <optional>
 #include <vector>
 
+#include "geometry/aap.h"
 #include "geometry/triangle.h"
-#include "kdtree/util.h"
 
 namespace geometry {
 struct Ray;
