@@ -15,7 +15,7 @@ struct AabbSplit {
   Aabb left, right;
 };
 
-AabbSplit split(const Aabb& aabb, const Aap& plane) {
+inline AabbSplit split(const Aabb& aabb, const Aap& plane) {
   float left_half_axis =
       (plane.GetDistance() - aabb.GetMin()[plane.GetAxis()]) / 2.0f;
   float right_half_axis =
