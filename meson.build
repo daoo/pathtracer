@@ -96,6 +96,8 @@ tests = executable(
     'geometry/triangle_unittest.cc',
     'geometry/tribox.cc',
     'geometry/tribox_unittest.cc',
+    'geometry/triray.cc',
+    'geometry/triray_unittest.cc',
     'kdtree/util.cc',
     'kdtree/util_unittest.cc',
     'tests/unit-tests.cc',
