@@ -17,6 +17,10 @@ class Aap {
            (axis_ == other.axis_ && distance_ < other.distance_);
   }
 
+  bool operator==(const Aap& other) const {
+    return axis_ == other.axis_ && distance_ == other.distance_;
+  }
+
  private:
   Axis axis_;
   float distance_;
