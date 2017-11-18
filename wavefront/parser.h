@@ -147,13 +147,13 @@ class StringParser {
   bool Match(const char* str) {
     const char* a = ptr_;
     const char* b = str;
-    do {
-      if (*a != *b) return false;
+    if (*a != *b) return false;
 
+    while (*a != 0 && *b != 0) {
+      if (*a != *b) return false;
       ++a;
       ++b;
-    } while (*a != 0 && *b != 0);
-
+    }
     ptr_ = a;
 
     return true;
