@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
       if (file.extension() == ".obj") {
         util::Clock clock;
         wavefront::Obj obj = wavefront::LoadObj(file);
-        float load_time = clock.measure<float, std::ratio<1>>();
+        double load_time = clock.measure<double, std::ratio<1>>();
 
         unsigned int triangle_count = 0;
         for (const wavefront::Chunk& c : obj.chunks) {
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
       } else if (file.extension() == ".mtl") {
         util::Clock clock;
         wavefront::Mtl mtl = wavefront::LoadMtl(file);
-        float load_time = clock.measure<float, std::ratio<1>>();
+        double load_time = clock.measure<double, std::ratio<1>>();
 
         std::cout << "Loaded " << file << " in ";
         std::cout << util::TimeAutoUnit(load_time) << "\n";

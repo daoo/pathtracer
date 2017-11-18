@@ -63,7 +63,7 @@ class State {
     glGenVertexArrays(1, &vertex_array_object);
     glBindVertexArray(vertex_array_object);
     glBindBuffer(GL_ARRAY_BUFFER, position_buffer);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(0);
 
     // ----------------------------------------------------------------------
@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
 
     int width = 512, height = 512;
     GLFWwindow* window =
-        glfwCreateWindow(width, height, "C++ Pathtracer", NULL, NULL);
+        glfwCreateWindow(width, height, "C++ Pathtracer", nullptr, nullptr);
     if (!window) {
       std::cerr << "Error: failed to create GLFW Window.\n";
       glfwTerminate();

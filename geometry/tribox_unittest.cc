@@ -1,7 +1,6 @@
 #include <glm/glm.hpp>
 
 #include "geometry/aabb.h"
-#include "geometry/triangle.h"
 #include "geometry/tribox.h"
 #include "tests/catch.h"
 

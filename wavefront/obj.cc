@@ -12,7 +12,7 @@ namespace wavefront {
 namespace {
 class ObjParser : public StringParser {
  public:
-  ObjParser(const std::string& str) : StringParser(str) {}
+  explicit ObjParser(const std::string& str) : StringParser(str) {}
 
   Point ParsePoint() {
     int v = ParseInt();

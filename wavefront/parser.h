@@ -1,5 +1,5 @@
-#ifndef WAVEFRONT_PARSE_H_
-#define WAVEFRONT_PARSE_H_
+#ifndef WAVEFRONT_PARSER_H_
+#define WAVEFRONT_PARSER_H_
 
 #include <experimental/filesystem>
 #include <glm/glm.hpp>
@@ -24,12 +24,12 @@ class StringException {
 
   const std::string& GetMessage() const { return message_; }
 
-  int GetColumnOffset() const { return column_; }
+  int64_t GetColumnOffset() const { return column_; }
 
  private:
   std::string str_;
   std::string message_;
-  int column_;
+  int64_t column_;
 };
 
 class LineException : public StringException {
@@ -88,7 +88,7 @@ class StringParser {
   }
 
   unsigned int ParseUInt() {
-    int result = 0;
+    unsigned int result = 0;
     const char* num_start = ptr_;
     const char* num_end = ptr_;
     while (*num_end >= '0' && *num_end <= '9') {
@@ -96,9 +96,9 @@ class StringParser {
     }
 
     const char* ptr = num_end - 1;
-    int power = 1;
+    unsigned int power = 1;
     while (ptr >= num_start) {
-      result += static_cast<int>(*ptr - 48) * power;
+      result += static_cast<unsigned int>(*ptr - 48) * power;
       power *= 10;
       --ptr;
     }
@@ -112,7 +112,7 @@ class StringParser {
       ptr_ += 1;
       factor = -1;
     }
-    return factor * ParseUInt();
+    return factor * static_cast<int>(ParseUInt());
   }
 
   float ParseFloat() {
@@ -168,4 +168,4 @@ class StringParser {
 
 }  // namespace wavefront
 
-#endif  // WAVEFRONT_PARSE_H_
+#endif  // WAVEFRONT_PARSER_H_

@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
 
   util::Clock clock;
   kdtree::KdTreeLinked kdtree = kdtree::build_tree_sah(triangles);
-  float construction_time = clock.measure<float, std::ratio<1>>();
+  double construction_time = clock.measure<double, std::ratio<1>>();
   std::cerr << "Built in " << util::TimeAutoUnit(construction_time) << ".\n";
   print(kdtree);
 
