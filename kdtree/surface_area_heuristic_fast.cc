@@ -126,7 +126,7 @@ struct CostSplit {
   Cost cost;
 };
 
-CostSplit find_best(const Box& parent, const set<Event>& splits) {
+CostSplit find_best_split(const Box& parent, const set<Event>& splits) {
   assert(splits.size() > 0);
   CostSplit best{{geometry::X, 0}, {FLT_MAX, LEFT}};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
@@ -210,7 +210,7 @@ KdNodeLinked* go(unsigned int depth, const Box& parent) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   }
 
-  CostSplit split = find_best(parent, splits);
+  CostSplit split = find_best_split(parent, splits);
   float leaf_cost = COST_INTERSECT * parent.triangles.size();
   if (split.cost.cost > leaf_cost) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
