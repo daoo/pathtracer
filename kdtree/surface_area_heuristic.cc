@@ -77,28 +77,6 @@ float calculate_cost(const Aabb& parent, const Box& left, const Box& right) {
   return COST_TRAVERSE + COST_INTERSECT * intersect;
 }
 
-struct Split {
-  geometry::Aap plane;
-  Box left, right;
-  float cost;
-
-  bool operator<(const Split& other) const { return cost < other.cost; }
-};
-
-Split split_box(const Box& parent, const Aap& plane) {
-  AabbSplit aabbs = split(parent.boundary, plane);
-  glm::vec3 delta(0, 0, 0);
-  delta[plane.GetAxis()] = glm::epsilon<float>();
-  Aabb left_aabb = aabbs.left.Translate(-delta).Enlarge(delta);
-  Aabb right_aabb = aabbs.right.Translate(delta).Enlarge(delta);
-  IntersectResults triangles =
-      intersect_test(parent.triangles, left_aabb, right_aabb);
-  Box left{left_aabb, triangles.left};
-  Box right{right_aabb, triangles.right};
-  float cost = calculate_cost(parent.boundary, left, right);
-  return Split{plane, left, right, cost};
-}
-
 void list_perfect_splits(const Aabb& boundary,
                          const Triangle& triangle,
                          Axis axis,
@@ -127,7 +105,29 @@ set<Aap> list_perfect_splits(const Box& box) {
   return splits;
 }
 
-Split find_best(const Box& box, const set<Aap>& splits) {
+struct Split {
+  geometry::Aap plane;
+  Box left, right;
+  float cost;
+
+  bool operator<(const Split& other) const { return cost < other.cost; }
+};
+
+Split split_box(const Box& parent, const Aap& plane) {
+  AabbSplit aabbs = split(parent.boundary, plane);
+  glm::vec3 delta(0, 0, 0);
+  delta[plane.GetAxis()] = glm::epsilon<float>();
+  Aabb left_aabb = aabbs.left.Translate(-delta).Enlarge(delta);
+  Aabb right_aabb = aabbs.right.Translate(delta).Enlarge(delta);
+  IntersectResults triangles =
+      intersect_test(parent.triangles, left_aabb, right_aabb);
+  Box left{left_aabb, triangles.left};
+  Box right{right_aabb, triangles.right};
+  float cost = calculate_cost(parent.boundary, left, right);
+  return Split{plane, left, right, cost};
+}
+
+Split find_best_split(const Box& box, const set<Aap>& splits) {
   assert(splits.size() > 0);
   auto it = splits.begin();
   Split best = split_box(box, *it);
@@ -145,7 +145,7 @@ KdNodeLinked* go(unsigned int depth, const Box& parent) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   }
 
-  Split split = find_best(parent, list_perfect_splits(parent));
+  Split split = find_best_split(parent, list_perfect_splits(parent));
   float leaf_cost = COST_INTERSECT * parent.triangles.size();
   if (split.cost > leaf_cost) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
