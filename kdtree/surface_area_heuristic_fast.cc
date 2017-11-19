@@ -84,7 +84,7 @@ Cost calculate_cost(const Aabb& parent,
                     size_t right_count,
                     size_t plane_count) {
   float parent_area = parent.GetSurfaceArea();
-  AabbSplit split = geometry::split(parent, plane);
+  AabbSplit split = geometry::split(parent, plane, 0);
   float left_area = split.left.GetSurfaceArea() / parent_area;
   float right_area = split.right.GetSurfaceArea() / parent_area;
   float plane_left = calculate_cost(left_area, right_area,
@@ -204,7 +204,7 @@ struct Split {
 };
 
 Split split_triangles(const Box& parent, const Aap& plane) {
-  AabbSplit aabbs = geometry::split(parent.boundary, plane);
+  AabbSplit aabbs = geometry::split(parent.boundary, plane, 0);
   std::vector<const Triangle*> left_triangles;
   std::vector<const Triangle*> right_triangles;
   left_triangles.reserve(parent.triangles.size());

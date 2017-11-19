@@ -64,15 +64,11 @@ struct Split {
 };
 
 Split split_box(const Box& parent, const Aap& plane) {
-  AabbSplit aabbs = split(parent.boundary, plane);
-  glm::vec3 delta(0, 0, 0);
-  delta[plane.GetAxis()] = glm::epsilon<float>();
-  Aabb left_aabb = aabbs.left.Translate(-delta).Enlarge(delta);
-  Aabb right_aabb = aabbs.right.Translate(delta).Enlarge(delta);
+  AabbSplit aabbs = split(parent.boundary, plane, glm::epsilon<float>());
   IntersectResults triangles =
-      intersect_test(parent.triangles, left_aabb, right_aabb);
-  Box left{left_aabb, triangles.left};
-  Box right{right_aabb, triangles.right};
+      intersect_test(parent.triangles, aabbs.left, aabbs.right);
+  Box left{aabbs.left, triangles.left};
+  Box right{aabbs.right, triangles.right};
   return Split{plane, left, right};
 }
 

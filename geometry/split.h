@@ -15,7 +15,7 @@ struct AabbSplit {
   Aabb left, right;
 };
 
-inline AabbSplit split(const Aabb& aabb, const Aap& plane) {
+inline AabbSplit split(const Aabb& aabb, const Aap& plane, float delta) {
   float left_half_axis =
       (plane.GetDistance() - aabb.GetMin()[plane.GetAxis()]) / 2.0f;
   float right_half_axis =
@@ -23,12 +23,12 @@ inline AabbSplit split(const Aabb& aabb, const Aap& plane) {
   assert(left_half_axis >= 0 && right_half_axis >= 0);
 
   glm::vec3 left_center(aabb.GetCenter()), left_half(aabb.GetHalf());
-  left_center[plane.GetAxis()] = plane.GetDistance() - left_half_axis;
-  left_half[plane.GetAxis()] = left_half_axis;
+  left_center[plane.GetAxis()] = plane.GetDistance() - left_half_axis - delta;
+  left_half[plane.GetAxis()] = left_half_axis + delta;
 
   glm::vec3 right_center(aabb.GetCenter()), right_half(aabb.GetHalf());
-  right_center[plane.GetAxis()] = plane.GetDistance() + right_half_axis;
-  right_half[plane.GetAxis()] = right_half_axis;
+  right_center[plane.GetAxis()] = plane.GetDistance() + right_half_axis + delta;
+  right_half[plane.GetAxis()] = right_half_axis + delta;
 
   return {Aabb(left_center, left_half), Aabb(right_center, right_half)};
 }
