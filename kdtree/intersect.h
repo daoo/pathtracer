@@ -13,9 +13,10 @@ struct IntersectResults {
   std::vector<const geometry::Triangle*> right;
 };
 
-IntersectResults intersect_test(const std::vector<const geometry::Triangle*>& triangles,
-                                const geometry::Aabb& left_aabb,
-                                const geometry::Aabb& right_aabb) {
+IntersectResults intersect_test(
+    const std::vector<const geometry::Triangle*>& triangles,
+    const geometry::Aabb& left_aabb,
+    const geometry::Aabb& right_aabb) {
   IntersectResults results;
   results.left.reserve(triangles.size());
   results.right.reserve(triangles.size());

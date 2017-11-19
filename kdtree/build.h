@@ -1,5 +1,5 @@
-#ifndef KDTREE_SURFACE_AREA_HEURISTIC_H_
-#define KDTREE_SURFACE_AREA_HEURISTIC_H_
+#ifndef KDTREE_BUILD_H_
+#define KDTREE_BUILD_H_
 
 #include <vector>
 
@@ -12,4 +12,4 @@ class KdTreeLinked;
 KdTreeLinked build(const std::vector<geometry::Triangle>& triangles);
 }  // namespace kdtree
 
-#endif  // KDTREE_SURFACE_AREA_HEURISTIC_H_
+#endif  // KDTREE_BUILD_H_
