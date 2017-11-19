@@ -80,7 +80,7 @@ struct Event {
   }
 };
 
-void find_perfect_splits(const Aabb& boundary,
+void list_perfect_splits(const Aabb& boundary,
                          const Triangle& triangle,
                          Axis axis,
                          set<Event>* splits) {
@@ -98,12 +98,12 @@ void find_perfect_splits(const Aabb& boundary,
   }
 }
 
-void find_perfect_splits(const Aabb& boundary,
+void list_perfect_splits(const Aabb& boundary,
                          const Triangle& triangle,
                          set<Event>* splits) {
-  find_perfect_splits(boundary, triangle, geometry::X, splits);
-  find_perfect_splits(boundary, triangle, geometry::Y, splits);
-  find_perfect_splits(boundary, triangle, geometry::Z, splits);
+  list_perfect_splits(boundary, triangle, geometry::X, splits);
+  list_perfect_splits(boundary, triangle, geometry::Y, splits);
+  list_perfect_splits(boundary, triangle, geometry::Z, splits);
 }
 
 struct Box {
@@ -111,10 +111,10 @@ struct Box {
   std::vector<const Triangle*> triangles;
 };
 
-set<Event> find_perfect_splits(const Box& box) {
+set<Event> list_perfect_splits(const Box& box) {
   set<Event> splits;
   for (const Triangle* triangle : box.triangles) {
-    find_perfect_splits(box.boundary, *triangle, &splits);
+    list_perfect_splits(box.boundary, *triangle, &splits);
   }
   return splits;
 }
@@ -203,7 +203,7 @@ KdNodeLinked* go(unsigned int depth, const Box& parent) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   }
 
-  set<Event> splits = find_perfect_splits(parent);
+  set<Event> splits = list_perfect_splits(parent);
   if (splits.empty()) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   }
