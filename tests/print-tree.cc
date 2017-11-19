@@ -2,8 +2,8 @@
 #include <iostream>
 
 #include "geometry/aap.h"
+#include "kdtree/build.h"
 #include "kdtree/linked.h"
-#include "kdtree/surface_area_heuristic.h"
 #include "trace/scene.h"
 #include "util/clock.h"
 #include "util/nicetime.h"
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
       trace::triangles_from_obj(wavefront::LoadObj(obj_file));
 
   util::Clock clock;
-  kdtree::KdTreeLinked kdtree = kdtree::build_tree_sah(triangles);
+  kdtree::KdTreeLinked kdtree = kdtree::build(triangles);
   double construction_time = clock.measure<double, std::ratio<1>>();
   std::cerr << "Built in " << util::TimeAutoUnit(construction_time) << ".\n";
   print(kdtree);

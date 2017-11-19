@@ -4,8 +4,8 @@
 #include <map>
 
 #include "geometry/triangle.h"
+#include "kdtree/build.h"
 #include "kdtree/linked.h"
-#include "kdtree/surface_area_heuristic.h"
 #include "trace/camera.h"
 #include "trace/material.h"
 #include "trace/mcsampling.h"
@@ -110,7 +110,7 @@ Scene::Scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl)
       materials(materials_from_mtl(mtl)),
       cameras(cameras_from_mtl(mtl)),
       lights(lights_from_mtl(mtl)),
-      kdtree(kdtree::build_tree_sah(triangles)) {
+      kdtree(kdtree::build(triangles)) {
   update_pointer_to_material(materials, &triangles);
 }
 }  // namespace trace

@@ -16,7 +16,6 @@ trace_source = [
     'geometry/triray.cc',
     'kdtree/array.cc',
     'kdtree/linked.cc',
-    'kdtree/naive.cc',
     'kdtree/optimize.cc',
     'kdtree/surface_area_heuristic.cc',
     'trace/material.cc',
@@ -63,18 +62,30 @@ executable(
     dependencies: [glm]
 )
 
-executable(
-    'print-tree',
+tree_source = [
     'geometry/bounding.cc',
     'geometry/tribox.cc',
     'geometry/triplane.cc',
     'kdtree/optimize.cc',
-    'kdtree/surface_area_heuristic.cc',
     'tests/print-tree.cc',
     'trace/material.cc',
     'trace/scene.cc',
     'util/nicetime.cc',
-    'wavefront/obj.cc',
+    'wavefront/obj.cc'
+]
+
+executable(
+    'print-tree-naive',
+    tree_source,
+    'kdtree/naive.cc',
+    link_args: '-lstdc++fs',
+    dependencies: [glm]
+)
+
+executable(
+    'print-tree-sah',
+    tree_source,
+    'kdtree/surface_area_heuristic.cc',
     link_args: '-lstdc++fs',
     dependencies: [glm]
 )

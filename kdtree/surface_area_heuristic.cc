@@ -1,4 +1,4 @@
-#include "kdtree/surface_area_heuristic.h"
+#include "kdtree/build.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
@@ -167,7 +167,7 @@ KdNodeLinked* go(unsigned int depth, const Box& parent) {
 }  // namespace
 
 namespace kdtree {
-KdTreeLinked build_tree_sah(const vector<Triangle>& triangles) {
+KdTreeLinked build(const vector<Triangle>& triangles) {
   vector<const Triangle*> ptrs;
   ptrs.reserve(triangles.size());
   for (const Triangle& triangle : triangles) {
