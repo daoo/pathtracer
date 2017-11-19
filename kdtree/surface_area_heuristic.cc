@@ -38,18 +38,29 @@ struct Box {
   std::vector<const geometry::Triangle*> triangles;
 };
 
-constexpr float COST_TRAVERSE = 0.3f;
+constexpr float COST_TRAVERSE = 0.01f;
 constexpr float COST_INTERSECT = 1.0f;
+constexpr float COST_EMPTY = 0.8f;
+
+float calculate_cost(float parent_area,
+                     float left_area,
+                     float right_area,
+                     size_t left_count,
+                     size_t right_count) {
+  float factor = left_count == 0 || right_count == 0 ? COST_EMPTY : 1.0f;
+  float intersect =
+      (left_area * left_count + right_area * right_count) / parent_area;
+  return factor * COST_TRAVERSE + COST_INTERSECT * intersect;
+}
 
 float calculate_cost(const Aabb& parent, const Box& left, const Box& right) {
   float parent_area = parent.GetSurfaceArea();
   float left_area = left.boundary.GetSurfaceArea();
-  float left_count = left.triangles.size();
   float right_area = right.boundary.GetSurfaceArea();
-  float right_count = right.triangles.size();
-  float intersect =
-      (left_area * left_count + right_area * right_count) / parent_area;
-  return COST_TRAVERSE + COST_INTERSECT * intersect;
+  size_t left_count = left.triangles.size();
+  size_t right_count = right.triangles.size();
+  return calculate_cost(parent_area, left_area, right_area, left_count,
+                        right_count);
 }
 
 void list_perfect_splits(const Aabb& boundary,

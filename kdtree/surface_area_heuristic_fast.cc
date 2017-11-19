@@ -30,17 +30,19 @@ using std::vector;
 
 namespace {
 
-constexpr float COST_TRAVERSE = 0.3f;
+constexpr float COST_TRAVERSE = 0.01f;
 constexpr float COST_INTERSECT = 1.0f;
+constexpr float COST_EMPTY = 0.8f;
 
-float calculate_cost(float left_area,
+float calculate_cost(float parent_area,
+                     float left_area,
                      float right_area,
                      size_t left_count,
                      size_t right_count) {
-  float factor = left_count == 0 || right_count == 0 ? 0.8f : 1.0f;
-  return factor *
-         (COST_TRAVERSE +
-          COST_INTERSECT * (left_area * left_count + right_area * right_count));
+  float factor = left_count == 0 || right_count == 0 ? COST_EMPTY : 1.0f;
+  float intersect =
+      (left_area * left_count + right_area * right_count) / parent_area;
+  return factor * COST_TRAVERSE + COST_INTERSECT * intersect;
 }
 
 enum Side { LEFT, RIGHT };
@@ -59,12 +61,12 @@ Cost calculate_cost(const Aabb& parent,
                     size_t plane_count) {
   float parent_area = parent.GetSurfaceArea();
   AabbSplit split = geometry::split(parent, plane, 0);
-  float left_area = split.left.GetSurfaceArea() / parent_area;
-  float right_area = split.right.GetSurfaceArea() / parent_area;
-  float plane_left = calculate_cost(left_area, right_area,
+  float left_area = split.left.GetSurfaceArea();
+  float right_area = split.right.GetSurfaceArea();
+  float plane_left = calculate_cost(parent_area, left_area, right_area,
                                     left_count + plane_count, right_count);
-  float plane_right = calculate_cost(left_area, right_area, left_count,
-                                     right_count + plane_count);
+  float plane_right = calculate_cost(parent_area, left_area, right_area,
+                                     left_count, right_count + plane_count);
   return plane_left < plane_right ? Cost{plane_left, LEFT}
                                   : Cost{plane_right, RIGHT};
 }
