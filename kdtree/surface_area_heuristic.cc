@@ -14,6 +14,7 @@
 #include "geometry/bounding.h"
 #include "geometry/split.h"
 #include "geometry/tribox.h"
+#include "kdtree/intersect.h"
 #include "kdtree/linked.h"
 
 namespace geometry {
@@ -31,32 +32,6 @@ using std::set;
 using std::vector;
 
 namespace {
-
-struct IntersectResults {
-  vector<const Triangle*> left;
-  vector<const Triangle*> right;
-};
-
-IntersectResults intersect_test(const vector<const Triangle*>& triangles,
-                                const Aabb& left_aabb,
-                                const Aabb& right_aabb) {
-  IntersectResults results;
-  results.left.reserve(triangles.size());
-  results.right.reserve(triangles.size());
-  for (const Triangle* triangle : triangles) {
-    bool in_left =
-        tri_box_overlap(left_aabb, triangle->v0, triangle->v1, triangle->v2);
-    bool in_right =
-        tri_box_overlap(right_aabb, triangle->v0, triangle->v1, triangle->v2);
-    assert(in_left || in_right);
-    if (in_left) results.left.emplace_back(triangle);
-    if (in_right) results.right.emplace_back(triangle);
-  }
-
-  results.left.shrink_to_fit();
-  results.right.shrink_to_fit();
-  return results;
-}
 
 struct Box {
   geometry::Aabb boundary;
@@ -115,8 +90,8 @@ struct Split {
 
 Split split_box(const Box& parent, const Aap& plane) {
   AabbSplit aabbs = split(parent.boundary, plane, glm::epsilon<float>());
-  IntersectResults triangles =
-      intersect_test(parent.triangles, aabbs.left, aabbs.right);
+  kdtree::IntersectResults triangles =
+      kdtree::intersect_test(parent.triangles, aabbs.left, aabbs.right);
   Box left{aabbs.left, triangles.left};
   Box right{aabbs.right, triangles.right};
   float cost = calculate_cost(parent.boundary, left, right);
