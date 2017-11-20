@@ -6,7 +6,6 @@
 
 #include "geometry/ray.h"
 #include "geometry/triray.h"
-#include "kdtree/intersection.h"
 #include "kdtree/linked.h"
 #include "trace/camera.h"
 #include "trace/fastrand.h"
