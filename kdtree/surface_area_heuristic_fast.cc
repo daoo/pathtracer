@@ -11,7 +11,6 @@
 #include "geometry/aap.h"
 #include "geometry/bounding.h"
 #include "geometry/split.h"
-#include "geometry/tribox.h"
 #include "kdtree/intersect.h"
 #include "kdtree/linked.h"
 
@@ -61,7 +60,7 @@ Cost calculate_cost(const Aabb& parent,
                     size_t right_count,
                     size_t plane_count) {
   float parent_area = parent.GetSurfaceArea();
-  AabbSplit split = geometry::split(parent, plane, 0);
+  AabbSplit split = geometry::split(parent, plane);
   float left_area = split.left.GetSurfaceArea();
   float right_area = split.right.GetSurfaceArea();
   float plane_left = calculate_cost(parent_area, left_area, right_area,
@@ -181,7 +180,7 @@ struct Split {
 };
 
 Split split_triangles(const Box& parent, const Aap& plane) {
-  AabbSplit aabbs = geometry::split(parent.boundary, plane, 0);
+  AabbSplit aabbs = geometry::split(parent.boundary, plane);
   kdtree::IntersectResults triangles =
       kdtree::intersect_test(parent.triangles, plane);
   Box left{aabbs.left, triangles.left};

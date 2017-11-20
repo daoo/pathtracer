@@ -9,7 +9,6 @@
 #include "geometry/aap.h"
 #include "geometry/bounding.h"
 #include "geometry/split.h"
-#include "geometry/tribox.h"
 #include "kdtree/axis.h"
 #include "kdtree/intersect.h"
 #include "kdtree/linked.h"
@@ -40,9 +39,9 @@ struct Split {
 };
 
 Split split_box(const Box& parent, const Aap& plane) {
-  AabbSplit aabbs = split(parent.boundary, plane, glm::epsilon<float>());
+  AabbSplit aabbs = split(parent.boundary, plane);
   kdtree::IntersectResults triangles =
-      kdtree::intersect_test(parent.triangles, aabbs.left, aabbs.right);
+      kdtree::intersect_test(parent.triangles, plane);
   Box left{aabbs.left, triangles.left};
   Box right{aabbs.right, triangles.right};
   return Split{plane, left, right};
