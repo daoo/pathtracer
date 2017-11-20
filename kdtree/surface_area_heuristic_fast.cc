@@ -12,6 +12,7 @@
 #include "geometry/bounding.h"
 #include "geometry/split.h"
 #include "geometry/tribox.h"
+#include "kdtree/intersect.h"
 #include "kdtree/linked.h"
 
 namespace geometry {
@@ -181,21 +182,10 @@ struct Split {
 
 Split split_triangles(const Box& parent, const Aap& plane) {
   AabbSplit aabbs = geometry::split(parent.boundary, plane, 0);
-  std::vector<const Triangle*> left_triangles;
-  std::vector<const Triangle*> right_triangles;
-  left_triangles.reserve(parent.triangles.size());
-  right_triangles.reserve(parent.triangles.size());
-  for (const Triangle* triangle : parent.triangles) {
-    float triangle_min = triangle->GetMin()[plane.GetAxis()];
-    float triangle_max = triangle->GetMax()[plane.GetAxis()];
-    float plane_distance = plane.GetDistance();
-    bool in_left = triangle_max <= plane_distance;
-    bool in_right = triangle_min >= plane_distance;
-    if (in_left) left_triangles.emplace_back(triangle);
-    if (in_right) right_triangles.emplace_back(triangle);
-  }
-  Box left{aabbs.left, left_triangles};
-  Box right{aabbs.right, right_triangles};
+  kdtree::IntersectResults triangles =
+      kdtree::intersect_test(parent.triangles, plane);
+  Box left{aabbs.left, triangles.left};
+  Box right{aabbs.right, triangles.right};
   return {left, right};
 }
 
