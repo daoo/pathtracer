@@ -179,7 +179,7 @@ struct Split {
   Box left, right;
 };
 
-Split split_triangles(const Box& parent, const Aap& plane) {
+Split split_box(const Box& parent, const Aap& plane) {
   AabbSplit aabbs = geometry::split(parent.boundary, plane);
   kdtree::IntersectResults triangles =
       kdtree::intersect_test(parent.triangles, plane);
@@ -204,7 +204,7 @@ KdNodeLinked* go(unsigned int depth, const Box& parent) {
   if (split.cost.cost > leaf_cost) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   } else {
-    Split boxes = split_triangles(parent, split.plane);
+    Split boxes = split_box(parent, split.plane);
     return new KdNodeLinked(split.plane, go(depth + 1, boxes.left),
                             go(depth + 1, boxes.right));
   }

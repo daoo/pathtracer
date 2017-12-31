@@ -68,10 +68,12 @@ void list_perfect_splits(const Aabb& boundary,
                          set<Aap>* splits) {
   float boundary_min = boundary.GetMin()[axis];
   float boundary_max = boundary.GetMax()[axis];
-  float min = triangle.GetMin()[axis] - glm::epsilon<float>();
-  float max = triangle.GetMax()[axis] + glm::epsilon<float>();
-  splits->emplace(axis, glm::clamp(min, boundary_min, boundary_max));
-  splits->emplace(axis, glm::clamp(max, boundary_min, boundary_max));
+  float triangle_min = triangle.GetMin()[axis] - glm::epsilon<float>();
+  float triangle_max = triangle.GetMax()[axis] + glm::epsilon<float>();
+  float clamped_min = glm::clamp(triangle_min, boundary_min, boundary_max);
+  float clamped_max = glm::clamp(triangle_max, boundary_min, boundary_max);
+  splits->emplace(axis, clamped_min);
+  splits->emplace(axis, clamped_max);
 }
 
 void list_perfect_splits(const Aabb& boundary,
@@ -99,7 +101,7 @@ struct Split {
 };
 
 Split split_box(const Box& parent, const Aap& plane) {
-  AabbSplit aabbs = split(parent.boundary, plane);
+  AabbSplit aabbs = geometry::split(parent.boundary, plane);
   kdtree::IntersectResults triangles =
       kdtree::intersect_test(parent.triangles, plane);
   Box left{aabbs.left, triangles.left};
