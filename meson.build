@@ -33,14 +33,15 @@ threads = dependency('threads')
 glew = dependency('glew')
 glfw = dependency('glfw3')
 glm = dependency('glm')
+freeimage = meson.get_compiler('cpp').find_library('freeimage')
 
 executable(
     'pathtracer',
     'pathtracer/thread.cc',
     'pathtracer/main.cc',
     trace_source,
-    link_args: ['-lstdc++fs', '-lfreeimage'],
-    dependencies: [threads, glm]
+    link_args: ['-lstdc++fs'],
+    dependencies: [threads, glm, freeimage]
 )
 
 executable(
@@ -48,8 +49,8 @@ executable(
     'pathtracer-gl/main.cc',
     'pathtracer-gl/shaders.cc',
     trace_source,
-    link_args: ['-lstdc++fs', '-lfreeimage'],
-    dependencies: [threads, glm, glew, glfw]
+    link_args: ['-lstdc++fs'],
+    dependencies: [threads, glm, glew, glfw, freeimage]
 )
 
 executable(
