@@ -120,6 +120,7 @@ tests = executable(
     'geometry/triplane.cc',
     'geometry/triray.cc',
     'geometry/triray_unittest.cc',
+    'kdtree/intersect_unittest.cc',
     'tests/unit-tests.cc',
     'wavefront/parser_unittest.cc',
     dependencies: [glm]
