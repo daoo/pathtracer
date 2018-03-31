@@ -25,6 +25,10 @@ class Aabb {
     return Aabb(center_, half_ + delta);
   }
 
+  static inline Aabb Unit() {
+    return Aabb(glm::vec3(0, 0, 0), glm::vec3(0.5, 0.5, 0.5));
+  }
+
  private:
   glm::vec3 center_;
   glm::vec3 half_;

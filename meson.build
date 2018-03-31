@@ -113,6 +113,7 @@ executable(
 
 tests = executable(
     'unit-tests',
+    'geometry/aabb_unittest.cc',
     'geometry/triangle_unittest.cc',
     'geometry/tribox.cc',
     'geometry/tribox_unittest.cc',
