@@ -6,12 +6,14 @@ Pathtracer
 A pathtracer written in C++. Can load and render obj files and supports some
 effects, does not yet support textures.
 
+[![Build Status](https://travis-ci.org/daoo/pathtracer.svg?branch=master)](https://travis-ci.org/daoo/pathtracer)
+
 Building
 ========
 
 Required libraries: FreeImage, GLM, GLEW, GLUT, OpenGL.
 
-Uses ninja for building.
+Uses meson and ninja for building.
 
 Running
 =======
