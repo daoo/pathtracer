@@ -1,0 +1,14 @@
+sudo: false
+
+os: linux
+language: cpp
+services: docker
+
+before_install:
+  - docker pull jpakkane/mesonci:artful
+
+script:
+  - echo FROM jpakkane/mesonci:artful > Dockerfile
+  - echo ADD . /root >> Dockerfile
+  - docker build -t withgit .
+  - docker run withgit /bin/sh -c "cd /root && CC=$CC CXX=$CXX meson builddir && ninja -C builddir test"
