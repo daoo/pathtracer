@@ -11,8 +11,9 @@
 #include "geometry/aap.h"
 #include "geometry/bounding.h"
 #include "geometry/split.h"
-#include "kdtree/intersect.h"
+#include "kdtree/build_common.h"
 #include "kdtree/linked.h"
+#include "kdtree/sah_common.h"
 
 namespace geometry {
 struct Triangle;
@@ -24,21 +25,13 @@ using geometry::Aap;
 using geometry::Axis;
 using geometry::Triangle;
 using glm::vec3;
+using kdtree::KdBox;
 using kdtree::KdNodeLinked;
+using kdtree::KdSplit;
 using std::set;
 using std::vector;
 
 namespace {
-
-struct KdBox {
-  Aabb boundary;
-  std::vector<const Triangle*> triangles;
-};
-
-struct KdSplit {
-  Aap plane;
-  KdBox left, right;
-};
 
 enum Side { LEFT, RIGHT };
 
@@ -54,21 +47,6 @@ struct KdCostSplit {
   KdCost cost;
 };
 
-constexpr float COST_TRAVERSE = 0.01f;
-constexpr float COST_INTERSECT = 1.0f;
-constexpr float COST_EMPTY = 0.8f;
-
-float CalculateCost(float parent_area,
-                    float left_area,
-                    float right_area,
-                    size_t left_count,
-                    size_t right_count) {
-  float factor = left_count == 0 || right_count == 0 ? COST_EMPTY : 1.0f;
-  float intersect =
-      (left_area * left_count + right_area * right_count) / parent_area;
-  return factor * COST_TRAVERSE + COST_INTERSECT * intersect;
-}
-
 KdCost CalculateCost(const Aabb& parent,
                      const Aap& plane,
                      size_t left_count,
@@ -78,10 +56,12 @@ KdCost CalculateCost(const Aabb& parent,
   AabbSplit split = geometry::Split(parent, plane);
   float left_area = split.left.GetSurfaceArea();
   float right_area = split.right.GetSurfaceArea();
-  float plane_left = CalculateCost(parent_area, left_area, right_area,
-                                   left_count + plane_count, right_count);
-  float plane_right = CalculateCost(parent_area, left_area, right_area,
-                                    left_count, right_count + plane_count);
+  float plane_left =
+      kdtree::CalculateCost(parent_area, left_area, right_area,
+                            left_count + plane_count, right_count);
+  float plane_right =
+      kdtree::CalculateCost(parent_area, left_area, right_area, left_count,
+                            right_count + plane_count);
   return plane_left < plane_right ? KdCost{plane_left, LEFT}
                                   : KdCost{plane_right, RIGHT};
 }
@@ -180,15 +160,6 @@ KdCostSplit FindBestSplit(const KdBox& parent, const set<Event>& splits) {
   return best;
 }
 
-KdSplit Split(const KdBox& parent, const Aap& plane) {
-  AabbSplit aabbs = geometry::Split(parent.boundary, plane);
-  kdtree::IntersectResults triangles =
-      kdtree::PartitionTriangles(parent.triangles, plane);
-  KdBox left{aabbs.left, triangles.left};
-  KdBox right{aabbs.right, triangles.right};
-  return {plane, left, right};
-}
-
 KdNodeLinked* BuildHelper(unsigned int depth, const KdBox& parent) {
   // sizeof(KdNodeLinked) * node count = 32 * 2^20 = 32 MB
   if (depth >= 20 || parent.triangles.empty()) {
@@ -201,8 +172,7 @@ KdNodeLinked* BuildHelper(unsigned int depth, const KdBox& parent) {
   }
 
   KdCostSplit split = FindBestSplit(parent, splits);
-  float leaf_cost = COST_INTERSECT * parent.triangles.size();
-  if (split.cost.cost > leaf_cost) {
+  if (split.cost.cost > kdtree::LeafCostBound(parent.triangles.size())) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   } else {
     KdSplit boxes = Split(parent, split.plane);

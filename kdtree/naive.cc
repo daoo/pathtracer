@@ -3,47 +3,27 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
-#include "geometry/aabb.h"
 #include "geometry/aap.h"
 #include "geometry/bounding.h"
-#include "geometry/split.h"
 #include "kdtree/axis.h"
-#include "kdtree/intersect.h"
+#include "kdtree/build_common.h"
 #include "kdtree/linked.h"
 
 namespace geometry {
 struct Triangle;
 }  // namespace geometry
 
-using geometry::Aabb;
 using geometry::AabbSplit;
 using geometry::Aap;
 using geometry::Axis;
 using geometry::Triangle;
 using glm::vec3;
+using kdtree::KdBox;
 using kdtree::KdNodeLinked;
+using kdtree::KdSplit;
 using std::vector;
 
 namespace {
-
-struct KdBox {
-  Aabb boundary;
-  std::vector<const Triangle*> triangles;
-};
-
-struct KdSplit {
-  Aap plane;
-  KdBox left, right;
-};
-
-KdSplit Split(const KdBox& parent, const Aap& plane) {
-  AabbSplit aabbs = geometry::Split(parent.boundary, plane);
-  kdtree::IntersectResults triangles =
-      kdtree::PartitionTriangles(parent.triangles, plane);
-  KdBox left{aabbs.left, triangles.left};
-  KdBox right{aabbs.right, triangles.right};
-  return KdSplit{plane, left, right};
-}
 
 KdNodeLinked* BuildHelper(unsigned int depth, Axis axis, const KdBox& parent) {
   if (depth >= 20 || parent.triangles.size() <= 6) {

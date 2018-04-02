@@ -39,7 +39,7 @@ trace = static_library(
 
 executable(
     'pathtracer',
-    'kdtree/surface_area_heuristic.cc',
+    'kdtree/sah.cc',
     'pathtracer/thread.cc',
     'pathtracer/main.cc',
     link_args: '-lstdc++fs',
@@ -49,7 +49,7 @@ executable(
 
 executable(
     'pathtracer-gl',
-    'kdtree/surface_area_heuristic.cc',
+    'kdtree/sah.cc',
     'pathtracer-gl/main.cc',
     'pathtracer-gl/shaders.cc',
     link_args: '-lstdc++fs',
@@ -76,7 +76,7 @@ executable(
 
 executable(
     'print-tree-sah',
-    'kdtree/surface_area_heuristic.cc',
+    'kdtree/sah.cc',
     'tests/print-tree.cc',
     link_args: '-lstdc++fs',
     link_with: trace,
@@ -85,7 +85,7 @@ executable(
 
 executable(
     'print-tree-sah-fast',
-    'kdtree/surface_area_heuristic_fast.cc',
+    'kdtree/sah_fast.cc',
     'tests/print-tree.cc',
     link_args: '-lstdc++fs',
     link_with: trace,

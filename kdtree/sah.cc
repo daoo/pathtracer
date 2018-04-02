@@ -13,8 +13,9 @@
 #include "geometry/aap.h"
 #include "geometry/bounding.h"
 #include "geometry/split.h"
-#include "kdtree/intersect.h"
+#include "kdtree/build_common.h"
 #include "kdtree/linked.h"
+#include "kdtree/sah_common.h"
 
 namespace geometry {
 struct Triangle;
@@ -26,39 +27,20 @@ using geometry::Aap;
 using geometry::Axis;
 using geometry::Triangle;
 using glm::vec3;
+using kdtree::KdBox;
 using kdtree::KdNodeLinked;
+using kdtree::KdSplit;
 using std::set;
 using std::vector;
 
 namespace {
 
-struct KdBox {
-  Aabb boundary;
-  std::vector<const Triangle*> triangles;
-};
-
-struct KdSplit {
-  Aap plane;
-  KdBox left, right;
+struct KdCostSplit {
+  KdSplit split;
   float cost;
 
-  bool operator<(const KdSplit& other) const { return cost < other.cost; }
+  bool operator<(const KdCostSplit& other) const { return cost < other.cost; }
 };
-
-constexpr float COST_TRAVERSE = 0.01f;
-constexpr float COST_INTERSECT = 1.0f;
-constexpr float COST_EMPTY = 0.8f;
-
-float CalculateCost(float parent_area,
-                    float left_area,
-                    float right_area,
-                    size_t left_count,
-                    size_t right_count) {
-  float factor = left_count == 0 || right_count == 0 ? COST_EMPTY : 1.0f;
-  float intersect =
-      (left_area * left_count + right_area * right_count) / parent_area;
-  return factor * COST_TRAVERSE + COST_INTERSECT * intersect;
-}
 
 float CalculateCost(const Aabb& parent, const KdBox& left, const KdBox& right) {
   float parent_area = parent.GetSurfaceArea();
@@ -66,8 +48,8 @@ float CalculateCost(const Aabb& parent, const KdBox& left, const KdBox& right) {
   float right_area = right.boundary.GetSurfaceArea();
   size_t left_count = left.triangles.size();
   size_t right_count = right.triangles.size();
-  return CalculateCost(parent_area, left_area, right_area, left_count,
-                       right_count);
+  return kdtree::CalculateCost(parent_area, left_area, right_area, left_count,
+                               right_count);
 }
 
 void ListPerfectSplits(const Aabb& boundary,
@@ -100,23 +82,19 @@ set<Aap> ListPerfectSplits(const KdBox& box) {
   return splits;
 }
 
-KdSplit Split(const KdBox& parent, const Aap& plane) {
-  AabbSplit aabbs = geometry::Split(parent.boundary, plane);
-  kdtree::IntersectResults triangles =
-      kdtree::PartitionTriangles(parent.triangles, plane);
-  KdBox left{aabbs.left, triangles.left};
-  KdBox right{aabbs.right, triangles.right};
-  float cost = CalculateCost(parent.boundary, left, right);
-  return KdSplit{plane, left, right, cost};
+KdCostSplit SplitWithCost(const KdBox& parent, const Aap& plane) {
+  KdSplit split = kdtree::Split(parent, plane);
+  float cost = CalculateCost(parent.boundary, split.left, split.right);
+  return {split, cost};
 }
 
-KdSplit FindBestSplit(const KdBox& box, const set<Aap>& splits) {
+KdCostSplit FindBestSplit(const KdBox& box, const set<Aap>& splits) {
   assert(splits.size() > 0);
   auto it = splits.begin();
-  KdSplit best = Split(box, *it);
+  KdCostSplit best = SplitWithCost(box, *it);
   ++it;
   while (it != splits.end()) {
-    best = std::min(best, Split(box, *it));
+    best = std::min(best, SplitWithCost(box, *it));
     ++it;
   }
   return best;
@@ -128,13 +106,13 @@ KdNodeLinked* BuildHelper(unsigned int depth, const KdBox& parent) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   }
 
-  KdSplit split = FindBestSplit(parent, ListPerfectSplits(parent));
-  float leaf_cost = COST_INTERSECT * parent.triangles.size();
-  if (split.cost > leaf_cost) {
+  KdCostSplit split = FindBestSplit(parent, ListPerfectSplits(parent));
+  if (split.cost > kdtree::LeafCostBound(parent.triangles.size())) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   } else {
-    return new KdNodeLinked(split.plane, BuildHelper(depth + 1, split.left),
-                            BuildHelper(depth + 1, split.right));
+    return new KdNodeLinked(split.split.plane,
+                            BuildHelper(depth + 1, split.split.left),
+                            BuildHelper(depth + 1, split.split.right));
   }
 }
 
