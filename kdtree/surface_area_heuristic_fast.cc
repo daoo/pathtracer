@@ -30,45 +30,60 @@ using std::vector;
 
 namespace {
 
+struct KdBox {
+  Aabb boundary;
+  std::vector<const Triangle*> triangles;
+};
+
+struct KdSplit {
+  Aap plane;
+  KdBox left, right;
+};
+
+enum Side { LEFT, RIGHT };
+
+struct KdCost {
+  float cost;
+  Side side;
+
+  bool operator<(const KdCost& other) const { return cost < other.cost; }
+};
+
+struct KdCostSplit {
+  Aap plane;
+  KdCost cost;
+};
+
 constexpr float COST_TRAVERSE = 0.01f;
 constexpr float COST_INTERSECT = 1.0f;
 constexpr float COST_EMPTY = 0.8f;
 
-float calculate_cost(float parent_area,
-                     float left_area,
-                     float right_area,
-                     size_t left_count,
-                     size_t right_count) {
+float CalculateCost(float parent_area,
+                    float left_area,
+                    float right_area,
+                    size_t left_count,
+                    size_t right_count) {
   float factor = left_count == 0 || right_count == 0 ? COST_EMPTY : 1.0f;
   float intersect =
       (left_area * left_count + right_area * right_count) / parent_area;
   return factor * COST_TRAVERSE + COST_INTERSECT * intersect;
 }
 
-enum Side { LEFT, RIGHT };
-
-struct Cost {
-  float cost;
-  Side side;
-
-  bool operator<(const Cost& other) const { return cost < other.cost; }
-};
-
-Cost calculate_cost(const Aabb& parent,
-                    const Aap& plane,
-                    size_t left_count,
-                    size_t right_count,
-                    size_t plane_count) {
+KdCost CalculateCost(const Aabb& parent,
+                     const Aap& plane,
+                     size_t left_count,
+                     size_t right_count,
+                     size_t plane_count) {
   float parent_area = parent.GetSurfaceArea();
-  AabbSplit split = geometry::split(parent, plane);
+  AabbSplit split = geometry::Split(parent, plane);
   float left_area = split.left.GetSurfaceArea();
   float right_area = split.right.GetSurfaceArea();
-  float plane_left = calculate_cost(parent_area, left_area, right_area,
-                                    left_count + plane_count, right_count);
-  float plane_right = calculate_cost(parent_area, left_area, right_area,
-                                     left_count, right_count + plane_count);
-  return plane_left < plane_right ? Cost{plane_left, LEFT}
-                                  : Cost{plane_right, RIGHT};
+  float plane_left = CalculateCost(parent_area, left_area, right_area,
+                                   left_count + plane_count, right_count);
+  float plane_right = CalculateCost(parent_area, left_area, right_area,
+                                    left_count, right_count + plane_count);
+  return plane_left < plane_right ? KdCost{plane_left, LEFT}
+                                  : KdCost{plane_right, RIGHT};
 }
 
 enum Type { START, PLANAR, END };
@@ -82,10 +97,10 @@ struct Event {
   }
 };
 
-void list_perfect_splits(const Aabb& boundary,
-                         const Triangle& triangle,
-                         Axis axis,
-                         set<Event>* splits) {
+void ListPerfectSplits(const Aabb& boundary,
+                       const Triangle& triangle,
+                       Axis axis,
+                       set<Event>* splits) {
   float boundary_min = boundary.GetMin()[axis];
   float boundary_max = boundary.GetMax()[axis];
   float triangle_min = triangle.GetMin()[axis];
@@ -100,35 +115,25 @@ void list_perfect_splits(const Aabb& boundary,
   }
 }
 
-void list_perfect_splits(const Aabb& boundary,
-                         const Triangle& triangle,
-                         set<Event>* splits) {
-  list_perfect_splits(boundary, triangle, geometry::X, splits);
-  list_perfect_splits(boundary, triangle, geometry::Y, splits);
-  list_perfect_splits(boundary, triangle, geometry::Z, splits);
+void ListPerfectSplits(const Aabb& boundary,
+                       const Triangle& triangle,
+                       set<Event>* splits) {
+  ListPerfectSplits(boundary, triangle, geometry::X, splits);
+  ListPerfectSplits(boundary, triangle, geometry::Y, splits);
+  ListPerfectSplits(boundary, triangle, geometry::Z, splits);
 }
 
-struct Box {
-  Aabb boundary;
-  std::vector<const Triangle*> triangles;
-};
-
-set<Event> list_perfect_splits(const Box& box) {
+set<Event> ListPerfectSplits(const KdBox& box) {
   set<Event> splits;
   for (const Triangle* triangle : box.triangles) {
-    list_perfect_splits(box.boundary, *triangle, &splits);
+    ListPerfectSplits(box.boundary, *triangle, &splits);
   }
   return splits;
 }
 
-struct CostSplit {
-  Aap plane;
-  Cost cost;
-};
-
-CostSplit find_best_split(const Box& parent, const set<Event>& splits) {
+KdCostSplit FindBestSplit(const KdBox& parent, const set<Event>& splits) {
   assert(splits.size() > 0);
-  CostSplit best{{geometry::X, 0}, {FLT_MAX, LEFT}};
+  KdCostSplit best{{geometry::X, 0}, {FLT_MAX, LEFT}};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
     Axis axis = static_cast<Axis>(axis_index);
     int nl = 0;
@@ -163,9 +168,9 @@ CostSplit find_best_split(const Box& parent, const set<Event>& splits) {
         }
         np = pplane;
         nr = nr - pplane - pminus;
-        Cost cost = calculate_cost(parent.boundary, plane, nl, nr, np);
+        KdCost cost = CalculateCost(parent.boundary, plane, nl, nr, np);
         if (cost < best.cost) {
-          best = CostSplit{plane, cost};
+          best = KdCostSplit{plane, cost};
         }
         nl = nl + pplus + pplane;
         np = 0;
@@ -175,40 +180,37 @@ CostSplit find_best_split(const Box& parent, const set<Event>& splits) {
   return best;
 }
 
-struct Split {
-  Box left, right;
-};
-
-Split split_box(const Box& parent, const Aap& plane) {
-  AabbSplit aabbs = geometry::split(parent.boundary, plane);
+KdSplit Split(const KdBox& parent, const Aap& plane) {
+  AabbSplit aabbs = geometry::Split(parent.boundary, plane);
   kdtree::IntersectResults triangles =
-      kdtree::intersect_test(parent.triangles, plane);
-  Box left{aabbs.left, triangles.left};
-  Box right{aabbs.right, triangles.right};
-  return {left, right};
+      kdtree::PartitionTriangles(parent.triangles, plane);
+  KdBox left{aabbs.left, triangles.left};
+  KdBox right{aabbs.right, triangles.right};
+  return {plane, left, right};
 }
 
-KdNodeLinked* go(unsigned int depth, const Box& parent) {
+KdNodeLinked* BuildHelper(unsigned int depth, const KdBox& parent) {
   // sizeof(KdNodeLinked) * node count = 32 * 2^20 = 32 MB
   if (depth >= 20 || parent.triangles.empty()) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   }
 
-  set<Event> splits = list_perfect_splits(parent);
+  set<Event> splits = ListPerfectSplits(parent);
   if (splits.empty()) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   }
 
-  CostSplit split = find_best_split(parent, splits);
+  KdCostSplit split = FindBestSplit(parent, splits);
   float leaf_cost = COST_INTERSECT * parent.triangles.size();
   if (split.cost.cost > leaf_cost) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   } else {
-    Split boxes = split_box(parent, split.plane);
-    return new KdNodeLinked(split.plane, go(depth + 1, boxes.left),
-                            go(depth + 1, boxes.right));
+    KdSplit boxes = Split(parent, split.plane);
+    return new KdNodeLinked(split.plane, BuildHelper(depth + 1, boxes.left),
+                            BuildHelper(depth + 1, boxes.right));
   }
 }
+
 }  // namespace
 
 namespace kdtree {
@@ -219,6 +221,7 @@ KdTreeLinked build(const vector<Triangle>& triangles) {
     ptrs.emplace_back(&triangle);
   }
 
-  return KdTreeLinked(go(0, Box{find_bounding(triangles), ptrs}));
+  return KdTreeLinked(
+      BuildHelper(0, KdBox{geometry::find_bounding(triangles), ptrs}));
 }
 }  // namespace kdtree

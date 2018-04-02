@@ -3,8 +3,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
-#include <cassert>
-
 #include "geometry/aabb.h"
 #include "geometry/aap.h"
 #include "geometry/bounding.h"
@@ -28,35 +26,35 @@ using std::vector;
 
 namespace {
 
-struct Box {
-  geometry::Aabb boundary;
-  std::vector<const geometry::Triangle*> triangles;
+struct KdBox {
+  Aabb boundary;
+  std::vector<const Triangle*> triangles;
 };
 
-struct Split {
-  geometry::Aap plane;
-  Box left, right;
+struct KdSplit {
+  Aap plane;
+  KdBox left, right;
 };
 
-Split split_box(const Box& parent, const Aap& plane) {
-  AabbSplit aabbs = split(parent.boundary, plane);
+KdSplit Split(const KdBox& parent, const Aap& plane) {
+  AabbSplit aabbs = geometry::Split(parent.boundary, plane);
   kdtree::IntersectResults triangles =
-      kdtree::intersect_test(parent.triangles, plane);
-  Box left{aabbs.left, triangles.left};
-  Box right{aabbs.right, triangles.right};
-  return Split{plane, left, right};
+      kdtree::PartitionTriangles(parent.triangles, plane);
+  KdBox left{aabbs.left, triangles.left};
+  KdBox right{aabbs.right, triangles.right};
+  return KdSplit{plane, left, right};
 }
 
-KdNodeLinked* go(unsigned int depth, Axis axis, const Box& parent) {
+KdNodeLinked* BuildHelper(unsigned int depth, Axis axis, const KdBox& parent) {
   if (depth >= 20 || parent.triangles.size() <= 6) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   } else {
     Aap plane(axis, parent.boundary.GetCenter()[axis]);
-    Split split = split_box(parent, plane);
+    KdSplit split = Split(parent, plane);
     KdNodeLinked* left_child =
-        go(depth + 1, kdtree::next_axis(axis), split.left);
+        BuildHelper(depth + 1, kdtree::next_axis(axis), split.left);
     KdNodeLinked* right_child =
-        go(depth + 1, kdtree::next_axis(axis), split.right);
+        BuildHelper(depth + 1, kdtree::next_axis(axis), split.right);
     return new KdNodeLinked(plane, left_child, right_child);
   }
 }
@@ -71,6 +69,7 @@ KdTreeLinked build(const vector<Triangle>& triangles) {
     ptrs.emplace_back(&triangle);
   }
 
-  return KdTreeLinked(go(0, geometry::X, Box{find_bounding(triangles), ptrs}));
+  return KdTreeLinked(BuildHelper(
+      0, geometry::X, KdBox{geometry::find_bounding(triangles), ptrs}));
 }
 }  // namespace kdtree
