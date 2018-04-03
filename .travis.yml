@@ -9,7 +9,7 @@ before_install:
 
 script:
   - echo FROM ubuntu:rolling > Dockerfile
-  - echo RUN apt-get install build-base meson ninja clang glew-dev glm-dev glfw-dev freeimage-dev >> Dockerfile
+  - echo RUN apt-get update && apt-get -y install meson ninja-build clang gcc libglew-dev libglm-dev libglfw3-dev libfreeimage-dev >> Dockerfile
   - echo ADD . /root >> Dockerfile
   - docker build -t withgit .
   - docker run withgit /bin/sh -c "cd /root && CC=$CC CXX=$CXX meson builddir && ninja -C builddir test"
