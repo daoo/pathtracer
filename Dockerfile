@@ -1,6 +1,5 @@
 FROM ubuntu:rolling
 RUN apt-get update && apt-get -y install build-essential meson ninja-build clang libglew-dev libglm-dev libglfw3-dev libfreeimage-dev pkg-config
-ADD . /root
 
 # Using alpine instead (not working due to glm packaging problems)
 # FROM alpine:edge
