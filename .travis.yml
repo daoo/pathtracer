@@ -5,10 +5,11 @@ language: cpp
 services: docker
 
 before_install:
-  - docker pull jpakkane/mesonci:artful
+  - docker pull ubuntu:rolling
 
 script:
-  - echo FROM jpakkane/mesonci:artful > Dockerfile
+  - echo FROM ubuntu:rolling > Dockerfile
+  - echo RUN apt-get install build-base meson ninja clang glew-dev glm-dev glfw-dev freeimage-dev >> Dockerfile
   - echo ADD . /root >> Dockerfile
   - docker build -t withgit .
   - docker run withgit /bin/sh -c "cd /root && CC=$CC CXX=$CXX meson builddir && ninja -C builddir test"
