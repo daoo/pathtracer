@@ -2,10 +2,10 @@ os: linux
 services: docker
 
 before_install:
-  - docker pull ubuntu:rolling
+  - docker pull ubuntu:artful
 
 script:
-  - echo FROM ubuntu:rolling > Dockerfile
+  - echo FROM ubuntu:artful > Dockerfile
   - echo RUN sudo apt-get update && sudo apt-get -y install build-essential meson ninja-build clang libglew-dev libglm-dev libglfw3-dev libfreeimage-dev pkg-config >> Dockerfile
   - echo ADD . /root >> Dockerfile
   - docker build -t withgit .
