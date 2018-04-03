@@ -1,5 +1,4 @@
 os: linux
-language: cpp
 services: docker
 
 before_install:
@@ -7,7 +6,7 @@ before_install:
 
 script:
   - echo FROM ubuntu:rolling > Dockerfile
-  - echo RUN apt-get update && apt-get -y install meson ninja-build clang gcc libglew-dev libglm-dev libglfw3-dev libfreeimage-dev >> Dockerfile
+  - echo RUN sudo apt-get update && sudo apt-get -y install build-essential meson ninja-build clang libglew-dev libglm-dev libglfw3-dev libfreeimage-dev pkg-config >> Dockerfile
   - echo ADD . /root >> Dockerfile
   - docker build -t withgit .
-  - docker run withgit /bin/sh -c "cd /root && CC=$CC CXX=$CXX meson builddir && ninja -C builddir test"
+  - docker run withgit /bin/sh -c "cd /root && CXX=g++ meson builddir && ninja -C builddir test"
