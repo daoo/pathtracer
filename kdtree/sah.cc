@@ -1,4 +1,4 @@
-#include "kdtree/build.h"
+#include "kdtree/sah.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>

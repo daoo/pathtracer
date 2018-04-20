@@ -14,7 +14,8 @@ geometry::Triangle triangle2(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3) {
 TEST_CASE("intersect empty", "[intersect]") {
   std::vector<const geometry::Triangle*> triangles;
   geometry::Aap plane(geometry::X, 0.0);
-  kdtree::IntersectResults result = kdtree::PartitionTriangles(triangles, plane);
+  kdtree::IntersectResults result =
+      kdtree::PartitionTriangles(triangles, plane);
   REQUIRE(result.left.empty());
   REQUIRE(result.right.empty());
 }
@@ -24,7 +25,8 @@ TEST_CASE("intersect one triangle both sides", "[intersect]") {
   std::vector<const geometry::Triangle*> triangles;
   triangles.push_back(&tri);
   geometry::Aap plane(geometry::X, 0.0);
-  kdtree::IntersectResults result = kdtree::PartitionTriangles(triangles, plane);
+  kdtree::IntersectResults result =
+      kdtree::PartitionTriangles(triangles, plane);
   REQUIRE(result.left == std::vector<const geometry::Triangle*>{&tri});
   REQUIRE(result.right == std::vector<const geometry::Triangle*>{&tri});
 }
@@ -36,7 +38,8 @@ TEST_CASE("intersect one triangle on each side", "[intersect]") {
   triangles.push_back(&tri1);
   triangles.push_back(&tri2);
   geometry::Aap plane(geometry::X, 0.0);
-  kdtree::IntersectResults result = kdtree::PartitionTriangles(triangles, plane);
+  kdtree::IntersectResults result =
+      kdtree::PartitionTriangles(triangles, plane);
   REQUIRE(result.left == std::vector<const geometry::Triangle*>{&tri1});
   REQUIRE(result.right == std::vector<const geometry::Triangle*>{&tri2});
 }
@@ -46,7 +49,8 @@ TEST_CASE("intersect one triangle in plane", "[intersect]") {
   std::vector<const geometry::Triangle*> triangles;
   triangles.push_back(&tri);
   geometry::Aap plane(geometry::Z, 0.0);
-  kdtree::IntersectResults result = kdtree::PartitionTriangles(triangles, plane);
+  kdtree::IntersectResults result =
+      kdtree::PartitionTriangles(triangles, plane);
   REQUIRE(result.left == std::vector<const geometry::Triangle*>{&tri});
   REQUIRE(result.right == std::vector<const geometry::Triangle*>{&tri});
 }

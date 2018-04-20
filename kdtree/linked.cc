@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-#include <algorithm>
+#include <utility>
 
 #include "geometry/ray.h"
 #include "geometry/triray.h"

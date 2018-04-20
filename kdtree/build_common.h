@@ -1,6 +1,8 @@
 #ifndef KDTREE_BUILD_COMMON_H_
 #define KDTREE_BUILD_COMMON_H_
 
+#include <vector>
+
 #include "geometry/aabb.h"
 #include "geometry/split.h"
 #include "kdtree/intersect.h"

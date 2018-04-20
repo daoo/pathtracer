@@ -12,6 +12,6 @@ T parse(const std::string& str) {
   ss >> tmp;
   return tmp;
 }
-}
+}  // namespace util
 
 #endif  // UTIL_STRINGS_H_

@@ -1,7 +1,8 @@
-#include "kdtree/build.h"
+#include "kdtree/naive.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <vector>
 
 #include "geometry/aap.h"
 #include "geometry/bounding.h"

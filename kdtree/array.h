@@ -1,10 +1,12 @@
 #ifndef KDTREE_ARRAY_H_
 #define KDTREE_ARRAY_H_
 
+#include <optional>
+
 #include <cassert>
 #include <cstdint>
+
 #include <limits>
-#include <optional>
 #include <vector>
 
 #include "geometry/triangle.h"

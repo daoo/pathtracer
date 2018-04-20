@@ -2,10 +2,10 @@
 
 #include <sstream>
 
-using std::experimental::filesystem::exists;
-using std::experimental::filesystem::path;
 using std::string;
 using std::stringstream;
+using std::experimental::filesystem::exists;
+using std::experimental::filesystem::path;
 
 namespace util {
 path next_free_name(const path& dir, const string& name, const string& ext) {
