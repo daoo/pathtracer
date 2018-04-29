@@ -1,11 +1,6 @@
 os: linux
 services: docker
 
-before_install:
-  - docker pull daoo/pathtracerci
-
 script:
-  - echo FROM daoo/pathtracerci > Dockerfile
-  - echo ADD . /root >> Dockerfile
   - docker build -t travis .
-  - docker run travis /bin/sh -c "cd /root && CXX=g++ meson builddir && ninja -C builddir test"
+  - docker run travis
