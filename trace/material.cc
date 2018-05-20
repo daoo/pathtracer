@@ -116,7 +116,7 @@ vec3 FresnelBlendMaterial::brdf(const vec3& wo,
 LightSample FresnelBlendMaterial::sample_brdf(const vec3& wi,
                                               const vec3& n,
                                               FastRand* rand) const {
-  return rand->next() < reflectance(r0_, wi, n)
+  return rand->unit() < reflectance(r0_, wi, n)
              ? reflection_->sample_brdf(wi, n, rand)
              : refraction_->sample_brdf(wi, n, rand);
 }
@@ -138,7 +138,7 @@ vec3 BlendMaterial::brdf(const vec3& wo, const vec3& wi, const vec3& n) const {
 LightSample BlendMaterial::sample_brdf(const vec3& wi,
                                        const vec3& n,
                                        FastRand* rand) const {
-  return rand->next() < factor_ ? first_->sample_brdf(wi, n, rand)
+  return rand->unit() < factor_ ? first_->sample_brdf(wi, n, rand)
                                 : second_->sample_brdf(wi, n, rand);
 }
 }  // namespace trace

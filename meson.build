@@ -103,6 +103,7 @@ tests = executable(
     'geometry/triray_unittest.cc',
     'kdtree/intersect_unittest.cc',
     'tests/unit-tests.cc',
+    'trace/fastrand_unittest.cc',
     'wavefront/parser_unittest.cc',
     link_with: trace,
     dependencies: glm

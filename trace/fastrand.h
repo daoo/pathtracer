@@ -9,9 +9,15 @@ class FastRand {
  public:
   FastRand() : engine_(std::random_device()()) {}
 
-  float next() {
+  float unit() {
     return std::generate_canonical<float, std::numeric_limits<float>::digits>(
         engine_);
+  }
+
+  float range(float a, float b) {
+    std::uniform_real_distribution<> distribution(static_cast<double>(a),
+                                                  static_cast<double>(b));
+    return static_cast<float>(distribution(engine_));
   }
 
  private:
