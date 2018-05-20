@@ -92,6 +92,14 @@ executable(
     dependencies: glm
 )
 
+executable(
+    'triangle-kdtree-tester',
+    'kdtree/sah_fast.cc',
+    'tests/triangle-kdtree-tester.cc',
+    link_with: trace,
+    dependencies: glm
+)
+
 executable('test-camera', 'tests/camera-tester.cc', dependencies: glm)
 executable('sizes', 'tests/sizes.cc', dependencies: glm)
 
