@@ -1,6 +1,8 @@
 #ifndef TRACE_LIGHT_H_
 #define TRACE_LIGHT_H_
 
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <glm/glm.hpp>
 #include <glm/gtx/norm.hpp>
 
