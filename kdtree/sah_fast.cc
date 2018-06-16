@@ -111,49 +111,56 @@ set<Event> ListPerfectSplits(const KdBox& box) {
   return splits;
 }
 
+struct EventCount {
+  size_t pminus, pplus, pplane;
+};
+
+EventCount CountEvents(const set<Event>& splits,
+                       const Aap& plane,
+                       const Event& event,
+                       set<Event>::const_iterator iter) {
+  size_t pminus = 0;
+  size_t pplus = 0;
+  size_t pplane = 0;
+  while (iter != splits.end() &&
+         iter->plane.GetDistance() == event.plane.GetDistance() &&
+         event.type == START) {
+    pminus += 1;
+    ++iter;
+  }
+  while (iter != splits.end() &&
+         iter->plane.GetDistance() == event.plane.GetDistance() &&
+         event.type == PLANAR) {
+    pplane += 1;
+    ++iter;
+  }
+  while (iter != splits.end() &&
+         iter->plane.GetDistance() == event.plane.GetDistance() &&
+         event.type == END) {
+    pplus += 1;
+    ++iter;
+  }
+  return EventCount{pminus, pplus, pplane};
+}
+
 KdCostSplit FindBestSplit(const KdBox& parent, const set<Event>& splits) {
   assert(splits.size() > 0);
   KdCostSplit best{{geometry::X, 0}, {FLT_MAX, LEFT}};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
     Axis axis = static_cast<Axis>(axis_index);
-    int nl = 0;
-    int np = 0;
-    int nr = parent.triangles.size();
-    for (set<Event>::const_iterator outer = splits.begin();
-         outer != splits.end(); ++outer) {
-      const Event& event = *outer;
-      const Aap& plane = event.plane;
-      if (plane.GetAxis() == axis) {
-        set<Event>::const_iterator inner = outer;
-        int pminus = 0;
-        int pplus = 0;
-        int pplane = 0;
-        while (inner != splits.end() &&
-               inner->plane.GetDistance() == plane.GetDistance() &&
-               event.type == START) {
-          pminus += 1;
-          ++inner;
-        }
-        while (inner != splits.end() &&
-               inner->plane.GetDistance() == plane.GetDistance() &&
-               event.type == PLANAR) {
-          pplane += 1;
-          ++inner;
-        }
-        while (inner != splits.end() &&
-               inner->plane.GetDistance() == plane.GetDistance() &&
-               event.type == END) {
-          pplus += 1;
-          ++inner;
-        }
-        np = pplane;
-        nr = nr - pplane - pminus;
-        KdCost cost = CalculateCost(parent.boundary, plane, nl, nr, np);
+    size_t nl = 0;
+    size_t nr = parent.triangles.size();
+    for (set<Event>::const_iterator iter = splits.begin(); iter != splits.end();
+         ++iter) {
+      if (iter->plane.GetAxis() == axis) {
+        EventCount count = CountEvents(splits, iter->plane, *iter, iter);
+        nr = nr - count.pminus - count.pplane;
+        KdCost cost =
+            CalculateCost(parent.boundary, iter->plane, nl, nr, count.pplane);
         if (cost < best.cost) {
-          best = KdCostSplit{plane, cost};
+          best = KdCostSplit{iter->plane, cost};
         }
-        nl = nl + pplus + pplane;
-        np = 0;
+        nl = nl + count.pplus + count.pplane;
       }
     }
   }
