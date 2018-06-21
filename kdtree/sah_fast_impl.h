@@ -47,8 +47,8 @@ KdCost CalculateCost(const geometry::Aabb& parent,
   float plane_right =
       kdtree::CalculateCost(parent_area, left_area, right_area, left_count,
                             right_count + plane_count);
-  return plane_left < plane_right ? KdCost{plane_left, LEFT}
-                                  : KdCost{plane_right, RIGHT};
+  return plane_left <= plane_right ? KdCost{plane_left, LEFT}
+                                   : KdCost{plane_right, RIGHT};
 }
 
 enum Type { START, PLANAR, END };
@@ -100,27 +100,27 @@ struct EventCount {
   size_t pminus, pplus, pplane;
 };
 
-EventCount CountEvents(const std::set<Event>& splits,
-                       const Event& event,
-                       std::set<Event>::const_iterator iter) {
+EventCount CountEvents(std::set<Event>::const_iterator begin,
+                       std::set<Event>::const_iterator end) {
+  assert(begin != end);
   size_t pminus = 0;
   size_t pplus = 0;
   size_t pplane = 0;
-  while (iter != splits.end() &&
-         iter->plane.GetDistance() == event.plane.GetDistance() &&
-         event.type == START) {
+  float distance = begin->plane.GetDistance();
+  geometry::Axis axis = begin->plane.GetAxis();
+  auto iter = begin;
+  while (iter != end && iter->plane.GetDistance() == distance &&
+         iter->plane.GetAxis() == axis && iter->type == END) {
     pminus += 1;
     ++iter;
   }
-  while (iter != splits.end() &&
-         iter->plane.GetDistance() == event.plane.GetDistance() &&
-         event.type == PLANAR) {
+  while (iter != end && iter->plane.GetDistance() == distance &&
+         iter->plane.GetAxis() == axis && iter->type == PLANAR) {
     pplane += 1;
     ++iter;
   }
-  while (iter != splits.end() &&
-         iter->plane.GetDistance() == event.plane.GetDistance() &&
-         event.type == END) {
+  while (iter != end && iter->plane.GetDistance() == distance &&
+         iter->plane.GetAxis() == axis && iter->type == START) {
     pplus += 1;
     ++iter;
   }
@@ -135,10 +135,9 @@ KdCostSplit FindBestSplit(const kdtree::KdBox& parent,
     geometry::Axis axis = static_cast<geometry::Axis>(axis_index);
     size_t nl = 0;
     size_t nr = parent.triangles.size();
-    for (std::set<Event>::const_iterator iter = splits.begin();
-         iter != splits.end(); ++iter) {
+    for (auto iter = splits.cbegin(); iter != splits.cend(); ++iter) {
       if (iter->plane.GetAxis() == axis) {
-        EventCount count = CountEvents(splits, *iter, iter);
+        EventCount count = CountEvents(iter, splits.cend());
         nr = nr - count.pminus - count.pplane;
         KdCost cost =
             CalculateCost(parent.boundary, iter->plane, nl, nr, count.pplane);

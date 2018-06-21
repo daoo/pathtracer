@@ -14,7 +14,7 @@ struct IntersectResults {
   std::vector<const geometry::Triangle*> right;
 };
 
-IntersectResults PartitionTriangles(
+inline IntersectResults PartitionTriangles(
     const std::vector<const geometry::Triangle*>& triangles,
     const geometry::Aap& plane) {
   IntersectResults results;
