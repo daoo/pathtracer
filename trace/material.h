@@ -36,7 +36,7 @@ class Material {
  * The BRDF for diffuse reflection is constant. It can be importance sampled
  * on the cosine term to improve sampling quality somewhat.
  */
-class DiffuseMaterial : public Material {
+class DiffuseMaterial final : public Material {
  public:
   explicit DiffuseMaterial(const glm::vec3&);
 
@@ -55,7 +55,7 @@ class DiffuseMaterial : public Material {
 /**
  * Textured diffuse material.
  */
-class DiffuseTextureMaterial : public Material {
+class DiffuseTextureMaterial final : public Material {
  public:
   DiffuseTextureMaterial(const glm::vec3&, const Texture&);
 
@@ -80,7 +80,7 @@ class DiffuseTextureMaterial : public Material {
  * zero as we will never select a light sample which is exactly in that
  * direction.
  */
-class SpecularReflectionMaterial : public Material {
+class SpecularReflectionMaterial final : public Material {
  public:
   explicit SpecularReflectionMaterial(const glm::vec3&);
 
@@ -105,7 +105,7 @@ class SpecularReflectionMaterial : public Material {
  * just be set to zero as we oll never select a light sample which is exactly
  * in that direction.
  */
-class SpecularRefractionMaterial : public Material {
+class SpecularRefractionMaterial final : public Material {
  public:
   explicit SpecularRefractionMaterial(float);
 
@@ -129,7 +129,7 @@ class SpecularRefractionMaterial : public Material {
  * term. We use the Schlick approximation to the real fresnel equations,
  * which irks quite well for conductors.
  */
-class FresnelBlendMaterial : public Material {
+class FresnelBlendMaterial final : public Material {
  public:
   FresnelBlendMaterial(const Material*, const Material*, float);
   ~FresnelBlendMaterial();
@@ -158,7 +158,7 @@ class FresnelBlendMaterial : public Material {
  *
  *   w * M1 + (1 - w) * M2
  */
-class BlendMaterial : public Material {
+class BlendMaterial final : public Material {
  public:
   BlendMaterial(const Material*, const Material*, float);
   ~BlendMaterial();
