@@ -6,11 +6,11 @@ CXX="clang++" CXXFLAGS="-Weverything -Wno-missing-prototypes -Wno-c++98-compat -
 CXX="clang++" CXXFLAGS="-Ofast -march=native -DNDEBUG" \
   meson "out_clang_release"
 
-CXX="clang++" CXXFLAGS="-Wall -g -fsanitize=address,undefined" LDFLAGS="-fsanitize=address,undefined" \
+CXX="clang++" CXXFLAGS="-Wall -g -fsanitize=address,undefined" \
   meson "out_clang_sanitize"
 
 CXX="g++" CXXFLAGS="-Wall -Wextra -Wno-padded -g -fdiagnostics-color=always" \
   meson "out_gcc_debug"
 
-CXX="g++" CXXFLAGS="-Ofast -march=native -flto -DNDEBUG" LDFLAGS="-flto" \
+CXX="g++" CXXFLAGS="-Ofast -march=native -flto -DNDEBUG" \
   meson "out_gcc_release"
