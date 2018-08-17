@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import sys
+
 
 def right_triangle(x, y, size):
     return ((x, y), (x + size, y), (x, y + size))
@@ -23,12 +25,15 @@ def obj(triangles):
         ))
 
 
-def gen_triangle_grid(size, offset):
-    for i in range(0, 5):
-        for j in range(0, 5):
+def gen_triangle_grid(xcount, ycount, size, offset):
+    for i in range(0, xcount):
+        for j in range(0, ycount):
             x = i * (size + offset)
             y = j * (size + offset)
             yield right_triangle(x, y, size)
 
 
-obj(list(gen_triangle_grid(100, 50)))
+xcount = int(sys.argv[1])
+ycount = int(sys.argv[2])
+
+obj(list(gen_triangle_grid(xcount, ycount, 100, 50)))
