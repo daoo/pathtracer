@@ -126,8 +126,8 @@ void pathtrace(const KdTreeLinked& kdtree,
   Context context{kdtree, lights, bounces, rand};
   for (unsigned int y = 0; y < buffer->height(); ++y) {
     for (unsigned int x = 0; x < buffer->width(); ++x) {
-      float sx = (static_cast<float>(x) + rand->unit()) / pinhole.width;
-      float sy = (static_cast<float>(y) + rand->unit()) / pinhole.height;
+      float sx = (static_cast<float>(x) + rand->unit()) / buffer->width();
+      float sy = (static_cast<float>(y) + rand->unit()) / buffer->height();
 
       buffer->add(x, y, incoming_light(context, pinhole.ray(sx, sy)));
     }

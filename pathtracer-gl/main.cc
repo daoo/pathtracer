@@ -45,7 +45,7 @@ class State {
         window_width_(width),
         window_height_(height),
         buffer_(width / subsampling_, height / subsampling_),
-        pinhole_(scene_.cameras[camera_], buffer_.width(), buffer_.height()) {
+        pinhole_(scene_.cameras[camera_], buffer_.aspect_ratio()) {
     glEnable(GL_FRAMEBUFFER_SRGB);
     glDisable(GL_CULL_FACE);
 
@@ -196,8 +196,7 @@ class State {
     std::cout << "bounces=" << bounces_ << '\n';
     buffer_ = trace::SampleBuffer(window_width_ / subsampling_,
                                   window_height_ / subsampling_);
-    pinhole_ = trace::Pinhole(scene_.cameras[camera_], buffer_.width(),
-                              buffer_.height());
+    pinhole_ = trace::Pinhole(scene_.cameras[camera_], buffer_.aspect_ratio());
   }
 };
 

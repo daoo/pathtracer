@@ -101,7 +101,8 @@ void program(const path& obj_file,
   // Setup scene
   trace::Scene scene(wavefront::LoadObj(obj_file),
                      wavefront::LoadMtl(mtl_file));
-  trace::Pinhole pinhole(scene.cameras[camera], width, height);
+  trace::Pinhole pinhole(scene.cameras[camera], static_cast<float>(width) /
+                                                    static_cast<float>(height));
 
   // Setup one buffer for each thread
   std::vector<trace::SampleBuffer> buffers;

@@ -29,6 +29,10 @@ class SampleBuffer {
   unsigned int width() const { return width_; }
   unsigned int height() const { return height_; }
 
+  float aspect_ratio() const {
+    return static_cast<float>(width_) / static_cast<float>(height_);
+  }
+
   unsigned int samples() const { return samples_; }
 
   void inc() { ++samples_; }
