@@ -21,6 +21,7 @@ using std::vector;
 using std::experimental::filesystem::path;
 
 void PrintSplit(std::ostream& stream,
+                int depth,
                 const Aap& plane,
                 const vec3& min,
                 const vec3& max) {
@@ -41,7 +42,14 @@ void PrintSplit(std::ostream& stream,
   stream << "<line ";
   stream << " x1=\"" << x1 << "\" y1=\"" << y1 << "\"";
   stream << " x2=\"" << x2 << "\" y2=\"" << y2 << "\"";
-  stream << " style=\"stroke:rgb(255,0,0);stroke-width:1\" />";
+  glm::vec3 colors[]{
+      {255, 0, 0},
+      {0, 255, 0},
+      {0, 0, 255},
+  };
+  glm::vec3 c = colors[depth % 3];
+  stream << " style=\"stroke:rgb(" << c.r << "," << c.g << "," << c.b
+         << ");stroke-width:1\" />";
 }
 
 void PrintTriangle(std::ostream& stream, const geometry::Triangle& triangle) {
@@ -52,7 +60,8 @@ void PrintTriangle(std::ostream& stream, const geometry::Triangle& triangle) {
   stream << "\" />";
 }
 
-void helper(const kdtree::KdNodeLinked* node,
+void helper(int depth,
+            const kdtree::KdNodeLinked* node,
             const vec3& min,
             const vec3& max) {
   if (node->GetTriangles() != nullptr) {
@@ -60,23 +69,23 @@ void helper(const kdtree::KdNodeLinked* node,
       PrintTriangle(std::cout, *triangle);
     }
   } else {
-    PrintSplit(std::cout, node->GetPlane(), min, max);
+    PrintSplit(std::cout, depth, node->GetPlane(), min, max);
     {
       vec3 newmax = max;
       newmax[node->GetPlane().GetAxis()] = node->GetPlane().GetDistance();
-      helper(node->GetLeft(), min, newmax);
+      helper(depth + 1, node->GetLeft(), min, newmax);
     }
     {
       vec3 newmin = min;
       newmin[node->GetPlane().GetAxis()] = node->GetPlane().GetDistance();
-      helper(node->GetRight(), newmin, max);
+      helper(depth + 1, node->GetRight(), newmin, max);
     }
   }
 }
 
 void print(const kdtree::KdTreeLinked& tree, const Aabb& bounding) {
   std::cout << "<svg>";
-  helper(tree.GetRoot(), bounding.GetMin(), bounding.GetMax());
+  helper(0, tree.GetRoot(), bounding.GetMin(), bounding.GetMax());
   std::cout << "</svg>\n";
 }
 
