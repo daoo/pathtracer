@@ -65,32 +65,18 @@ executable(
     dependencies: glm
 )
 
-executable(
-    'print-tree-naive',
-    'kdtree/naive.cc',
-    'tests/print-tree.cc',
-    link_args: '-lstdc++fs',
-    link_with: trace,
-    dependencies: glm
-)
+kdtree_builders = ['naive', 'sah', 'sah_fast']
 
-executable(
-    'print-tree-sah',
-    'kdtree/sah.cc',
-    'tests/print-tree.cc',
-    link_args: '-lstdc++fs',
-    link_with: trace,
-    dependencies: glm
-)
-
-executable(
-    'print-tree-sah-fast',
-    'kdtree/sah_fast.cc',
-    'tests/print-tree.cc',
-    link_args: '-lstdc++fs',
-    link_with: trace,
-    dependencies: glm
-)
+foreach builder : kdtree_builders
+  executable(
+      'print-tree-' + builder,
+      'kdtree/' + builder + '.cc',
+      'tests/print-tree.cc',
+      link_args: '-lstdc++fs',
+      link_with: trace,
+      dependencies: glm
+  )
+endforeach
 
 executable(
     'triangle-kdtree-tester',
