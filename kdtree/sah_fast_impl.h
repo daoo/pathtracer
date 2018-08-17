@@ -170,7 +170,7 @@ kdtree::KdNodeLinked* BuildHelper(unsigned int depth,
     return new kdtree::KdNodeLinked(
         new std::vector<const geometry::Triangle*>(parent.triangles));
   } else {
-    kdtree::KdSplit boxes = Split(parent, split.plane);
+    kdtree::KdSplit boxes = kdtree::Split(parent, split.plane);
     return new kdtree::KdNodeLinked(split.plane,
                                     BuildHelper(depth + 1, boxes.left),
                                     BuildHelper(depth + 1, boxes.right));
