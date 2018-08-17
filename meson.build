@@ -94,8 +94,6 @@ executable(
     dependencies: glm
 )
 
-executable('sizes', 'tests/sizes.cc', dependencies: glm)
-
 tests = executable(
     'unit-tests',
     'geometry/aabb_unittest.cc',
