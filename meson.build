@@ -65,6 +65,14 @@ executable(
     dependencies: glm
 )
 
+executable(
+    'wavefront-print',
+    'wavefront/wavefront-print.cc',
+    link_args: '-lstdc++fs',
+    link_with: trace,
+    dependencies: glm
+)
+
 kdtree_builders = ['naive', 'sah', 'sah_fast']
 
 foreach builder : kdtree_builders
