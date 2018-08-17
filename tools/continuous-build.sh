@@ -2,4 +2,4 @@
 
 set -eu
 
-rg --files --type cpp | entr ninja -C "${1:-out_clang_debug}"
+rg --files --type cpp | entr -c sh -c "ninja -C out_clang_debug && ./out_clang_debug/unit-tests"
