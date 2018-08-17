@@ -84,6 +84,14 @@ foreach builder : kdtree_builders
       link_with: trace,
       dependencies: glm
   )
+  executable(
+      'print-tree-svg-' + builder,
+      'kdtree/' + builder + '.cc',
+      'tests/print-tree-svg.cc',
+      link_args: '-lstdc++fs',
+      link_with: trace,
+      dependencies: glm
+  )
 endforeach
 
 executable(
