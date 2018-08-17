@@ -58,8 +58,8 @@ executable(
 )
 
 executable(
-    'print-wavefront',
-    'tests/print-wavefront.cc',
+    'wavefront-info',
+    'wavefront/wavefront-info.cc',
     link_args: '-lstdc++fs',
     link_with: trace,
     dependencies: glm
