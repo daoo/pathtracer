@@ -18,11 +18,9 @@
 
 namespace {
 
-enum Side { LEFT, RIGHT };
-
 struct KdCost {
   float cost;
-  Side side;
+  kdtree::Side side;
 
   bool operator<(const KdCost& other) const { return cost < other.cost; }
 };
@@ -47,8 +45,8 @@ KdCost CalculateCost(const geometry::Aabb& parent,
   float plane_right =
       kdtree::CalculateCost(parent_area, left_area, right_area, left_count,
                             right_count + plane_count);
-  return plane_left <= plane_right ? KdCost{plane_left, LEFT}
-                                   : KdCost{plane_right, RIGHT};
+  return plane_left <= plane_right ? KdCost{plane_left, kdtree::LEFT}
+                                   : KdCost{plane_right, kdtree::RIGHT};
 }
 
 enum Type { START, PLANAR, END };
@@ -130,7 +128,7 @@ EventCount CountEvents(std::set<Event>::const_iterator begin,
 KdCostSplit FindBestSplit(const kdtree::KdBox& parent,
                           const std::set<Event>& splits) {
   assert(splits.size() > 0);
-  KdCostSplit best{{geometry::X, 0}, {FLT_MAX, LEFT}};
+  KdCostSplit best{{geometry::X, 0}, {FLT_MAX, kdtree::LEFT}};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
     geometry::Axis axis = static_cast<geometry::Axis>(axis_index);
     size_t nl = 0;
@@ -170,7 +168,7 @@ kdtree::KdNodeLinked* BuildHelper(unsigned int depth,
     return new kdtree::KdNodeLinked(
         new std::vector<const geometry::Triangle*>(parent.triangles));
   } else {
-    kdtree::KdSplit boxes = kdtree::Split(parent, split.plane);
+    kdtree::KdSplit boxes = kdtree::Split(parent, split.plane, split.cost.side);
     return new kdtree::KdNodeLinked(split.plane,
                                     BuildHelper(depth + 1, boxes.left),
                                     BuildHelper(depth + 1, boxes.right));

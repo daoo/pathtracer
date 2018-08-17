@@ -31,7 +31,7 @@ KdNodeLinked* BuildHelper(unsigned int depth, Axis axis, const KdBox& parent) {
     return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
   } else {
     Aap plane(axis, parent.boundary.GetCenter()[axis]);
-    KdSplit split = kdtree::Split(parent, plane);
+    KdSplit split = kdtree::Split(parent, plane, kdtree::LEFT);
     KdNodeLinked* left_child =
         BuildHelper(depth + 1, kdtree::next_axis(axis), split.left);
     KdNodeLinked* right_child =

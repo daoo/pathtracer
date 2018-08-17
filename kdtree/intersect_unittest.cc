@@ -51,6 +51,7 @@ TEST_CASE("intersect one triangle in plane", "[intersect]") {
   geometry::Aap plane(geometry::Z, 0.0);
   kdtree::IntersectResults result =
       kdtree::PartitionTriangles(triangles, plane);
-  REQUIRE(result.left == std::vector<const geometry::Triangle*>{&tri});
-  REQUIRE(result.right == std::vector<const geometry::Triangle*>{&tri});
+  REQUIRE(result.left.empty());
+  REQUIRE(result.plane == std::vector<const geometry::Triangle*>{&tri});
+  REQUIRE(result.right.empty());
 }

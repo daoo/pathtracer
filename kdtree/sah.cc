@@ -83,7 +83,8 @@ set<Aap> ListPerfectSplits(const KdBox& box) {
 }
 
 KdCostSplit SplitWithCost(const KdBox& parent, const Aap& plane) {
-  KdSplit split = kdtree::Split(parent, plane);
+  // TODO: calculate which side
+  KdSplit split = kdtree::Split(parent, plane, kdtree::LEFT);
   float cost = CalculateCost(parent.boundary, split.left, split.right);
   return {split, cost};
 }
