@@ -21,39 +21,6 @@ namespace geometry {
 struct Triangle;
 }  // namespace geometry
 
-struct KdCost {
-  float cost;
-  kdtree::Side side;
-
-  bool operator<(const KdCost& other) const { return cost < other.cost; }
-};
-
-struct KdSplit {
-  geometry::Aap plane;
-  KdCost cost;
-
-  bool operator<(const KdSplit& other) const { return cost < other.cost; }
-};
-
-KdCost CalculateCost(const geometry::Aabb& parent,
-                     const geometry::Aap& plane,
-                     size_t left_count,
-                     size_t right_count,
-                     size_t plane_count) {
-  float parent_area = parent.GetSurfaceArea();
-  geometry::AabbSplit split = geometry::Split(parent, plane);
-  float left_area = split.left.GetSurfaceArea();
-  float right_area = split.right.GetSurfaceArea();
-  float plane_left =
-      kdtree::CalculateCost(parent_area, left_area, right_area,
-                            left_count + plane_count, right_count);
-  float plane_right =
-      kdtree::CalculateCost(parent_area, left_area, right_area, left_count,
-                            right_count + plane_count);
-  return plane_left <= plane_right ? KdCost{plane_left, kdtree::LEFT}
-                                   : KdCost{plane_right, kdtree::RIGHT};
-}
-
 enum Type { START, PLANAR, END };
 
 struct Event {
@@ -130,10 +97,10 @@ EventCount CountEvents(std::set<Event>::const_iterator begin,
   return EventCount{pminus, pplus, pplane};
 }
 
-KdSplit FindBestSplit(const kdtree::KdBox& parent,
-                      const std::set<Event>& splits) {
+kdtree::KdSplit FindBestSplit(const kdtree::KdBox& parent,
+                              const std::set<Event>& splits) {
   assert(splits.size() > 0);
-  KdSplit best{{geometry::X, 0}, {FLT_MAX, kdtree::LEFT}};
+  kdtree::KdSplit best{{geometry::X, 0}, {FLT_MAX, kdtree::LEFT}};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
     geometry::Axis axis = static_cast<geometry::Axis>(axis_index);
     size_t nl = 0;
@@ -142,14 +109,19 @@ KdSplit FindBestSplit(const kdtree::KdBox& parent,
       if (iter->plane.GetAxis() == axis) {
         EventCount count = CountEvents(iter, splits.cend());
         nr = nr - count.pminus - count.pplane;
-        KdCost cost =
-            CalculateCost(parent.boundary, iter->plane, nl, nr, count.pplane);
-        best = std::min(best, KdSplit{iter->plane, cost});
+        kdtree::KdCost cost = kdtree::CalculateCost(
+            parent.boundary, iter->plane, nl, nr, count.pplane);
+        best = std::min(best, kdtree::KdSplit{iter->plane, cost});
         nl = nl + count.pplus + count.pplane;
       }
     }
   }
   return best;
+}
+
+template <class T>
+void append(std::vector<T>& a, const std::vector<T>& b) {
+  a.insert(a.end(), b.cbegin(), b.cend());
 }
 
 kdtree::KdNode* BuildHelper(unsigned int depth, const kdtree::KdBox& parent) {
@@ -160,14 +132,27 @@ kdtree::KdNode* BuildHelper(unsigned int depth, const kdtree::KdBox& parent) {
   }
 
   std::set<Event> splits = ListPerfectSplits(parent);
-  KdSplit split = FindBestSplit(parent, splits);
+  kdtree::KdSplit split = FindBestSplit(parent, splits);
   if (split.cost.cost > kdtree::LeafCostBound(parent.triangles.size())) {
     return new kdtree::KdNode(
         new std::vector<const geometry::Triangle*>(parent.triangles));
   } else {
-    kdtree::KdSplit boxes = kdtree::Split(parent, split.plane, split.cost.side);
-    return new kdtree::KdNode(split.plane, BuildHelper(depth + 1, boxes.left),
-                              BuildHelper(depth + 1, boxes.right));
+    geometry::AabbSplit aabbs = geometry::Split(parent.boundary, split.plane);
+    kdtree::IntersectResults triangles =
+        kdtree::PartitionTriangles(parent.triangles, split.plane);
+    std::vector<const geometry::Triangle*> left_tris(triangles.left);
+    std::vector<const geometry::Triangle*> right_tris(triangles.right);
+    // Put plane-triangles on side with fewest triangels, or left if both equal.
+    if (triangles.left.size() <= triangles.right.size()) {
+      append(left_tris, triangles.plane);
+    } else {
+      // triangles.left.size() > triangles.right.size()
+      append(right_tris, triangles.plane);
+    }
+    kdtree::KdBox left{aabbs.left, left_tris};
+    kdtree::KdBox right{aabbs.right, right_tris};
+    return new kdtree::KdNode(split.plane, BuildHelper(depth + 1, left),
+                              BuildHelper(depth + 1, right));
   }
 }
 

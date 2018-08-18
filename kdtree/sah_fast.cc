@@ -16,6 +16,6 @@ KdTree build(const vector<Triangle>& triangles) {
   }
 
   return KdTree(
-      BuildHelper(0, KdBox{geometry::find_bounding(triangles), ptrs}));
+      BuildHelper(0, kdtree::KdBox{geometry::find_bounding(triangles), ptrs}));
 }
 }  // namespace kdtree
