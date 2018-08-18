@@ -27,8 +27,7 @@ inline IntersectResults PartitionTriangles(
     float plane_distance = plane.GetDistance();
     bool in_left = triangle_min < plane_distance;
     bool in_right = triangle_max > plane_distance;
-    bool in_plane =
-        triangle_min == plane_distance && triangle_max == plane_distance;
+    bool in_plane = !in_left && !in_right;
     if (in_left) results.left.emplace_back(triangle);
     if (in_right) results.right.emplace_back(triangle);
     if (in_plane) results.plane.emplace_back(triangle);
