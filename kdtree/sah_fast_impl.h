@@ -1,6 +1,8 @@
 #ifndef KDTREE_SAH_FAST_IMPL_H_
 #define KDTREE_SAH_FAST_IMPL_H_
 
+#include <iostream>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
@@ -66,6 +68,12 @@ kdtree::KdSplit FindBestSplit(const kdtree::KdBox& parent,
         nr = nr - count.pminus - count.pplane;
         kdtree::KdCost cost = kdtree::CalculateCost(
             parent.boundary, iter->plane, nl, nr, count.pplane);
+        std::cout << "p=" << iter->plane.GetAxis() << "@"
+                  << iter->plane.GetDistance() << " ";
+        std::cout << "lcount=" << nl << " ";
+        std::cout << "rcount=" << nr << " ";
+        std::cout << "pcount=" << count.pplane << " ";
+        std::cout << "cost=" << cost.cost << "\n";
         best = std::min(best, kdtree::KdSplit{iter->plane, cost});
         nl = nl + count.pplus + count.pplane;
       }

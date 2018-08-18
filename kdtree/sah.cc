@@ -1,5 +1,7 @@
 #include "kdtree/sah.h"
 
+#include <iostream>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
@@ -29,6 +31,12 @@ kdtree::KdSplit SplitWithCost(const kdtree::KdBox& parent,
   kdtree::KdCost cost =
       kdtree::CalculateCost(parent.boundary, event.plane, triangles.left.size(),
                             triangles.right.size(), triangles.plane.size());
+  std::cout << "p=" << event.plane.GetAxis() << "@" << event.plane.GetDistance()
+            << " ";
+  std::cout << "lcount=" << triangles.left.size() << " ";
+  std::cout << "rcount=" << triangles.right.size() << " ";
+  std::cout << "pcount=" << triangles.plane.size() << " ";
+  std::cout << "cost=" << cost.cost << "\n";
   return kdtree::KdSplit{event.plane, cost};
 }
 
