@@ -14,9 +14,8 @@ using geometry::Aap;
 using geometry::Triangle;
 using std::set;
 
-template<class T>
-T advance(T iter, size_t steps)
-{
+template <class T>
+T advance(T iter, size_t steps) {
   std::advance(iter, steps);
   return iter;
 }

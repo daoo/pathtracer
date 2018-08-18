@@ -16,8 +16,6 @@
 #include "kdtree/linked.h"
 #include "kdtree/sah_common.h"
 
-namespace {
-
 struct KdCost {
   float cost;
   kdtree::Side side;
@@ -174,7 +172,5 @@ kdtree::KdNodeLinked* BuildHelper(unsigned int depth,
                                     BuildHelper(depth + 1, boxes.right));
   }
 }
-
-}  // namespace
 
 #endif  // KDTREE_SAH_FAST_IMPL_H_

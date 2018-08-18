@@ -8,7 +8,8 @@
 using geometry::Aabb;
 using geometry::Triangle;
 
-TEST_CASE("single triangle, bounding is equal to triangle min/max", "[bounding]") {
+TEST_CASE("single triangle, bounding is equal to triangle min/max",
+          "[bounding]") {
   Triangle tri;
   tri.v0 = {0, 0, 0};
   tri.v1 = {1, 0, 0};
@@ -19,7 +20,8 @@ TEST_CASE("single triangle, bounding is equal to triangle min/max", "[bounding]"
   REQUIRE(bounding.GetMax() == tri.GetMax());
 }
 
-TEST_CASE("two equal triangles shifted in z, bounding encloses both", "[bounding]") {
+TEST_CASE("two equal triangles shifted in z, bounding encloses both",
+          "[bounding]") {
   Triangle tria, trib;
   tria.v0 = {0, 0, 0};
   tria.v1 = {1, 0, 0};

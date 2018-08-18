@@ -1,5 +1,7 @@
 #include "kdtree/sah_fast.h"
 
+#include <vector>
+
 #include "kdtree/sah_fast_impl.h"
 
 using geometry::Triangle;

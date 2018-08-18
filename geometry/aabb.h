@@ -25,8 +25,7 @@ class Aabb {
     return Aabb(center_, half_ + delta);
   }
 
-  static inline Aabb FromExtents(glm::vec3 min, glm::vec3 max)
-  {
+  static inline Aabb FromExtents(glm::vec3 min, glm::vec3 max) {
     glm::vec3 size = max - min;
     glm::vec3 half = size / 2.0f;
     return Aabb(min + half, half);

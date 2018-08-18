@@ -1,9 +1,9 @@
 #ifndef GEOMETRY_STREAM_H_
 #define GEOMETRY_STREAM_H_
 
-#include <iostream>
-
 #include <glm/glm.hpp>
+
+#include <iostream>
 
 #include "geometry/aabb.h"
 #include "geometry/triangle.h"

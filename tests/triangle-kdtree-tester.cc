@@ -1,5 +1,6 @@
-#include <algorithm>
 #include <glm/glm.hpp>
+
+#include <algorithm>
 #include <iostream>
 #include <iterator>
 #include <string>
@@ -17,12 +18,12 @@ using trace::FastRand;
 
 namespace {
 
-glm::vec3 RandomVec3(FastRand& rand) {
-  return glm::vec3(rand.range(-10.0f, 10.0f), rand.range(-10.0f, 10.0f),
-                   rand.range(-10.0f, 10.0f));
+glm::vec3 RandomVec3(FastRand* rand) {
+  return glm::vec3(rand->range(-10.0f, 10.0f), rand->range(-10.0f, 10.0f),
+                   rand->range(-10.0f, 10.0f));
 }
 
-Triangle RandomTriangle(FastRand& rand) {
+Triangle RandomTriangle(FastRand* rand) {
   Triangle tri;
   tri.v0 = RandomVec3(rand);
   tri.v1 = RandomVec3(rand);
@@ -59,7 +60,7 @@ int main(int argc, char** argv) {
   for (size_t i = 0; i < test_count; ++i) {
     vector<Triangle> triangles;
     for (size_t j = 0; j < triangle_count; ++j) {
-      triangles.emplace_back(RandomTriangle(rand));
+      triangles.emplace_back(RandomTriangle(&rand));
     }
     kdtree::KdTreeLinked kdtree = kdtree::build(triangles);
     for (size_t j = 0; j < triangle_count; ++j) {
@@ -72,7 +73,7 @@ int main(int argc, char** argv) {
 
   double test_time = clock.measure<double, std::ratio<1>>();
   std::cout << "Tested " << test_count * triangle_count
-            << " triangles successfully in "
-            << util::TimeAutoUnit(test_time) << ".\n";
+            << " triangles successfully in " << util::TimeAutoUnit(test_time)
+            << ".\n";
   return 0;
 }
