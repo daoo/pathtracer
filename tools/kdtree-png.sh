@@ -2,9 +2,15 @@
 
 set -eu
 
-dir="out_clang_debug"
-inp="$1"
+if [[ $# != 1 ]]; then
+  echo "Usage: $0 MODEL.OBJ" 1>&2
+  exit 1
+fi
 
-./$dir/print-tree-svg-sah "$inp" > /tmp/test.svg
-inkscape --without-gui --export-png /tmp/test.png -D /tmp/test.svg
-rm /tmp/test.svg
+model="$1"
+
+for impl in sah sah_fast; do
+  ./out_clang_debug/print-tree-svg-$impl "$model" > /tmp/$impl.svg
+  inkscape --without-gui --export-png /tmp/$impl.png -D /tmp/$impl.svg
+  rm /tmp/$impl.svg
+done

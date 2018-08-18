@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys
+import argparse
 
 
 def right_triangle(x, y, size):
@@ -33,7 +33,32 @@ def gen_triangle_grid(xcount, ycount, size, offset):
             yield right_triangle(x, y, size)
 
 
-xcount = int(sys.argv[1])
-ycount = int(sys.argv[2])
+parser = argparse.ArgumentParser(
+    description="Generate 2D grid of triangles.",
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-obj(list(gen_triangle_grid(xcount, ycount, 100, 50)))
+parser.add_argument(
+    "xcount",
+    type=int,
+    help="number of triangles in x-direction")
+
+parser.add_argument(
+    "ycount",
+    type=int,
+    help="number of triangles in x-direction")
+
+parser.add_argument(
+    "-s", "--size",
+    type=int,
+    default=100,
+    help="triangle size in x and y")
+
+parser.add_argument(
+    "-o", "--offset",
+    type=int,
+    default=50,
+    help="grid offset in x and y")
+
+args = parser.parse_args()
+
+obj(list(gen_triangle_grid(args.xcount, args.ycount, args.size, args.offset)))
