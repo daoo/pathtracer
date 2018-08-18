@@ -28,9 +28,11 @@ struct KdCost {
   bool operator<(const KdCost& other) const { return cost < other.cost; }
 };
 
-struct KdCostSplit {
+struct KdSplit {
   geometry::Aap plane;
   KdCost cost;
+
+  bool operator<(const KdSplit& other) const { return cost < other.cost; }
 };
 
 KdCost CalculateCost(const geometry::Aabb& parent,
@@ -128,10 +130,10 @@ EventCount CountEvents(std::set<Event>::const_iterator begin,
   return EventCount{pminus, pplus, pplane};
 }
 
-KdCostSplit FindBestSplit(const kdtree::KdBox& parent,
-                          const std::set<Event>& splits) {
+KdSplit FindBestSplit(const kdtree::KdBox& parent,
+                      const std::set<Event>& splits) {
   assert(splits.size() > 0);
-  KdCostSplit best{{geometry::X, 0}, {FLT_MAX, kdtree::LEFT}};
+  KdSplit best{{geometry::X, 0}, {FLT_MAX, kdtree::LEFT}};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
     geometry::Axis axis = static_cast<geometry::Axis>(axis_index);
     size_t nl = 0;
@@ -142,9 +144,7 @@ KdCostSplit FindBestSplit(const kdtree::KdBox& parent,
         nr = nr - count.pminus - count.pplane;
         KdCost cost =
             CalculateCost(parent.boundary, iter->plane, nl, nr, count.pplane);
-        if (cost < best.cost) {
-          best = KdCostSplit{iter->plane, cost};
-        }
+        best = std::min(best, KdSplit{iter->plane, cost});
         nl = nl + count.pplus + count.pplane;
       }
     }
@@ -160,7 +160,7 @@ kdtree::KdNode* BuildHelper(unsigned int depth, const kdtree::KdBox& parent) {
   }
 
   std::set<Event> splits = ListPerfectSplits(parent);
-  KdCostSplit split = FindBestSplit(parent, splits);
+  KdSplit split = FindBestSplit(parent, splits);
   if (split.cost.cost > kdtree::LeafCostBound(parent.triangles.size())) {
     return new kdtree::KdNode(
         new std::vector<const geometry::Triangle*>(parent.triangles));
