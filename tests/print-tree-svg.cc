@@ -7,8 +7,6 @@
 #include "kdtree/build.h"
 #include "kdtree/linked.h"
 #include "trace/scene.h"
-#include "util/clock.h"
-#include "util/nicetime.h"
 #include "wavefront/obj.h"
 
 #include "geometry/stream.h"
@@ -100,10 +98,7 @@ int main(int argc, char* argv[]) {
       trace::triangles_from_obj(wavefront::LoadObj(obj_file));
 
   Aabb bounding = geometry::find_bounding(triangles);
-  util::Clock clock;
   kdtree::KdTreeLinked kdtree = kdtree::build(triangles);
-  double construction_time = clock.measure<double, std::ratio<1>>();
-  std::cerr << "Built in " << util::TimeAutoUnit(construction_time) << ".\n";
   print(kdtree, bounding);
 
   return 0;
