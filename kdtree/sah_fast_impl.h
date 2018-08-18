@@ -21,57 +21,12 @@ namespace geometry {
 struct Triangle;
 }  // namespace geometry
 
-enum Type { START, PLANAR, END };
-
-struct Event {
-  geometry::Aap plane;
-  Type type;
-
-  bool operator<(const Event& other) const {
-    return plane < other.plane || (plane == other.plane && type < other.type);
-  }
-};
-
-void ListPerfectSplits(const geometry::Aabb& boundary,
-                       const geometry::Triangle& triangle,
-                       geometry::Axis axis,
-                       std::set<Event>* splits) {
-  float boundary_min = boundary.GetMin()[axis];
-  float boundary_max = boundary.GetMax()[axis];
-  float triangle_min = triangle.GetMin()[axis];
-  float triangle_max = triangle.GetMax()[axis];
-  float clamped_min = glm::clamp(triangle_min, boundary_min, boundary_max);
-  float clamped_max = glm::clamp(triangle_max, boundary_min, boundary_max);
-  if (clamped_min == clamped_max) {
-    splits->insert({{axis, clamped_min}, PLANAR});
-  } else {
-    splits->insert({{axis, clamped_min}, START});
-    splits->insert({{axis, clamped_max}, END});
-  }
-}
-
-void ListPerfectSplits(const geometry::Aabb& boundary,
-                       const geometry::Triangle& triangle,
-                       std::set<Event>* splits) {
-  ListPerfectSplits(boundary, triangle, geometry::X, splits);
-  ListPerfectSplits(boundary, triangle, geometry::Y, splits);
-  ListPerfectSplits(boundary, triangle, geometry::Z, splits);
-}
-
-std::set<Event> ListPerfectSplits(const kdtree::KdBox& parent) {
-  std::set<Event> splits;
-  for (const geometry::Triangle* triangle : parent.triangles) {
-    ListPerfectSplits(parent.boundary, *triangle, &splits);
-  }
-  return splits;
-}
-
 struct EventCount {
   size_t pminus, pplus, pplane;
 };
 
-EventCount CountEvents(std::set<Event>::const_iterator begin,
-                       std::set<Event>::const_iterator end) {
+EventCount CountEvents(std::set<kdtree::Event>::const_iterator begin,
+                       std::set<kdtree::Event>::const_iterator end) {
   assert(begin != end);
   size_t pminus = 0;
   size_t pplus = 0;
@@ -80,17 +35,17 @@ EventCount CountEvents(std::set<Event>::const_iterator begin,
   geometry::Axis axis = begin->plane.GetAxis();
   auto iter = begin;
   while (iter != end && iter->plane.GetDistance() == distance &&
-         iter->plane.GetAxis() == axis && iter->type == END) {
+         iter->plane.GetAxis() == axis && iter->type == kdtree::END) {
     pminus += 1;
     ++iter;
   }
   while (iter != end && iter->plane.GetDistance() == distance &&
-         iter->plane.GetAxis() == axis && iter->type == PLANAR) {
+         iter->plane.GetAxis() == axis && iter->type == kdtree::PLANAR) {
     pplane += 1;
     ++iter;
   }
   while (iter != end && iter->plane.GetDistance() == distance &&
-         iter->plane.GetAxis() == axis && iter->type == START) {
+         iter->plane.GetAxis() == axis && iter->type == kdtree::START) {
     pplus += 1;
     ++iter;
   }
@@ -98,7 +53,7 @@ EventCount CountEvents(std::set<Event>::const_iterator begin,
 }
 
 kdtree::KdSplit FindBestSplit(const kdtree::KdBox& parent,
-                              const std::set<Event>& splits) {
+                              const std::set<kdtree::Event>& splits) {
   assert(splits.size() > 0);
   kdtree::KdSplit best{{geometry::X, 0}, {FLT_MAX, kdtree::LEFT}};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
@@ -131,7 +86,7 @@ kdtree::KdNode* BuildHelper(unsigned int depth, const kdtree::KdBox& parent) {
         new std::vector<const geometry::Triangle*>(parent.triangles));
   }
 
-  std::set<Event> splits = ListPerfectSplits(parent);
+  std::set<kdtree::Event> splits = ListPerfectSplits(parent);
   kdtree::KdSplit split = FindBestSplit(parent, splits);
   if (split.cost.cost > kdtree::LeafCostBound(parent.triangles.size())) {
     return new kdtree::KdNode(

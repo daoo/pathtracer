@@ -22,48 +22,18 @@ struct Triangle;
 
 namespace {
 
-void ListPerfectSplits(const geometry::Aabb& boundary,
-                       const geometry::Triangle& triangle,
-                       geometry::Axis axis,
-                       std::set<geometry::Aap>* splits) {
-  float boundary_min = boundary.GetMin()[axis];
-  float boundary_max = boundary.GetMax()[axis];
-  float triangle_min = triangle.GetMin()[axis] - glm::epsilon<float>();
-  float triangle_max = triangle.GetMax()[axis] + glm::epsilon<float>();
-  float clamped_min = glm::clamp(triangle_min, boundary_min, boundary_max);
-  float clamped_max = glm::clamp(triangle_max, boundary_min, boundary_max);
-  splits->emplace(axis, clamped_min);
-  splits->emplace(axis, clamped_max);
-}
-
-void ListPerfectSplits(const geometry::Aabb& boundary,
-                       const geometry::Triangle& triangle,
-                       std::set<geometry::Aap>* splits) {
-  ListPerfectSplits(boundary, triangle, geometry::X, splits);
-  ListPerfectSplits(boundary, triangle, geometry::Y, splits);
-  ListPerfectSplits(boundary, triangle, geometry::Z, splits);
-}
-
-std::set<geometry::Aap> ListPerfectSplits(const kdtree::KdBox& parent) {
-  std::set<geometry::Aap> splits;
-  for (const geometry::Triangle* triangle : parent.triangles) {
-    ListPerfectSplits(parent.boundary, *triangle, &splits);
-  }
-  return splits;
-}
-
 kdtree::KdSplit SplitWithCost(const kdtree::KdBox& parent,
-                              const geometry::Aap& plane) {
+                              const kdtree::Event& event) {
   kdtree::IntersectResults triangles =
-      kdtree::PartitionTriangles(parent.triangles, plane);
+      kdtree::PartitionTriangles(parent.triangles, event.plane);
   kdtree::KdCost cost =
-      kdtree::CalculateCost(parent.boundary, plane, triangles.left.size(),
+      kdtree::CalculateCost(parent.boundary, event.plane, triangles.left.size(),
                             triangles.right.size(), triangles.plane.size());
-  return kdtree::KdSplit{plane, cost};
+  return kdtree::KdSplit{event.plane, cost};
 }
 
 kdtree::KdSplit FindBestSplit(const kdtree::KdBox& parent,
-                              const std::set<geometry::Aap>& splits) {
+                              const std::set<kdtree::Event>& splits) {
   assert(splits.size() > 0);
   auto it = splits.begin();
   kdtree::KdSplit best = SplitWithCost(parent, *it);
@@ -87,7 +57,7 @@ kdtree::KdNode* BuildHelper(unsigned int depth, const kdtree::KdBox& parent) {
         new std::vector<const geometry::Triangle*>(parent.triangles));
   }
 
-  std::set<geometry::Aap> splits = ListPerfectSplits(parent);
+  std::set<kdtree::Event> splits = ListPerfectSplits(parent);
   kdtree::KdSplit split = FindBestSplit(parent, splits);
   if (split.cost.cost > kdtree::LeafCostBound(parent.triangles.size())) {
     return new kdtree::KdNode(

@@ -2,6 +2,7 @@
 #define KDTREE_SAH_COMMON_H_
 
 #include "geometry/split.h"
+#include "kdtree/build_common.h"
 
 namespace kdtree {
 
@@ -63,6 +64,51 @@ struct KdSplit {
 
   bool operator<(const KdSplit& other) const { return cost < other.cost; }
 };
+
+enum Type { START, PLANAR, END };
+
+struct Event {
+  geometry::Aap plane;
+  Type type;
+
+  bool operator<(const Event& other) const {
+    return plane < other.plane || (plane == other.plane && type < other.type);
+  }
+};
+
+inline void ListPerfectSplits(const geometry::Aabb& boundary,
+                       const geometry::Triangle& triangle,
+                       geometry::Axis axis,
+                       std::set<Event>* splits) {
+  float boundary_min = boundary.GetMin()[axis];
+  float boundary_max = boundary.GetMax()[axis];
+  float triangle_min = triangle.GetMin()[axis];
+  float triangle_max = triangle.GetMax()[axis];
+  float clamped_min = glm::clamp(triangle_min, boundary_min, boundary_max);
+  float clamped_max = glm::clamp(triangle_max, boundary_min, boundary_max);
+  if (clamped_min == clamped_max) {
+    splits->insert({{axis, clamped_min}, PLANAR});
+  } else {
+    splits->insert({{axis, clamped_min}, START});
+    splits->insert({{axis, clamped_max}, END});
+  }
+}
+
+inline void ListPerfectSplits(const geometry::Aabb& boundary,
+                       const geometry::Triangle& triangle,
+                       std::set<Event>* splits) {
+  ListPerfectSplits(boundary, triangle, geometry::X, splits);
+  ListPerfectSplits(boundary, triangle, geometry::Y, splits);
+  ListPerfectSplits(boundary, triangle, geometry::Z, splits);
+}
+
+inline std::set<Event> ListPerfectSplits(const KdBox& parent) {
+  std::set<Event> splits;
+  for (const geometry::Triangle* triangle : parent.triangles) {
+    ListPerfectSplits(parent.boundary, *triangle, &splits);
+  }
+  return splits;
+}
 
 }  // namespace kdtree
 
