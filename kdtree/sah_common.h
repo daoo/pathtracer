@@ -16,6 +16,10 @@ float CalculateCost(float parent_area,
                     float right_area,
                     size_t left_count,
                     size_t right_count) {
+  if (parent_area == 0 || left_area == 0 || right_area == 0) {
+    return FLT_MAX;
+  }
+
   float traverse =
       left_count == 0 || right_count == 0 ? COST_EMPTY : COST_TRAVERSE;
   float area_heuristic = (left_area * left_count + right_area * right_count);
