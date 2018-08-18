@@ -5,7 +5,6 @@
 
 #include <cassert>
 
-#include <algorithm>
 #include <set>
 #include <vector>
 
@@ -21,28 +20,18 @@ namespace geometry {
 struct Triangle;
 }  // namespace geometry
 
-using geometry::Aabb;
-using geometry::AabbSplit;
-using geometry::Aap;
-using geometry::Axis;
-using geometry::Triangle;
-using glm::vec3;
-using kdtree::KdBox;
-using kdtree::KdNodeLinked;
-using kdtree::KdSplit;
-using std::set;
-using std::vector;
-
 namespace {
 
 struct KdCostSplit {
-  KdSplit split;
+  kdtree::KdSplit split;
   float cost;
 
   bool operator<(const KdCostSplit& other) const { return cost < other.cost; }
 };
 
-float CalculateCost(const Aabb& parent, const KdBox& left, const KdBox& right) {
+float CalculateCost(const geometry::Aabb& parent,
+                    const kdtree::KdBox& left,
+                    const kdtree::KdBox& right) {
   float parent_area = parent.GetSurfaceArea();
   float left_area = left.boundary.GetSurfaceArea();
   float right_area = right.boundary.GetSurfaceArea();
@@ -52,10 +41,10 @@ float CalculateCost(const Aabb& parent, const KdBox& left, const KdBox& right) {
                                right_count);
 }
 
-void ListPerfectSplits(const Aabb& boundary,
-                       const Triangle& triangle,
-                       Axis axis,
-                       set<Aap>* splits) {
+void ListPerfectSplits(const geometry::Aabb& boundary,
+                       const geometry::Triangle& triangle,
+                       geometry::Axis axis,
+                       std::set<geometry::Aap>* splits) {
   float boundary_min = boundary.GetMin()[axis];
   float boundary_max = boundary.GetMax()[axis];
   float triangle_min = triangle.GetMin()[axis] - glm::epsilon<float>();
@@ -66,68 +55,74 @@ void ListPerfectSplits(const Aabb& boundary,
   splits->emplace(axis, clamped_max);
 }
 
-void ListPerfectSplits(const Aabb& boundary,
-                       const Triangle& triangle,
-                       set<Aap>* splits) {
+void ListPerfectSplits(const geometry::Aabb& boundary,
+                       const geometry::Triangle& triangle,
+                       std::set<geometry::Aap>* splits) {
   ListPerfectSplits(boundary, triangle, geometry::X, splits);
   ListPerfectSplits(boundary, triangle, geometry::Y, splits);
   ListPerfectSplits(boundary, triangle, geometry::Z, splits);
 }
 
-set<Aap> ListPerfectSplits(const KdBox& box) {
-  set<Aap> splits;
-  for (const Triangle* triangle : box.triangles) {
-    ListPerfectSplits(box.boundary, *triangle, &splits);
+std::set<geometry::Aap> ListPerfectSplits(const kdtree::KdBox& parent) {
+  std::set<geometry::Aap> splits;
+  for (const geometry::Triangle* triangle : parent.triangles) {
+    ListPerfectSplits(parent.boundary, *triangle, &splits);
   }
   return splits;
 }
 
-KdCostSplit SplitWithCost(const KdBox& parent, const Aap& plane) {
+KdCostSplit SplitWithCost(const kdtree::KdBox& parent,
+                          const geometry::Aap& plane) {
   // TODO: calculate which side
-  KdSplit split = kdtree::Split(parent, plane, kdtree::LEFT);
+  kdtree::KdSplit split = kdtree::Split(parent, plane, kdtree::LEFT);
   float cost = CalculateCost(parent.boundary, split.left, split.right);
   return {split, cost};
 }
 
-KdCostSplit FindBestSplit(const KdBox& box, const set<Aap>& splits) {
+KdCostSplit FindBestSplit(const kdtree::KdBox& parent,
+                          const std::set<geometry::Aap>& splits) {
   assert(splits.size() > 0);
   auto it = splits.begin();
-  KdCostSplit best = SplitWithCost(box, *it);
+  KdCostSplit best = SplitWithCost(parent, *it);
   ++it;
   while (it != splits.end()) {
-    best = std::min(best, SplitWithCost(box, *it));
+    best = std::min(best, SplitWithCost(parent, *it));
     ++it;
   }
   return best;
 }
 
-KdNodeLinked* BuildHelper(unsigned int depth, const KdBox& parent) {
-  // sizeof(KdNodeLinked) * node count = 32 * 2^20 = 32 MB
+kdtree::KdNodeLinked* BuildHelper(unsigned int depth,
+                                  const kdtree::KdBox& parent) {
+  // sizeof(kdtree::KdNodeLinked) * node count = 32 * 2^20 = 32 MB
   if (depth >= 20 || parent.triangles.empty()) {
-    return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
+    return new kdtree::KdNodeLinked(
+        new std::vector<const geometry::Triangle*>(parent.triangles));
   }
 
-  KdCostSplit split = FindBestSplit(parent, ListPerfectSplits(parent));
+  std::set<geometry::Aap> splits = ListPerfectSplits(parent);
+  KdCostSplit split = FindBestSplit(parent, splits);
   if (split.cost > kdtree::LeafCostBound(parent.triangles.size())) {
-    return new KdNodeLinked(new vector<const Triangle*>(parent.triangles));
+    return new kdtree::KdNodeLinked(
+        new std::vector<const geometry::Triangle*>(parent.triangles));
   } else {
-    return new KdNodeLinked(split.split.plane,
-                            BuildHelper(depth + 1, split.split.left),
-                            BuildHelper(depth + 1, split.split.right));
+    return new kdtree::KdNodeLinked(split.split.plane,
+                                    BuildHelper(depth + 1, split.split.left),
+                                    BuildHelper(depth + 1, split.split.right));
   }
 }
 
 }  // namespace
 
 namespace kdtree {
-KdTreeLinked build(const vector<Triangle>& triangles) {
-  vector<const Triangle*> ptrs;
+kdtree::KdTreeLinked build(const std::vector<geometry::Triangle>& triangles) {
+  std::vector<const geometry::Triangle*> ptrs;
   ptrs.reserve(triangles.size());
-  for (const Triangle& triangle : triangles) {
+  for (const geometry::Triangle& triangle : triangles) {
     ptrs.emplace_back(&triangle);
   }
 
-  return KdTreeLinked(
+  return kdtree::KdTreeLinked(
       BuildHelper(0, KdBox{geometry::find_bounding(triangles), ptrs}));
 }
 }  // namespace kdtree

@@ -5,6 +5,7 @@
 #include <glm/gtc/constants.hpp>
 
 #include <cassert>
+
 #include <set>
 #include <vector>
 
@@ -15,6 +16,10 @@
 #include "kdtree/build_common.h"
 #include "kdtree/linked.h"
 #include "kdtree/sah_common.h"
+
+namespace geometry {
+struct Triangle;
+}  // namespace geometry
 
 struct KdCost {
   float cost;
@@ -84,10 +89,10 @@ void ListPerfectSplits(const geometry::Aabb& boundary,
   ListPerfectSplits(boundary, triangle, geometry::Z, splits);
 }
 
-std::set<Event> ListPerfectSplits(const kdtree::KdBox& box) {
+std::set<Event> ListPerfectSplits(const kdtree::KdBox& parent) {
   std::set<Event> splits;
-  for (const geometry::Triangle* triangle : box.triangles) {
-    ListPerfectSplits(box.boundary, *triangle, &splits);
+  for (const geometry::Triangle* triangle : parent.triangles) {
+    ListPerfectSplits(parent.boundary, *triangle, &splits);
   }
   return splits;
 }
@@ -156,11 +161,6 @@ kdtree::KdNodeLinked* BuildHelper(unsigned int depth,
   }
 
   std::set<Event> splits = ListPerfectSplits(parent);
-  if (splits.empty()) {
-    return new kdtree::KdNodeLinked(
-        new std::vector<const geometry::Triangle*>(parent.triangles));
-  }
-
   KdCostSplit split = FindBestSplit(parent, splits);
   if (split.cost.cost > kdtree::LeafCostBound(parent.triangles.size())) {
     return new kdtree::KdNodeLinked(
