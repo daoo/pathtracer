@@ -8,7 +8,7 @@ struct Ray;
 }  // namespace geometry
 
 namespace kdtree {
-class KdTreeLinked;
+class KdTree;
 }  // namespace kdtree
 
 namespace trace {
@@ -17,7 +17,7 @@ class SampleBuffer;
 class SphereLight;
 struct Pinhole;
 
-void pathtrace(const kdtree::KdTreeLinked& kdtree,
+void pathtrace(const kdtree::KdTree& kdtree,
                const std::vector<SphereLight>& lights,
                const Pinhole& pinhole,
                unsigned int bounces,

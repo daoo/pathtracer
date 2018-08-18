@@ -5,7 +5,7 @@
 
 #include "geometry/triangle.h"
 #include "kdtree/build.h"
-#include "kdtree/linked.h"
+#include "kdtree/kdtree.h"
 #include "trace/camera.h"
 #include "trace/material.h"
 #include "trace/mcsampling.h"

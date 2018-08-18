@@ -8,8 +8,8 @@ struct Triangle;
 }  // namespace geometry
 
 namespace kdtree {
-class KdTreeLinked;
-KdTreeLinked build(const std::vector<geometry::Triangle>& triangles);
+class KdTree;
+KdTree build(const std::vector<geometry::Triangle>& triangles);
 }  // namespace kdtree
 
 #endif  // KDTREE_BUILD_H_

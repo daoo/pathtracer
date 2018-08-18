@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "kdtree/linked.h"
+#include "kdtree/kdtree.h"
 #include "trace/light.h"
 
 namespace geometry {
@@ -36,7 +36,7 @@ struct Scene {
   std::map<std::string, Material*> materials;
   std::vector<Camera> cameras;
   std::vector<SphereLight> lights;
-  kdtree::KdTreeLinked kdtree;
+  kdtree::KdTree kdtree;
 };
 }  // namespace trace
 

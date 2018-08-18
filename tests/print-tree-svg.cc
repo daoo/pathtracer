@@ -5,7 +5,7 @@
 #include "geometry/aap.h"
 #include "geometry/bounding.h"
 #include "kdtree/build.h"
-#include "kdtree/linked.h"
+#include "kdtree/kdtree.h"
 #include "trace/scene.h"
 #include "wavefront/obj.h"
 
@@ -59,7 +59,7 @@ void PrintTriangle(std::ostream& stream, const geometry::Triangle& triangle) {
 }
 
 void helper(int depth,
-            const kdtree::KdNodeLinked* node,
+            const kdtree::KdNode* node,
             const vec3& min,
             const vec3& max) {
   if (node->GetTriangles() != nullptr) {
@@ -81,7 +81,7 @@ void helper(int depth,
   }
 }
 
-void print(const kdtree::KdTreeLinked& tree, const Aabb& bounding) {
+void print(const kdtree::KdTree& tree, const Aabb& bounding) {
   std::cout << "<svg>";
   helper(0, tree.GetRoot(), bounding.GetMin(), bounding.GetMax());
   std::cout << "</svg>\n";
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
       trace::triangles_from_obj(wavefront::LoadObj(obj_file));
 
   Aabb bounding = geometry::find_bounding(triangles);
-  kdtree::KdTreeLinked kdtree = kdtree::build(triangles);
+  kdtree::KdTree kdtree = kdtree::build(triangles);
   print(kdtree, bounding);
 
   return 0;

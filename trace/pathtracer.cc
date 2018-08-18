@@ -6,7 +6,7 @@
 
 #include "geometry/ray.h"
 #include "geometry/triray.h"
-#include "kdtree/linked.h"
+#include "kdtree/kdtree.h"
 #include "trace/camera.h"
 #include "trace/fastrand.h"
 #include "trace/light.h"
@@ -17,7 +17,7 @@
 using geometry::Ray;
 using geometry::TriRayIntersection;
 using glm::vec3;
-using kdtree::KdTreeLinked;
+using kdtree::KdTree;
 using std::optional;
 using std::vector;
 using trace::FastRand;
@@ -28,14 +28,14 @@ using trace::SphereLight;
 namespace {
 constexpr float EPSILON = 0.00001f;
 
-bool any_intersects(const KdTreeLinked& kdtree,
+bool any_intersects(const KdTree& kdtree,
                     const Ray& ray,
                     float tmin,
                     float tmax) {
   return static_cast<bool>(search_tree(kdtree, ray, tmin, tmax));
 }
 
-vec3 from_light(const KdTreeLinked& kdtree,
+vec3 from_light(const KdTree& kdtree,
                 const Material* material,
                 const vec3& target,
                 const vec3& offset,
@@ -59,7 +59,7 @@ vec3 environment_light(const Ray&) {
 }
 
 struct Context {
-  const KdTreeLinked& kdtree;
+  const KdTree& kdtree;
   const vector<SphereLight>& lights;
   const unsigned int bounces;
   FastRand* rand;
@@ -117,7 +117,7 @@ vec3 incoming_light(const Context& context, const Ray& ray) {
 }  // namespace
 
 namespace trace {
-void pathtrace(const KdTreeLinked& kdtree,
+void pathtrace(const KdTree& kdtree,
                const vector<SphereLight>& lights,
                const Pinhole& pinhole,
                unsigned int bounces,

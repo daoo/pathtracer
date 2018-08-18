@@ -1,4 +1,4 @@
-#include "kdtree/linked.h"
+#include "kdtree/kdtree.h"
 
 #include <glm/glm.hpp>
 
@@ -10,11 +10,11 @@
 using std::optional;
 
 namespace kdtree {
-optional<geometry::TriRayIntersection> search_tree(const KdTreeLinked& tree,
+optional<geometry::TriRayIntersection> search_tree(const KdTree& tree,
                                                    const geometry::Ray& ray,
                                                    float tmininit,
                                                    float tmaxinit) {
-  const KdNodeLinked* node = tree.GetRoot();
+  const KdNode* node = tree.GetRoot();
   float tmin = tmininit;
   float tmax = tmaxinit;
 
@@ -36,8 +36,8 @@ optional<geometry::TriRayIntersection> search_tree(const KdTreeLinked& tree,
       float o = ray.origin[node->GetPlane().GetAxis()];
       float d = ray.direction[node->GetPlane().GetAxis()];
       float t = (p - o) / d;
-      const KdNodeLinked* first = node->GetLeft();
-      const KdNodeLinked* second = node->GetRight();
+      const KdNode* first = node->GetLeft();
+      const KdNode* second = node->GetRight();
 
       if (d < 0) {
         std::swap(first, second);

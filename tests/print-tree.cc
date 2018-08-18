@@ -3,7 +3,7 @@
 
 #include "geometry/aap.h"
 #include "kdtree/build.h"
-#include "kdtree/linked.h"
+#include "kdtree/kdtree.h"
 #include "trace/scene.h"
 #include "util/clock.h"
 #include "util/nicetime.h"
@@ -23,7 +23,7 @@ std::ostream& operator<<(std::ostream& stream, geometry::Aap plane) {
 }
 
 void helper(const std::string& label,
-            const kdtree::KdNodeLinked* node,
+            const kdtree::KdNode* node,
             unsigned int depth) {
   std::cout << std::string(depth * 2, ' ');
   if (node->GetTriangles() != nullptr) {
@@ -35,7 +35,7 @@ void helper(const std::string& label,
   }
 }
 
-void print(const kdtree::KdTreeLinked& tree) {
+void print(const kdtree::KdTree& tree) {
   helper("root", tree.GetRoot(), 0);
 }
 
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
       trace::triangles_from_obj(wavefront::LoadObj(obj_file));
 
   util::Clock clock;
-  kdtree::KdTreeLinked kdtree = kdtree::build(triangles);
+  kdtree::KdTree kdtree = kdtree::build(triangles);
   double construction_time = clock.measure<double, std::ratio<1>>();
   std::cerr << "Built in " << util::TimeAutoUnit(construction_time) << ".\n";
   print(kdtree);

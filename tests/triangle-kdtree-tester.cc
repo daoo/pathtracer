@@ -6,13 +6,13 @@
 #include <string>
 
 #include "kdtree/build.h"
-#include "kdtree/linked.h"
+#include "kdtree/kdtree.h"
 #include "trace/fastrand.h"
 #include "util/clock.h"
 #include "util/nicetime.h"
 
 using geometry::Triangle;
-using kdtree::KdNodeLinked;
+using kdtree::KdNode;
 using std::vector;
 using trace::FastRand;
 
@@ -31,7 +31,7 @@ Triangle RandomTriangle(FastRand* rand) {
   return tri;
 }
 
-bool Contains(const KdNodeLinked* node, const Triangle* triangle) {
+bool Contains(const KdNode* node, const Triangle* triangle) {
   if (node->GetTriangles() != nullptr) {
     const vector<const Triangle*>* triangles = node->GetTriangles();
     return std::find(std::begin(*triangles), std::end(*triangles), triangle) !=
@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
     for (size_t j = 0; j < triangle_count; ++j) {
       triangles.emplace_back(RandomTriangle(&rand));
     }
-    kdtree::KdTreeLinked kdtree = kdtree::build(triangles);
+    kdtree::KdTree kdtree = kdtree::build(triangles);
     for (size_t j = 0; j < triangle_count; ++j) {
       if (!Contains(kdtree.GetRoot(), &triangles[j])) {
         std::cout << "Error: triangle not found!\n";

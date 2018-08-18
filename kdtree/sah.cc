@@ -13,7 +13,7 @@
 #include "geometry/bounding.h"
 #include "geometry/split.h"
 #include "kdtree/build_common.h"
-#include "kdtree/linked.h"
+#include "kdtree/kdtree.h"
 #include "kdtree/sah_common.h"
 
 namespace geometry {
@@ -92,37 +92,36 @@ KdCostSplit FindBestSplit(const kdtree::KdBox& parent,
   return best;
 }
 
-kdtree::KdNodeLinked* BuildHelper(unsigned int depth,
-                                  const kdtree::KdBox& parent) {
-  // sizeof(kdtree::KdNodeLinked) * node count = 32 * 2^20 = 32 MB
+kdtree::KdNode* BuildHelper(unsigned int depth, const kdtree::KdBox& parent) {
+  // sizeof(kdtree::KdNode) * node count = 32 * 2^20 = 32 MB
   if (depth >= 20 || parent.triangles.empty()) {
-    return new kdtree::KdNodeLinked(
+    return new kdtree::KdNode(
         new std::vector<const geometry::Triangle*>(parent.triangles));
   }
 
   std::set<geometry::Aap> splits = ListPerfectSplits(parent);
   KdCostSplit split = FindBestSplit(parent, splits);
   if (split.cost > kdtree::LeafCostBound(parent.triangles.size())) {
-    return new kdtree::KdNodeLinked(
+    return new kdtree::KdNode(
         new std::vector<const geometry::Triangle*>(parent.triangles));
   } else {
-    return new kdtree::KdNodeLinked(split.split.plane,
-                                    BuildHelper(depth + 1, split.split.left),
-                                    BuildHelper(depth + 1, split.split.right));
+    return new kdtree::KdNode(split.split.plane,
+                              BuildHelper(depth + 1, split.split.left),
+                              BuildHelper(depth + 1, split.split.right));
   }
 }
 
 }  // namespace
 
 namespace kdtree {
-kdtree::KdTreeLinked build(const std::vector<geometry::Triangle>& triangles) {
+kdtree::KdTree build(const std::vector<geometry::Triangle>& triangles) {
   std::vector<const geometry::Triangle*> ptrs;
   ptrs.reserve(triangles.size());
   for (const geometry::Triangle& triangle : triangles) {
     ptrs.emplace_back(&triangle);
   }
 
-  return kdtree::KdTreeLinked(
+  return kdtree::KdTree(
       BuildHelper(0, KdBox{geometry::find_bounding(triangles), ptrs}));
 }
 }  // namespace kdtree
