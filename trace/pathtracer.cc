@@ -44,9 +44,9 @@ vec3 Pathtracer::LightContribution(const Scene& scene,
   vec3 direction = source - target;
   Ray shadow_ray{offset, direction};
   if (!scene.AnyIntersect(shadow_ray, 0.0f, 1.0f)) {
-    vec3 wr = normalize(direction);
+    vec3 wr = glm::normalize(direction);
     vec3 radiance = light.GetEmitted(target);
-    return material->brdf(wi, wr, n) * radiance * abs(dot(wr, n));
+    return material->GetBrdf(wi, wr, n) * radiance * abs(dot(wr, n));
   }
   return glm::zero<vec3>();
 }
@@ -85,7 +85,7 @@ vec3 Pathtracer::Trace(const Scene& scene,
 
   radiance += transport * sum_lights;
 
-  LightSample sample = material->sample_brdf(wi, n, &rand_);
+  LightSample sample = material->SampleBrdf(wi, n, &rand_);
 
   if (sample.pdf < EPSILON) return radiance;
 
