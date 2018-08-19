@@ -59,38 +59,32 @@ inline float CalculateCost(float parent_area,
 
 enum Side { LEFT, RIGHT };
 
-struct KdCost {
+struct SplitCost {
+  Aap plane;
   float cost;
   Side side;
 
-  bool operator<(const KdCost& other) const { return cost < other.cost; }
+  bool operator<(const SplitCost& other) const { return cost < other.cost; }
 };
 
-inline KdCost CalculateCost(const Aabb& parent,
-                            const Aap& plane,
-                            size_t left_count,
-                            size_t right_count,
-                            size_t plane_count) {
+inline SplitCost CalculateCost(const Aabb& parent,
+                               const Aap& plane,
+                               size_t left_count,
+                               size_t right_count,
+                               size_t plane_count) {
   float parent_area = parent.GetSurfaceArea();
   geometry::AabbSplit split = geometry::Split(parent, plane);
-  if (split.left.GetVolume() == 0.0f) return KdCost{FLT_MAX, LEFT};
-  if (split.right.GetVolume() == 0.0f) return KdCost{FLT_MAX, RIGHT};
+  if (split.left.GetVolume() == 0.0f) return SplitCost{plane, FLT_MAX, LEFT};
+  if (split.right.GetVolume() == 0.0f) return SplitCost{plane, FLT_MAX, RIGHT};
   float left_area = split.left.GetSurfaceArea();
   float right_area = split.right.GetSurfaceArea();
   float plane_left = CalculateCost(parent_area, left_area, right_area,
                                    left_count + plane_count, right_count);
   float plane_right = CalculateCost(parent_area, left_area, right_area,
                                     left_count, right_count + plane_count);
-  return plane_left <= plane_right ? KdCost{plane_left, LEFT}
-                                   : KdCost{plane_right, RIGHT};
+  return plane_left <= plane_right ? SplitCost{plane, plane_left, LEFT}
+                                   : SplitCost{plane, plane_right, RIGHT};
 }
-
-struct KdSplit {
-  Aap plane;
-  KdCost cost;
-
-  bool operator<(const KdSplit& other) const { return cost < other.cost; }
-};
 
 enum Type { START, PLANAR, END };
 
@@ -126,8 +120,8 @@ inline void ListPerfectSplits(const Aabb& boundary,
 }
 
 struct KdBox {
-  geometry::Aabb boundary;
-  std::vector<const geometry::Triangle*> triangles;
+  Aabb boundary;
+  vector<const Triangle*> triangles;
 };
 
 inline set<Event> ListPerfectSplits(const KdBox& parent) {
@@ -169,9 +163,9 @@ EventCount CountEvents(set<Event>::const_iterator begin,
   return EventCount{pminus, pplus, pplane};
 }
 
-KdSplit FindBestSplit(const KdBox& parent, const set<Event>& splits) {
+SplitCost FindBestSplit(const KdBox& parent, const set<Event>& splits) {
   assert(splits.size() > 0);
-  KdSplit best{{geometry::X, 0}, {FLT_MAX, LEFT}};
+  SplitCost best{{geometry::X, 0}, FLT_MAX, LEFT};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
     Axis axis = static_cast<Axis>(axis_index);
     size_t nl = 0;
@@ -180,9 +174,9 @@ KdSplit FindBestSplit(const KdBox& parent, const set<Event>& splits) {
       if (iter->plane.GetAxis() == axis) {
         EventCount count = CountEvents(iter, splits.cend());
         nr = nr - count.pminus - count.pplane;
-        KdCost cost =
+        SplitCost split =
             CalculateCost(parent.boundary, iter->plane, nl, nr, count.pplane);
-        best = std::min(best, KdSplit{iter->plane, cost});
+        best = std::min(best, split);
         nl = nl + count.pplus + count.pplane;
       }
     }
@@ -191,18 +185,20 @@ KdSplit FindBestSplit(const KdBox& parent, const set<Event>& splits) {
 }
 
 KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
+  assert(parent.boundary.GetVolume() > 0.0f);
+  assert(!parent.triangles.empty());
   if (depth >= MAX_DEPTH || parent.triangles.empty()) {
     return new KdNode(new vector<const Triangle*>(parent.triangles));
   }
 
   set<Event> splits = ListPerfectSplits(parent);
-  KdSplit split = FindBestSplit(parent, splits);
-  if (split.cost.cost > LeafCostBound(parent.triangles.size())) {
+  SplitCost best = FindBestSplit(parent, splits);
+  if (best.cost > LeafCostBound(parent.triangles.size())) {
     return new KdNode(new vector<const Triangle*>(parent.triangles));
   } else {
-    geometry::AabbSplit aabbs = geometry::Split(parent.boundary, split.plane);
+    geometry::AabbSplit aabbs = geometry::Split(parent.boundary, best.plane);
     IntersectResults triangles = kdtree::PartitionTriangles(
-        parent.boundary, parent.triangles, split.plane);
+        parent.boundary, parent.triangles, best.plane);
     vector<const Triangle*> left_tris(triangles.left);
     vector<const Triangle*> right_tris(triangles.right);
     // Put plane-triangles on side with fewest triangels, or left if both equal.
@@ -214,7 +210,7 @@ KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
     }
     KdBox left{aabbs.left, left_tris};
     KdBox right{aabbs.right, right_tris};
-    return new KdNode(split.plane, BuildHelper(depth + 1, left),
+    return new KdNode(best.plane, BuildHelper(depth + 1, left),
                       BuildHelper(depth + 1, right));
   }
 }
