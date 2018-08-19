@@ -91,11 +91,12 @@ inline SplitCost CalculateCost(const Aabb& parent,
 enum Type { START, PLANAR, END };
 
 struct Event {
-  Aap plane;
+  float distance;
   Type type;
 
   bool operator<(const Event& other) const {
-    return plane < other.plane || (plane == other.plane && type < other.type);
+    return distance < other.distance ||
+           (distance == other.distance && type < other.type);
   }
 };
 
@@ -107,19 +108,11 @@ inline void ListPerfectSplits(const Aabb& boundary,
   float a = boundary.GetClamped(triangle.GetMin())[axis];
   float b = boundary.GetClamped(triangle.GetMax())[axis];
   if (a == b) {
-    splits->insert({{axis, a}, PLANAR});
+    splits->insert({a, PLANAR});
   } else {
-    splits->insert({{axis, a}, START});
-    splits->insert({{axis, b}, END});
+    splits->insert({a, START});
+    splits->insert({b, END});
   }
-}
-
-inline void ListPerfectSplits(const Aabb& boundary,
-                              const Triangle& triangle,
-                              set<Event>* splits) {
-  ListPerfectSplits(boundary, triangle, geometry::X, splits);
-  ListPerfectSplits(boundary, triangle, geometry::Y, splits);
-  ListPerfectSplits(boundary, triangle, geometry::Z, splits);
 }
 
 struct KdBox {
@@ -127,10 +120,10 @@ struct KdBox {
   vector<const Triangle*> triangles;
 };
 
-inline set<Event> ListPerfectSplits(const KdBox& parent) {
+inline set<Event> ListPerfectSplits(const KdBox& parent, Axis axis) {
   set<Event> splits;
   for (const Triangle* triangle : parent.triangles) {
-    ListPerfectSplits(parent.boundary, *triangle, &splits);
+    ListPerfectSplits(parent.boundary, *triangle, axis, &splits);
   }
   return splits;
 }
@@ -145,45 +138,42 @@ EventCount CountEvents(set<Event>::const_iterator begin,
   size_t pminus = 0;
   size_t pplus = 0;
   size_t pplane = 0;
-  float distance = begin->plane.GetDistance();
-  Axis axis = begin->plane.GetAxis();
   auto iter = begin;
-  while (iter != end && iter->plane.GetDistance() == distance &&
-         iter->plane.GetAxis() == axis && iter->type == END) {
+  while (iter != end && iter->distance == begin->distance &&
+         iter->type == END) {
     pminus += 1;
     ++iter;
   }
-  while (iter != end && iter->plane.GetDistance() == distance &&
-         iter->plane.GetAxis() == axis && iter->type == PLANAR) {
+  while (iter != end && iter->distance == begin->distance &&
+         iter->type == PLANAR) {
     pplane += 1;
     ++iter;
   }
-  while (iter != end && iter->plane.GetDistance() == distance &&
-         iter->plane.GetAxis() == axis && iter->type == START) {
+  while (iter != end && iter->distance == begin->distance &&
+         iter->type == START) {
     pplus += 1;
     ++iter;
   }
   return EventCount{pminus, pplus, pplane};
 }
 
-SplitCost FindBestSplit(const KdBox& parent, const set<Event>& splits) {
+SplitCost FindBestSplit(const KdBox& parent) {
   assert(parent.boundary.GetVolume() > 0.0f);
   assert(!parent.triangles.empty());
-  assert(!splits.empty());
   SplitCost best{{geometry::X, 0}, FLT_MAX, LEFT};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
     Axis axis = static_cast<Axis>(axis_index);
     size_t nl = 0;
     size_t nr = parent.triangles.size();
+    set<Event> splits = ListPerfectSplits(parent, axis);
     for (auto iter = splits.cbegin(); iter != splits.cend(); ++iter) {
-      if (iter->plane.GetAxis() == axis) {
-        EventCount count = CountEvents(iter, splits.cend());
-        nr = nr - count.pminus - count.pplane;
-        SplitCost split =
-            CalculateCost(parent.boundary, iter->plane, nl, nr, count.pplane);
-        best = std::min(best, split);
-        nl = nl + count.pplus + count.pplane;
-      }
+      EventCount count = CountEvents(iter, splits.cend());
+      nr = nr - count.pminus - count.pplane;
+      Aap plane(axis, iter->distance);
+      SplitCost split =
+          CalculateCost(parent.boundary, plane, nl, nr, count.pplane);
+      best = std::min(best, split);
+      nl = nl + count.pplus + count.pplane;
     }
   }
   return best;
@@ -195,8 +185,7 @@ KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
     return new KdNode(new vector<const Triangle*>(parent.triangles));
   }
 
-  set<Event> splits = ListPerfectSplits(parent);
-  SplitCost best = FindBestSplit(parent, splits);
+  SplitCost best = FindBestSplit(parent);
   if (best.cost > LeafCostBound(parent.triangles.size())) {
     return new KdNode(new vector<const Triangle*>(parent.triangles));
   } else {
