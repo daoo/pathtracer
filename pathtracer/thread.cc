@@ -65,8 +65,7 @@ void print_status(unsigned int total_samples,
   std::cout << std::flush;
 }
 
-void worker(const kdtree::KdTree& kdtree,
-            const std::vector<trace::SphereLight>& lights,
+void worker(const trace::Scene& scene,
             const trace::Pinhole& pinhole,
             unsigned int sample_count,
             unsigned int thread,
@@ -74,11 +73,11 @@ void worker(const kdtree::KdTree& kdtree,
             trace::SampleBuffer* buffer) {
   assert(sample_count > 0);
 
-  unsigned int bounces = 16;
-  trace::FastRand rand;
+  unsigned int max_bounces = 16;
+  trace::Pathtracer pathtracer(max_bounces);
   while (buffer->samples() < sample_count) {
     util::Clock clock;
-    pathtrace(kdtree, lights, pinhole, bounces, &rand, buffer);
+    pathtracer.Render(scene, pinhole, buffer);
     double trace_time = clock.measure<double, std::ratio<1>>();
 
     queue->push({thread, buffer->samples(), trace_time});
@@ -101,8 +100,9 @@ void program(const path& obj_file,
   // Setup scene
   trace::Scene scene(wavefront::LoadObj(obj_file),
                      wavefront::LoadMtl(mtl_file));
-  trace::Pinhole pinhole(scene.cameras[camera], static_cast<float>(width) /
-                                                    static_cast<float>(height));
+  trace::Pinhole pinhole(
+      scene.GetCameras()[camera],
+      static_cast<float>(width) / static_cast<float>(height));
 
   // Setup one buffer for each thread
   std::vector<trace::SampleBuffer> buffers;
@@ -115,9 +115,8 @@ void program(const path& obj_file,
   std::vector<std::thread> threads;
   unsigned int samples_per_thread = sample_count / thread_count;
   for (unsigned int i = 0; i < thread_count; ++i) {
-    threads.emplace_back(worker, std::ref(scene.kdtree), std::ref(scene.lights),
-                         std::ref(pinhole), samples_per_thread, i, &queue,
-                         &buffers[i]);
+    threads.emplace_back(worker, std::ref(scene), std::ref(pinhole),
+                         samples_per_thread, i, &queue, &buffers[i]);
   }
 
   // Wait for work to finish

@@ -15,7 +15,6 @@
 
 #include "pathtracer-gl/shaders.h"
 #include "trace/camera.h"
-#include "trace/fastrand.h"
 #include "trace/pathtracer.h"
 #include "trace/samplebuffer.h"
 #include "trace/scene.h"
@@ -39,13 +38,15 @@ class State {
         path mtl,
         unsigned int width,
         unsigned int height)
-      : out_dir_(out_dir),
+      : max_bounces_(16),
+        pathtracer_(max_bounces_),
+        out_dir_(out_dir),
         obj_name_(obj.stem()),
         scene_(wavefront::LoadObj(obj), wavefront::LoadMtl(mtl)),
         window_width_(width),
         window_height_(height),
         buffer_(width / subsampling_, height / subsampling_),
-        pinhole_(scene_.cameras[camera_], buffer_.aspect_ratio()) {
+        pinhole_(scene_.GetCameras()[camera_], buffer_.aspect_ratio()) {
     glEnable(GL_FRAMEBUFFER_SRGB);
     glDisable(GL_CULL_FACE);
 
@@ -112,8 +113,7 @@ class State {
 
   void Update() {
     util::Clock clock;
-    pathtrace(scene_.kdtree, scene_.lights, pinhole_, bounces_, &rand_,
-              &buffer_);
+    pathtracer_.Render(scene_, pinhole_, &buffer_);
     double trace_time = clock.measure<double, std::ratio<1>>();
     std::cout << "\r" << buffer_.samples() << ": " << std::fixed
               << std::setprecision(1) << util::TimeAutoUnit(trace_time)
@@ -129,12 +129,14 @@ class State {
   }
 
   void NextCamera() {
-    camera_ = (camera_ + 1) % static_cast<unsigned int>(scene_.cameras.size());
+    camera_ =
+        (camera_ + 1) % static_cast<unsigned int>(scene_.GetCameras().size());
     Reset();
   }
 
   void PreviousCamera() {
-    camera_ = (camera_ - 1) % static_cast<unsigned int>(scene_.cameras.size());
+    camera_ =
+        (camera_ - 1) % static_cast<unsigned int>(scene_.GetCameras().size());
     Reset();
   }
 
@@ -149,12 +151,12 @@ class State {
   }
 
   void IncreaseBounces() {
-    bounces_ += 1;
+    max_bounces_ += 1;
     Reset();
   }
 
   void DecreaseBounces() {
-    bounces_ = std::max(1U, bounces_ - 1);
+    max_bounces_ = std::max(1LU, max_bounces_ - 1);
     Reset();
   }
 
@@ -165,7 +167,9 @@ class State {
   }
 
  private:
-  trace::FastRand rand_;
+  size_t max_bounces_ = 16;
+
+  trace::Pathtracer pathtracer_;
 
   path out_dir_;
   path obj_name_;
@@ -179,8 +183,6 @@ class State {
   trace::Scene scene_;
   unsigned int camera_ = 0;
 
-  unsigned int bounces_ = 16;
-
   unsigned int window_width_, window_height_;
 
   trace::SampleBuffer buffer_;
@@ -193,10 +195,12 @@ class State {
     std::cout << "window=" << window_width_ << 'x' << window_height_ << ' ';
     std::cout << "subsampling=" << subsampling_ << ' ';
     std::cout << "camera=" << camera_ << ' ';
-    std::cout << "bounces=" << bounces_ << '\n';
+    std::cout << "bounces=" << max_bounces_ << '\n';
     buffer_ = trace::SampleBuffer(window_width_ / subsampling_,
                                   window_height_ / subsampling_);
-    pinhole_ = trace::Pinhole(scene_.cameras[camera_], buffer_.aspect_ratio());
+    pinhole_ =
+        trace::Pinhole(scene_.GetCameras()[camera_], buffer_.aspect_ratio());
+    pathtracer_ = trace::Pathtracer(max_bounces_);
   }
 };
 

@@ -106,11 +106,11 @@ vector<geometry::Triangle> triangles_from_obj(const wavefront::Obj& obj) {
 }
 
 Scene::Scene(const wavefront::Obj& obj, const wavefront::Mtl& mtl)
-    : triangles(triangles_from_obj(obj)),
-      materials(materials_from_mtl(mtl)),
-      cameras(cameras_from_mtl(mtl)),
-      lights(lights_from_mtl(mtl)),
-      kdtree(kdtree::build(triangles)) {
-  update_pointer_to_material(materials, &triangles);
+    : triangles_(triangles_from_obj(obj)),
+      materials_(materials_from_mtl(mtl)),
+      cameras_(cameras_from_mtl(mtl)),
+      lights_(lights_from_mtl(mtl)),
+      kdtree_(kdtree::build(triangles_)) {
+  update_pointer_to_material(materials_, &triangles_);
 }
 }  // namespace trace

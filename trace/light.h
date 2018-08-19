@@ -21,14 +21,14 @@ class SphereLight {
               float radius)
       : radius_(radius), center_(center), intensity_(intensity * color) {}
 
-  inline glm::vec3 light_sample(FastRand* rand) const {
+  inline glm::vec3 Sample(FastRand* rand) const {
     return center_ + uniform_sample_sphere(rand) * radius_;
   }
 
   /**
    * Calculate the radiance that is emitted from the light to a point.
    */
-  inline glm::vec3 light_emitted(const glm::vec3& point) const {
+  inline glm::vec3 GetEmitted(const glm::vec3& point) const {
     return intensity_ / glm::length2(center_ - point);
   }
 
