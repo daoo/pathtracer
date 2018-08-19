@@ -46,10 +46,9 @@ inline float CalculateCost(float parent_area,
                            float right_area,
                            size_t left_count,
                            size_t right_count) {
-  if (parent_area == 0 || left_area == 0 || right_area == 0) {
-    return FLT_MAX;
-  }
-
+  assert(parent_area > 0.0f);
+  assert(left_area > 0.0f);
+  assert(right_area > 0.0f);
   float traverse =
       left_count == 0 || right_count == 0 ? COST_EMPTY : COST_TRAVERSE;
   float area_heuristic = (left_area * left_count + right_area * right_count);
@@ -72,16 +71,19 @@ inline SplitCost CalculateCost(const Aabb& parent,
                                size_t left_count,
                                size_t right_count,
                                size_t plane_count) {
-  float parent_area = parent.GetSurfaceArea();
   geometry::AabbSplit split = geometry::Split(parent, plane);
-  if (split.left.GetVolume() == 0.0f) return SplitCost{plane, FLT_MAX, LEFT};
-  if (split.right.GetVolume() == 0.0f) return SplitCost{plane, FLT_MAX, RIGHT};
+  assert(split.left.GetVolume() > 0.0f);
+  assert(split.right.GetVolume() > 0.0f);
+
+  float parent_area = parent.GetSurfaceArea();
   float left_area = split.left.GetSurfaceArea();
   float right_area = split.right.GetSurfaceArea();
+
   float plane_left = CalculateCost(parent_area, left_area, right_area,
                                    left_count + plane_count, right_count);
   float plane_right = CalculateCost(parent_area, left_area, right_area,
                                     left_count, right_count + plane_count);
+
   return plane_left <= plane_right ? SplitCost{plane, plane_left, LEFT}
                                    : SplitCost{plane, plane_right, RIGHT};
 }
@@ -101,13 +103,14 @@ inline void ListPerfectSplits(const Aabb& boundary,
                               const Triangle& triangle,
                               Axis axis,
                               set<Event>* splits) {
-  float clamped_min = boundary.GetClamped(triangle.GetMin())[axis];
-  float clamped_max = boundary.GetClamped(triangle.GetMax())[axis];
-  if (clamped_min == clamped_max) {
-    splits->insert({{axis, clamped_min}, PLANAR});
+  assert(boundary.GetVolume() > 0.0f);
+  float a = boundary.GetClamped(triangle.GetMin())[axis];
+  float b = boundary.GetClamped(triangle.GetMax())[axis];
+  if (a == b) {
+    splits->insert({{axis, a}, PLANAR});
   } else {
-    splits->insert({{axis, clamped_min}, START});
-    splits->insert({{axis, clamped_max}, END});
+    splits->insert({{axis, a}, START});
+    splits->insert({{axis, b}, END});
   }
 }
 
@@ -164,7 +167,9 @@ EventCount CountEvents(set<Event>::const_iterator begin,
 }
 
 SplitCost FindBestSplit(const KdBox& parent, const set<Event>& splits) {
-  assert(splits.size() > 0);
+  assert(parent.boundary.GetVolume() > 0.0f);
+  assert(!parent.triangles.empty());
+  assert(!splits.empty());
   SplitCost best{{geometry::X, 0}, FLT_MAX, LEFT};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
     Axis axis = static_cast<Axis>(axis_index);
@@ -186,7 +191,6 @@ SplitCost FindBestSplit(const KdBox& parent, const set<Event>& splits) {
 
 KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
   assert(parent.boundary.GetVolume() > 0.0f);
-  assert(!parent.triangles.empty());
   if (depth >= MAX_DEPTH || parent.triangles.empty()) {
     return new KdNode(new vector<const Triangle*>(parent.triangles));
   }
