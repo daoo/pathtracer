@@ -17,6 +17,8 @@ class Aabb {
     return 8.0f * (half_.x * half_.y + half_.x * half_.z + half_.y * half_.z);
   }
 
+  inline float GetVolume() const { return 8.0f * half_.x * half_.y * half_.z; }
+
   inline Aabb Translate(glm::vec3 delta) const {
     return Aabb(center_ + delta, half_);
   }

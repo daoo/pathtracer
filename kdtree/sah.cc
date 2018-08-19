@@ -73,6 +73,8 @@ inline KdCost CalculateCost(const Aabb& parent,
                             size_t plane_count) {
   float parent_area = parent.GetSurfaceArea();
   geometry::AabbSplit split = geometry::Split(parent, plane);
+  if (split.left.GetVolume() == 0.0f) return KdCost{FLT_MAX, LEFT};
+  if (split.right.GetVolume() == 0.0f) return KdCost{FLT_MAX, RIGHT};
   float left_area = split.left.GetSurfaceArea();
   float right_area = split.right.GetSurfaceArea();
   float plane_left = CalculateCost(parent_area, left_area, right_area,
