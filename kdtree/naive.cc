@@ -25,6 +25,8 @@ using std::vector;
 
 namespace {
 
+constexpr unsigned int MAX_DEPTH = 20;
+
 // A look up table have been empirically proven to be the fastest way to
 // calculate the next axis, compared to using modulo addition and bit hacks.
 constexpr geometry::Axis NEXT[] = {geometry::Y, geometry::Z, geometry::X};
@@ -61,7 +63,7 @@ KdSplit Split(const KdBox& parent, const geometry::Aap& plane) {
 }
 
 KdNode* BuildHelper(unsigned int depth, Axis axis, const KdBox& parent) {
-  if (depth >= 20 || parent.triangles.size() <= 6) {
+  if (depth >= MAX_DEPTH || parent.triangles.size() <= 6) {
     return new KdNode(new vector<const Triangle*>(parent.triangles));
   } else {
     Aap plane(axis, parent.boundary.GetCenter()[axis]);

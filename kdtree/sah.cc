@@ -31,6 +31,8 @@ using std::vector;
 
 namespace {
 
+constexpr unsigned int MAX_DEPTH = 20;
+
 constexpr float COST_EMPTY = 0.01f;
 constexpr float COST_TRAVERSE = 0.1f;
 constexpr float COST_INTERSECT = 1.0f;
@@ -187,8 +189,7 @@ KdSplit FindBestSplit(const KdBox& parent, const set<Event>& splits) {
 }
 
 KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
-  // sizeof(KdNode) * node count = 32 * 2^20 = 32 MB
-  if (depth >= 20 || parent.triangles.empty()) {
+  if (depth >= MAX_DEPTH || parent.triangles.empty()) {
     return new KdNode(new vector<const Triangle*>(parent.triangles));
   }
 
