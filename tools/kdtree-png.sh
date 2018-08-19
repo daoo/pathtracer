@@ -9,8 +9,6 @@ fi
 
 model="$1"
 
-for impl in sah sah_fast; do
-  ./out_clang_debug/print-tree-svg-$impl "$model" > /tmp/$impl.svg
-  inkscape --without-gui --export-png /tmp/$impl.png -D /tmp/$impl.svg
-  rm /tmp/$impl.svg
-done
+./out_clang_debug/print-tree-svg-sah "$model" > /tmp/kdtree.svg
+inkscape --without-gui --export-png /tmp/kdtree.png -D /tmp/kdtree.svg
+rm /tmp/kdtree.svg

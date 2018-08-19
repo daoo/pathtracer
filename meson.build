@@ -37,7 +37,7 @@ trace = static_library(
 
 executable(
     'raytracer',
-    'kdtree/sah_fast.cc',
+    'kdtree/sah.cc',
     'raytracer/main.cc',
     link_args: '-lstdc++fs',
     link_with: trace,
@@ -80,7 +80,7 @@ executable(
     dependencies: glm
 )
 
-kdtree_builders = ['naive', 'sah', 'sah_fast']
+kdtree_builders = ['naive', 'sah']
 
 foreach builder : kdtree_builders
   executable(
@@ -103,7 +103,7 @@ endforeach
 
 executable(
     'triangle-kdtree-tester',
-    'kdtree/sah_fast.cc',
+    'kdtree/sah.cc',
     'tests/triangle-kdtree-tester.cc',
     link_with: trace,
     dependencies: glm
@@ -117,8 +117,6 @@ tests = executable(
     'geometry/tribox_unittest.cc',
     'geometry/triray_unittest.cc',
     'kdtree/intersect_unittest.cc',
-    'kdtree/sah_common_unittest.cc',
-    'kdtree/sah_fast_impl_unittest.cc',
     'tests/unit-tests.cc',
     'trace/camera_unittest.cc',
     'trace/fastrand_unittest.cc',
