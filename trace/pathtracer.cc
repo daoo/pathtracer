@@ -18,9 +18,7 @@
 using geometry::Ray;
 using geometry::TriRayIntersection;
 using glm::vec3;
-using kdtree::KdTree;
 using std::optional;
-using std::vector;
 using trace::FastRand;
 using trace::LightSample;
 using trace::Material;

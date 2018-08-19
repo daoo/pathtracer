@@ -25,6 +25,8 @@ class SphereLight {
     return center_ + uniform_sample_sphere(rand) * radius_;
   }
 
+  inline glm::vec3 GetCenter() const { return center_; }
+
   /**
    * Calculate the radiance that is emitted from the light to a point.
    */

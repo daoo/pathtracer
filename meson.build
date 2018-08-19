@@ -23,6 +23,7 @@ trace = static_library(
     'kdtree/kdtree.cc',
     'trace/material.cc',
     'trace/pathtracer.cc',
+    'trace/raytracer.cc',
     'trace/samplebuffer.cc',
     'trace/scene.cc',
     'trace/texture.cc',
@@ -32,6 +33,15 @@ trace = static_library(
     'wavefront/obj.cc',
     link_args: '-lstdc++fs',
     dependencies: [threads, glm, freeimage]
+)
+
+executable(
+    'raytracer',
+    'kdtree/sah_fast.cc',
+    'raytracer/main.cc',
+    link_args: '-lstdc++fs',
+    link_with: trace,
+    dependencies: [threads, glm]
 )
 
 executable(
