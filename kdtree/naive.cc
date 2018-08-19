@@ -40,7 +40,7 @@ struct KdSplit {
 KdSplit Split(const KdBox& parent, const geometry::Aap& plane) {
   geometry::AabbSplit aabbs = geometry::Split(parent.boundary, plane);
   kdtree::IntersectResults triangles =
-      kdtree::PartitionTriangles(parent.triangles, plane);
+      kdtree::PartitionTriangles(parent.boundary, parent.triangles, plane);
   std::vector<const geometry::Triangle*> left_tris(triangles.left);
   std::vector<const geometry::Triangle*> right_tris(triangles.right);
   // Put plane-triangles on side with fewest triangels, or left if both equal.

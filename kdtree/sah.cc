@@ -104,12 +104,8 @@ inline void ListPerfectSplits(const Aabb& boundary,
                               const Triangle& triangle,
                               Axis axis,
                               set<Event>* splits) {
-  float boundary_min = boundary.GetMin()[axis];
-  float boundary_max = boundary.GetMax()[axis];
-  float triangle_min = triangle.GetMin()[axis];
-  float triangle_max = triangle.GetMax()[axis];
-  float clamped_min = glm::clamp(triangle_min, boundary_min, boundary_max);
-  float clamped_max = glm::clamp(triangle_max, boundary_min, boundary_max);
+  float clamped_min = boundary.GetClamped(triangle.GetMin())[axis];
+  float clamped_max = boundary.GetClamped(triangle.GetMax())[axis];
   if (clamped_min == clamped_max) {
     splits->insert({{axis, clamped_min}, PLANAR});
   } else {
@@ -198,8 +194,8 @@ KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
     return new KdNode(new vector<const Triangle*>(parent.triangles));
   } else {
     geometry::AabbSplit aabbs = geometry::Split(parent.boundary, split.plane);
-    IntersectResults triangles =
-        kdtree::PartitionTriangles(parent.triangles, split.plane);
+    IntersectResults triangles = kdtree::PartitionTriangles(
+        parent.boundary, parent.triangles, split.plane);
     vector<const Triangle*> left_tris(triangles.left);
     vector<const Triangle*> right_tris(triangles.right);
     // Put plane-triangles on side with fewest triangels, or left if both equal.
