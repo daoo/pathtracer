@@ -105,13 +105,15 @@ inline void ListPerfectSplits(const Aabb& boundary,
                               Axis axis,
                               set<Event>* splits) {
   assert(boundary.GetVolume() > 0.0f);
-  float a = boundary.GetClamped(triangle.GetMin())[axis];
-  float b = boundary.GetClamped(triangle.GetMax())[axis];
-  if (a == b) {
+  float a = triangle.GetMin()[axis];
+  float b = triangle.GetMax()[axis];
+  float min = boundary.GetMin()[axis];
+  float max = boundary.GetMax()[axis];
+  if (a == b && a > min && b < max) {
     splits->insert({a, PLANAR});
   } else {
-    splits->insert({a, START});
-    splits->insert({b, END});
+    if (a > min && a < max) splits->insert({a, START});
+    if (b > min && b < max) splits->insert({b, END});
   }
 }
 
