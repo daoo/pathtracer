@@ -1,7 +1,7 @@
 #include <glm/glm.hpp>
 
 #include "geometry/ray.h"
-#include "tests/catch.h"
+#include "third_party/catch/catch.h"
 #include "trace/camera.h"
 
 TEST_CASE("pinhole gives correct ray", "[camera]") {

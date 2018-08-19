@@ -1,7 +1,7 @@
 #include <glm/glm.hpp>
 
 #include "geometry/aabb.h"
-#include "tests/catch.h"
+#include "third_party/catch/catch.h"
 
 TEST_CASE("aabb surface area", "[aabb]") {
   REQUIRE(geometry::Aabb::Unit().GetSurfaceArea() == 6.0f);

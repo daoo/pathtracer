@@ -3,7 +3,7 @@
 #include "geometry/aabb.h"
 #include "geometry/bounding.h"
 #include "geometry/triangle.h"
-#include "tests/catch.h"
+#include "third_party/catch/catch.h"
 
 using geometry::Aabb;
 using geometry::Triangle;

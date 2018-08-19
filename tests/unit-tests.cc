@@ -1,2 +1,2 @@
 #define CATCH_CONFIG_MAIN
-#include "tests/catch.h"
+#include "third_party/catch/catch.h"

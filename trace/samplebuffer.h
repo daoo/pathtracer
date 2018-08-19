@@ -2,6 +2,8 @@
 #define TRACE_SAMPLEBUFFER_H_
 
 #include <glm/glm.hpp>
+
+#include <algorithm>
 #include <string>
 #include <vector>
 

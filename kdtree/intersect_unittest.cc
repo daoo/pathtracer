@@ -1,7 +1,7 @@
 #include <glm/glm.hpp>
 
 #include "kdtree/intersect.h"
-#include "tests/catch.h"
+#include "third_party/catch/catch.h"
 
 geometry::Triangle triangle2(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3) {
   geometry::Triangle triangle;

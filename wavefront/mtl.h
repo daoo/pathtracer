@@ -13,7 +13,6 @@ struct Material {
   glm::vec3 diffuse;
   glm::vec3 specular;
   glm::vec3 emittance;
-  float roughness;
   float transparency;
   float refl0;
   float refl90;

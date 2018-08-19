@@ -3,7 +3,7 @@
 #include "geometry/ray.h"
 #include "geometry/triangle.h"
 #include "geometry/triray.h"
-#include "tests/catch.h"
+#include "third_party/catch/catch.h"
 
 TEST_CASE("triray example body", "[triray]") {
   geometry::Triangle tri;

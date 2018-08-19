@@ -7,7 +7,7 @@
 #include "geometry/aap.h"
 #include "geometry/triangle.h"
 #include "kdtree/sah_fast_impl.h"
-#include "tests/catch.h"
+#include "third_party/catch/catch.h"
 
 using kdtree::Event;
 

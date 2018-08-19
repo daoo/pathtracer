@@ -1,12 +1,10 @@
 #include "kdtree/sah.h"
 
-#include <iostream>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
+#include <algorithm>
 #include <cassert>
-
 #include <set>
 #include <vector>
 
@@ -31,12 +29,6 @@ kdtree::KdSplit SplitWithCost(const kdtree::KdBox& parent,
   kdtree::KdCost cost =
       kdtree::CalculateCost(parent.boundary, event.plane, triangles.left.size(),
                             triangles.right.size(), triangles.plane.size());
-  std::cout << "p=" << event.plane.GetAxis() << "@" << event.plane.GetDistance()
-            << " ";
-  std::cout << "lcount=" << triangles.left.size() << " ";
-  std::cout << "rcount=" << triangles.right.size() << " ";
-  std::cout << "pcount=" << triangles.plane.size() << " ";
-  std::cout << "cost=" << cost.cost << "\n";
   return kdtree::KdSplit{event.plane, cost};
 }
 
@@ -54,8 +46,8 @@ kdtree::KdSplit FindBestSplit(const kdtree::KdBox& parent,
 }
 
 template <class T>
-void append(std::vector<T>& a, const std::vector<T>& b) {
-  a.insert(a.end(), b.cbegin(), b.cend());
+void append(std::vector<T>* a, const std::vector<T>& b) {
+  a->insert(a->end(), b.cbegin(), b.cend());
 }
 
 kdtree::KdNode* BuildHelper(unsigned int depth, const kdtree::KdBox& parent) {
@@ -78,10 +70,10 @@ kdtree::KdNode* BuildHelper(unsigned int depth, const kdtree::KdBox& parent) {
     std::vector<const geometry::Triangle*> right_tris(triangles.right);
     // Put plane-triangles on side with fewest triangels, or left if both equal.
     if (triangles.left.size() <= triangles.right.size()) {
-      append(left_tris, triangles.plane);
+      append(&left_tris, triangles.plane);
     } else {
       // triangles.left.size() > triangles.right.size()
-      append(right_tris, triangles.plane);
+      append(&right_tris, triangles.plane);
     }
     kdtree::KdBox left{aabbs.left, left_tris};
     kdtree::KdBox right{aabbs.right, right_tris};

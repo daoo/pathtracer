@@ -8,6 +8,7 @@
 #include "geometry/bounding.h"
 #include "kdtree/build_common.h"
 #include "kdtree/kdtree.h"
+#include "util/vector.h"
 
 namespace geometry {
 struct Triangle;
@@ -31,11 +32,6 @@ constexpr inline geometry::Axis next_axis(geometry::Axis axis) {
   return NEXT[axis];
 }
 
-template <class T>
-void append(std::vector<T>& a, const std::vector<T>& b) {
-  a.insert(a.end(), b.cbegin(), b.cend());
-}
-
 struct KdSplit {
   geometry::Aap plane;
   KdBox left, right;
@@ -49,10 +45,10 @@ KdSplit Split(const KdBox& parent, const geometry::Aap& plane) {
   std::vector<const geometry::Triangle*> right_tris(triangles.right);
   // Put plane-triangles on side with fewest triangels, or left if both equal.
   if (triangles.left.size() <= triangles.right.size()) {
-    append(left_tris, triangles.plane);
+    util::append(&left_tris, triangles.plane);
   } else {
     // triangles.left.size() > triangles.right.size()
-    append(right_tris, triangles.plane);
+    util::append(&right_tris, triangles.plane);
   }
   KdBox left{aabbs.left, left_tris};
   KdBox right{aabbs.right, right_tris};

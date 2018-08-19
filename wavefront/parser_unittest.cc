@@ -1,4 +1,4 @@
-#include "tests/catch.h"
+#include "third_party/catch/catch.h"
 #include "wavefront/parser.h"
 
 TEST_CASE("parse unsigned integer zero", "[wavefront]") {

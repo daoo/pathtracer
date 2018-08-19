@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
+#include <algorithm>
+
 #include "geometry/aabb.h"
 #include "geometry/triangle.h"
 

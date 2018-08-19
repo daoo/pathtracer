@@ -20,6 +20,8 @@ class StringException {
   explicit StringException(const StringException& other)
       : str_(other.str_), message_(other.message_), column_(other.column_) {}
 
+  StringException& operator=(StringException&) = delete;
+
   const std::string& GetString() const { return str_; }
 
   const std::string& GetMessage() const { return message_; }
@@ -39,6 +41,8 @@ class LineException : public StringException {
 
   LineException(const LineException& other)
       : StringException(other), line_(other.line_) {}
+
+  LineException& operator=(LineException&) = delete;
 
   int GetLineOffset() const { return line_; }
 
@@ -74,12 +78,6 @@ class StringParser {
  public:
   explicit StringParser(const std::string& str)
       : str_(str), ptr_(str.c_str()) {}
-
-  char ParseChar() {
-    char chr = *ptr_;
-    ++ptr_;
-    return chr;
-  }
 
   std::string ParseString() {
     std::string str(ptr_);

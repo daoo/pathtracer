@@ -1,6 +1,8 @@
 #ifndef KDTREE_SAH_COMMON_H_
 #define KDTREE_SAH_COMMON_H_
 
+#include <set>
+
 #include "geometry/split.h"
 #include "kdtree/build_common.h"
 
@@ -77,9 +79,9 @@ struct Event {
 };
 
 inline void ListPerfectSplits(const geometry::Aabb& boundary,
-                       const geometry::Triangle& triangle,
-                       geometry::Axis axis,
-                       std::set<Event>* splits) {
+                              const geometry::Triangle& triangle,
+                              geometry::Axis axis,
+                              std::set<Event>* splits) {
   float boundary_min = boundary.GetMin()[axis];
   float boundary_max = boundary.GetMax()[axis];
   float triangle_min = triangle.GetMin()[axis];
@@ -95,8 +97,8 @@ inline void ListPerfectSplits(const geometry::Aabb& boundary,
 }
 
 inline void ListPerfectSplits(const geometry::Aabb& boundary,
-                       const geometry::Triangle& triangle,
-                       std::set<Event>* splits) {
+                              const geometry::Triangle& triangle,
+                              std::set<Event>* splits) {
   ListPerfectSplits(boundary, triangle, geometry::X, splits);
   ListPerfectSplits(boundary, triangle, geometry::Y, splits);
   ListPerfectSplits(boundary, triangle, geometry::Z, splits);

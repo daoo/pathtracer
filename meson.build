@@ -19,7 +19,6 @@ trace = static_library(
     'trace',
     'geometry/bounding.cc',
     'geometry/tribox.cc',
-    'geometry/triplane.cc',
     'geometry/triray.cc',
     'kdtree/kdtree.cc',
     'trace/material.cc',

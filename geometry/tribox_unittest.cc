@@ -2,7 +2,7 @@
 
 #include "geometry/aabb.h"
 #include "geometry/tribox.h"
-#include "tests/catch.h"
+#include "third_party/catch/catch.h"
 
 TEST_CASE("tribox contained", "[tribox]") {
   geometry::Aabb aabb({1, 1, 1}, {0.5, 0.5, 0.5});

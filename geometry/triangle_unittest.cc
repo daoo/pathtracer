@@ -1,7 +1,7 @@
 #include <glm/glm.hpp>
 
 #include "geometry/triangle.h"
-#include "tests/catch.h"
+#include "third_party/catch/catch.h"
 
 TEST_CASE("Triangle min/max", "[triangle]") {
   geometry::Triangle tri;

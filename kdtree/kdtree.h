@@ -50,9 +50,7 @@ class KdTree {
  public:
   explicit KdTree(const KdNode* root) : root_(root) {}
 
-  KdTree(KdTree&& other) : root_(other.root_) {
-    other.root_ = nullptr;
-  }
+  KdTree(KdTree&& other) : root_(other.root_) { other.root_ = nullptr; }
 
   ~KdTree() { delete root_; }
 

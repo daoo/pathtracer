@@ -4,7 +4,7 @@
 #include "geometry/aap.h"
 #include "geometry/triangle.h"
 #include "kdtree/sah_common.h"
-#include "tests/catch.h"
+#include "third_party/catch/catch.h"
 
 using geometry::Aabb;
 using geometry::Aap;

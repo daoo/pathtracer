@@ -1,4 +1,4 @@
-#include "tests/catch.h"
+#include "third_party/catch/catch.h"
 #include "trace/fastrand.h"
 
 TEST_CASE("fastrand.unit in range [0, 1)", "[fastrand]") {

@@ -1,13 +1,11 @@
 #ifndef KDTREE_SAH_FAST_IMPL_H_
 #define KDTREE_SAH_FAST_IMPL_H_
 
-#include <iostream>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
+#include <algorithm>
 #include <cassert>
-
 #include <set>
 #include <vector>
 
@@ -18,6 +16,7 @@
 #include "kdtree/build_common.h"
 #include "kdtree/kdtree.h"
 #include "kdtree/sah_common.h"
+#include "util/vector.h"
 
 namespace geometry {
 struct Triangle;
@@ -68,23 +67,12 @@ kdtree::KdSplit FindBestSplit(const kdtree::KdBox& parent,
         nr = nr - count.pminus - count.pplane;
         kdtree::KdCost cost = kdtree::CalculateCost(
             parent.boundary, iter->plane, nl, nr, count.pplane);
-        std::cout << "p=" << iter->plane.GetAxis() << "@"
-                  << iter->plane.GetDistance() << " ";
-        std::cout << "lcount=" << nl << " ";
-        std::cout << "rcount=" << nr << " ";
-        std::cout << "pcount=" << count.pplane << " ";
-        std::cout << "cost=" << cost.cost << "\n";
         best = std::min(best, kdtree::KdSplit{iter->plane, cost});
         nl = nl + count.pplus + count.pplane;
       }
     }
   }
   return best;
-}
-
-template <class T>
-void append(std::vector<T>& a, const std::vector<T>& b) {
-  a.insert(a.end(), b.cbegin(), b.cend());
 }
 
 kdtree::KdNode* BuildHelper(unsigned int depth, const kdtree::KdBox& parent) {
@@ -107,10 +95,10 @@ kdtree::KdNode* BuildHelper(unsigned int depth, const kdtree::KdBox& parent) {
     std::vector<const geometry::Triangle*> right_tris(triangles.right);
     // Put plane-triangles on side with fewest triangels, or left if both equal.
     if (triangles.left.size() <= triangles.right.size()) {
-      append(left_tris, triangles.plane);
+      util::append(&left_tris, triangles.plane);
     } else {
       // triangles.left.size() > triangles.right.size()
-      append(right_tris, triangles.plane);
+      util::append(&right_tris, triangles.plane);
     }
     kdtree::KdBox left{aabbs.left, left_tris};
     kdtree::KdBox right{aabbs.right, right_tris};
