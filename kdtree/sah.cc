@@ -12,7 +12,7 @@
 #include "geometry/aap.h"
 #include "geometry/bounding.h"
 #include "geometry/split.h"
-#include "kdtree/build_common.h"
+#include "kdtree/intersect.h"
 #include "kdtree/kdtree.h"
 #include "util/vector.h"
 
@@ -25,7 +25,6 @@ using geometry::Aap;
 using geometry::Axis;
 using geometry::Triangle;
 using kdtree::IntersectResults;
-using kdtree::KdBox;
 using kdtree::KdNode;
 using std::set;
 using std::vector;
@@ -121,6 +120,11 @@ inline void ListPerfectSplits(const Aabb& boundary,
   ListPerfectSplits(boundary, triangle, geometry::Y, splits);
   ListPerfectSplits(boundary, triangle, geometry::Z, splits);
 }
+
+struct KdBox {
+  geometry::Aabb boundary;
+  std::vector<const geometry::Triangle*> triangles;
+};
 
 inline set<Event> ListPerfectSplits(const KdBox& parent) {
   set<Event> splits;

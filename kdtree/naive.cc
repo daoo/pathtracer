@@ -6,7 +6,8 @@
 
 #include "geometry/aap.h"
 #include "geometry/bounding.h"
-#include "kdtree/build_common.h"
+#include "geometry/split.h"
+#include "kdtree/intersect.h"
 #include "kdtree/kdtree.h"
 #include "util/vector.h"
 
@@ -19,7 +20,6 @@ using geometry::Aap;
 using geometry::Axis;
 using geometry::Triangle;
 using glm::vec3;
-using kdtree::KdBox;
 using kdtree::KdNode;
 using std::vector;
 
@@ -31,6 +31,11 @@ constexpr geometry::Axis NEXT[] = {geometry::Y, geometry::Z, geometry::X};
 constexpr inline geometry::Axis next_axis(geometry::Axis axis) {
   return NEXT[axis];
 }
+
+struct KdBox {
+  geometry::Aabb boundary;
+  std::vector<const geometry::Triangle*> triangles;
+};
 
 struct KdSplit {
   geometry::Aap plane;
