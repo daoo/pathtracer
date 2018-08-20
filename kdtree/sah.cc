@@ -24,12 +24,18 @@ using geometry::Aabb;
 using geometry::Aap;
 using geometry::Axis;
 using geometry::Triangle;
+using glm::vec3;
 using kdtree::IntersectResults;
 using kdtree::KdNode;
 using std::set;
 using std::vector;
 
 namespace {
+
+/**
+ * Minimum distance from split plane to parent bondary.
+ */
+constexpr float SPLIT_BOUNDARY_TOLERANCE = 0.0000001f;
 
 constexpr unsigned int MAX_DEPTH = 20;
 
@@ -160,6 +166,10 @@ EventCount CountEvents(set<Event>::const_iterator begin,
 SplitCost FindBestSplit(const KdBox& parent) {
   assert(parent.boundary.GetVolume() > 0.0f);
   assert(!parent.triangles.empty());
+
+  vec3 min = parent.boundary.GetMin();
+  vec3 max = parent.boundary.GetMax();
+
   SplitCost best{{geometry::X, 0}, FLT_MAX, LEFT};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
     Axis axis = static_cast<Axis>(axis_index);
@@ -169,8 +179,8 @@ SplitCost FindBestSplit(const KdBox& parent) {
     for (auto iter = splits.cbegin(); iter != splits.cend(); ++iter) {
       EventCount count = CountEvents(iter, splits.cend());
       nr = nr - count.pminus - count.pplane;
-      if (iter->distance > parent.boundary.GetMin()[axis] &&
-          iter->distance < parent.boundary.GetMax()[axis]) {
+      if (iter->distance > min[axis] + SPLIT_BOUNDARY_TOLERANCE &&
+          iter->distance < max[axis] - SPLIT_BOUNDARY_TOLERANCE) {
         Aap plane(axis, iter->distance);
         SplitCost split =
             CalculateCost(parent.boundary, plane, nl, nr, count.pplane);
