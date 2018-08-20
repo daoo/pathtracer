@@ -45,7 +45,7 @@ constexpr vec3 BOUNDARY_TOLERANCE = {BOUNDARY_TOLERANCE_SINGLE,
 
 constexpr unsigned int MAX_DEPTH = 20;
 
-constexpr float COST_EMPTY = 0.01f;
+constexpr float COST_EMPTY_FACTOR = 0.8f;
 constexpr float COST_TRAVERSE = 0.1f;
 constexpr float COST_INTERSECT = 1.0f;
 
@@ -53,19 +53,16 @@ inline float LeafCostBound(size_t parent_count) {
   return COST_INTERSECT * parent_count;
 }
 
-inline float CalculateCost(float parent_area,
-                           float left_area,
-                           float right_area,
-                           size_t left_count,
-                           size_t right_count) {
-  assert(parent_area > 0.0f);
-  assert(left_area > 0.0f);
-  assert(right_area > 0.0f);
-  float traverse =
-      left_count == 0 || right_count == 0 ? COST_EMPTY : COST_TRAVERSE;
-  float area_heuristic = (left_area * left_count + right_area * right_count);
-  float intersect = COST_INTERSECT * area_heuristic / parent_area;
-  return traverse + intersect;
+inline float CalculateCost(float probability_left,
+                           float probability_right,
+                           size_t number_left,
+                           size_t number_right) {
+  float empty_factor =
+      number_left == 0 || number_right == 0 ? COST_EMPTY_FACTOR : 1.0f;
+  float traverse_cost = COST_TRAVERSE;
+  float intersect_cost = COST_INTERSECT * (probability_left * number_left +
+                                           probability_right * number_right);
+  return empty_factor * (traverse_cost + intersect_cost);
 }
 
 enum Side { LEFT, RIGHT };
@@ -83,21 +80,26 @@ inline SplitCost CalculateCost(const Aabb& parent,
                                size_t left_count,
                                size_t right_count,
                                size_t plane_count) {
+  assert(parent.GetSurfaceArea() > 0.0f);
   geometry::AabbSplit split = geometry::Split(parent, plane);
   assert(split.left.GetVolume() > 0.0f);
   assert(split.right.GetVolume() > 0.0f);
 
-  float parent_area = parent.GetSurfaceArea();
-  float left_area = split.left.GetSurfaceArea();
-  float right_area = split.right.GetSurfaceArea();
+  float surface_area_parent = parent.GetSurfaceArea();
+  float surface_area_left = split.left.GetSurfaceArea();
+  float surface_area_right = split.right.GetSurfaceArea();
 
-  float plane_left = CalculateCost(parent_area, left_area, right_area,
-                                   left_count + plane_count, right_count);
-  float plane_right = CalculateCost(parent_area, left_area, right_area,
-                                    left_count, right_count + plane_count);
+  float probability_left = surface_area_left / surface_area_parent;
+  float probability_right = surface_area_right / surface_area_parent;
 
-  return plane_left <= plane_right ? SplitCost{plane, plane_left, LEFT}
-                                   : SplitCost{plane, plane_right, RIGHT};
+  float cost_plane_left = CalculateCost(probability_left, probability_right,
+                                        left_count + plane_count, right_count);
+  float cost_plane_right = CalculateCost(probability_left, probability_right,
+                                         left_count, right_count + plane_count);
+
+  return cost_plane_left <= cost_plane_right
+             ? SplitCost{plane, cost_plane_left, LEFT}
+             : SplitCost{plane, cost_plane_right, RIGHT};
 }
 
 enum Type { START, PLANAR, END };
@@ -179,16 +181,16 @@ SplitCost FindBestSplit(const KdBox& parent) {
   SplitCost best{{geometry::X, 0}, FLT_MAX, LEFT};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
     Axis axis = static_cast<Axis>(axis_index);
-    size_t nl = 0;
-    size_t nr = parent.triangles.size();
+    size_t number_left = 0;
+    size_t number_right = parent.triangles.size();
     set<Event> splits = ListSplits(parent, axis);
     for (auto iter = splits.cbegin(); iter != splits.cend(); ++iter) {
       EventCount count = CountEvents(iter, splits.cend());
-      nr = nr - count.pminus - count.pplane;
+      number_right = number_right - count.pminus - count.pplane;
       if (iter->distance > min[axis] && iter->distance < max[axis]) {
         Aap plane(axis, iter->distance);
-        SplitCost split =
-            CalculateCost(parent.boundary, plane, nl, nr, count.pplane);
+        SplitCost split = CalculateCost(parent.boundary, plane, number_left,
+                                        number_right, count.pplane);
 #ifndef NDEBUG
         printf("  FindBestSplit: {%d, %f} in (%f, %f) with %f\n", axis,
                static_cast<double>(iter->distance),
@@ -198,7 +200,7 @@ SplitCost FindBestSplit(const KdBox& parent) {
 #endif
         best = std::min(best, split);
       }
-      nl = nl + count.pplus + count.pplane;
+      number_left = number_left + count.pplus + count.pplane;
     }
   }
 #ifndef NDEBUG
