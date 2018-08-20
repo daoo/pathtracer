@@ -40,10 +40,6 @@ constexpr float COST_EMPTY_FACTOR = 0.8f;
 constexpr float COST_TRAVERSE = 0.1f;
 constexpr float COST_INTERSECT = 1.0f;
 
-float LeafCostBound(size_t parent_count) {
-  return COST_INTERSECT * parent_count;
-}
-
 float CalculateCost(float probability_left,
                     float probability_right,
                     size_t number_left,
@@ -190,10 +186,8 @@ SplitCost FindBestSplit(const KdBox& parent) {
       SplitCost split = CalculateCost(parent.boundary, plane, number_left,
                                       number_right, count.pplane);
 #ifndef NDEBUG
-      printf("  FindBestSplit: {%d, %f} in (%f, %f) with %f\n", axis,
+      printf("  FindBestSplit: Aap{%d, %f} cost=%f\n", axis,
              static_cast<double>(iter->distance),
-             static_cast<double>(parent.boundary.GetMin()[axis]),
-             static_cast<double>(parent.boundary.GetMax()[axis]),
              static_cast<double>(split.cost));
 #endif
       best = std::min(best, split);
@@ -201,7 +195,7 @@ SplitCost FindBestSplit(const KdBox& parent) {
     }
   }
 #ifndef NDEBUG
-  printf("FindBestSplit({%f, %lu}) = {{%d, %f}, %f, %d}\n",
+  printf("FindBestSplit({%f, %lu}) = {Aap{%d, %f}, cost=%f, side=%d}\n",
          static_cast<double>(parent.boundary.GetVolume()),
          parent.triangles.size(), best.plane.GetAxis(),
          static_cast<double>(best.plane.GetDistance()),
@@ -215,14 +209,17 @@ KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
   assert(parent.boundary.GetVolume() > 0.0f);
 
 #ifndef NDEBUG
-  printf("BuildHelper(%d, {(%f, %f, %f), (%f, %f, %f), %lu})\n", depth,
-         static_cast<double>(parent.boundary.GetMin().x),
-         static_cast<double>(parent.boundary.GetMin().y),
-         static_cast<double>(parent.boundary.GetMin().z),
-         static_cast<double>(parent.boundary.GetMax().x),
-         static_cast<double>(parent.boundary.GetMax().y),
-         static_cast<double>(parent.boundary.GetMax().z),
-         parent.triangles.size());
+  printf(
+      "BuildHelper("
+      "depth=%d, "
+      "Aabb{(%f, %f, %f), (%f, %f, %f)}, "
+      "triangles=%lu)\n",
+      depth, static_cast<double>(parent.boundary.GetMin().x),
+      static_cast<double>(parent.boundary.GetMin().y),
+      static_cast<double>(parent.boundary.GetMin().z),
+      static_cast<double>(parent.boundary.GetMax().x),
+      static_cast<double>(parent.boundary.GetMax().y),
+      static_cast<double>(parent.boundary.GetMax().z), parent.triangles.size());
 #endif
 
   if (depth >= MAX_DEPTH || parent.triangles.empty()) {
@@ -230,26 +227,22 @@ KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
   }
 
   SplitCost best = FindBestSplit(parent);
-  if (best.cost > LeafCostBound(parent.triangles.size())) {
-    return new KdNode(new vector<const Triangle*>(parent.triangles));
+  geometry::AabbSplit aabbs = geometry::Split(parent.boundary, best.plane);
+  IntersectResults triangles =
+      kdtree::PartitionTriangles(parent.boundary, parent.triangles, best.plane);
+  vector<const Triangle*> left_tris(triangles.left);
+  vector<const Triangle*> right_tris(triangles.right);
+  // Put plane-triangles on side with fewest triangels, or left if both equal.
+  if (triangles.left.size() <= triangles.right.size()) {
+    util::append(&left_tris, triangles.plane);
   } else {
-    geometry::AabbSplit aabbs = geometry::Split(parent.boundary, best.plane);
-    IntersectResults triangles = kdtree::PartitionTriangles(
-        parent.boundary, parent.triangles, best.plane);
-    vector<const Triangle*> left_tris(triangles.left);
-    vector<const Triangle*> right_tris(triangles.right);
-    // Put plane-triangles on side with fewest triangels, or left if both equal.
-    if (triangles.left.size() <= triangles.right.size()) {
-      util::append(&left_tris, triangles.plane);
-    } else {
-      // triangles.left.size() > triangles.right.size()
-      util::append(&right_tris, triangles.plane);
-    }
-    KdBox left{aabbs.left, left_tris};
-    KdBox right{aabbs.right, right_tris};
-    return new KdNode(best.plane, BuildHelper(depth + 1, left),
-                      BuildHelper(depth + 1, right));
+    // triangles.left.size() > triangles.right.size()
+    util::append(&right_tris, triangles.plane);
   }
+  KdBox left{aabbs.left, left_tris};
+  KdBox right{aabbs.right, right_tris};
+  return new KdNode(best.plane, BuildHelper(depth + 1, left),
+                    BuildHelper(depth + 1, right));
 }
 
 }  // namespace
