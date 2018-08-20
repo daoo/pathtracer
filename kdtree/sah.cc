@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <set>
 #include <vector>
 
 #ifndef NDEBUG
@@ -31,17 +30,9 @@ using geometry::Triangle;
 using glm::vec3;
 using kdtree::IntersectResults;
 using kdtree::KdNode;
-using std::set;
 using std::vector;
 
 namespace {
-
-constexpr float SPLIT_TRIANGLE_DISTANCE = 0.0000001f;
-
-constexpr float BOUNDARY_TOLERANCE_SINGLE = 0.0000001f;
-constexpr vec3 BOUNDARY_TOLERANCE = {BOUNDARY_TOLERANCE_SINGLE,
-                                     BOUNDARY_TOLERANCE_SINGLE,
-                                     BOUNDARY_TOLERANCE_SINGLE};
 
 constexpr unsigned int MAX_DEPTH = 20;
 
@@ -49,14 +40,17 @@ constexpr float COST_EMPTY_FACTOR = 0.8f;
 constexpr float COST_TRAVERSE = 0.1f;
 constexpr float COST_INTERSECT = 1.0f;
 
-inline float LeafCostBound(size_t parent_count) {
+float LeafCostBound(size_t parent_count) {
   return COST_INTERSECT * parent_count;
 }
 
-inline float CalculateCost(float probability_left,
-                           float probability_right,
-                           size_t number_left,
-                           size_t number_right) {
+float CalculateCost(float probability_left,
+                    float probability_right,
+                    size_t number_left,
+                    size_t number_right) {
+  assert(probability_left >= 0);
+  assert(probability_right >= 0);
+  assert(probability_left > 0 || probability_right > 0);
   float empty_factor =
       number_left == 0 || number_right == 0 ? COST_EMPTY_FACTOR : 1.0f;
   float traverse_cost = COST_TRAVERSE;
@@ -75,15 +69,15 @@ struct SplitCost {
   bool operator<(const SplitCost& other) const { return cost < other.cost; }
 };
 
-inline SplitCost CalculateCost(const Aabb& parent,
-                               const Aap& plane,
-                               size_t left_count,
-                               size_t right_count,
-                               size_t plane_count) {
+SplitCost CalculateCost(const Aabb& parent,
+                        const Aap& plane,
+                        size_t left_count,
+                        size_t right_count,
+                        size_t plane_count) {
   assert(parent.GetSurfaceArea() > 0.0f);
   geometry::AabbSplit split = geometry::Split(parent, plane);
-  assert(split.left.GetVolume() > 0.0f);
-  assert(split.right.GetVolume() > 0.0f);
+  if (split.left.GetVolume() <= 0.0f) return SplitCost{plane, FLT_MAX, LEFT};
+  if (split.right.GetVolume() <= 0.0f) return SplitCost{plane, FLT_MAX, RIGHT};
 
   float surface_area_parent = parent.GetSurfaceArea();
   float surface_area_left = split.left.GetSurfaceArea();
@@ -102,9 +96,8 @@ inline SplitCost CalculateCost(const Aabb& parent,
              : SplitCost{plane, cost_plane_right, RIGHT};
 }
 
-enum Type { START, PLANAR, END };
-
 struct Event {
+  enum Type { END, PLANAR, START };
   float distance;
   Type type;
 
@@ -114,18 +107,18 @@ struct Event {
   }
 };
 
-inline void ListSplits(const Aabb& boundary,
-                       const Triangle& triangle,
-                       Axis axis,
-                       set<Event>* splits) {
+void ListSplits(const Aabb& boundary,
+                const Triangle& triangle,
+                Axis axis,
+                vector<Event>* splits) {
   assert(boundary.GetVolume() > 0.0f);
-  float a = triangle.GetMin()[axis] - SPLIT_TRIANGLE_DISTANCE;
-  float b = triangle.GetMax()[axis] + SPLIT_TRIANGLE_DISTANCE;
+  float a = boundary.GetClamped(triangle.GetMin())[axis];
+  float b = boundary.GetClamped(triangle.GetMax())[axis];
   if (a == b) {
-    splits->insert({a, PLANAR});
+    splits->push_back({a, Event::PLANAR});
   } else {
-    splits->insert({a, START});
-    splits->insert({b, END});
+    splits->push_back({a, Event::START});
+    splits->push_back({b, Event::END});
   }
 }
 
@@ -134,11 +127,20 @@ struct KdBox {
   vector<const Triangle*> triangles;
 };
 
-inline set<Event> ListSplits(const KdBox& parent, Axis axis) {
-  set<Event> splits;
+/**
+ * List perfect splits for a set of triangles.
+ *
+ * For each triangle there will be two events (or one if it is planar in the
+ * chosen axis). No events are filtered away because then the triangle
+ * associated with the filtered events would not be represented in calculations
+ * that use these results.
+ */
+vector<Event> ListSplits(const KdBox& parent, Axis axis) {
+  vector<Event> splits;
   for (const Triangle* triangle : parent.triangles) {
     ListSplits(parent.boundary, *triangle, axis, &splits);
   }
+  std::sort(splits.begin(), splits.end());
   return splits;
 }
 
@@ -146,25 +148,25 @@ struct EventCount {
   size_t pminus, pplus, pplane;
 };
 
-EventCount CountEvents(set<Event>::const_iterator begin,
-                       set<Event>::const_iterator end) {
+EventCount CountEvents(vector<Event>::const_iterator begin,
+                       vector<Event>::const_iterator end) {
   assert(begin != end);
   size_t pminus = 0;
   size_t pplus = 0;
   size_t pplane = 0;
   auto iter = begin;
   while (iter != end && iter->distance == begin->distance &&
-         iter->type == END) {
+         iter->type == Event::END) {
     pminus += 1;
     ++iter;
   }
   while (iter != end && iter->distance == begin->distance &&
-         iter->type == PLANAR) {
+         iter->type == Event::PLANAR) {
     pplane += 1;
     ++iter;
   }
   while (iter != end && iter->distance == begin->distance &&
-         iter->type == START) {
+         iter->type == Event::START) {
     pplus += 1;
     ++iter;
   }
@@ -175,31 +177,26 @@ SplitCost FindBestSplit(const KdBox& parent) {
   assert(parent.boundary.GetVolume() > 0.0f);
   assert(!parent.triangles.empty());
 
-  vec3 min = parent.boundary.GetMin();
-  vec3 max = parent.boundary.GetMax();
-
   SplitCost best{{geometry::X, 0}, FLT_MAX, LEFT};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
     Axis axis = static_cast<Axis>(axis_index);
     size_t number_left = 0;
     size_t number_right = parent.triangles.size();
-    set<Event> splits = ListSplits(parent, axis);
+    vector<Event> splits = ListSplits(parent, axis);
     for (auto iter = splits.cbegin(); iter != splits.cend(); ++iter) {
       EventCount count = CountEvents(iter, splits.cend());
       number_right = number_right - count.pminus - count.pplane;
-      if (iter->distance > min[axis] && iter->distance < max[axis]) {
-        Aap plane(axis, iter->distance);
-        SplitCost split = CalculateCost(parent.boundary, plane, number_left,
-                                        number_right, count.pplane);
+      Aap plane(axis, iter->distance);
+      SplitCost split = CalculateCost(parent.boundary, plane, number_left,
+                                      number_right, count.pplane);
 #ifndef NDEBUG
-        printf("  FindBestSplit: {%d, %f} in (%f, %f) with %f\n", axis,
-               static_cast<double>(iter->distance),
-               static_cast<double>(parent.boundary.GetMin()[axis]),
-               static_cast<double>(parent.boundary.GetMax()[axis]),
-               static_cast<double>(split.cost));
+      printf("  FindBestSplit: {%d, %f} in (%f, %f) with %f\n", axis,
+             static_cast<double>(iter->distance),
+             static_cast<double>(parent.boundary.GetMin()[axis]),
+             static_cast<double>(parent.boundary.GetMax()[axis]),
+             static_cast<double>(split.cost));
 #endif
-        best = std::min(best, split);
-      }
+      best = std::min(best, split);
       number_left = number_left + count.pplus + count.pplane;
     }
   }
@@ -248,8 +245,8 @@ KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
       // triangles.left.size() > triangles.right.size()
       util::append(&right_tris, triangles.plane);
     }
-    KdBox left{aabbs.left.Enlarge(BOUNDARY_TOLERANCE), left_tris};
-    KdBox right{aabbs.right.Enlarge(BOUNDARY_TOLERANCE), right_tris};
+    KdBox left{aabbs.left, left_tris};
+    KdBox right{aabbs.right, right_tris};
     return new KdNode(best.plane, BuildHelper(depth + 1, left),
                       BuildHelper(depth + 1, right));
   }
@@ -266,7 +263,6 @@ KdTree build(const vector<Triangle>& triangles) {
   }
 
   Aabb boundary = geometry::find_bounding(triangles);
-  return KdTree(
-      BuildHelper(0, KdBox{boundary.Enlarge(BOUNDARY_TOLERANCE), ptrs}));
+  return KdTree(BuildHelper(0, KdBox{boundary, ptrs}));
 }
 }  // namespace kdtree
