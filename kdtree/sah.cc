@@ -8,6 +8,10 @@
 #include <set>
 #include <vector>
 
+#ifndef NDEBUG
+#include <cstdlib>
+#endif
+
 #include "geometry/aabb.h"
 #include "geometry/aap.h"
 #include "geometry/bounding.h"
@@ -185,16 +189,43 @@ SplitCost FindBestSplit(const KdBox& parent) {
         Aap plane(axis, iter->distance);
         SplitCost split =
             CalculateCost(parent.boundary, plane, nl, nr, count.pplane);
+#ifndef NDEBUG
+        printf("  FindBestSplit: {%d, %f} in (%f, %f) with %f\n", axis,
+               static_cast<double>(iter->distance),
+               static_cast<double>(parent.boundary.GetMin()[axis]),
+               static_cast<double>(parent.boundary.GetMax()[axis]),
+               static_cast<double>(split.cost));
+#endif
         best = std::min(best, split);
       }
       nl = nl + count.pplus + count.pplane;
     }
   }
+#ifndef NDEBUG
+  printf("FindBestSplit({%f, %lu}) = {{%d, %f}, %f, %d}\n",
+         static_cast<double>(parent.boundary.GetVolume()),
+         parent.triangles.size(), best.plane.GetAxis(),
+         static_cast<double>(best.plane.GetDistance()),
+         static_cast<double>(best.cost), best.side);
+#endif
+
   return best;
 }
 
 KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
   assert(parent.boundary.GetVolume() > 0.0f);
+
+#ifndef NDEBUG
+  printf("BuildHelper(%d, {(%f, %f, %f), (%f, %f, %f), %lu})\n", depth,
+         static_cast<double>(parent.boundary.GetMin().x),
+         static_cast<double>(parent.boundary.GetMin().y),
+         static_cast<double>(parent.boundary.GetMin().z),
+         static_cast<double>(parent.boundary.GetMax().x),
+         static_cast<double>(parent.boundary.GetMax().y),
+         static_cast<double>(parent.boundary.GetMax().z),
+         parent.triangles.size());
+#endif
+
   if (depth >= MAX_DEPTH || parent.triangles.empty()) {
     return new KdNode(new vector<const Triangle*>(parent.triangles));
   }
