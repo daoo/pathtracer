@@ -100,20 +100,18 @@ struct Event {
   }
 };
 
-inline void ListPerfectSplits(const Aabb& boundary,
-                              const Triangle& triangle,
-                              Axis axis,
-                              set<Event>* splits) {
+inline void ListSplits(const Aabb& boundary,
+                       const Triangle& triangle,
+                       Axis axis,
+                       set<Event>* splits) {
   assert(boundary.GetVolume() > 0.0f);
   float a = triangle.GetMin()[axis];
   float b = triangle.GetMax()[axis];
-  float min = boundary.GetMin()[axis];
-  float max = boundary.GetMax()[axis];
-  if (a == b && a > min && b < max) {
+  if (a == b) {
     splits->insert({a, PLANAR});
   } else {
-    if (a > min && a < max) splits->insert({a, START});
-    if (b > min && b < max) splits->insert({b, END});
+    splits->insert({a, START});
+    splits->insert({b, END});
   }
 }
 
@@ -122,10 +120,10 @@ struct KdBox {
   vector<const Triangle*> triangles;
 };
 
-inline set<Event> ListPerfectSplits(const KdBox& parent, Axis axis) {
+inline set<Event> ListSplits(const KdBox& parent, Axis axis) {
   set<Event> splits;
   for (const Triangle* triangle : parent.triangles) {
-    ListPerfectSplits(parent.boundary, *triangle, axis, &splits);
+    ListSplits(parent.boundary, *triangle, axis, &splits);
   }
   return splits;
 }
@@ -167,14 +165,17 @@ SplitCost FindBestSplit(const KdBox& parent) {
     Axis axis = static_cast<Axis>(axis_index);
     size_t nl = 0;
     size_t nr = parent.triangles.size();
-    set<Event> splits = ListPerfectSplits(parent, axis);
+    set<Event> splits = ListSplits(parent, axis);
     for (auto iter = splits.cbegin(); iter != splits.cend(); ++iter) {
       EventCount count = CountEvents(iter, splits.cend());
       nr = nr - count.pminus - count.pplane;
-      Aap plane(axis, iter->distance);
-      SplitCost split =
-          CalculateCost(parent.boundary, plane, nl, nr, count.pplane);
-      best = std::min(best, split);
+      if (iter->distance > parent.boundary.GetMin()[axis] &&
+          iter->distance < parent.boundary.GetMax()[axis]) {
+        Aap plane(axis, iter->distance);
+        SplitCost split =
+            CalculateCost(parent.boundary, plane, nl, nr, count.pplane);
+        best = std::min(best, split);
+      }
       nl = nl + count.pplus + count.pplane;
     }
   }
