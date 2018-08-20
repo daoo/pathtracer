@@ -32,10 +32,12 @@ using std::vector;
 
 namespace {
 
-/**
- * Minimum distance from split plane to parent bondary.
- */
-constexpr float SPLIT_BOUNDARY_TOLERANCE = 0.0000001f;
+constexpr float SPLIT_TRIANGLE_DISTANCE = 0.0000001f;
+
+constexpr float BOUNDARY_TOLERANCE_SINGLE = 0.0000001f;
+constexpr vec3 BOUNDARY_TOLERANCE = {BOUNDARY_TOLERANCE_SINGLE,
+                                     BOUNDARY_TOLERANCE_SINGLE,
+                                     BOUNDARY_TOLERANCE_SINGLE};
 
 constexpr unsigned int MAX_DEPTH = 20;
 
@@ -111,8 +113,8 @@ inline void ListSplits(const Aabb& boundary,
                        Axis axis,
                        set<Event>* splits) {
   assert(boundary.GetVolume() > 0.0f);
-  float a = triangle.GetMin()[axis];
-  float b = triangle.GetMax()[axis];
+  float a = triangle.GetMin()[axis] - SPLIT_TRIANGLE_DISTANCE;
+  float b = triangle.GetMax()[axis] + SPLIT_TRIANGLE_DISTANCE;
   if (a == b) {
     splits->insert({a, PLANAR});
   } else {
@@ -179,8 +181,7 @@ SplitCost FindBestSplit(const KdBox& parent) {
     for (auto iter = splits.cbegin(); iter != splits.cend(); ++iter) {
       EventCount count = CountEvents(iter, splits.cend());
       nr = nr - count.pminus - count.pplane;
-      if (iter->distance > min[axis] + SPLIT_BOUNDARY_TOLERANCE &&
-          iter->distance < max[axis] - SPLIT_BOUNDARY_TOLERANCE) {
+      if (iter->distance > min[axis] && iter->distance < max[axis]) {
         Aap plane(axis, iter->distance);
         SplitCost split =
             CalculateCost(parent.boundary, plane, nl, nr, count.pplane);
@@ -214,8 +215,8 @@ KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
       // triangles.left.size() > triangles.right.size()
       util::append(&right_tris, triangles.plane);
     }
-    KdBox left{aabbs.left, left_tris};
-    KdBox right{aabbs.right, right_tris};
+    KdBox left{aabbs.left.Enlarge(BOUNDARY_TOLERANCE), left_tris};
+    KdBox right{aabbs.right.Enlarge(BOUNDARY_TOLERANCE), right_tris};
     return new KdNode(best.plane, BuildHelper(depth + 1, left),
                       BuildHelper(depth + 1, right));
   }
@@ -231,7 +232,8 @@ KdTree build(const vector<Triangle>& triangles) {
     ptrs.emplace_back(&triangle);
   }
 
+  Aabb boundary = geometry::find_bounding(triangles);
   return KdTree(
-      BuildHelper(0, KdBox{geometry::find_bounding(triangles), ptrs}));
+      BuildHelper(0, KdBox{boundary.Enlarge(BOUNDARY_TOLERANCE), ptrs}));
 }
 }  // namespace kdtree
