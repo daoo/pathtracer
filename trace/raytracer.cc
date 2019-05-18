@@ -44,7 +44,7 @@ vec3 Raytracer::LightContribution(const Scene& scene,
   if (!scene.AnyIntersect(shadow_ray, 0.0f, 1.0f)) {
     vec3 wr = glm::normalize(direction);
     vec3 radiance = light.GetEmitted(target);
-    return material->GetBrdf(wi, wr, n) * radiance * abs(dot(wr, n));
+    return material->GetBrdf(wi, wr, n) * radiance * std::abs(dot(wr, n));
   }
   return glm::zero<vec3>();
 }
