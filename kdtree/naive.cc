@@ -29,27 +29,27 @@ constexpr unsigned int MAX_DEPTH = 20;
 
 // A look up table have been empirically proven to be the fastest way to
 // calculate the next axis, compared to using modulo addition and bit hacks.
-constexpr geometry::Axis NEXT[] = {geometry::Y, geometry::Z, geometry::X};
-constexpr inline geometry::Axis next_axis(geometry::Axis axis) {
+constexpr Axis NEXT[] = {geometry::Y, geometry::Z, geometry::X};
+constexpr inline Axis next_axis(Axis axis) {
   return NEXT[axis];
 }
 
 struct KdBox {
   geometry::Aabb boundary;
-  std::vector<const geometry::Triangle*> triangles;
+  vector<const Triangle*> triangles;
 };
 
 struct KdSplit {
-  geometry::Aap plane;
+  Aap plane;
   KdBox left, right;
 };
 
-KdSplit Split(const KdBox& parent, const geometry::Aap& plane) {
-  geometry::AabbSplit aabbs = geometry::Split(parent.boundary, plane);
+KdSplit Split(const KdBox& parent, const Aap& plane) {
+  AabbSplit aabbs = geometry::Split(parent.boundary, plane);
   kdtree::IntersectResults triangles =
       kdtree::PartitionTriangles(parent.boundary, parent.triangles, plane);
-  std::vector<const geometry::Triangle*> left_tris(triangles.left);
-  std::vector<const geometry::Triangle*> right_tris(triangles.right);
+  vector<const Triangle*> left_tris(triangles.left);
+  vector<const Triangle*> right_tris(triangles.right);
   // Put plane-triangles on side with fewest triangels, or left if both equal.
   if (triangles.left.size() <= triangles.right.size()) {
     util::append(&left_tris, triangles.plane);

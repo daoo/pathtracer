@@ -24,6 +24,7 @@ struct Triangle;
 }  // namespace geometry
 
 using geometry::Aabb;
+using geometry::AabbSplit;
 using geometry::Aap;
 using geometry::Axis;
 using geometry::Triangle;
@@ -71,7 +72,7 @@ SplitCost CalculateCost(const Aabb& parent,
                         size_t right_count,
                         size_t plane_count) {
   assert(parent.GetSurfaceArea() > 0.0f);
-  geometry::AabbSplit split = geometry::Split(parent, plane);
+  AabbSplit split = geometry::Split(parent, plane);
   if (split.left.GetVolume() <= 0.0f) return SplitCost{plane, FLT_MAX, LEFT};
   if (split.right.GetVolume() <= 0.0f) return SplitCost{plane, FLT_MAX, RIGHT};
 
@@ -227,7 +228,7 @@ KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
   }
 
   SplitCost best = FindBestSplit(parent);
-  geometry::AabbSplit aabbs = geometry::Split(parent.boundary, best.plane);
+  AabbSplit aabbs = geometry::Split(parent.boundary, best.plane);
   IntersectResults triangles =
       kdtree::PartitionTriangles(parent.boundary, parent.triangles, best.plane);
   vector<const Triangle*> left_tris(triangles.left);
