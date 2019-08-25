@@ -17,6 +17,7 @@
 #include "geometry/split.h"
 #include "kdtree/intersect.h"
 #include "kdtree/kdtree.h"
+#include "kdtree/sah_cost.h"
 #include "util/vector.h"
 
 namespace geometry {
@@ -29,6 +30,7 @@ using geometry::Aap;
 using geometry::Axis;
 using geometry::Triangle;
 using glm::vec3;
+using kdtree::Cost;
 using kdtree::IntersectResults;
 using kdtree::KdNode;
 using std::vector;
@@ -36,62 +38,6 @@ using std::vector;
 namespace {
 
 constexpr unsigned int MAX_DEPTH = 20;
-
-constexpr float COST_EMPTY_FACTOR = 0.8f;
-constexpr float COST_TRAVERSE = 0.1f;
-constexpr float COST_INTERSECT = 1.0f;
-
-float CalculateCost(float probability_left,
-                    float probability_right,
-                    size_t number_left,
-                    size_t number_right) {
-  assert(probability_left >= 0);
-  assert(probability_right >= 0);
-  assert(probability_left > 0 || probability_right > 0);
-  float empty_factor =
-      number_left == 0 || number_right == 0 ? COST_EMPTY_FACTOR : 1.0f;
-  float traverse_cost = COST_TRAVERSE;
-  float intersect_cost = COST_INTERSECT * (probability_left * number_left +
-                                           probability_right * number_right);
-  return empty_factor * (traverse_cost + intersect_cost);
-}
-
-enum Side { LEFT, RIGHT };
-
-struct SplitCost {
-  Aap plane;
-  float cost;
-  Side side;
-
-  bool operator<(const SplitCost& other) const { return cost < other.cost; }
-};
-
-SplitCost CalculateCost(const Aabb& parent,
-                        const Aap& plane,
-                        size_t left_count,
-                        size_t right_count,
-                        size_t plane_count) {
-  assert(parent.GetSurfaceArea() > 0.0f);
-  AabbSplit split = geometry::Split(parent, plane);
-  if (split.left.GetVolume() <= 0.0f) return SplitCost{plane, FLT_MAX, LEFT};
-  if (split.right.GetVolume() <= 0.0f) return SplitCost{plane, FLT_MAX, RIGHT};
-
-  float surface_area_parent = parent.GetSurfaceArea();
-  float surface_area_left = split.left.GetSurfaceArea();
-  float surface_area_right = split.right.GetSurfaceArea();
-
-  float probability_left = surface_area_left / surface_area_parent;
-  float probability_right = surface_area_right / surface_area_parent;
-
-  float cost_plane_left = CalculateCost(probability_left, probability_right,
-                                        left_count + plane_count, right_count);
-  float cost_plane_right = CalculateCost(probability_left, probability_right,
-                                         left_count, right_count + plane_count);
-
-  return cost_plane_left <= cost_plane_right
-             ? SplitCost{plane, cost_plane_left, LEFT}
-             : SplitCost{plane, cost_plane_right, RIGHT};
-}
 
 struct Event {
   enum Type { END, PLANAR, START };
@@ -170,11 +116,17 @@ EventCount CountEvents(vector<Event>::const_iterator begin,
   return EventCount{pminus, pplus, pplane};
 }
 
-SplitCost FindBestSplit(const KdBox& parent) {
+struct Split {
+  geometry::Aap plane;
+  Cost cost;
+  bool operator<(const Split& other) const { return cost < other.cost; }
+};
+
+Split FindBestSplit(const KdBox& parent) {
   assert(parent.boundary.GetVolume() > 0.0f);
   assert(!parent.triangles.empty());
 
-  SplitCost best{{geometry::X, 0}, FLT_MAX, LEFT};
+  Split best{{geometry::X, 0}, {FLT_MAX, kdtree::LEFT}};
   for (int axis_index = 0; axis_index < 3; ++axis_index) {
     Axis axis = static_cast<Axis>(axis_index);
     size_t number_left = 0;
@@ -184,12 +136,13 @@ SplitCost FindBestSplit(const KdBox& parent) {
       EventCount count = CountEvents(iter, splits.cend());
       number_right = number_right - count.pminus - count.pplane;
       Aap plane(axis, iter->distance);
-      SplitCost split = CalculateCost(parent.boundary, plane, number_left,
-                                      number_right, count.pplane);
+      Cost cost = kdtree::CalculateSahCost(parent.boundary, plane, number_left,
+                                           number_right, count.pplane);
+      Split split{plane, cost};
 #ifndef NDEBUG
       printf("  FindBestSplit: Aap{%d, %f} cost=%f\n", axis,
              static_cast<double>(iter->distance),
-             static_cast<double>(split.cost));
+             static_cast<double>(split.cost.cost));
 #endif
       best = std::min(best, split);
       number_left = number_left + count.pplus + count.pplane;
@@ -200,7 +153,7 @@ SplitCost FindBestSplit(const KdBox& parent) {
          static_cast<double>(parent.boundary.GetVolume()),
          parent.triangles.size(), best.plane.GetAxis(),
          static_cast<double>(best.plane.GetDistance()),
-         static_cast<double>(best.cost), best.side);
+         static_cast<double>(best.cost.cost), best.cost.side);
 #endif
 
   return best;
@@ -227,7 +180,7 @@ KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
     return new KdNode(new vector<const Triangle*>(parent.triangles));
   }
 
-  SplitCost best = FindBestSplit(parent);
+  Split best = FindBestSplit(parent);
   AabbSplit aabbs = geometry::Split(parent.boundary, best.plane);
   IntersectResults triangles =
       kdtree::PartitionTriangles(parent.boundary, parent.triangles, best.plane);

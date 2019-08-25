@@ -117,6 +117,7 @@ tests = executable(
     'geometry/tribox_unittest.cc',
     'geometry/triray_unittest.cc',
     'kdtree/intersect_unittest.cc',
+    'kdtree/sah_cost_unittest.cc',
     'tests/unit-tests.cc',
     'trace/camera_unittest.cc',
     'trace/fastrand_unittest.cc',
