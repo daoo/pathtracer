@@ -9,6 +9,13 @@
 #include "geometry/aap.h"
 #include "geometry/triangle.h"
 
+inline std::ostream& operator<<(std::ostream& stream,
+                                const geometry::Axis& axis) {
+  const char* lookup[] = {"X", "Y", "Z"};
+  stream << lookup[axis];
+  return stream;
+}
+
 inline std::ostream& operator<<(std::ostream& stream, const glm::vec2& v) {
   stream << '{' << v.x << ',' << v.y << '}';
   return stream;

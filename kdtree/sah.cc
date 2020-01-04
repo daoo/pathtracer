@@ -176,6 +176,9 @@ KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
   }
 
   Split best = FindBestSplit(parent);
+  if (best.cost.cost >= FLT_MAX) {
+    return new KdNode(new vector<const Triangle*>(parent.triangles));
+  }
   AabbSplit aabbs = geometry::Split(parent.boundary, best.plane);
   IntersectResults triangles =
       kdtree::PartitionTriangles(parent.boundary, parent.triangles, best.plane);
