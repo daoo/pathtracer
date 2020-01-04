@@ -29,13 +29,6 @@ enum Side { LEFT, RIGHT };
 struct Cost {
   float cost;
   Side side;
-
-  bool operator==(const Cost& other) const {
-    return cost == other.cost && side == other.side;
-  }
-  bool operator<(const Cost& other) const {
-    return cost < other.cost && side < other.side;
-  }
 };
 
 Cost CalculateSahCost(const geometry::Aabb& parent,

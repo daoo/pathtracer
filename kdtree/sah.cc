@@ -8,7 +8,10 @@
 #include <vector>
 
 #ifndef NDEBUG
-#include <cstdlib>
+#include <iostream>
+
+#include "geometry/stream.h"
+#include "kdtree/stream.h"
 #endif
 
 #include "geometry/aabb.h"
@@ -119,7 +122,10 @@ EventCount CountEvents(vector<Event>::const_iterator begin,
 struct Split {
   geometry::Aap plane;
   Cost cost;
-  bool operator<(const Split& other) const { return cost < other.cost; }
+
+  static const Split& Cheapest(const Split& split1, const Split& split2) {
+    return split1.cost.cost <= split2.cost.cost ? split1 : split2;
+  }
 };
 
 Split FindBestSplit(const KdBox& parent) {
@@ -140,41 +146,30 @@ Split FindBestSplit(const KdBox& parent) {
                                            number_right, count.pplane);
       Split split{plane, cost};
 #ifndef NDEBUG
-      printf("  FindBestSplit: Aap{%d, %f} cost=%f\n", axis,
-             static_cast<double>(iter->distance),
-             static_cast<double>(split.cost.cost));
+      std::cout << "  FindBestSplit: " << plane << " cost=" << split.cost.cost
+                << "\n";
 #endif
-      best = std::min(best, split);
+      best = Split::Cheapest(best, split);
       number_left = number_left + count.pplus + count.pplane;
     }
   }
 #ifndef NDEBUG
-  printf("FindBestSplit({%f, %lu}) = {Aap{%d, %f}, cost=%f, side=%d}\n",
-         static_cast<double>(parent.boundary.GetVolume()),
-         parent.triangles.size(), best.plane.GetAxis(),
-         static_cast<double>(best.plane.GetDistance()),
-         static_cast<double>(best.cost.cost), best.cost.side);
+  std::cout << "FindBestSplit(...) = Split{" << best.plane << ", " << best.cost
+            << "}\n";
 #endif
 
   return best;
 }
 
 KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
-  assert(parent.boundary.GetVolume() > 0.0f);
-
 #ifndef NDEBUG
-  printf(
-      "BuildHelper("
-      "depth=%d, "
-      "Aabb{(%f, %f, %f), (%f, %f, %f)}, "
-      "triangles=%lu)\n",
-      depth, static_cast<double>(parent.boundary.GetMin().x),
-      static_cast<double>(parent.boundary.GetMin().y),
-      static_cast<double>(parent.boundary.GetMin().z),
-      static_cast<double>(parent.boundary.GetMax().x),
-      static_cast<double>(parent.boundary.GetMax().y),
-      static_cast<double>(parent.boundary.GetMax().z), parent.triangles.size());
+  std::cout << "BuildHelper("
+            << "depth=" << depth << ", "
+            << "parent=KdBox{" << parent.boundary
+            << ", triangles=" << parent.triangles.size() << "}"
+            << ")\n";
 #endif
+  assert(parent.boundary.GetVolume() > 0.0f);
 
   if (depth >= MAX_DEPTH || parent.triangles.empty()) {
     return new KdNode(new vector<const Triangle*>(parent.triangles));
