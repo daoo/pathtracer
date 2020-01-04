@@ -1,13 +1,7 @@
-project('pathtrace', 'cpp')
-
-compiler = meson.get_compiler('cpp')
-if compiler.has_argument('-std=c++17')
-  add_global_arguments('-std=c++17', language: 'cpp')
-elif compiler.has_argument('-std=c++1z')
-  add_global_arguments('-std=c++1z', language: 'cpp')
-else
-  error('compiler does not support c++17')
-endif
+project(
+  'pathtrace',
+  'cpp',
+  default_options: ['cpp_std=c++17'])
 
 threads = dependency('threads')
 glew = dependency('glew')
