@@ -41,6 +41,8 @@ using std::vector;
 namespace {
 
 constexpr unsigned int MAX_DEPTH = 20;
+constexpr float TOLERANCE = 0.000001f;
+constexpr glm::vec3 SIZE_TOLERANCE = glm::vec3(TOLERANCE, TOLERANCE, TOLERANCE);
 
 struct Event {
   enum Type { END, PLANAR, START };
@@ -191,8 +193,10 @@ KdNode* BuildHelper(unsigned int depth, const KdBox& parent) {
     // triangles.left.size() > triangles.right.size()
     util::append(&right_tris, triangles.plane);
   }
-  KdBox left{aabbs.left, left_tris};
-  KdBox right{aabbs.right, right_tris};
+  // Shrink each box slightly to ensure that the same split point is not used
+  // again as it will end up outside the bounding boxes.
+  KdBox left{aabbs.left.Enlarge(-SIZE_TOLERANCE), left_tris};
+  KdBox right{aabbs.right.Enlarge(-SIZE_TOLERANCE), right_tris};
   return new KdNode(best.plane, BuildHelper(depth + 1, left),
                     BuildHelper(depth + 1, right));
 }
