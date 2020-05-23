@@ -10,19 +10,20 @@ template <typename T>
 class ConcurrentQueue {
  public:
   void push(const T& data) {
-    std::unique_lock<std::mutex> lock(mutex_);
-    queue_.push(data);
-    lock.unlock();
+    {
+      const std::lock_guard<std::mutex> lock(mutex_);
+      queue_.push(data);
+    }
     cond_.notify_one();
   }
 
-  bool empty() const {
-    std::lock_guard<std::mutex> lock(mutex_);
+  bool empty() {
+    const std::lock_guard<std::mutex> lock(mutex_);
     return queue_.empty();
   }
 
   bool try_pop(T* val) {
-    std::lock_guard<std::mutex> lock(mutex_);
+    const std::lock_guard<std::mutex> lock(mutex_);
 
     if (queue_.empty()) return false;
 
