@@ -55,7 +55,8 @@ void print_status(unsigned int total_samples,
   double standard_deviation =
       glm::sqrt(mean_squared_time - mean_time * mean_time);
   unsigned int samples_left = total_samples - completed_samples;
-  double time_left = samples_left * mean_time / status.size();
+  double time_left_total = std::ceil(samples_left * mean_time);
+  size_t time_left = static_cast<size_t>(time_left_total) / status.size();
   std::cout << "\r[" << completed_samples << "/" << total_samples << "] ";
   std::cout << "mean: " << std::fixed << std::setprecision(1)
             << util::TimeAutoUnit(mean_time) << ", ";

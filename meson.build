@@ -115,6 +115,7 @@ tests = executable(
     'tests/unit-tests.cc',
     'trace/camera_unittest.cc',
     'trace/fastrand_unittest.cc',
+    'util/nicetime_unittest.cc',
     'wavefront/parser_unittest.cc',
     link_with: trace,
     dependencies: glm

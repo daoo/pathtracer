@@ -6,11 +6,10 @@
 namespace util {
 class TimeSplit {
  public:
-  explicit TimeSplit(double seconds)
-      : hours_(static_cast<size_t>(seconds / 3600.0)),
-        minutes_(static_cast<size_t>((seconds - (hours_ * 3600.0)) / 60.0)),
-        seconds_(static_cast<size_t>(seconds - (hours_ * 3600.0) -
-                                     (minutes_ * 60.0))) {}
+  explicit TimeSplit(size_t seconds)
+      : hours_(seconds / 3600),
+        minutes_((seconds - (hours_ * 3600)) / 60),
+        seconds_(seconds - (hours_ * 3600) - (minutes_ * 60)) {}
 
  private:
   friend std::ostream& operator<<(std::ostream&, const TimeSplit&);
