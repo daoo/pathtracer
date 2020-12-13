@@ -1,6 +1,0 @@
-os: linux
-services: docker
-
-script:
-  - docker build -t travis .
-  - docker run travis

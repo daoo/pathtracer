@@ -1,6 +1,6 @@
 # Pathtracer
 
-[![Build Status](https://travis-ci.org/daoo/pathtracer.svg?branch=master)](https://travis-ci.org/daoo/pathtracer)
+[![build](https://github.com/daoo/pathtracer/workflows/build/badge.svg)](https://github.com/daoo/pathtracer/actions?query=workflow%3Abuild)
 
 A pathtracer written in C++ which loads and renders obj files with (custom) mtl files.
 
