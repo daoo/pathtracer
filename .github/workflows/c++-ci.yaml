@@ -12,6 +12,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Build docker image
+      run: docker build -t ci .
     - name: Run docker image
-      uses: docker
-      image: 'Dockerfile'
+      run: docker run ci
