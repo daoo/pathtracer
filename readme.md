@@ -16,7 +16,7 @@ Uses meson and ninja for building:
     ninja -C builddir
 
 The [Dockerfile](https://github.com/daoo/pathtracer/blob/master/Dockerfile)
-describes the build environment that is used with travis.
+describes the build environment that is used with github workflows.
 
 ## Running
 
