@@ -1,10 +1,10 @@
-pub mod wavefront;
+mod wavefront;
 
 use std::env;
 use std::fs;
 use std::str;
 use std::path::Path;
-use wavefront::{mtl, obj};
+use crate::wavefront::{mtl, obj};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
