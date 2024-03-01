@@ -1,5 +1,7 @@
+use crate::geometry::aabb::Aabb;
 use crate::geometry::ray::Ray;
 use crate::geometry::triangle::Triangle;
+use nalgebra::Vector3;
 
 #[derive(Debug)]
 #[derive(PartialEq)]
@@ -49,6 +51,49 @@ pub fn find_closest_intersection(triangles: &[Triangle], ray: &Ray, mint: f32, m
         };
     }
     closest
+}
+
+pub fn intersect_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> bool {
+    let v0 = &triangle.v0 - &aabb.center;
+    let v1 = &triangle.v1 - &aabb.center;
+    let v2 = &triangle.v2 - &aabb.center;
+
+    let f0 = &v1 - &v0;
+    let f1 = &v2 - &v1;
+    let f2 = &v0 - &v2;
+
+    let u0 = Vector3::new(1.0, 0.0, 0.0);
+    let u1 = Vector3::new(0.0, 1.0, 0.0);
+    let u2 = Vector3::new(0.0, 0.0, 1.0);
+
+    let test_axis = |axis: &Vector3<f32>| {
+        let p0 = triangle.v0.dot(&axis);
+        let p1 = triangle.v1.dot(&axis);
+        let p2 = triangle.v2.dot(&axis);
+        let r = aabb.half_size.x * u0.dot(&axis).abs() +
+            aabb.half_size.y * u1.dot(&axis).abs() +
+            aabb.half_size.z * u2.dot(&axis).abs();
+        (-p0.max(p1.max(p2))).max(p0.min(p1.min(p2))) > r
+    };
+
+    if test_axis(&u0.cross(&f0)) { return false; }
+    if test_axis(&u0.cross(&f1)) { return false; }
+    if test_axis(&u0.cross(&f2)) { return false; }
+    if test_axis(&u1.cross(&f0)) { return false; }
+    if test_axis(&u1.cross(&f1)) { return false; }
+    if test_axis(&u1.cross(&f2)) { return false; }
+    if test_axis(&u2.cross(&f0)) { return false; }
+    if test_axis(&u2.cross(&f1)) { return false; }
+    if test_axis(&u2.cross(&f2)) { return false; }
+
+    if test_axis(&u0) { return false; }
+    if test_axis(&u1) { return false; }
+    if test_axis(&u2) { return false; }
+
+    let triangle_normal = f0.cross(&f1);
+    if test_axis(&triangle_normal) { return false; }
+
+    true
 }
 
 #[cfg(test)]
@@ -167,5 +212,29 @@ mod tests {
             &Vector3::new(triangle.v1.x, triangle.v1.y, 0.000001));
 
         assert_eq!(intersect(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.0}));
+    }
+
+    #[test]
+    fn test_intersect_triangle_aabb1() {
+        let triangle = triangle(
+            Vector3::new(0.0, 0.0, 0.0),
+            Vector3::new(1.0, 0.0, 0.0),
+            Vector3::new(0.0, 1.0, 0.0),
+        );
+        let aabb = Aabb { center: Vector3::new(0.0, 0.0, 0.0), half_size: Vector3::new(0.5, 0.5, 0.5) };
+
+        assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
+    }
+
+    #[test]
+    fn test_intersect_triangle_aabb2() {
+        let triangle = triangle(
+            Vector3::new(10.0, 10.0, 10.0),
+            Vector3::new(11.0, 10.0, 10.0),
+            Vector3::new(10.0, 11.0, 10.0),
+        );
+        let aabb = Aabb { center: Vector3::new(0.0, 0.0, 0.0), half_size: Vector3::new(0.5, 0.5, 0.5) };
+
+        assert_eq!(intersect_triangle_aabb(&triangle, &aabb), false);
     }
 }
