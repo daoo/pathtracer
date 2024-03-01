@@ -1,19 +1,17 @@
 use crate::geometry::ray::Ray;
 use crate::geometry::triangle::Triangle;
-use nalgebra::Vector2;
-use nalgebra::Vector3;
 
 #[derive(Debug)]
 #[derive(PartialEq)]
-pub struct TriangleRayIntersection<'a, 'b> {
-    triangle: &'a Triangle,
-    ray: &'b Ray,
+pub struct TriangleRayIntersection<'t, 'r> {
+    triangle: &'t Triangle,
+    ray: &'r Ray,
     t: f32,
     u: f32,
     v: f32,
 }
 
-pub fn intersect<'a, 'b>(triangle: &'a Triangle, ray: &'b Ray) -> Option<TriangleRayIntersection<'a, 'b>> {
+pub fn intersect<'t, 'r>(triangle: &'t Triangle, ray: &'r Ray) -> Option<TriangleRayIntersection<'t, 'r>> {
     let epsilon = 0.00001;
 
     let e1 = &triangle.v1 - &triangle.v0;
@@ -42,9 +40,26 @@ pub fn intersect<'a, 'b>(triangle: &'a Triangle, ray: &'b Ray) -> Option<Triangl
     Some(TriangleRayIntersection {triangle: &triangle, ray: &ray, t, u, v})
 }
 
+pub fn find_closest_intersection<'t, 'r>(triangles: &'t Vec<Triangle>, ray: &'r Ray, mint: f32, maxt: f32) -> Option<TriangleRayIntersection<'t, 'r>> {
+    let mut closest: Option<TriangleRayIntersection> = None;
+    let mut maxt = maxt;
+    for triangle in triangles {
+        closest = match intersect(triangle, ray) {
+            Some(intersection) if intersection.t >= mint && intersection.t <= maxt => {
+                maxt = intersection.t;
+                Some(intersection)
+            },
+            _ => closest
+        };
+    }
+    closest
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nalgebra::Vector2;
+    use nalgebra::Vector3;
 
     #[test]
     fn test_intersect() {
