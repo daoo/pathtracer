@@ -1,3 +1,4 @@
+use crate::geometry::aap::Aap;
 use nalgebra::Vector3;
 use nalgebra;
 
@@ -56,5 +57,25 @@ impl Aabb {
 
     pub fn clamp(&self, v: Vector3<f32>) -> Vector3<f32> {
         nalgebra::clamp(v, self.min(), self.max())
+    }
+
+    pub fn split(&self, plane: &Aap) -> (Aabb, Aabb) {
+        let fst_half_axis = (plane.distance - self.min()[plane.axis]) / 2.0;
+        let snd_half_axis = (self.max()[plane.axis] - plane.distance) / 2.0;
+        assert!(fst_half_axis >= 0.0 && snd_half_axis >= 0.0);
+
+        let mut fst_center = self.center;
+        let mut fst_half_size = self.half_size;
+        fst_center[plane.axis] = plane.distance - fst_half_axis;
+        fst_half_size[plane.axis] = fst_half_axis;
+
+        let mut snd_center = self.center;
+        let mut snd_half_size = self.half_size;
+        snd_center[plane.axis] = plane.distance + snd_half_axis;
+        snd_half_size[plane.axis] = snd_half_axis;
+
+        let fst = Aabb {center: fst_center, half_size: fst_half_size};
+        let snd = Aabb {center: snd_center, half_size: snd_half_size};
+        (fst, snd)
     }
 }
