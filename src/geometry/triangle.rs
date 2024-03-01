@@ -1,18 +1,18 @@
 use nalgebra::Vector2;
 use nalgebra::Vector3;
 
+#[derive(Debug)]
+#[derive(PartialEq)]
 pub struct Triangle {
-  v0: Vector3<f32>,
-  v1: Vector3<f32>,
-  v2: Vector3<f32>,
-  n0: Vector3<f32>,
-  n1: Vector3<f32>,
-  n2: Vector3<f32>,
-  uv0: Vector2<f32>,
-  uv1: Vector2<f32>,
-  uv2: Vector2<f32>,
-
-  // const void* tag;
+  pub v0: Vector3<f32>,
+  pub v1: Vector3<f32>,
+  pub v2: Vector3<f32>,
+  pub n0: Vector3<f32>,
+  pub n1: Vector3<f32>,
+  pub n2: Vector3<f32>,
+  pub uv0: Vector2<f32>,
+  pub uv1: Vector2<f32>,
+  pub uv2: Vector2<f32>,
 }
 
 impl Triangle {
