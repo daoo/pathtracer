@@ -16,6 +16,13 @@ impl Aabb {
         Aabb { center: min + half_size, half_size }
     }
 
+    pub fn empty() -> Aabb {
+        Aabb {
+            center: Vector3::zeros(),
+            half_size: Vector3::zeros(),
+        }
+    }
+
     pub fn unit() -> Aabb {
         Aabb {
             center: Vector3::new(0.0, 0.0, 0.0),

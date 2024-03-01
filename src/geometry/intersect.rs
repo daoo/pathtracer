@@ -36,7 +36,7 @@ pub fn intersect(triangle: &Triangle, ray: &Ray) -> Option<TriangleRayIntersecti
     Some(TriangleRayIntersection{t, u, v})
 }
 
-pub fn find_closest_intersection(triangles: &Vec<Triangle>, ray: &Ray, mint: f32, maxt: f32) -> Option<TriangleRayIntersection> {
+pub fn find_closest_intersection(triangles: &[Triangle], ray: &Ray, mint: f32, maxt: f32) -> Option<TriangleRayIntersection> {
     let mut closest: Option<TriangleRayIntersection> = None;
     let mut maxt = maxt;
     for triangle in triangles {
