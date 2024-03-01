@@ -23,6 +23,18 @@ impl Triangle {
     pub fn max(&self) -> Vector3<f32> {
         self.v0.sup(&self.v1.sup(&self.v2))
     }
+
+    pub fn e1(&self) -> Vector3<f32> {
+        &self.v1 - &self.v0
+    }
+
+    pub fn e2(&self) -> Vector3<f32> {
+        &self.v2 - &self.v0
+    }
+
+    pub fn center(&self) -> Vector3<f32> {
+        self.v0 + 0.5 * self.e1() + 0.5 * self.e2()
+    }
 }
 
 #[cfg(test)]
