@@ -1,5 +1,3 @@
-extern crate pathtracer;
-
 use pathtracer::geometry::triangle::*;
 use pathtracer::kdtree::*;
 use pathtracer::kdtree::build::*;
