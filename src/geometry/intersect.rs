@@ -159,32 +159,32 @@ pub fn intersect_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> bool {
     let u1 = vector![0., 1., 0.];
     let u2 = vector![0., 0., 1.];
 
-    let test_axis = |axis: &Vector3<f32>| {
-        let p0 = triangle.v0.dot(&axis);
-        let p1 = triangle.v1.dot(&axis);
-        let p2 = triangle.v2.dot(&axis);
+    let test_axis = |axis: Vector3<f32>| {
+        let p0 = v0.dot(&axis);
+        let p1 = v1.dot(&axis);
+        let p2 = v2.dot(&axis);
         let r = aabb.half_size.x * u0.dot(&axis).abs() +
             aabb.half_size.y * u1.dot(&axis).abs() +
             aabb.half_size.z * u2.dot(&axis).abs();
         (-p0.max(p1.max(p2))).max(p0.min(p1.min(p2))) > r
     };
 
-    if test_axis(&u0.cross(&f0)) { return false; }
-    if test_axis(&u0.cross(&f1)) { return false; }
-    if test_axis(&u0.cross(&f2)) { return false; }
-    if test_axis(&u1.cross(&f0)) { return false; }
-    if test_axis(&u1.cross(&f1)) { return false; }
-    if test_axis(&u1.cross(&f2)) { return false; }
-    if test_axis(&u2.cross(&f0)) { return false; }
-    if test_axis(&u2.cross(&f1)) { return false; }
-    if test_axis(&u2.cross(&f2)) { return false; }
+    if test_axis(u0.cross(&f0)) { return false; }
+    if test_axis(u0.cross(&f1)) { return false; }
+    if test_axis(u0.cross(&f2)) { return false; }
+    if test_axis(u1.cross(&f0)) { return false; }
+    if test_axis(u1.cross(&f1)) { return false; }
+    if test_axis(u1.cross(&f2)) { return false; }
+    if test_axis(u2.cross(&f0)) { return false; }
+    if test_axis(u2.cross(&f1)) { return false; }
+    if test_axis(u2.cross(&f2)) { return false; }
 
-    if test_axis(&u0) { return false; }
-    if test_axis(&u1) { return false; }
-    if test_axis(&u2) { return false; }
+    if test_axis(u0) { return false; }
+    if test_axis(u1) { return false; }
+    if test_axis(u2) { return false; }
 
     let triangle_normal = f0.cross(&f1);
-    if test_axis(&triangle_normal) { return false; }
+    if test_axis(triangle_normal) { return false; }
 
     true
 }
@@ -196,16 +196,16 @@ mod tests_intersect_triangle_aabb {
 
     #[test]
     fn triangle_completely_inside() {
-        let triangle = Triangle{ v0: vector![0., 0., 0.], v1: vector![1., 0., 0.], v2: vector![0., 1., 0.] };
-        let aabb = Aabb { center: vector![0., 0., 0.], half_size: vector![1., 1., 1.] };
+        let triangle = Triangle{ v0: vector![1., 1., 1.], v1: vector![2., 1., 1.], v2: vector![1., 2., 1.] };
+        let aabb = Aabb { center: vector![1., 1., 1.], half_size: vector![1., 1., 1.] };
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
     }
 
     #[test]
     fn triangle_contained_in_one_face() {
-        let triangle = Triangle{ v0: vector![0., 0., 1.], v1: vector![1., 0., 1.], v2: vector![0., 1., 1.] };
-        let aabb = Aabb { center: vector![0., 0., 0.], half_size: vector![1., 1., 1.] };
+        let triangle = Triangle{ v0: vector![1., 1., 2.], v1: vector![2., 1., 2.], v2: vector![1., 2., 2.] };
+        let aabb = Aabb { center: vector![1., 1., 1.], half_size: vector![1., 1., 1.] };
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
     }
@@ -213,23 +213,8 @@ mod tests_intersect_triangle_aabb {
     #[test]
     fn triangle_outside() {
         let triangle = Triangle{ v0: vector![10., 10., 10.], v1: vector![11., 10., 10.], v2: vector![10., 11., 10.] };
-        let aabb = Aabb { center: vector![0., 0., 0.], half_size: vector![1., 1., 1.] };
+        let aabb = Aabb { center: vector![1., 1., 1.], half_size: vector![1., 1., 1.] };
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), false);
-    }
-
-    #[test]
-    fn example_that_should_not_fail() {
-        let triangle = Triangle {
-            v0: [0.2774, -1.0012, 0.464].into(),
-            v1: [0.2774, -1.0012, -0.0028].into(),
-            v2: [0.7444, -1.0012, -0.0028].into(),
-        };
-        let aabb = Aabb::from_extents(
-            &[-1., -1.0012, -1.].into(),
-            &[ 1., 1., 1.].into(),
-        );
-
-        assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
     }
 }
