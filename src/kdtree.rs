@@ -78,23 +78,8 @@ impl<'t> KdTree<'t> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nalgebra::Vector2;
     use nalgebra::Vector3;
     use crate::geometry::aap::Axis;
-
-    fn triangle(v0: Vector3<f32>, v1: Vector3<f32>, v2: Vector3<f32>) -> Triangle {
-        Triangle {
-            v0,
-            v1,
-            v2,
-            n0: Vector3::zeros(),
-            n1: Vector3::zeros(),
-            n2: Vector3::zeros(),
-            uv0: Vector2::zeros(),
-            uv1: Vector2::zeros(),
-            uv2: Vector2::zeros(),
-        }
-    }
 
     #[test]
     fn intersect_empty_tree() {
@@ -106,8 +91,8 @@ mod tests {
 
     #[test]
     fn intersect_ray_intersecting_split_plane_and_both_triangles() {
-        let triangle0 = triangle(Vector3::new(0.0, 0.0, -1.0), Vector3::new(2.0, 0.0, -1.0), Vector3::new(2.0, 2.0, -1.0));
-        let triangle1 = triangle(Vector3::new(0.0, 0.0, 1.0), Vector3::new(2.0, 0.0, 1.0), Vector3::new(2.0, 2.0, 1.0));
+        let triangle0 = Triangle{ v0: Vector3::new(0.0, 0.0, -1.0), v1: Vector3::new(2.0, 0.0, -1.0), v2: Vector3::new(2.0, 2.0, -1.0) };
+        let triangle1 = Triangle{ v0: Vector3::new(0.0, 0.0, 1.0), v1: Vector3::new(2.0, 0.0, 1.0), v2: Vector3::new(2.0, 2.0, 1.0) };
         let tree = KdTree{
             root: KdNode::Node{
                 plane: Aap { axis: Axis::X, distance: 1.0 },
@@ -124,8 +109,8 @@ mod tests {
 
     #[test]
     fn intersect_ray_parallel_to_split_plane_and_intersecting_one_triangle() {
-        let triangle0 = triangle(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 0.0, 0.0), Vector3::new(0.0, 1.0, 0.0));
-        let triangle1 = triangle(Vector3::new(1.0, 0.0, 0.0), Vector3::new(2.0, 0.0, 0.0), Vector3::new(2.0, 1.0, 0.0));
+        let triangle0 = Triangle{ v0: Vector3::new(0.0, 0.0, 0.0), v1: Vector3::new(1.0, 0.0, 0.0), v2: Vector3::new(0.0, 1.0, 0.0) };
+        let triangle1 = Triangle{ v0: Vector3::new(1.0, 0.0, 0.0), v1: Vector3::new(2.0, 0.0, 0.0), v2: Vector3::new(2.0, 1.0, 0.0) };
         let tree = KdTree{
             root: KdNode::Node{
                 plane: Aap { axis: Axis::X, distance: 1.0 },
@@ -142,8 +127,8 @@ mod tests {
 
     #[test]
     fn intersect_ray_orthogonal_to_split_plane_and_intersecting_both_triangles() {
-        let triangle0 = triangle(Vector3::new(0.0, -1.0, -1.0), Vector3::new(0.0, 1.0, -1.0), Vector3::new(0.0, 1.0, 1.0));
-        let triangle1 = triangle(Vector3::new(2.0, -1.0, -1.0), Vector3::new(2.0, 1.0, -1.0), Vector3::new(2.0, 1.0, 1.0));
+        let triangle0 = Triangle{ v0: Vector3::new(0.0, -1.0, -1.0), v1: Vector3::new(0.0, 1.0, -1.0), v2: Vector3::new(0.0, 1.0, 1.0) };
+        let triangle1 = Triangle{ v0: Vector3::new(2.0, -1.0, -1.0), v1: Vector3::new(2.0, 1.0, -1.0), v2: Vector3::new(2.0, 1.0, 1.0) };
         let tree = KdTree{
             root: KdNode::Node{
                 plane: Aap { axis: Axis::X, distance: 1.0 },

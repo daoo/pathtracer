@@ -17,36 +17,13 @@ pub fn bounding(triangles: &[Triangle]) -> Aabb {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nalgebra::Vector2;
     use nalgebra::Vector3;
-
-    fn triangle(v0: Vector3<f32>, v1: Vector3<f32>, v2: Vector3<f32>) -> Triangle {
-        Triangle {
-            v0,
-            v1,
-            v2,
-            n0: Vector3::zeros(),
-            n1: Vector3::zeros(),
-            n2: Vector3::zeros(),
-            uv0: Vector2::zeros(),
-            uv1: Vector2::zeros(),
-            uv2: Vector2::zeros(),
-        }
-    }
 
     #[test]
     fn test_bounding() {
         let triangles = [
-            triangle(
-                Vector3::new(1.0, 1.0, 0.0),
-                Vector3::new(1.0, 1.0, 1.0),
-                Vector3::new(0.0, 0.0, 0.0),
-            ),
-            triangle(
-                Vector3::new(-1.0, -1.0, 0.0),
-                Vector3::new(-1.0, -1.0, -1.0),
-                Vector3::new(0.0, 0.0, 0.0),
-            ),
+            Triangle{ v0: Vector3::new(1.0, 1.0, 0.0), v1: Vector3::new(1.0, 1.0, 1.0), v2: Vector3::new(0.0, 0.0, 0.0) },
+            Triangle{ v0: Vector3::new(-1.0, -1.0, 0.0), v1: Vector3::new(-1.0, -1.0, -1.0), v2: Vector3::new(0.0, 0.0, 0.0) },
         ];
 
         let actual = bounding(&triangles);
