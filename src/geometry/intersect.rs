@@ -201,22 +201,6 @@ mod tests_intersect_triangle_ray {
     }
 }
 
-
-pub fn intersect_closest_triangle_ray(triangles: &[&Triangle], ray: &Ray, mint: f32, maxt: f32) -> Option<TriangleRayIntersection> {
-    let mut closest: Option<TriangleRayIntersection> = None;
-    let mut maxt = maxt;
-    for triangle in triangles {
-        closest = match intersect_triangle_ray(triangle, ray) {
-            Some(intersection) if intersection.t >= mint && intersection.t <= maxt => {
-                maxt = intersection.t;
-                Some(intersection)
-            },
-            _ => closest
-        };
-    }
-    closest
-}
-
 pub fn intersect_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> bool {
     let v0 = &triangle.v0 - &aabb.center;
     let v1 = &triangle.v1 - &aabb.center;

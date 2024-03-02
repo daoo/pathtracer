@@ -16,6 +16,23 @@ pub struct KdTree<'t> {
     pub root: KdNode<'t>
 }
 
+pub fn intersect_closest_triangle_ray(triangles: &[&Triangle], ray: &Ray, tmin: f32, tmax: f32) -> Option<TriangleRayIntersection> {
+    debug_assert!(tmin < tmax);
+    let mut closest: Option<TriangleRayIntersection> = None;
+    let t1 = tmin;
+    let mut t2 = tmax;
+    for triangle in triangles {
+        closest = match intersect_triangle_ray(triangle, ray) {
+            Some(intersection) if intersection.t >= t1 && intersection.t <= t2 => {
+                t2 = intersection.t;
+                Some(intersection)
+            },
+            _ => closest
+        };
+    }
+    closest
+}
+
 impl<'t> KdTree<'t> {
     pub fn intersect(&'t self, ray: &Ray, tmin: f32, tmax: f32) -> Option<TriangleRayIntersection> {
         debug_assert!(tmin < tmax);
