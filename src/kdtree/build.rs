@@ -1,6 +1,7 @@
 use crate::geometry::aabb::*;
 use crate::geometry::bounding::*;
 use crate::kdtree::*;
+use std::fmt;
 
 #[derive(Clone, Debug)]
 struct KdBox<'t> {
@@ -14,20 +15,29 @@ struct KdSplit<'t> {
     right: KdBox<'t>,
 }
 
-fn split_box<'t>(kd_box: KdBox<'t>, plane: &Aap) -> KdSplit<'t> {
-    let (left_aabb, right_aabb) = kd_box.boundary.split(plane);
+fn split_box<'t>(parent: KdBox<'t>, plane: &Aap) -> KdSplit<'t> {
+    let (left_aabb, right_aabb) = parent.boundary.split(plane);
     let mut left_triangles: Vec<&'t Triangle> = Vec::new();
     let mut right_triangles: Vec<&'t Triangle> = Vec::new();
-    for triangle in &kd_box.triangles {
-        let clamped_min = kd_box.boundary.clamp(triangle.min())[plane.axis];
-        let clamped_max = kd_box.boundary.clamp(triangle.max())[plane.axis];
-        let in_left = clamped_min < plane.distance;
-        let in_right = clamped_max > plane.distance;
+    for triangle in &parent.triangles {
+        let min = triangle.min()[plane.axis];
+        let max = triangle.max()[plane.axis];
+        let in_left = min < plane.distance;
+        let in_right = max > plane.distance;
         let in_plane = !in_left && !in_right;
         if in_left { left_triangles.push(&triangle); }
         if in_right { right_triangles.push(&triangle); }
         if in_plane { left_triangles.push(&triangle); }
     }
+    if !left_triangles.iter().all(|t| intersect_triangle_aabb(t, &left_aabb)) {
+        let strfix = |s: String| s.replace("[[", "vector![").replace("]]", "]");
+        println!("{}", strfix(format!("let left_aabb = {:?};", &left_aabb)));
+        println!("{}", strfix(format!("let right_aabb = {:?};", &right_aabb)));
+        println!("{}", strfix(format!("let left_triangles = {:?};", &left_triangles)));
+        println!("{}", strfix(format!("let right_triangles = {:?};", &right_triangles)));
+    }
+    debug_assert!(left_triangles.iter().all(|t| intersect_triangle_aabb(t, &left_aabb)));
+    debug_assert!(right_triangles.iter().all(|t| intersect_triangle_aabb(t, &right_aabb)));
     KdSplit{
         left: KdBox{boundary: left_aabb, triangles: left_triangles},
         right: KdBox{boundary: right_aabb, triangles: right_triangles},
@@ -66,7 +76,5 @@ fn build_kdtree_median_internal<'t>(max_depth: u32, depth: u32, axis: Axis, pare
 pub fn build_kdtree_median<'t>(max_depth: u32, triangles: &'t [Triangle]) -> KdTree<'t> {
     let triangle_refs: Vec<&'t Triangle> = triangles.iter().collect();
     let boundary: KdBox<'t> = KdBox{ boundary: bounding(triangles), triangles: triangle_refs };
-    dbg!(boundary.boundary.min(), boundary.boundary.max(), boundary.triangles.iter().filter(|t| !intersect_triangle_aabb(t, &boundary.boundary)).collect::<Vec<_>>());
-    debug_assert!(boundary.triangles.iter().all(|t| intersect_triangle_aabb(t, &boundary.boundary)));
     KdTree{ root: *build_kdtree_median_internal(max_depth, 0, Axis::X, boundary) }
 }
