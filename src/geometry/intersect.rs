@@ -217,4 +217,19 @@ mod tests_intersect_triangle_aabb {
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), false);
     }
+
+    #[test]
+    fn example_that_should_not_fail() {
+        let triangle = Triangle {
+            v0: [0.2774, -1.0012, 0.464].into(),
+            v1: [0.2774, -1.0012, -0.0028].into(),
+            v2: [0.7444, -1.0012, -0.0028].into(),
+        };
+        let aabb = Aabb::from_extents(
+            &[-1.0, -1.0012, -1.0].into(),
+            &[ 1.0, 1.0, 1.0].into(),
+        );
+
+        assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
+    }
 }
