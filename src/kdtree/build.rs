@@ -56,9 +56,6 @@ fn build_kdtree_median_internal<'t>(max_depth: u32, depth: u32, axis: Axis, pare
         return Box::new(KdNode::Leaf(parent.triangles.clone()))
     }
 
-    dbg!(depth, parent.boundary.min(), parent.boundary.max(), parent.triangles.iter().filter(|t| !intersect_triangle_aabb(t, &parent.boundary)).collect::<Vec<_>>());
-    debug_assert!(parent.triangles.iter().all(|t| intersect_triangle_aabb(t, &parent.boundary)));
-
     let plane = Aap{ axis, distance: median(&parent.triangles, axis) };
     let split = split_box(parent, &plane);
     let left = build_kdtree_median_internal(max_depth, depth + 1, NEXT_AXIS[axis], split.left);
@@ -69,5 +66,7 @@ fn build_kdtree_median_internal<'t>(max_depth: u32, depth: u32, axis: Axis, pare
 pub fn build_kdtree_median<'t>(max_depth: u32, triangles: &'t [Triangle]) -> KdTree<'t> {
     let triangle_refs: Vec<&'t Triangle> = triangles.iter().collect();
     let boundary: KdBox<'t> = KdBox{ boundary: bounding(triangles), triangles: triangle_refs };
+    dbg!(boundary.boundary.min(), boundary.boundary.max(), boundary.triangles.iter().filter(|t| !intersect_triangle_aabb(t, &boundary.boundary)).collect::<Vec<_>>());
+    debug_assert!(boundary.triangles.iter().all(|t| intersect_triangle_aabb(t, &boundary.boundary)));
     KdTree{ root: *build_kdtree_median_internal(max_depth, 0, Axis::X, boundary) }
 }
