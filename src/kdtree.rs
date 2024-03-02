@@ -2,7 +2,7 @@ use crate::geometry::aap::Aap;
 use crate::geometry::ray::Ray;
 use crate::geometry::triangle::Triangle;
 use crate::geometry::intersect::TriangleRayIntersection;
-use crate::geometry::intersect::find_closest_intersection;
+use crate::geometry::intersect::intersect_closest_triangle_ray;
 
 #[derive(Debug, PartialEq)]
 pub enum KdNode<'t> {
@@ -23,7 +23,7 @@ impl<'t> KdTree<'t> {
         loop {
             match node {
                 KdNode::Leaf(triangles) => {
-                    match find_closest_intersection(&triangles, ray, t1, t2) {
+                    match intersect_closest_triangle_ray(&triangles, ray, t1, t2) {
                         result@Some(_) => return result,
                         None if tmax == tmax => return None,
                         _ => {

@@ -10,7 +10,7 @@ pub struct TriangleRayIntersection {
     pub v: f32,
 }
 
-pub fn intersect(triangle: &Triangle, ray: &Ray) -> Option<TriangleRayIntersection> {
+pub fn intersect_triangle_ray(triangle: &Triangle, ray: &Ray) -> Option<TriangleRayIntersection> {
     let b0 = triangle.base0();
     let b1 = triangle.base1();
     let q = ray.direction.cross(&b1);
@@ -37,11 +37,11 @@ pub fn intersect(triangle: &Triangle, ray: &Ray) -> Option<TriangleRayIntersecti
     Some(TriangleRayIntersection{t, u, v})
 }
 
-pub fn find_closest_intersection(triangles: &[Triangle], ray: &Ray, mint: f32, maxt: f32) -> Option<TriangleRayIntersection> {
+pub fn intersect_closest_triangle_ray(triangles: &[Triangle], ray: &Ray, mint: f32, maxt: f32) -> Option<TriangleRayIntersection> {
     let mut closest: Option<TriangleRayIntersection> = None;
     let mut maxt = maxt;
     for triangle in triangles {
-        closest = match intersect(triangle, ray) {
+        closest = match intersect_triangle_ray(triangle, ray) {
             Some(intersection) if intersection.t >= mint && intersection.t <= maxt => {
                 maxt = intersection.t;
                 Some(intersection)
@@ -116,7 +116,7 @@ mod tests {
     }
 
     #[test]
-    fn test_intersect_center() {
+    fn test_intersect_triangle_ray_center() {
         let triangle = triangle(
             Vector3::new(0.0, 0.0, 0.0),
             Vector3::new(1.0, 0.0, 0.0),
@@ -126,11 +126,11 @@ mod tests {
             &Vector3::new(triangle.base_center().x, triangle.base_center().y, -1.0),
             &Vector3::new(triangle.base_center().x, triangle.base_center().y, 1.0));
 
-        assert_eq!(intersect(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.5}));
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.5}));
     }
 
     #[test]
-    fn test_intersect_through_v0() {
+    fn test_intersect_triangle_ray_through_v0() {
         let triangle = triangle(
             Vector3::new(0.0, 0.0, 0.0),
             Vector3::new(1.0, 0.0, 0.0),
@@ -140,11 +140,11 @@ mod tests {
             &Vector3::new(triangle.v0.x, triangle.v0.y, -1.0),
             &Vector3::new(triangle.v0.x, triangle.v0.y, 1.0));
 
-        assert_eq!(intersect(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.0, v: 0.0}));
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.0, v: 0.0}));
     }
 
     #[test]
-    fn test_intersect_through_v1() {
+    fn test_intersect_triangle_ray_through_v1() {
         let triangle = triangle(
             Vector3::new(0.0, 0.0, 0.0),
             Vector3::new(1.0, 0.0, 0.0),
@@ -154,11 +154,11 @@ mod tests {
             &Vector3::new(triangle.v1.x, triangle.v1.y, -1.0),
             &Vector3::new(triangle.v1.x, triangle.v1.y, 1.0));
 
-        assert_eq!(intersect(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 1.0, v: 0.0}));
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 1.0, v: 0.0}));
     }
 
     #[test]
-    fn test_intersect_through_v2() {
+    fn test_intersect_triangle_ray_through_v2() {
         let triangle = triangle(
             Vector3::new(0.0, 0.0, 0.0),
             Vector3::new(1.0, 0.0, 0.0),
@@ -168,11 +168,56 @@ mod tests {
             &Vector3::new(triangle.v2.x, triangle.v2.y, -1.0),
             &Vector3::new(triangle.v2.x, triangle.v2.y, 1.0));
 
-        assert_eq!(intersect(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.0, v: 1.0}));
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.0, v: 1.0}));
     }
 
     #[test]
-    fn test_intersect_parallel_touching() {
+    fn test_intersect_triangle_ray_through_edge0() {
+        let triangle = triangle(
+            Vector3::new(0.0, 0.0, 0.0),
+            Vector3::new(1.0, 0.0, 0.0),
+            Vector3::new(0.0, 1.0, 0.0),
+        );
+        let intersection_point = triangle.v0 + triangle.edge0() / 2.0;
+        let ray = Ray::between(
+            &Vector3::new(intersection_point.x, intersection_point.y, -1.0),
+            &Vector3::new(intersection_point.x, intersection_point.y, 1.0));
+
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.0}));
+    }
+
+    #[test]
+    fn test_intersect_triangle_ray_through_edge1() {
+        let triangle = triangle(
+            Vector3::new(0.0, 0.0, 0.0),
+            Vector3::new(1.0, 0.0, 0.0),
+            Vector3::new(0.0, 1.0, 0.0),
+        );
+        let intersection_point = triangle.v1 + triangle.edge1() / 2.0;
+        let ray = Ray::between(
+            &Vector3::new(intersection_point.x, intersection_point.y, -1.0),
+            &Vector3::new(intersection_point.x, intersection_point.y, 1.0));
+
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.5}));
+    }
+
+    #[test]
+    fn test_intersect_triangle_ray_through_edge2() {
+        let triangle = triangle(
+            Vector3::new(0.0, 0.0, 0.0),
+            Vector3::new(1.0, 0.0, 0.0),
+            Vector3::new(0.0, 1.0, 0.0),
+        );
+        let intersection_point = triangle.v2 + triangle.edge2() / 2.0;
+        let ray = Ray::between(
+            &Vector3::new(intersection_point.x, intersection_point.y, -1.0),
+            &Vector3::new(intersection_point.x, intersection_point.y, 1.0));
+
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.0, v: 0.5}));
+    }
+
+    #[test]
+    fn test_intersect_triangle_ray_parallel_touching() {
         let triangle = triangle(
             Vector3::new(0.0, 0.0, 0.0),
             Vector3::new(1.0, 0.0, 0.0),
@@ -182,11 +227,11 @@ mod tests {
             &Vector3::new(triangle.v0.x, triangle.v0.y, 0.0),
             &Vector3::new(triangle.v1.x, triangle.v1.y, 0.0));
 
-        assert_eq!(intersect(&triangle, &ray), None);
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), None);
     }
 
     #[test]
-    fn test_intersect_parallel_not_touching() {
+    fn test_intersect_triangle_ray_parallel_not_touching() {
         let triangle = triangle(
             Vector3::new(0.0, 0.0, 0.0),
             Vector3::new(1.0, 0.0, 0.0),
@@ -196,11 +241,11 @@ mod tests {
             &Vector3::new(triangle.v0.x, triangle.v0.y, 1.0),
             &Vector3::new(triangle.v1.x, triangle.v1.y, 1.0));
 
-        assert_eq!(intersect(&triangle, &ray), None);
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), None);
     }
 
     #[test]
-    fn test_intersect_almost_parallel_touching() {
+    fn test_intersect_triangle_ray_almost_parallel_touching() {
         let triangle = triangle(
             Vector3::new(0.0, 0.0, 0.0),
             Vector3::new(1.0, 0.0, 0.0),
@@ -210,7 +255,7 @@ mod tests {
             &Vector3::new(triangle.v0.x, triangle.v0.y, -0.000001),
             &Vector3::new(triangle.v1.x, triangle.v1.y, 0.000001));
 
-        assert_eq!(intersect(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.0}));
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.0}));
     }
 
     #[test]

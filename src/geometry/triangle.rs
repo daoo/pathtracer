@@ -45,7 +45,7 @@ impl Triangle {
     }
 
     pub fn edge2(&self) -> Vector3<f32> {
-        &self.v2 - &self.v1
+        &self.v0 - &self.v2
     }
 }
 
