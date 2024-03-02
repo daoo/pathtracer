@@ -12,54 +12,54 @@ use std::path::PathBuf;
 #[derive(Debug)]
 #[derive(PartialEq)]
 pub struct Point {
-    v: i32,
-    t: i32,
-    n: i32,
+    pub v: i32,
+    pub t: i32,
+    pub n: i32,
 }
 
 #[derive(Debug)]
 #[derive(PartialEq)]
 pub struct Face {
-    p1: Point,
-    p2: Point,
-    p3: Point,
+    pub p0: Point,
+    pub p1: Point,
+    pub p2: Point,
 }
 
 #[derive(Debug)]
 #[derive(PartialEq)]
 pub struct Chunk {
-    polygons: Vec<Face>,
-    material: String,
+    pub faces: Vec<Face>,
+    pub material: String,
 }
 
 impl Chunk {
     pub fn new(material: String) -> Chunk {
-        Chunk { polygons: Vec::new(), material }
+        Chunk { faces: Vec::new(), material }
     }
 }
 
 #[derive(Debug)]
 #[derive(PartialEq)]
 pub struct Obj {
-  mtl_lib: PathBuf,
+  pub mtl_lib: PathBuf,
 
-  vertices: Vec<Vector3<f32>>,
-  normals: Vec<Vector3<f32>>,
-  texcoords: Vec<Vector2<f32>>,
-  chunks: Vec<Chunk>,
+  pub vertices: Vec<Vector3<f32>>,
+  pub normals: Vec<Vector3<f32>>,
+  pub texcoords: Vec<Vector2<f32>>,
+  pub chunks: Vec<Chunk>,
 }
 
 impl Obj {
-    fn index_vertex(&self, i: i32) -> Vector3<f32> {
-        index_wavefront_vec(&self.vertices, i)
+    pub fn index_vertex(&self, point: &Point) -> Vector3<f32> {
+        index_wavefront_vec(&self.vertices, point.v)
     }
 
-    fn index_normal(&self, i: i32) -> Vector3<f32> {
-        index_wavefront_vec(&self.normals, i)
+    pub fn index_texcoord(&self, point: &Point) -> Vector2<f32> {
+        index_wavefront_vec(&self.texcoords, point.t)
     }
 
-    fn index_texcoord(&self, i: i32) -> Vector2<f32> {
-        index_wavefront_vec(&self.texcoords, i)
+    pub fn index_normal(&self, point: &Point) -> Vector3<f32> {
+        index_wavefront_vec(&self.normals, point.n)
     }
 }
 
@@ -69,7 +69,7 @@ fn index_wavefront_vec<T: Default + Clone>(v: &[T], i: i32) -> T {
     } else if i < 0 {
         v[((v.len() as i32) + i) as usize].clone()
     } else {
-        v[i as usize].clone()
+        v[(i - 1) as usize].clone()
     }
 }
 
@@ -102,7 +102,7 @@ fn point(input: &str) -> IResult<&str, Point> {
 fn triangle(input: &str) -> IResult<&str, Face> {
     (point, multispace0, point, multispace0, point)
         .parse(input)
-        .map(|(input, (p1, _, p2, _, p3))| (input, Face{ p1, p2, p3 }))
+        .map(|(input, (p0, _, p1, _, p2))| (input, Face{ p0, p1, p2 }))
 }
 
 pub fn obj(input: &str) -> Obj {
@@ -129,7 +129,7 @@ pub fn obj(input: &str) -> Obj {
         } else if let Ok((_, x)) = tagged("vt", vec2, line) {
             texcoords.push(x)
         } else if let Ok((_, x)) = tagged("f", triangle, line) {
-            chunks.last_mut().unwrap().polygons.push(x)
+            chunks.last_mut().unwrap().faces.push(x)
         } else if let Ok((_, _)) = tagged("o", rest, line) {
             // TODO: not supported
         } else if let Ok((_, _)) = tagged("s", rest, line) {
@@ -191,10 +191,10 @@ mod tests {
     #[test]
     fn test_faces() {
         assert_eq!(obj("usemtl m1\nf 1/2/3 4/5/6 7/8/9").chunks, [Chunk{
-            polygons: vec![Face{
-                p1: Point{v:1, t:2, n:3},
-                p2: Point{v:4, t:5, n:6},
-                p3: Point{v:7, t:8, n:9}
+            faces: vec![Face{
+                p0: Point{v:1, t:2, n:3},
+                p1: Point{v:4, t:5, n:6},
+                p2: Point{v:7, t:8, n:9}
             }],
             material: "m1".to_string()
         }]);
@@ -203,7 +203,7 @@ mod tests {
     #[test]
     fn test_usemtl() {
         assert_eq!(obj("usemtl m1").chunks, [Chunk{
-            polygons: vec![],
+            faces: vec![],
             material: "m1".to_string(),
         }]);
     }

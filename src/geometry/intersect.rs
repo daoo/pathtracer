@@ -202,7 +202,7 @@ mod tests_intersect_triangle_ray {
 }
 
 
-pub fn intersect_closest_triangle_ray(triangles: &[Triangle], ray: &Ray, mint: f32, maxt: f32) -> Option<TriangleRayIntersection> {
+pub fn intersect_closest_triangle_ray(triangles: &[&Triangle], ray: &Ray, mint: f32, maxt: f32) -> Option<TriangleRayIntersection> {
     let mut closest: Option<TriangleRayIntersection> = None;
     let mut maxt = maxt;
     for triangle in triangles {

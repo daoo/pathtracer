@@ -1,12 +1,13 @@
-use crate::geometry::aap::Aap;
-use crate::geometry::ray::Ray;
-use crate::geometry::triangle::Triangle;
-use crate::geometry::intersect::TriangleRayIntersection;
-use crate::geometry::intersect::intersect_closest_triangle_ray;
+use crate::geometry::aap::*;
+use crate::geometry::ray::*;
+use crate::geometry::triangle::*;
+use crate::geometry::intersect::*;
+
+pub mod build;
 
 #[derive(Debug, PartialEq)]
 pub enum KdNode<'t> {
-    Leaf(&'t [Triangle]),
+    Leaf(Vec<&'t Triangle>),
     Node { plane: Aap, left: Box<KdNode<'t>>, right: Box<KdNode<'t>>, },
 }
 
@@ -24,7 +25,7 @@ impl<'t> KdTree<'t> {
         loop {
             match node {
                 KdNode::Leaf(triangles) => {
-                    match intersect_closest_triangle_ray(&triangles, ray, t1, t2) {
+                    match intersect_closest_triangle_ray(triangles, ray, t1, t2) {
                         result@Some(_) => return result,
                         None if t2 == tmax => return None,
                         _ => {
@@ -84,7 +85,7 @@ mod tests {
 
     #[test]
     fn intersect_empty_tree() {
-        let tree = KdTree{ root: KdNode::Leaf(&[]) };
+        let tree = KdTree{ root: KdNode::Leaf(vec![]) };
         let ray = Ray::between(&Vector3::new(0.0, 0.0, 0.0), &Vector3::new(1.0, 1.0, 1.0));
 
         assert_eq!(tree.intersect(&ray, 0.0, 1.0), None);
@@ -92,15 +93,13 @@ mod tests {
 
     #[test]
     fn intersect_ray_intersecting_split_plane_and_both_triangles() {
-        let triangles = [
-            triangle(Vector3::new(0.0, 0.0, -1.0), Vector3::new(2.0, 0.0, -1.0), Vector3::new(2.0, 2.0, -1.0)),
-            triangle(Vector3::new(0.0, 0.0, 1.0), Vector3::new(2.0, 0.0, 1.0), Vector3::new(2.0, 2.0, 1.0)),
-        ];
+        let triangle0 = triangle(Vector3::new(0.0, 0.0, -1.0), Vector3::new(2.0, 0.0, -1.0), Vector3::new(2.0, 2.0, -1.0));
+        let triangle1 = triangle(Vector3::new(0.0, 0.0, 1.0), Vector3::new(2.0, 0.0, 1.0), Vector3::new(2.0, 2.0, 1.0));
         let tree = KdTree{
             root: KdNode::Node{
                 plane: Aap { axis: Axis::X, distance: 1.0 },
-                left: Box::new(KdNode::Leaf(&triangles[0..2])),
-                right: Box::new(KdNode::Leaf(&triangles[0..2])),
+                left: Box::new(KdNode::Leaf(vec![&triangle0, &triangle1])),
+                right: Box::new(KdNode::Leaf(vec![&triangle0, &triangle1])),
             }
         };
         let ray1 = Ray::between(&Vector3::new(1.0, 1.0, -2.0), &Vector3::new(1.0, 1.0, 2.0));
@@ -112,15 +111,13 @@ mod tests {
 
     #[test]
     fn intersect_ray_parallel_to_split_plane_and_intersecting_one_triangle() {
-        let triangles = [
-            triangle(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 0.0, 0.0), Vector3::new(0.0, 1.0, 0.0)),
-            triangle(Vector3::new(1.0, 0.0, 0.0), Vector3::new(2.0, 0.0, 0.0), Vector3::new(2.0, 1.0, 0.0)),
-        ];
+        let triangle0 = triangle(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 0.0, 0.0), Vector3::new(0.0, 1.0, 0.0));
+        let triangle1 = triangle(Vector3::new(1.0, 0.0, 0.0), Vector3::new(2.0, 0.0, 0.0), Vector3::new(2.0, 1.0, 0.0));
         let tree = KdTree{
             root: KdNode::Node{
                 plane: Aap { axis: Axis::X, distance: 1.0 },
-                left: Box::new(KdNode::Leaf(&triangles[0..1])),
-                right: Box::new(KdNode::Leaf(&triangles[1..2])),
+                left: Box::new(KdNode::Leaf(vec![&triangle0])),
+                right: Box::new(KdNode::Leaf(vec![&triangle1])),
             }
         };
         let ray_triangle0_v0 = Ray::between(&Vector3::new(0.0, 0.0, -1.0), &Vector3::new(0.0, 0.0, 1.0));
@@ -132,15 +129,13 @@ mod tests {
 
     #[test]
     fn intersect_ray_orthogonal_to_split_plane_and_intersecting_both_triangles() {
-        let triangles = [
-            triangle(Vector3::new(0.0, -1.0, -1.0), Vector3::new(0.0, 1.0, -1.0), Vector3::new(0.0, 1.0, 1.0)),
-            triangle(Vector3::new(2.0, -1.0, -1.0), Vector3::new(2.0, 1.0, -1.0), Vector3::new(2.0, 1.0, 1.0)),
-        ];
+        let triangle0 = triangle(Vector3::new(0.0, -1.0, -1.0), Vector3::new(0.0, 1.0, -1.0), Vector3::new(0.0, 1.0, 1.0));
+        let triangle1 = triangle(Vector3::new(2.0, -1.0, -1.0), Vector3::new(2.0, 1.0, -1.0), Vector3::new(2.0, 1.0, 1.0));
         let tree = KdTree{
             root: KdNode::Node{
                 plane: Aap { axis: Axis::X, distance: 1.0 },
-                left: Box::new(KdNode::Leaf(&triangles[0..1])),
-                right: Box::new(KdNode::Leaf(&triangles[1..2])),
+                left: Box::new(KdNode::Leaf(vec![&triangle0])),
+                right: Box::new(KdNode::Leaf(vec![&triangle1])),
             }
         };
         let ray1 = Ray::between(&Vector3::new(-1.0, 0.0, 0.0), &Vector3::new(3.0, 0.0, 0.0));

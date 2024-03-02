@@ -2,9 +2,7 @@ use crate::geometry::aap::Aap;
 use nalgebra::Vector3;
 use nalgebra;
 
-#[derive(Debug)]
-#[derive(PartialEq)]
-#[derive(PartialOrd)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Aabb {
     pub center: Vector3<f32>,
     pub half_size: Vector3<f32>,
