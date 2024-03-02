@@ -1,8 +1,7 @@
 use nalgebra::Vector2;
 use nalgebra::Vector3;
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Triangle {
   pub v0: Vector3<f32>,
   pub v1: Vector3<f32>,

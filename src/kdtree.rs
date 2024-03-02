@@ -13,7 +13,7 @@ pub enum KdNode<'t> {
 
 #[derive(Debug, PartialEq)]
 pub struct KdTree<'t> {
-    root: KdNode<'t>
+    pub root: KdNode<'t>
 }
 
 impl<'t> KdTree<'t> {
