@@ -156,18 +156,18 @@ mod tests {
 
     #[test]
     fn test_vec2() {
-        assert_eq!(vec2("0 0"), Ok(("", vector![0.0, 0.0])));
-        assert_eq!(vec2("1 2"), Ok(("", vector![1.0, 2.0])));
-        assert_eq!(vec2("1.0 2.0"), Ok(("", vector![1.0, 2.0])));
-        assert_eq!(vec2("-1.0 -2.0"), Ok(("", vector![-1.0, -2.0])));
+        assert_eq!(vec2("0 0"), Ok(("", vector![0., 0.])));
+        assert_eq!(vec2("1 2"), Ok(("", vector![1., 2.])));
+        assert_eq!(vec2("1. 2."), Ok(("", vector![1., 2.])));
+        assert_eq!(vec2("-1. -2."), Ok(("", vector![-1., -2.])));
     }
 
     #[test]
     fn test_vec3() {
-        assert_eq!(vec3("0 0 0"), Ok(("", vector![0.0, 0.0, 0.0])));
-        assert_eq!(vec3("1 2 3"), Ok(("", vector![1.0, 2.0, 3.0])));
-        assert_eq!(vec3("1.0 2.0 3.0"), Ok(("", vector![1.0, 2.0, 3.0])));
-        assert_eq!(vec3("-1.0 -2.0 -3.0"), Ok(("", vector![-1.0, -2.0, -3.0])));
+        assert_eq!(vec3("0 0 0"), Ok(("", vector![0., 0., 0.])));
+        assert_eq!(vec3("1 2 3"), Ok(("", vector![1., 2., 3.])));
+        assert_eq!(vec3("1. 2. 3."), Ok(("", vector![1., 2., 3.])));
+        assert_eq!(vec3("-1. -2. -3."), Ok(("", vector![-1., -2., -3.])));
     }
 
     #[test]
@@ -178,9 +178,9 @@ mod tests {
 
     #[test]
     fn test_data() {
-        assert_eq!(obj("v 1 2 3").vertices, [vector![1.0, 2.0, 3.0]]);
-        assert_eq!(obj("vt 1 2").texcoords, [vector![1.0, 2.0]]);
-        assert_eq!(obj("vn 1 2 3").normals, [vector![1.0, 2.0, 3.0]]);
+        assert_eq!(obj("v 1 2 3").vertices, [vector![1., 2., 3.]]);
+        assert_eq!(obj("vt 1 2").texcoords, [vector![1., 2.]]);
+        assert_eq!(obj("vn 1 2 3").normals, [vector![1., 2., 3.]]);
     }
 
     #[test]

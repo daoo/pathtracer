@@ -22,15 +22,15 @@ mod tests {
     #[test]
     fn test_bounding() {
         let triangles = [
-            Triangle{ v0: vector![1.0, 1.0, 0.0], v1: vector![1.0, 1.0, 1.0], v2: vector![0.0, 0.0, 0.0] },
-            Triangle{ v0: vector![-1.0, -1.0, 0.0], v1: vector![-1.0, -1.0, -1.0], v2: vector![0.0, 0.0, 0.0] },
+            Triangle{ v0: vector![1., 1., 0.], v1: vector![1., 1., 1.], v2: vector![0., 0., 0.] },
+            Triangle{ v0: vector![-1., -1., 0.], v1: vector![-1., -1., -1.], v2: vector![0., 0., 0.] },
         ];
 
         let actual = bounding(&triangles);
 
         let expected = Aabb {
-            center: vector![0.0, 0.0, 0.0],
-            half_size: vector![1.0, 1.0, 1.0]
+            center: vector![0., 0., 0.],
+            half_size: vector![1., 1., 1.]
         };
         assert_eq!(actual, expected);
     }

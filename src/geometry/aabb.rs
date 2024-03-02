@@ -11,7 +11,7 @@ pub struct Aabb {
 impl Aabb {
     pub fn from_extents(min: &Vector3<f32>, max: &Vector3<f32>) -> Aabb {
         let size = max - min;
-        let half_size = size / 2.0;
+        let half_size = size / 2.;
         Aabb { center: min + half_size, half_size }
     }
 
@@ -24,7 +24,7 @@ impl Aabb {
 
     pub fn unit() -> Aabb {
         Aabb {
-            center: vector![0.0, 0.0, 0.0],
+            center: vector![0., 0., 0.],
             half_size: vector![0.5, 0.5, 0.5],
         }
     }
@@ -38,11 +38,11 @@ impl Aabb {
     }
 
     pub fn surface_area(&self) -> f32 {
-        8.0 * (&self.half_size.x * &self.half_size.y + &self.half_size.x * &self.half_size.z + &self.half_size.y * &self.half_size.z)
+        8. * (&self.half_size.x * &self.half_size.y + &self.half_size.x * &self.half_size.z + &self.half_size.y * &self.half_size.z)
     }
 
     pub fn volume(&self) -> f32 {
-        8.0 * &self.half_size.x * &self.half_size.y * &self.half_size.z
+        8. * &self.half_size.x * &self.half_size.y * &self.half_size.z
     }
 
     pub fn translate(&self, delta: &Vector3<f32>) -> Aabb {
@@ -58,9 +58,9 @@ impl Aabb {
     }
 
     pub fn split(&self, plane: &Aap) -> (Aabb, Aabb) {
-        let fst_half_axis = (plane.distance - self.min()[plane.axis]) / 2.0;
-        let snd_half_axis = (self.max()[plane.axis] - plane.distance) / 2.0;
-        assert!(fst_half_axis >= 0.0 && snd_half_axis >= 0.0);
+        let fst_half_axis = (plane.distance - self.min()[plane.axis]) / 2.;
+        let snd_half_axis = (self.max()[plane.axis] - plane.distance) / 2.;
+        assert!(fst_half_axis >= 0. && snd_half_axis >= 0.);
 
         let mut fst_center = self.center;
         let mut fst_half_size = self.half_size;

@@ -55,21 +55,21 @@ mod tests {
     #[test]
     fn test_min_max() {
         let triangle = Triangle {
-            v0: vector![1.0, 2.0, 3.0],
-            v1: vector![4.0, 5.0, 6.0],
-            v2: vector![7.0, 8.0, 9.0],
+            v0: vector![1., 2., 3.],
+            v1: vector![4., 5., 6.],
+            v2: vector![7., 8., 9.],
         };
-        assert_eq!(triangle.min(), vector![1.0, 2.0, 3.0]);
-        assert_eq!(triangle.max(), vector![7.0, 8.0, 9.0]);
+        assert_eq!(triangle.min(), vector![1., 2., 3.]);
+        assert_eq!(triangle.max(), vector![7., 8., 9.]);
     }
 
     #[test]
     fn test_center() {
         let triangle = Triangle{
-            v0: vector![0.0, 0.0, 0.0],
-            v1: vector![1.0, 1.0, 1.0],
-            v2: vector![-1.0, -1.0, -1.0],
+            v0: vector![0., 0., 0.],
+            v1: vector![1., 1., 1.],
+            v2: vector![-1., -1., -1.],
         };
-        assert_eq!(triangle.base_center(), vector![0.0, 0.0, 0.0]);
+        assert_eq!(triangle.base_center(), vector![0., 0., 0.]);
     }
 }

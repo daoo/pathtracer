@@ -130,41 +130,41 @@ mod tests {
 
     #[test]
     fn test_vec3() {
-        assert_eq!(vec3("0 0 0"), Ok(("", vector![0.0, 0.0, 0.0])));
-        assert_eq!(vec3("1 2 3"), Ok(("", vector![1.0, 2.0, 3.0])));
-        assert_eq!(vec3("1.0 2.0 3.0"), Ok(("", vector![1.0, 2.0, 3.0])));
-        assert_eq!(vec3("-1.0 -2.0 -3.0"), Ok(("", vector![-1.0, -2.0, -3.0])));
+        assert_eq!(vec3("0 0 0"), Ok(("", vector![0., 0., 0.])));
+        assert_eq!(vec3("1 2 3"), Ok(("", vector![1., 2., 3.])));
+        assert_eq!(vec3("1. 2. 3."), Ok(("", vector![1., 2., 3.])));
+        assert_eq!(vec3("-1. -2. -3."), Ok(("", vector![-1., -2., -3.])));
     }
 
     #[test]
     fn test_light() {
         assert_eq!(mtl("newlight l1").lights.len(), 1);
-        assert_eq!(mtl("newlight l1\nlightposition 1.0 2.0 3.0").lights[0].position, vector![1.0, 2.0, 3.0]);
-        assert_eq!(mtl("newlight l1\nlightcolor 1.0 2.0 3.0").lights[0].color, vector![1.0, 2.0, 3.0]);
-        assert_eq!(mtl("newlight l1\nlightradius 1.0").lights[0].radius, 1.0);
-        assert_eq!(mtl("newlight l1\nlightintensity 1.0").lights[0].intensity, 1.0);
+        assert_eq!(mtl("newlight l1\nlightposition 1. 2. 3.").lights[0].position, vector![1., 2., 3.]);
+        assert_eq!(mtl("newlight l1\nlightcolor 1. 2. 3.").lights[0].color, vector![1., 2., 3.]);
+        assert_eq!(mtl("newlight l1\nlightradius 1.").lights[0].radius, 1.);
+        assert_eq!(mtl("newlight l1\nlightintensity 1.").lights[0].intensity, 1.);
     }
 
     #[test]
     fn test_camera() {
         assert_eq!(mtl("newcamera c1").cameras.len(), 1);
-        assert_eq!(mtl("newcamera c1\ncameraposition 1.0 2.0 3.0").cameras[0].position, vector![1.0, 2.0, 3.0]);
-        assert_eq!(mtl("newcamera c1\ncameratarget 1.0 2.0 3.0").cameras[0].target, vector![1.0, 2.0, 3.0]);
-        assert_eq!(mtl("newcamera c1\ncameraup 1.0 2.0 3.0").cameras[0].up, vector![1.0, 2.0, 3.0]);
-        assert_eq!(mtl("newcamera c1\ncamerafov 1.0").cameras[0].fov, 1.0);
+        assert_eq!(mtl("newcamera c1\ncameraposition 1. 2. 3.").cameras[0].position, vector![1., 2., 3.]);
+        assert_eq!(mtl("newcamera c1\ncameratarget 1. 2. 3.").cameras[0].target, vector![1., 2., 3.]);
+        assert_eq!(mtl("newcamera c1\ncameraup 1. 2. 3.").cameras[0].up, vector![1., 2., 3.]);
+        assert_eq!(mtl("newcamera c1\ncamerafov 1.").cameras[0].fov, 1.);
     }
 
     #[test]
     fn test_mtl() {
         assert_eq!(mtl("newmtl m1").materials.len(), 1);
         assert_eq!(mtl("newmtl m1").materials[0].name, "m1");
-        assert_eq!(mtl("newmtl m1\nkd 1.0 2.0 3.0").materials[0].diffuse_reflection, vector![1.0, 2.0, 3.0]);
-        assert_eq!(mtl("newmtl m1\nks 1.0 2.0 3.0").materials[0].specular_reflection, vector![1.0, 2.0, 3.0]);
-        assert_eq!(mtl("newmtl m1\nreflat0deg 1.0").materials[0].reflection_0_degrees, 1.0);
-        assert_eq!(mtl("newmtl m1\nreflat90deg 1.0").materials[0].reflection_90_degrees, 1.0);
-        assert_eq!(mtl("newmtl m1\nindexofrefraction 1.0").materials[0].index_of_refraction, 1.0);
-        assert_eq!(mtl("newmtl m1\ntransparency 1.0").materials[0].transparency, 1.0);
-        assert_eq!(mtl("newmtl m1\nspecularroughness 1.0").materials.len(), 1);
+        assert_eq!(mtl("newmtl m1\nkd 1. 2. 3.").materials[0].diffuse_reflection, vector![1., 2., 3.]);
+        assert_eq!(mtl("newmtl m1\nks 1. 2. 3.").materials[0].specular_reflection, vector![1., 2., 3.]);
+        assert_eq!(mtl("newmtl m1\nreflat0deg 1.").materials[0].reflection_0_degrees, 1.);
+        assert_eq!(mtl("newmtl m1\nreflat90deg 1.").materials[0].reflection_90_degrees, 1.);
+        assert_eq!(mtl("newmtl m1\nindexofrefraction 1.").materials[0].index_of_refraction, 1.);
+        assert_eq!(mtl("newmtl m1\ntransparency 1.").materials[0].transparency, 1.);
+        assert_eq!(mtl("newmtl m1\nspecularroughness 1.").materials.len(), 1);
         assert_eq!(mtl("newmtl m1\nmap_kd todo").materials.len(), 1);
     }
 }

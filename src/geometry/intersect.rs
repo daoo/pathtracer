@@ -16,20 +16,20 @@ pub fn intersect_triangle_ray(triangle: &Triangle, ray: &Ray) -> Option<Triangle
     let q = ray.direction.cross(&b1);
 
     let a = b0.dot(&q);
-    if a == 0.0 {
+    if a == 0. {
         return None
     }
 
     let s = &ray.origin - &triangle.v0;
-    let f = 1.0 / a;
+    let f = 1. / a;
     let u = f * s.dot(&q);
-    if u < 0.0 || u > 1.0 {
+    if u < 0. || u > 1. {
         return None
     }
 
     let r = s.cross(&b0);
     let v = f * ray.direction.dot(&r);
-    if v < 0.0 || (u + v) > 1.0 {
+    if v < 0. || (u + v) > 1. {
         return None
     }
 
@@ -46,103 +46,103 @@ mod tests_intersect_triangle_ray {
     fn through_base_center() {
         let triangle = Triangle{ v0: vector![0., 0., 0.], v1: vector![1., 0., 0.], v2: vector![0., 1., 0.] };
         let ray = Ray::between(
-            &vector![triangle.base_center().x, triangle.base_center().y, -1.0],
-            &vector![triangle.base_center().x, triangle.base_center().y, 1.0]);
+            &vector![triangle.base_center().x, triangle.base_center().y, -1.],
+            &vector![triangle.base_center().x, triangle.base_center().y, 1.]);
 
         assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.5}));
     }
 
     #[test]
     fn through_v0() {
-        let triangle = Triangle{ v0: vector![0.0, 0.0, 0.0], v1: vector![1.0, 0.0, 0.0], v2: vector![0.0, 1.0, 0.0] };
+        let triangle = Triangle{ v0: vector![0., 0., 0.], v1: vector![1., 0., 0.], v2: vector![0., 1., 0.] };
         let ray = Ray::between(
-            &vector![triangle.v0.x, triangle.v0.y, -1.0],
-            &vector![triangle.v0.x, triangle.v0.y, 1.0]);
+            &vector![triangle.v0.x, triangle.v0.y, -1.],
+            &vector![triangle.v0.x, triangle.v0.y, 1.]);
 
-        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.0, v: 0.0}));
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0., v: 0.}));
     }
 
     #[test]
     fn through_v1() {
-        let triangle = Triangle{ v0: vector![0.0, 0.0, 0.0], v1: vector![1.0, 0.0, 0.0], v2: vector![0.0, 1.0, 0.0] };
+        let triangle = Triangle{ v0: vector![0., 0., 0.], v1: vector![1., 0., 0.], v2: vector![0., 1., 0.] };
         let ray = Ray::between(
-            &vector![triangle.v1.x, triangle.v1.y, -1.0],
-            &vector![triangle.v1.x, triangle.v1.y, 1.0]);
+            &vector![triangle.v1.x, triangle.v1.y, -1.],
+            &vector![triangle.v1.x, triangle.v1.y, 1.]);
 
-        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 1.0, v: 0.0}));
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 1., v: 0.}));
     }
 
     #[test]
     fn through_v2() {
-        let triangle = Triangle{ v0: vector![0.0, 0.0, 0.0], v1: vector![1.0, 0.0, 0.0], v2: vector![0.0, 1.0, 0.0] };
+        let triangle = Triangle{ v0: vector![0., 0., 0.], v1: vector![1., 0., 0.], v2: vector![0., 1., 0.] };
         let ray = Ray::between(
-            &vector![triangle.v2.x, triangle.v2.y, -1.0],
-            &vector![triangle.v2.x, triangle.v2.y, 1.0]);
+            &vector![triangle.v2.x, triangle.v2.y, -1.],
+            &vector![triangle.v2.x, triangle.v2.y, 1.]);
 
-        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.0, v: 1.0}));
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0., v: 1.}));
     }
 
     #[test]
     fn through_edge0() {
-        let triangle = Triangle{ v0: vector![0.0, 0.0, 0.0], v1: vector![1.0, 0.0, 0.0], v2: vector![0.0, 1.0, 0.0] };
-        let intersection_point = triangle.v0 + triangle.edge0() / 2.0;
+        let triangle = Triangle{ v0: vector![0., 0., 0.], v1: vector![1., 0., 0.], v2: vector![0., 1., 0.] };
+        let intersection_point = triangle.v0 + triangle.edge0() / 2.;
         let ray = Ray::between(
-            &vector![intersection_point.x, intersection_point.y, -1.0],
-            &vector![intersection_point.x, intersection_point.y, 1.0]);
+            &vector![intersection_point.x, intersection_point.y, -1.],
+            &vector![intersection_point.x, intersection_point.y, 1.]);
 
-        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.0}));
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.}));
     }
 
     #[test]
     fn through_edge1() {
-        let triangle = Triangle{ v0: vector![0.0, 0.0, 0.0], v1: vector![1.0, 0.0, 0.0], v2: vector![0.0, 1.0, 0.0] };
-        let intersection_point = triangle.v1 + triangle.edge1() / 2.0;
+        let triangle = Triangle{ v0: vector![0., 0., 0.], v1: vector![1., 0., 0.], v2: vector![0., 1., 0.] };
+        let intersection_point = triangle.v1 + triangle.edge1() / 2.;
         let ray = Ray::between(
-            &vector![intersection_point.x, intersection_point.y, -1.0],
-            &vector![intersection_point.x, intersection_point.y, 1.0]);
+            &vector![intersection_point.x, intersection_point.y, -1.],
+            &vector![intersection_point.x, intersection_point.y, 1.]);
 
         assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.5}));
     }
 
     #[test]
     fn through_edge2() {
-        let triangle = Triangle{ v0: vector![0.0, 0.0, 0.0], v1: vector![1.0, 0.0, 0.0], v2: vector![0.0, 1.0, 0.0] };
-        let intersection_point = triangle.v2 + triangle.edge2() / 2.0;
+        let triangle = Triangle{ v0: vector![0., 0., 0.], v1: vector![1., 0., 0.], v2: vector![0., 1., 0.] };
+        let intersection_point = triangle.v2 + triangle.edge2() / 2.;
         let ray = Ray::between(
-            &vector![intersection_point.x, intersection_point.y, -1.0],
-            &vector![intersection_point.x, intersection_point.y, 1.0]);
+            &vector![intersection_point.x, intersection_point.y, -1.],
+            &vector![intersection_point.x, intersection_point.y, 1.]);
 
-        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.0, v: 0.5}));
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0., v: 0.5}));
     }
 
     #[test]
     fn parallel_touching() {
-        let triangle = Triangle{ v0: vector![0.0, 0.0, 0.0], v1: vector![1.0, 0.0, 0.0], v2: vector![0.0, 1.0, 0.0] };
+        let triangle = Triangle{ v0: vector![0., 0., 0.], v1: vector![1., 0., 0.], v2: vector![0., 1., 0.] };
         let ray = Ray::between(
-            &vector![triangle.v0.x, triangle.v0.y, 0.0],
-            &vector![triangle.v1.x, triangle.v1.y, 0.0]);
+            &vector![triangle.v0.x, triangle.v0.y, 0.],
+            &vector![triangle.v1.x, triangle.v1.y, 0.]);
 
         assert_eq!(intersect_triangle_ray(&triangle, &ray), None);
     }
 
     #[test]
     fn parallel_not_touching() {
-        let triangle = Triangle{ v0: vector![0.0, 0.0, 0.0], v1: vector![1.0, 0.0, 0.0], v2: vector![0.0, 1.0, 0.0] };
+        let triangle = Triangle{ v0: vector![0., 0., 0.], v1: vector![1., 0., 0.], v2: vector![0., 1., 0.] };
         let ray = Ray::between(
-            &vector![triangle.v0.x, triangle.v0.y, 1.0],
-            &vector![triangle.v1.x, triangle.v1.y, 1.0]);
+            &vector![triangle.v0.x, triangle.v0.y, 1.],
+            &vector![triangle.v1.x, triangle.v1.y, 1.]);
 
         assert_eq!(intersect_triangle_ray(&triangle, &ray), None);
     }
 
     #[test]
     fn almost_parallel_touching() {
-        let triangle = Triangle{ v0: vector![0.0, 0.0, 0.0], v1: vector![1.0, 0.0, 0.0], v2: vector![0.0, 1.0, 0.0] };
+        let triangle = Triangle{ v0: vector![0., 0., 0.], v1: vector![1., 0., 0.], v2: vector![0., 1., 0.] };
         let ray = Ray::between(
             &vector![triangle.v0.x, triangle.v0.y, -0.000001],
             &vector![triangle.v1.x, triangle.v1.y, 0.000001]);
 
-        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.0}));
+        assert_eq!(intersect_triangle_ray(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.}));
     }
 }
 
@@ -155,9 +155,9 @@ pub fn intersect_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> bool {
     let f1 = &v2 - &v1;
     let f2 = &v0 - &v2;
 
-    let u0 = vector![1.0, 0.0, 0.0];
-    let u1 = vector![0.0, 1.0, 0.0];
-    let u2 = vector![0.0, 0.0, 1.0];
+    let u0 = vector![1., 0., 0.];
+    let u1 = vector![0., 1., 0.];
+    let u2 = vector![0., 0., 1.];
 
     let test_axis = |axis: &Vector3<f32>| {
         let p0 = triangle.v0.dot(&axis);
@@ -196,24 +196,24 @@ mod tests_intersect_triangle_aabb {
 
     #[test]
     fn triangle_completely_inside() {
-        let triangle = Triangle{ v0: vector![0.0, 0.0, 0.0], v1: vector![1.0, 0.0, 0.0], v2: vector![0.0, 1.0, 0.0] };
-        let aabb = Aabb { center: vector![0.0, 0.0, 0.0], half_size: vector![1.0, 1.0, 1.0] };
+        let triangle = Triangle{ v0: vector![0., 0., 0.], v1: vector![1., 0., 0.], v2: vector![0., 1., 0.] };
+        let aabb = Aabb { center: vector![0., 0., 0.], half_size: vector![1., 1., 1.] };
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
     }
 
     #[test]
     fn triangle_contained_in_one_face() {
-        let triangle = Triangle{ v0: vector![0.0, 0.0, 1.0], v1: vector![1.0, 0.0, 1.0], v2: vector![0.0, 1.0, 1.0] };
-        let aabb = Aabb { center: vector![0.0, 0.0, 0.0], half_size: vector![1.0, 1.0, 1.0] };
+        let triangle = Triangle{ v0: vector![0., 0., 1.], v1: vector![1., 0., 1.], v2: vector![0., 1., 1.] };
+        let aabb = Aabb { center: vector![0., 0., 0.], half_size: vector![1., 1., 1.] };
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
     }
 
     #[test]
     fn triangle_outside() {
-        let triangle = Triangle{ v0: vector![10.0, 10.0, 10.0], v1: vector![11.0, 10.0, 10.0], v2: vector![10.0, 11.0, 10.0] };
-        let aabb = Aabb { center: vector![0.0, 0.0, 0.0], half_size: vector![1.0, 1.0, 1.0] };
+        let triangle = Triangle{ v0: vector![10., 10., 10.], v1: vector![11., 10., 10.], v2: vector![10., 11., 10.] };
+        let aabb = Aabb { center: vector![0., 0., 0.], half_size: vector![1., 1., 1.] };
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), false);
     }
@@ -226,8 +226,8 @@ mod tests_intersect_triangle_aabb {
             v2: [0.7444, -1.0012, -0.0028].into(),
         };
         let aabb = Aabb::from_extents(
-            &[-1.0, -1.0012, -1.0].into(),
-            &[ 1.0, 1.0, 1.0].into(),
+            &[-1., -1.0012, -1.].into(),
+            &[ 1., 1., 1.].into(),
         );
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);

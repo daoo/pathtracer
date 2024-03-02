@@ -43,7 +43,7 @@ fn median(triangles: &[&Triangle], axis: Axis) -> f32 {
     points.sort_by(f32::total_cmp);
     let middle = points.len() / 2;
     if points.len() % 2 == 0 {
-        (points[middle] + points[middle + 1]) / 2.0
+        (points[middle] + points[middle + 1]) / 2.
     } else {
         points[middle]
     }
