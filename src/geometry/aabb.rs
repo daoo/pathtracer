@@ -1,5 +1,5 @@
 use crate::geometry::aap::Aap;
-use nalgebra::Vector3;
+use nalgebra::{vector, Vector3};
 use nalgebra;
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
@@ -24,8 +24,8 @@ impl Aabb {
 
     pub fn unit() -> Aabb {
         Aabb {
-            center: Vector3::new(0.0, 0.0, 0.0),
-            half_size: Vector3::new(0.5, 0.5, 0.5),
+            center: vector![0.0, 0.0, 0.0],
+            half_size: vector![0.5, 0.5, 0.5],
         }
     }
 

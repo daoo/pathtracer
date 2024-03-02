@@ -1,4 +1,4 @@
-use nalgebra::Vector3;
+use nalgebra::{vector, Vector3};
 use nom::IResult;
 use nom::bytes::complete::tag_no_case;
 use nom::character::complete::multispace0;
@@ -58,7 +58,7 @@ fn tagged<'a, O>(name: &str, data: impl Fn(&'a str) -> IResult<&'a str, O>, inpu
 
 fn vec3(input: &str) -> IResult<&str, Vector3<f32>> {
     let (input, (x, _, y, _, z)) = (float, multispace0, float, multispace0, float).parse(input)?;
-    Ok((input, Vector3::new(x, y, z)))
+    Ok((input, vector![x, y, z]))
 }
 
 pub fn mtl(input: &str) -> Mtl {
@@ -130,17 +130,17 @@ mod tests {
 
     #[test]
     fn test_vec3() {
-        assert_eq!(vec3("0 0 0"), Ok(("", Vector3::new(0.0, 0.0, 0.0))));
-        assert_eq!(vec3("1 2 3"), Ok(("", Vector3::new(1.0, 2.0, 3.0))));
-        assert_eq!(vec3("1.0 2.0 3.0"), Ok(("", Vector3::new(1.0, 2.0, 3.0))));
-        assert_eq!(vec3("-1.0 -2.0 -3.0"), Ok(("", Vector3::new(-1.0, -2.0, -3.0))));
+        assert_eq!(vec3("0 0 0"), Ok(("", vector![0.0, 0.0, 0.0])));
+        assert_eq!(vec3("1 2 3"), Ok(("", vector![1.0, 2.0, 3.0])));
+        assert_eq!(vec3("1.0 2.0 3.0"), Ok(("", vector![1.0, 2.0, 3.0])));
+        assert_eq!(vec3("-1.0 -2.0 -3.0"), Ok(("", vector![-1.0, -2.0, -3.0])));
     }
 
     #[test]
     fn test_light() {
         assert_eq!(mtl("newlight l1").lights.len(), 1);
-        assert_eq!(mtl("newlight l1\nlightposition 1.0 2.0 3.0").lights[0].position, Vector3::new(1.0, 2.0, 3.0));
-        assert_eq!(mtl("newlight l1\nlightcolor 1.0 2.0 3.0").lights[0].color, Vector3::new(1.0, 2.0, 3.0));
+        assert_eq!(mtl("newlight l1\nlightposition 1.0 2.0 3.0").lights[0].position, vector![1.0, 2.0, 3.0]);
+        assert_eq!(mtl("newlight l1\nlightcolor 1.0 2.0 3.0").lights[0].color, vector![1.0, 2.0, 3.0]);
         assert_eq!(mtl("newlight l1\nlightradius 1.0").lights[0].radius, 1.0);
         assert_eq!(mtl("newlight l1\nlightintensity 1.0").lights[0].intensity, 1.0);
     }
@@ -148,9 +148,9 @@ mod tests {
     #[test]
     fn test_camera() {
         assert_eq!(mtl("newcamera c1").cameras.len(), 1);
-        assert_eq!(mtl("newcamera c1\ncameraposition 1.0 2.0 3.0").cameras[0].position, Vector3::new(1.0, 2.0, 3.0));
-        assert_eq!(mtl("newcamera c1\ncameratarget 1.0 2.0 3.0").cameras[0].target, Vector3::new(1.0, 2.0, 3.0));
-        assert_eq!(mtl("newcamera c1\ncameraup 1.0 2.0 3.0").cameras[0].up, Vector3::new(1.0, 2.0, 3.0));
+        assert_eq!(mtl("newcamera c1\ncameraposition 1.0 2.0 3.0").cameras[0].position, vector![1.0, 2.0, 3.0]);
+        assert_eq!(mtl("newcamera c1\ncameratarget 1.0 2.0 3.0").cameras[0].target, vector![1.0, 2.0, 3.0]);
+        assert_eq!(mtl("newcamera c1\ncameraup 1.0 2.0 3.0").cameras[0].up, vector![1.0, 2.0, 3.0]);
         assert_eq!(mtl("newcamera c1\ncamerafov 1.0").cameras[0].fov, 1.0);
     }
 
@@ -158,8 +158,8 @@ mod tests {
     fn test_mtl() {
         assert_eq!(mtl("newmtl m1").materials.len(), 1);
         assert_eq!(mtl("newmtl m1").materials[0].name, "m1");
-        assert_eq!(mtl("newmtl m1\nkd 1.0 2.0 3.0").materials[0].diffuse_reflection, Vector3::new(1.0, 2.0, 3.0));
-        assert_eq!(mtl("newmtl m1\nks 1.0 2.0 3.0").materials[0].specular_reflection, Vector3::new(1.0, 2.0, 3.0));
+        assert_eq!(mtl("newmtl m1\nkd 1.0 2.0 3.0").materials[0].diffuse_reflection, vector![1.0, 2.0, 3.0]);
+        assert_eq!(mtl("newmtl m1\nks 1.0 2.0 3.0").materials[0].specular_reflection, vector![1.0, 2.0, 3.0]);
         assert_eq!(mtl("newmtl m1\nreflat0deg 1.0").materials[0].reflection_0_degrees, 1.0);
         assert_eq!(mtl("newmtl m1\nreflat90deg 1.0").materials[0].reflection_90_degrees, 1.0);
         assert_eq!(mtl("newmtl m1\nindexofrefraction 1.0").materials[0].index_of_refraction, 1.0);

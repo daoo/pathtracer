@@ -1,5 +1,4 @@
-use nalgebra::Vector2;
-use nalgebra::Vector3;
+use nalgebra::{vector, Vector2, Vector3};
 use nom::IResult;
 use nom::bytes::complete::tag_no_case;
 use nom::character::complete::{char, i32, multispace0};
@@ -77,12 +76,12 @@ fn tagged<'a, O>(name: &str, data: impl Fn(&'a str) -> IResult<&'a str, O>, inpu
 
 fn vec2(input: &str) -> IResult<&str, Vector2<f32>> {
     let (input, (x, _, y)) = (float, multispace0, float).parse(input)?;
-    Ok((input, Vector2::new(x, y)))
+    Ok((input, vector![x, y]))
 }
 
 fn vec3(input: &str) -> IResult<&str, Vector3<f32>> {
     let (input, (x, _, y, _, z)) = (float, multispace0, float, multispace0, float).parse(input)?;
-    Ok((input, Vector3::new(x, y, z)))
+    Ok((input, vector![x, y, z]))
 }
 
 fn i32_or_zero(input: &str) -> IResult<&str, i32> {
@@ -157,18 +156,18 @@ mod tests {
 
     #[test]
     fn test_vec2() {
-        assert_eq!(vec2("0 0"), Ok(("", Vector2::new(0.0, 0.0))));
-        assert_eq!(vec2("1 2"), Ok(("", Vector2::new(1.0, 2.0))));
-        assert_eq!(vec2("1.0 2.0"), Ok(("", Vector2::new(1.0, 2.0))));
-        assert_eq!(vec2("-1.0 -2.0"), Ok(("", Vector2::new(-1.0, -2.0))));
+        assert_eq!(vec2("0 0"), Ok(("", vector![0.0, 0.0])));
+        assert_eq!(vec2("1 2"), Ok(("", vector![1.0, 2.0])));
+        assert_eq!(vec2("1.0 2.0"), Ok(("", vector![1.0, 2.0])));
+        assert_eq!(vec2("-1.0 -2.0"), Ok(("", vector![-1.0, -2.0])));
     }
 
     #[test]
     fn test_vec3() {
-        assert_eq!(vec3("0 0 0"), Ok(("", Vector3::new(0.0, 0.0, 0.0))));
-        assert_eq!(vec3("1 2 3"), Ok(("", Vector3::new(1.0, 2.0, 3.0))));
-        assert_eq!(vec3("1.0 2.0 3.0"), Ok(("", Vector3::new(1.0, 2.0, 3.0))));
-        assert_eq!(vec3("-1.0 -2.0 -3.0"), Ok(("", Vector3::new(-1.0, -2.0, -3.0))));
+        assert_eq!(vec3("0 0 0"), Ok(("", vector![0.0, 0.0, 0.0])));
+        assert_eq!(vec3("1 2 3"), Ok(("", vector![1.0, 2.0, 3.0])));
+        assert_eq!(vec3("1.0 2.0 3.0"), Ok(("", vector![1.0, 2.0, 3.0])));
+        assert_eq!(vec3("-1.0 -2.0 -3.0"), Ok(("", vector![-1.0, -2.0, -3.0])));
     }
 
     #[test]
@@ -179,9 +178,9 @@ mod tests {
 
     #[test]
     fn test_data() {
-        assert_eq!(obj("v 1 2 3").vertices, [Vector3::new(1.0, 2.0, 3.0)]);
-        assert_eq!(obj("vt 1 2").texcoords, [Vector2::new(1.0, 2.0)]);
-        assert_eq!(obj("vn 1 2 3").normals, [Vector3::new(1.0, 2.0, 3.0)]);
+        assert_eq!(obj("v 1 2 3").vertices, [vector![1.0, 2.0, 3.0]]);
+        assert_eq!(obj("vt 1 2").texcoords, [vector![1.0, 2.0]]);
+        assert_eq!(obj("vn 1 2 3").normals, [vector![1.0, 2.0, 3.0]]);
     }
 
     #[test]

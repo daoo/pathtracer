@@ -50,25 +50,26 @@ impl Triangle {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nalgebra::vector;
 
     #[test]
     fn test_min_max() {
         let triangle = Triangle {
-            v0: Vector3::new(1.0, 2.0, 3.0),
-            v1: Vector3::new(4.0, 5.0, 6.0),
-            v2: Vector3::new(7.0, 8.0, 9.0),
+            v0: vector![1.0, 2.0, 3.0],
+            v1: vector![4.0, 5.0, 6.0],
+            v2: vector![7.0, 8.0, 9.0],
         };
-        assert_eq!(triangle.min(), Vector3::new(1.0, 2.0, 3.0));
-        assert_eq!(triangle.max(), Vector3::new(7.0, 8.0, 9.0));
+        assert_eq!(triangle.min(), vector![1.0, 2.0, 3.0]);
+        assert_eq!(triangle.max(), vector![7.0, 8.0, 9.0]);
     }
 
     #[test]
     fn test_center() {
         let triangle = Triangle{
-            v0: Vector3::new(0.0, 0.0, 0.0),
-            v1: Vector3::new(1.0, 1.0, 1.0),
-            v2: Vector3::new(-1.0, -1.0, -1.0),
+            v0: vector![0.0, 0.0, 0.0],
+            v1: vector![1.0, 1.0, 1.0],
+            v2: vector![-1.0, -1.0, -1.0],
         };
-        assert_eq!(triangle.base_center(), Vector3::new(0.0, 0.0, 0.0));
+        assert_eq!(triangle.base_center(), vector![0.0, 0.0, 0.0]);
     }
 }

@@ -17,20 +17,20 @@ pub fn bounding(triangles: &[Triangle]) -> Aabb {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nalgebra::Vector3;
+    use nalgebra::vector;
 
     #[test]
     fn test_bounding() {
         let triangles = [
-            Triangle{ v0: Vector3::new(1.0, 1.0, 0.0), v1: Vector3::new(1.0, 1.0, 1.0), v2: Vector3::new(0.0, 0.0, 0.0) },
-            Triangle{ v0: Vector3::new(-1.0, -1.0, 0.0), v1: Vector3::new(-1.0, -1.0, -1.0), v2: Vector3::new(0.0, 0.0, 0.0) },
+            Triangle{ v0: vector![1.0, 1.0, 0.0], v1: vector![1.0, 1.0, 1.0], v2: vector![0.0, 0.0, 0.0] },
+            Triangle{ v0: vector![-1.0, -1.0, 0.0], v1: vector![-1.0, -1.0, -1.0], v2: vector![0.0, 0.0, 0.0] },
         ];
 
         let actual = bounding(&triangles);
 
         let expected = Aabb {
-            center: Vector3::new(0.0, 0.0, 0.0),
-            half_size: Vector3::new(1.0, 1.0, 1.0)
+            center: vector![0.0, 0.0, 0.0],
+            half_size: vector![1.0, 1.0, 1.0]
         };
         assert_eq!(actual, expected);
     }
