@@ -19,4 +19,8 @@ impl Ray {
     pub fn param(&self, t: f32) -> Vector3<f32> {
         &self.origin + t * &self.direction
     }
+
+    pub fn reverse(&self) -> Ray {
+        Ray { origin: self.origin + self.direction, direction: -self.direction }
+    }
 }
