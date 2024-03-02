@@ -3,12 +3,11 @@ use crate::geometry::ray::Ray;
 use crate::geometry::triangle::Triangle;
 use nalgebra::Vector3;
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct TriangleRayIntersection {
-    t: f32,
-    u: f32,
-    v: f32,
+    pub t: f32,
+    pub u: f32,
+    pub v: f32,
 }
 
 pub fn intersect(triangle: &Triangle, ray: &Ray) -> Option<TriangleRayIntersection> {
