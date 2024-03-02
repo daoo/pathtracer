@@ -24,16 +24,28 @@ impl Triangle {
         self.v0.sup(&self.v1.sup(&self.v2))
     }
 
-    pub fn e1(&self) -> Vector3<f32> {
+    pub fn base0(&self) -> Vector3<f32> {
         &self.v1 - &self.v0
     }
 
-    pub fn e2(&self) -> Vector3<f32> {
+    pub fn base1(&self) -> Vector3<f32> {
         &self.v2 - &self.v0
     }
 
-    pub fn center(&self) -> Vector3<f32> {
-        self.v0 + 0.5 * self.e1() + 0.5 * self.e2()
+    pub fn base_center(&self) -> Vector3<f32> {
+        self.v0 + 0.5 * self.base0() + 0.5 * self.base1()
+    }
+
+    pub fn edge0(&self) -> Vector3<f32> {
+        &self.v1 - &self.v0
+    }
+
+    pub fn edge1(&self) -> Vector3<f32> {
+        &self.v2 - &self.v1
+    }
+
+    pub fn edge2(&self) -> Vector3<f32> {
+        &self.v2 - &self.v1
     }
 }
 
@@ -56,5 +68,29 @@ mod tests {
         };
         assert_eq!(triangle.min(), Vector3::new(1.0, 2.0, 3.0));
         assert_eq!(triangle.max(), Vector3::new(7.0, 8.0, 9.0));
+    }
+
+    fn triangle(v0: Vector3<f32>, v1: Vector3<f32>, v2: Vector3<f32>) -> Triangle {
+        Triangle {
+            v0,
+            v1,
+            v2,
+            n0: Vector3::zeros(),
+            n1: Vector3::zeros(),
+            n2: Vector3::zeros(),
+            uv0: Vector2::zeros(),
+            uv1: Vector2::zeros(),
+            uv2: Vector2::zeros(),
+        }
+    }
+
+    #[test]
+    fn test_center() {
+        let triangle = triangle(
+            Vector3::new(0.0, 0.0, 0.0),
+            Vector3::new(1.0, 1.0, 1.0),
+            Vector3::new(-1.0, -1.0, -1.0),
+        );
+        assert_eq!(triangle.base_center(), Vector3::new(0.0, 0.0, 0.0));
     }
 }

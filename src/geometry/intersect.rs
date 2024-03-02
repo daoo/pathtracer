@@ -11,11 +11,11 @@ pub struct TriangleRayIntersection {
 }
 
 pub fn intersect(triangle: &Triangle, ray: &Ray) -> Option<TriangleRayIntersection> {
-    let e1 = triangle.e1();
-    let e2 = triangle.e2();
-    let q = ray.direction.cross(&e2);
+    let b0 = triangle.base0();
+    let b1 = triangle.base1();
+    let q = ray.direction.cross(&b1);
 
-    let a = e1.dot(&q);
+    let a = b0.dot(&q);
     if a == 0.0 {
         return None
     }
@@ -27,13 +27,13 @@ pub fn intersect(triangle: &Triangle, ray: &Ray) -> Option<TriangleRayIntersecti
         return None
     }
 
-    let r = s.cross(&e1);
+    let r = s.cross(&b0);
     let v = f * ray.direction.dot(&r);
     if v < 0.0 || (u + v) > 1.0 {
         return None
     }
 
-    let t = f * e2.dot(&r);
+    let t = f * b1.dot(&r);
     Some(TriangleRayIntersection{t, u, v})
 }
 
@@ -123,8 +123,8 @@ mod tests {
             Vector3::new(0.0, 1.0, 0.0),
         );
         let ray = Ray::between(
-            &Vector3::new(triangle.center().x, triangle.center().y, -1.0),
-            &Vector3::new(triangle.center().x, triangle.center().y, 1.0));
+            &Vector3::new(triangle.base_center().x, triangle.base_center().y, -1.0),
+            &Vector3::new(triangle.base_center().x, triangle.base_center().y, 1.0));
 
         assert_eq!(intersect(&triangle, &ray), Some(TriangleRayIntersection{t: 0.5, u: 0.5, v: 0.5}));
     }
