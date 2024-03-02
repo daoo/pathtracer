@@ -265,13 +265,25 @@ mod tests_intersect_triangle_aabb {
     }
 
     #[test]
-    fn triangle_inside() {
+    fn triangle_completely_inside() {
         let triangle = triangle(
             Vector3::new(0.0, 0.0, 0.0),
             Vector3::new(1.0, 0.0, 0.0),
             Vector3::new(0.0, 1.0, 0.0),
         );
-        let aabb = Aabb { center: Vector3::new(0.0, 0.0, 0.0), half_size: Vector3::new(0.5, 0.5, 0.5) };
+        let aabb = Aabb { center: Vector3::new(0.0, 0.0, 0.0), half_size: Vector3::new(1.0, 1.0, 1.0) };
+
+        assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
+    }
+
+    #[test]
+    fn triangle_contained_in_one_face() {
+        let triangle = triangle(
+            Vector3::new(0.0, 0.0, 1.0),
+            Vector3::new(1.0, 0.0, 1.0),
+            Vector3::new(0.0, 1.0, 1.0),
+        );
+        let aabb = Aabb { center: Vector3::new(0.0, 0.0, 0.0), half_size: Vector3::new(1.0, 1.0, 1.0) };
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
     }
@@ -283,7 +295,7 @@ mod tests_intersect_triangle_aabb {
             Vector3::new(11.0, 10.0, 10.0),
             Vector3::new(10.0, 11.0, 10.0),
         );
-        let aabb = Aabb { center: Vector3::new(0.0, 0.0, 0.0), half_size: Vector3::new(0.5, 0.5, 0.5) };
+        let aabb = Aabb { center: Vector3::new(0.0, 0.0, 0.0), half_size: Vector3::new(1.0, 1.0, 1.0) };
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), false);
     }

@@ -34,22 +34,40 @@ fn split_box<'t>(kd_box: KdBox<'t>, plane: &Aap) -> KdSplit<'t> {
     }
 }
 
+fn median(triangles: &[&Triangle], axis: Axis) -> f32 {
+    let mut points: Vec<f32> = triangles
+        .iter()
+        .map(|t| [t.min()[axis], t.max()[axis]])
+        .flatten()
+        .collect();
+    points.sort_by(f32::total_cmp);
+    let middle = points.len() / 2;
+    if points.len() % 2 == 0 {
+        (points[middle] + points[middle + 1]) / 2.0
+    } else {
+        points[middle]
+    }
+}
+
 static NEXT_AXIS: [Axis; 3] = [Axis::Y, Axis::Z, Axis::X];
 
-fn build_kdtree_center_internal<'t>(max_depth: u32, depth: u32, axis: Axis, parent: KdBox<'t>) -> Box<KdNode<'t>> {
+fn build_kdtree_median_internal<'t>(max_depth: u32, depth: u32, axis: Axis, parent: KdBox<'t>) -> Box<KdNode<'t>> {
     if depth >= max_depth {
         return Box::new(KdNode::Leaf(parent.triangles.clone()))
     }
 
-    let plane = Aap{ axis, distance: parent.boundary.center[axis] };
+    dbg!(depth, parent.boundary.min(), parent.boundary.max(), parent.triangles.iter().filter(|t| !intersect_triangle_aabb(t, &parent.boundary)).collect::<Vec<_>>());
+    debug_assert!(parent.triangles.iter().all(|t| intersect_triangle_aabb(t, &parent.boundary)));
+
+    let plane = Aap{ axis, distance: median(&parent.triangles, axis) };
     let split = split_box(parent, &plane);
-    let left = build_kdtree_center_internal(max_depth, depth + 1, NEXT_AXIS[axis], split.left);
-    let right = build_kdtree_center_internal(max_depth, depth + 1, NEXT_AXIS[axis], split.right);
+    let left = build_kdtree_median_internal(max_depth, depth + 1, NEXT_AXIS[axis], split.left);
+    let right = build_kdtree_median_internal(max_depth, depth + 1, NEXT_AXIS[axis], split.right);
     Box::new(KdNode::Node { plane, left, right })
 }
 
-pub fn build_kdtree_center<'t>(max_depth: u32, triangles: &'t [Triangle]) -> KdTree<'t> {
+pub fn build_kdtree_median<'t>(max_depth: u32, triangles: &'t [Triangle]) -> KdTree<'t> {
     let triangle_refs: Vec<&'t Triangle> = triangles.iter().collect();
     let boundary: KdBox<'t> = KdBox{ boundary: bounding(triangles), triangles: triangle_refs };
-    KdTree{ root: *build_kdtree_center_internal(max_depth, 0, Axis::X, boundary) }
+    KdTree{ root: *build_kdtree_median_internal(max_depth, 0, Axis::X, boundary) }
 }

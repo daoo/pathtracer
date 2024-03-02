@@ -54,16 +54,12 @@ impl<'t> KdTree<'t> {
                 },
                 KdNode::Node{plane, left, right} => {
                     let axis = plane.axis;
-                    let (fst, snd) = if ray.direction[axis] >= 0.0 {
-                        (left, right)
-                    } else {
-                        (right, left)
-                    };
-
                     if ray.direction[axis] == 0.0 {
                         node = if ray.origin[axis] <= plane.distance { left } else { right }
                     } else {
                         let t = (plane.distance - ray.origin[axis]) / ray.direction[axis];
+                        let fst = if ray.direction[axis] >= 0.0 { left } else { right };
+                        let snd = if ray.direction[axis] >= 0.0 { right } else { left };
                         if t >= tmax {
                             node = fst;
                         } else if t <= tmin {

@@ -56,7 +56,7 @@ fn main() {
             }
         }
 
-        let kdtree = build_kdtree_center(4, &triangles);
+        let kdtree = build_kdtree_median(4, &triangles);
 
         print(0, &triangles, &kdtree.root);
     }
