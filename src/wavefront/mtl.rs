@@ -6,9 +6,7 @@ use nom::combinator::rest;
 use nom::number::complete::float;
 use nom::sequence::Tuple;
 
-#[derive(Debug)]
-#[derive(PartialEq)]
-#[derive(Default)]
+#[derive(Debug, Default, PartialEq)]
 pub struct Material {
   name: String,
   diffuse_map: String,
@@ -29,9 +27,7 @@ impl Material {
     }
 }
 
-#[derive(Debug)]
-#[derive(PartialEq)]
-#[derive(Default)]
+#[derive(Debug, Default, PartialEq)]
 pub struct Light {
   position: Vector3<f32>,
   color: Vector3<f32>,
@@ -39,9 +35,7 @@ pub struct Light {
   intensity: f32,
 }
 
-#[derive(Debug)]
-#[derive(PartialEq)]
-#[derive(Default)]
+#[derive(Debug, Default, PartialEq)]
 pub struct Camera {
   position: Vector3<f32>,
   target: Vector3<f32>,
@@ -49,8 +43,7 @@ pub struct Camera {
   fov: f32,
 }
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Mtl {
   materials: Vec<Material>,
   lights: Vec<Light>,

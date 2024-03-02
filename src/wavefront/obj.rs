@@ -9,24 +9,21 @@ use nom::sequence::Tuple;
 use std::path::Path;
 use std::path::PathBuf;
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Point {
     pub v: i32,
     pub t: i32,
     pub n: i32,
 }
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Face {
     pub p0: Point,
     pub p1: Point,
     pub p2: Point,
 }
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Chunk {
     pub faces: Vec<Face>,
     pub material: String,
@@ -38,8 +35,7 @@ impl Chunk {
     }
 }
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Obj {
   pub mtl_lib: PathBuf,
 
