@@ -1,9 +1,9 @@
 use nalgebra::Vector2;
 use nalgebra::Vector3;
 use nom::IResult;
-use nom::bytes::complete::{tag, is_not};
+use nom::bytes::complete::tag_no_case;
 use nom::character::complete::{char, i32, multispace0};
-use nom::combinator::opt;
+use nom::combinator::{opt, rest};
 use nom::number::complete::float;
 use nom::sequence::Tuple;
 use std::path::Path;
@@ -30,6 +30,12 @@ pub struct Face {
 pub struct Chunk {
     polygons: Vec<Face>,
     material: String,
+}
+
+impl Chunk {
+    pub fn new(material: String) -> Chunk {
+        Chunk { polygons: Vec::new(), material }
+    }
 }
 
 #[derive(Debug)]
@@ -68,7 +74,7 @@ fn index_wavefront_vec<T: Default + Clone>(v: &[T], i: i32) -> T {
 }
 
 fn tagged<'a, O>(name: &str, data: impl Fn(&'a str) -> IResult<&'a str, O>, input: &'a str) -> IResult<&'a str, O> {
-    let (input, _) = tag(name)(input)?;
+    let (input, _) = tag_no_case(name)(input)?;
     let (input, _) = multispace0(input)?;
     data(input)
 }
@@ -83,34 +89,20 @@ fn vec3(input: &str) -> IResult<&str, Vector3<f32>> {
     Ok((input, Vector3::new(x, y, z)))
 }
 
-fn vn(input: &str) -> IResult<&str, Vector3<f32>> { tagged("vn", vec3, input) }
-fn vt(input: &str) -> IResult<&str, Vector2<f32>> { tagged("vt", vec2, input) }
-fn v(input: &str) -> IResult<&str, Vector3<f32>> { tagged("v", vec3, input) }
-
 fn i32_or_zero(input: &str) -> IResult<&str, i32> {
-    let (input, n) = opt(i32)(input)?;
-    Ok((input, n.unwrap_or(0)))
+    opt(i32)(input).map(|(input, n)| (input, n.unwrap_or(0)))
 }
 
 fn point(input: &str) -> IResult<&str, Point> {
-    let (input, (v, _, t, _, n)) = (i32, char('/'), i32_or_zero, char('/'), i32).parse(input)?;
-    Ok((input, Point { v, t, n }))
+    (i32, char('/'), i32_or_zero, char('/'), i32)
+        .parse(input)
+        .map(|(input, (v, _, t, _, n))| (input, Point { v, t, n }))
 }
 
-fn f(input: &str) -> IResult<&str, Face> {
-    let (input, _) = tag("f")(input)?;
-    let (input, _) = multispace0(input)?;
-    let (input, (p1, _, p2, _, p3)) = (point, multispace0, point, multispace0, point).parse(input)?;
-    Ok((input, Face { p1, p2, p3 }))
-}
-
-fn usemtl(input: &str) -> IResult<&str, &str> {
-    tagged("usemtl", is_not("\r\n"), input)
-}
-
-fn mtllib(input: &str) -> IResult<&str, &Path> {
-    let (input, s) = tagged("mtllib", is_not("\r\n"), input)?;
-    Ok((input, Path::new(s)))
+fn triangle(input: &str) -> IResult<&str, Face> {
+    (point, multispace0, point, multispace0, point)
+        .parse(input)
+        .map(|(input, (p1, _, p2, _, p3))| (input, Face{ p1, p2, p3 }))
 }
 
 pub fn obj(input: &str) -> Obj {
@@ -121,23 +113,29 @@ pub fn obj(input: &str) -> Obj {
     let mut texcoords: Vec<Vector2<f32>> = Vec::new();
 
     for line in input.lines() {
-        match mtllib(line) {
-            Ok((_, x)) => mtl_lib = x, _ => ()
+        let line = line.trim();
+        if line.is_empty() || line.starts_with("#") {
+            continue
         }
-        match usemtl(line) {
-            Ok((_, x)) => chunks.push(Chunk{material: x.to_string(), polygons: Vec::new()}), _ => ()
-        }
-        match v(line) {
-            Ok((_, x)) => vertices.push(x), _ => ()
-        }
-        match vn(line) {
-            Ok((_, x)) => normals.push(x), _ => ()
-        }
-        match vt(line) {
-            Ok((_, x)) => texcoords.push(x), _ => ()
-        }
-        match f(line) {
-            Ok((_, x)) => chunks.last_mut().unwrap().polygons.push(x), _ => ()
+
+        if let Ok((_, x)) = tagged("mtllib", rest, line) {
+            mtl_lib = Path::new(x)
+        } else if let Ok((_, x)) = tagged("usemtl", rest, line) {
+            chunks.push(Chunk::new(x.to_string()))
+        } else if let Ok((_, x)) = tagged("v", vec3, line) {
+            vertices.push(x)
+        } else if let Ok((_, x)) = tagged("vn", vec3, line) {
+            normals.push(x)
+        } else if let Ok((_, x)) = tagged("vt", vec2, line) {
+            texcoords.push(x)
+        } else if let Ok((_, x)) = tagged("f", triangle, line) {
+            chunks.last_mut().unwrap().polygons.push(x)
+        } else if let Ok((_, _)) = tagged("o", rest, line) {
+            // TODO: not supported
+        } else if let Ok((_, _)) = tagged("s", rest, line) {
+            // TODO: not supported
+        } else {
+            panic!("Unexpected line: \"{}\"", line)
         }
     }
 
@@ -153,6 +151,13 @@ pub fn obj(input: &str) -> Obj {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_i32_or_zero() {
+        assert_eq!(i32_or_zero("1"), Ok(("", 1)));
+        assert_eq!(i32_or_zero("-1"), Ok(("", -1)));
+        assert_eq!(i32_or_zero(""), Ok(("", 0)));
+    }
 
     #[test]
     fn test_vec2() {
@@ -171,49 +176,46 @@ mod tests {
     }
 
     #[test]
-    fn test_v() {
-        assert_eq!(v("v 1 2 3"), Ok(("", Vector3::new(1.0, 2.0, 3.0))));
-    }
-
-    #[test]
-    fn test_vt() {
-        assert_eq!(vt("vt 1 2"), Ok(("", Vector2::new(1.0, 2.0))));
-    }
-
-    #[test]
-    fn test_vn() {
-        assert_eq!(vn("vn 1 2 3"), Ok(("", Vector3::new(1.0, 2.0, 3.0))));
-    }
-
-    #[test]
-    fn test_i32_or_zero() {
-        assert_eq!(i32_or_zero("1"), Ok(("", 1)));
-        assert_eq!(i32_or_zero("-1"), Ok(("", -1)));
-        assert_eq!(i32_or_zero(""), Ok(("", 0)));
-    }
-
-    #[test]
     fn test_point() {
         assert_eq!(point("1/2/3"), Ok(("", Point{v:1, t:2, n:3})));
         assert_eq!(point("1//3"), Ok(("", Point{v:1, t:0, n:3})));
     }
 
     #[test]
-    fn test_f() {
-        assert_eq!(f("f 1/2/3 4/5/6 7/8/9"), Ok(("", Face{
-            p1: Point{v:1, t:2, n:3},
-            p2: Point{v:4, t:5, n:6},
-            p3: Point{v:7, t:8, n:9}
-        })));
+    fn test_data() {
+        assert_eq!(obj("v 1 2 3").vertices, [Vector3::new(1.0, 2.0, 3.0)]);
+        assert_eq!(obj("vt 1 2").texcoords, [Vector2::new(1.0, 2.0)]);
+        assert_eq!(obj("vn 1 2 3").normals, [Vector3::new(1.0, 2.0, 3.0)]);
+    }
+
+    #[test]
+    fn test_faces() {
+        assert_eq!(obj("usemtl m1\nf 1/2/3 4/5/6 7/8/9").chunks, [Chunk{
+            polygons: vec![Face{
+                p1: Point{v:1, t:2, n:3},
+                p2: Point{v:4, t:5, n:6},
+                p3: Point{v:7, t:8, n:9}
+            }],
+            material: "m1".to_string()
+        }]);
     }
 
     #[test]
     fn test_usemtl() {
-        assert_eq!(usemtl("usemtl test"), Ok(("", "test")));
+        assert_eq!(obj("usemtl m1").chunks, [Chunk{
+            polygons: vec![],
+            material: "m1".to_string(),
+        }]);
     }
 
     #[test]
     fn test_mtllib() {
-        assert_eq!(mtllib("mtllib test.mtl"), Ok(("", Path::new("test.mtl"))));
+        assert_eq!(obj("mtllib test.mtl").mtl_lib, Path::new("test.mtl"));
+    }
+
+    #[test]
+    fn test_unsupported() {
+        assert_eq!(obj("o todo").chunks.len(), 0);
+        assert_eq!(obj("s todo").chunks.len(), 0);
     }
 }
