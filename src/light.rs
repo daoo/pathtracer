@@ -1,4 +1,6 @@
+use crate::sampling::*;
 use nalgebra::Vector3;
+use rand::rngs::SmallRng;
 
 #[derive(Debug)]
 pub struct SphericalLight {
@@ -18,5 +20,9 @@ impl SphericalLight {
 
     pub fn emitted(&self, point: Vector3<f32>) -> Vector3<f32> {
         self.intensity / (self.center - point).norm_squared()
+    }
+
+    pub fn sample(&self, rng: &mut SmallRng) -> Vector3<f32> {
+        self.center + uniform_sample_unit_sphere(rng) * self.radius
     }
 }

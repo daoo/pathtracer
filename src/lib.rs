@@ -5,5 +5,6 @@ pub mod kdtree;
 pub mod light;
 pub mod material;
 pub mod raytracer;
+pub mod pathtracer;
 pub mod scene;
 pub mod wavefront;

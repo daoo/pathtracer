@@ -1,12 +1,12 @@
 use nalgebra::{vector, Vector2, Vector3};
-use rand::{Rng, SeedableRng};
+use rand::Rng;
 use rand::rngs::SmallRng;
 
 fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vector2<f32> {
   vector![rng.gen(), rng.gen()]
 }
 
-fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> Vector3<f32> {
+pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> Vector3<f32> {
   let z = rng.gen_range(-1.0..1.0);
   let a = rng.gen_range(0.0..std::f32::consts::TAU);
   let r = (1.0f32 - z * z).sqrt();
@@ -53,6 +53,7 @@ pub fn cosine_sample_hemisphere(rng: &mut SmallRng) -> Vector3<f32> {
 
 #[cfg(test)]
 mod tests {
+    use rand::SeedableRng;
     use super::*;
 
     #[test]
