@@ -2,6 +2,7 @@ use crate::sampling::*;
 use nalgebra::{RealField, vector, Vector3};
 use rand::Rng;
 use rand::rngs::SmallRng;
+use std::rc::Rc;
 
 fn perpendicular(v: &Vector3<f32>) -> Vector3<f32> {
     if v.x.abs() < v.y.abs() {
@@ -27,14 +28,38 @@ pub struct MaterialSample {
     pub wo: Vector3<f32>,
 }
 
+#[derive(Debug)]
+pub struct DiffuseReflectiveMaterial {
+    pub reflectance: Vector3<f32>,
+}
+
+#[derive(Debug)]
+pub struct SpecularReflectiveMaterial {
+    pub reflectance: Vector3<f32>,
+}
+
+#[derive(Debug)]
+pub struct SpecularRefractiveMaterial {
+    pub index_of_refraction: f32,
+}
+
+pub struct FresnelBlendMaterial {
+    pub reflection: Rc<dyn Material>,
+    pub refraction: Rc<dyn Material>,
+    pub r0: f32,
+}
+
+pub struct BlendMaterial {
+    pub first: Rc<dyn Material>,
+    pub second: Rc<dyn Material>,
+    pub factor: f32,
+}
+
+
 pub trait Material {
     fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32>;
 
     fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample;
-}
-
-struct DiffuseReflectiveMaterial {
-    reflectance: Vector3<f32>,
 }
 
 impl Material for DiffuseReflectiveMaterial {
@@ -56,10 +81,6 @@ impl Material for DiffuseReflectiveMaterial {
     }
 }
 
-struct SpecularReflectiveMaterial {
-    reflectance: Vector3<f32>,
-}
-
 impl Material for SpecularReflectiveMaterial {
     fn brdf(&self, _: &Vector3<f32>, _: &Vector3<f32>, _: &Vector3<f32>) -> Vector3<f32> {
         Vector3::zeros()
@@ -70,11 +91,6 @@ impl Material for SpecularReflectiveMaterial {
         let pdf = if is_same_hemisphere(&wi, &wo, &n) { wo.dot(n).abs() } else { 0.0 };
         return MaterialSample { pdf, brdf: self.reflectance, wo };
     }
-}
-
-struct SpecularRefractiveMaterial {
-  reflection: SpecularReflectiveMaterial,
-  index_of_refraction: f32,
 }
 
 impl Material for SpecularRefractiveMaterial {
@@ -90,8 +106,10 @@ impl Material for SpecularRefractiveMaterial {
         let w = -a * eta;
         let k = 1.0 + (w - eta) * (w + eta);
         if k < 0.0 {
-            // Total internal reflection
-            return self.reflection.sample(&wi, &n, rng);
+            const TOTAL_INTERNAL_REFLECTION: SpecularReflectiveMaterial = SpecularReflectiveMaterial {
+                reflectance: vector![1.0, 1.0, 1.0],
+            };
+            return TOTAL_INTERNAL_REFLECTION.sample(&wi, &n, rng);
         }
 
         let k = k.sqrt();
@@ -100,20 +118,11 @@ impl Material for SpecularRefractiveMaterial {
     }
 }
 
-struct FresnelBlendMaterial<MReflective, MRefractive> {
-    reflection: MReflective,
-    refraction: MRefractive,
-    r0: f32,
-}
-
 fn reflectance(r0: f32, wo: &Vector3<f32>, n: &Vector3<f32>) -> f32 {
   r0 + (1.0 - r0) * (1.0 - wo.dot(n).abs().powf(5.0))
 }
 
-impl<MReflective, MRefractive> Material for FresnelBlendMaterial<MReflective, MRefractive>
-    where
-        MReflective: Material,
-        MRefractive: Material,
+impl Material for FresnelBlendMaterial
 {
     fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
         let reflection = self.reflection.brdf(wo, wi, n);
@@ -131,16 +140,7 @@ impl<MReflective, MRefractive> Material for FresnelBlendMaterial<MReflective, MR
     }
 }
 
-struct BlendMaterial<M1, M2> {
-    first: M1,
-    second: M2,
-    factor: f32,
-}
-
-impl<MReflective, MRefractive> Material for BlendMaterial<MReflective, MRefractive>
-    where
-        MReflective: Material,
-        MRefractive: Material,
+impl Material for BlendMaterial
 {
     fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
         let first = self.first.brdf(wo, wi, n);
@@ -156,4 +156,3 @@ impl<MReflective, MRefractive> Material for BlendMaterial<MReflective, MRefracti
         }
     }
 }
-

@@ -4,10 +4,11 @@ use crate::geometry::ray::*;
 use crate::geometry::triangle::*;
 use crate::light::*;
 use crate::material::*;
+use std::rc::Rc;
 
 pub struct Scene {
     pub triangles: Vec<Triangle>,
-    pub materials: Vec<Box<dyn Material>>,
+    pub materials: Vec<Rc<dyn Material>>,
     pub cameras: Vec<Camera>,
     pub lights: Vec<SphericalLight>,
 }
