@@ -1,7 +1,6 @@
 use crate::geometry::aabb::*;
 use crate::geometry::bounding::*;
 use crate::kdtree::*;
-use std::fmt;
 
 #[derive(Clone, Debug)]
 struct KdBox<'t> {
@@ -20,24 +19,19 @@ fn split_box<'t>(parent: KdBox<'t>, plane: &Aap) -> KdSplit<'t> {
     let mut left_triangles: Vec<&'t Triangle> = Vec::new();
     let mut right_triangles: Vec<&'t Triangle> = Vec::new();
     for triangle in &parent.triangles {
-        let min = triangle.min()[plane.axis];
-        let max = triangle.max()[plane.axis];
-        let in_left = min < plane.distance;
-        let in_right = max > plane.distance;
-        let in_plane = !in_left && !in_right;
+        let in_left = intersect_triangle_aabb(triangle, &left_aabb);
+        let in_right = intersect_triangle_aabb(triangle, &right_aabb);
+        if !(in_left || in_right) {
+            let strfix = |s: String| s.replace("[[", "vector![").replace("]]", "]");
+            println!("{}", strfix(format!("let left_aabb = {:?};", &left_aabb)));
+            println!("{}", strfix(format!("let right_aabb = {:?};", &right_aabb)));
+            println!("{}", strfix(format!("let triangles = {:?};", &parent.triangles)));
+            println!("{}", strfix(format!("let wrong_triangle = {:?};", [triangle])));
+        }
+        debug_assert!(in_left || in_right);
         if in_left { left_triangles.push(&triangle); }
         if in_right { right_triangles.push(&triangle); }
-        if in_plane { left_triangles.push(&triangle); }
     }
-    if !left_triangles.iter().all(|t| intersect_triangle_aabb(t, &left_aabb)) {
-        let strfix = |s: String| s.replace("[[", "vector![").replace("]]", "]");
-        println!("{}", strfix(format!("let left_aabb = {:?};", &left_aabb)));
-        println!("{}", strfix(format!("let right_aabb = {:?};", &right_aabb)));
-        println!("{}", strfix(format!("let left_triangles = {:?};", &left_triangles)));
-        println!("{}", strfix(format!("let right_triangles = {:?};", &right_triangles)));
-    }
-    debug_assert!(left_triangles.iter().all(|t| intersect_triangle_aabb(t, &left_aabb)));
-    debug_assert!(right_triangles.iter().all(|t| intersect_triangle_aabb(t, &right_aabb)));
     KdSplit{
         left: KdBox{boundary: left_aabb, triangles: left_triangles},
         right: KdBox{boundary: right_aabb, triangles: right_triangles},
