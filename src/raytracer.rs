@@ -3,18 +3,16 @@ use crate::geometry::ray::*;
 use crate::light::*;
 use crate::material::*;
 use crate::scene::*;
-use nalgebra::{vector, Vector2, Vector3, DMatrix};
+use nalgebra::{vector, Vector2, Vector3, UnitVector3, DMatrix};
 
-fn light_contribution<M>(
+fn light_contribution(
     scene: &Scene,
-    material: &M,
+    material: &dyn Material,
     target: Vector3<f32>,
     offset_point: Vector3<f32>,
     wi: Vector3<f32>,
-    n: Vector3<f32>,
+    n: UnitVector3<f32>,
     light: &SphericalLight) -> Vector3<f32>
-where
-M: Material,
 {
     let direction = light.center - target;
     let shadow_ray = Ray { origin: offset_point, direction };
@@ -40,27 +38,28 @@ fn trace_ray(scene: &Scene, ray: &Ray) -> Vector3<f32> {
 
     let wi = -ray.direction;
     let point = ray.param(intersection.t);
-    let n = vector![1.0, 0.0, 0.0]; // TODO
+    let n = scene.triangle_normals[triangle_index].lerp(intersection.u, intersection.v);
 
     // TODO: How to chose offset?
-    let offset_point = point + 0.000001 * n;
+    let offset_point = point + 0.000001 * n.into_inner();
 
-    let material = DiffuseReflectiveMaterial { reflectance: vector![0.8, 0.8, 0.8] };
-
+    let material = &scene.triangle_materials[triangle_index];
     scene.lights.iter()
         .map(|light| light_contribution(
-                scene, &material, point, offset_point, wi, n, &light))
+                scene, material.as_ref(), point, offset_point, wi, n, &light))
         .sum()
 }
 
 pub fn render(scene: &Scene, camera: &Pinhole, buffer: &mut DMatrix<Vector3<f32>>) {
     let buffer_size = vector![buffer.ncols() as f32, buffer.nrows() as f32];
+    let mut rays: Vec<Ray> = Vec::new();
     for y in 0..buffer.nrows() {
         for x in 0..buffer.ncols() {
             let pixel_center = Vector2::new(x as f32, y as f32) + Vector2::new(0.5, 0.5);
             let scene_direction = pixel_center.component_div(&buffer_size);
             let ray = camera.ray(scene_direction.x, scene_direction.y);
             buffer[(x, y)] += trace_ray(scene, &ray);
+            rays.push(ray);
         }
     }
 }
