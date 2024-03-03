@@ -2,7 +2,7 @@ use crate::geometry::ray::*;
 use nalgebra::{Vector3, UnitVector3};
 
 #[derive(Clone, Debug)]
-struct Camera {
+pub struct Camera {
     pub position: Vector3<f32>,
     pub direction: UnitVector3<f32>,
     pub up: UnitVector3<f32>,

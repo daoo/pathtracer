@@ -1,6 +1,6 @@
 use nalgebra::Vector3;
 
-struct SphericalLight {
+pub struct SphericalLight {
     pub center: Vector3<f32>,
     pub intensity: Vector3<f32>,
     pub radius: f32,

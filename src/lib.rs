@@ -4,4 +4,5 @@ pub mod light;
 pub mod material;
 mod sampling;
 mod camera;
+mod scene;
 pub mod wavefront;
