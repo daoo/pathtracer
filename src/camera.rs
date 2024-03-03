@@ -23,7 +23,8 @@ impl Camera {
     }
 }
 
-struct Pinhole {
+#[derive(Clone, Debug)]
+pub struct Pinhole {
     pub position: Vector3<f32>,
     pub origin: Vector3<f32>,
     pub dx: Vector3<f32>,

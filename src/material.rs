@@ -20,16 +20,17 @@ fn is_same_hemisphere(wi: &Vector3<f32>, wo: &Vector3<f32>, n: &Vector3<f32>) ->
   is_same_sign(wi.dot(n), wo.dot(n))
 }
 
-struct MaterialSample {
+#[derive(Debug)]
+pub struct MaterialSample {
     pub pdf: f32,
     pub brdf: Vector3<f32>,
     pub wo: Vector3<f32>,
 }
 
 pub trait Material {
-    pub fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32>;
+    fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32>;
 
-    pub fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample;
+    fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample;
 }
 
 struct DiffuseReflectiveMaterial {

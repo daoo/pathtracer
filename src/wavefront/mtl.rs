@@ -8,15 +8,15 @@ use nom::sequence::Tuple;
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Material {
-  name: String,
-  diffuse_map: String,
-  diffuse_reflection: Vector3<f32>,
-  specular_reflection: Vector3<f32>,
-  emittance: Vector3<f32>,
-  transparency: f32,
-  reflection_0_degrees: f32,
-  reflection_90_degrees: f32,
-  index_of_refraction: f32,
+  pub name: String,
+  pub diffuse_map: String,
+  pub diffuse_reflection: Vector3<f32>,
+  pub specular_reflection: Vector3<f32>,
+  pub emittance: Vector3<f32>,
+  pub transparency: f32,
+  pub reflection_0_degrees: f32,
+  pub reflection_90_degrees: f32,
+  pub index_of_refraction: f32,
 }
 
 impl Material {
@@ -29,25 +29,25 @@ impl Material {
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Light {
-  position: Vector3<f32>,
-  color: Vector3<f32>,
-  radius: f32,
-  intensity: f32,
+  pub position: Vector3<f32>,
+  pub color: Vector3<f32>,
+  pub radius: f32,
+  pub intensity: f32,
 }
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Camera {
-  position: Vector3<f32>,
-  target: Vector3<f32>,
-  up: Vector3<f32>,
-  fov: f32,
+  pub position: Vector3<f32>,
+  pub target: Vector3<f32>,
+  pub up: Vector3<f32>,
+  pub fov: f32,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Mtl {
-  materials: Vec<Material>,
-  lights: Vec<Light>,
-  cameras: Vec<Camera>,
+  pub materials: Vec<Material>,
+  pub lights: Vec<Light>,
+  pub cameras: Vec<Camera>,
 }
 
 fn tagged<'a, O>(name: &str, data: impl Fn(&'a str) -> IResult<&'a str, O>, input: &'a str) -> IResult<&'a str, O> {
