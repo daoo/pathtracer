@@ -1,7 +1,7 @@
 use crate::geometry::aap::*;
+use crate::geometry::algorithms::*;
 use crate::geometry::ray::*;
 use crate::geometry::triangle::*;
-use crate::geometry::intersect::*;
 
 pub mod build;
 
