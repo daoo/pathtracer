@@ -36,7 +36,7 @@ fn trace_ray(scene: &Scene, ray: &Ray) -> Vector3<f32> {
     if intersection.is_none() {
         return environment_contribution(ray);
     }
-    let intersection = intersection.unwrap();
+    let (triangle_index, intersection) = intersection.unwrap();
 
     let wi = -ray.direction;
     let point = ray.param(intersection.t);

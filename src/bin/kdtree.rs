@@ -7,12 +7,12 @@ use std::fs;
 use std::path::Path;
 use std::str;
 
-fn print_triangles(all_triangles: &[Triangle], triangles: &[&Triangle]) -> Vec<usize> {
+fn print_triangles(all_triangles: &[Triangle], triangles: &[Triangle]) -> Vec<usize> {
     triangles
         .iter()
         .map(|t1| all_triangles
              .iter()
-             .position(|t2| *t1 == t2)
+             .position(|t2| t1 == t2)
              .unwrap())
         .collect()
 }

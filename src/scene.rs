@@ -90,9 +90,8 @@ fn lights_from_mtl(mtl: &mtl::Mtl) -> Vec<SphericalLight> {
 }
 
 impl Scene {
-    pub fn intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<TriangleRayIntersection> {
-        let triangle_refs: Vec<&Triangle> = self.triangles.iter().map(|t| t).collect::<Vec<_>>();
-        intersect_closest_triangle_ray(&triangle_refs, ray, tmin, tmax)
+    pub fn intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(usize, TriangleRayIntersection)> {
+        intersect_closest_triangle_ray(&self.triangles, ray, tmin, tmax)
     }
 
     pub fn intersect_any(&self, ray: &Ray, tmin: f32, tmax: f32) -> bool {

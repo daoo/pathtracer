@@ -146,16 +146,16 @@ mod tests_intersect_triangle_ray {
     }
 }
 
-pub fn intersect_closest_triangle_ray(triangles: &[&Triangle], ray: &Ray, tmin: f32, tmax: f32) -> Option<TriangleRayIntersection> {
+pub fn intersect_closest_triangle_ray(triangles: &[Triangle], ray: &Ray, tmin: f32, tmax: f32) -> Option<(usize, TriangleRayIntersection)> {
     debug_assert!(tmin < tmax);
-    let mut closest: Option<TriangleRayIntersection> = None;
+    let mut closest: Option<(usize, TriangleRayIntersection)> = None;
     let t1 = tmin;
     let mut t2 = tmax;
-    for triangle in triangles {
+    for (i, triangle) in triangles.iter().enumerate() {
         closest = match intersect_triangle_ray(triangle, ray) {
             Some(intersection) if intersection.t >= t1 && intersection.t <= t2 => {
                 t2 = intersection.t;
-                Some(intersection)
+                Some((i, intersection))
             },
             _ => closest
         };

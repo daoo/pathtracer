@@ -3,22 +3,22 @@ use crate::geometry::algorithms::*;
 use crate::kdtree::*;
 use nalgebra::vector;
 
-#[derive(Clone, Debug)]
-struct KdBox<'t> {
+#[derive(Debug)]
+struct KdBox {
     boundary: Aabb,
-    triangles: Vec<&'t Triangle>,
+    triangles: Vec<Triangle>,
 }
 
-#[derive(Clone, Debug)]
-struct KdSplit<'t> {
-    left: KdBox<'t>,
-    right: KdBox<'t>,
+#[derive(Debug)]
+struct KdSplit {
+    left: KdBox,
+    right: KdBox,
 }
 
-fn split_box<'t>(parent: KdBox<'t>, plane: &Aap) -> KdSplit<'t> {
+fn split_box(parent: KdBox, plane: &Aap) -> KdSplit {
     let (left_aabb, right_aabb) = parent.boundary.split(plane);
-    let mut left_triangles: Vec<&'t Triangle> = Vec::new();
-    let mut right_triangles: Vec<&'t Triangle> = Vec::new();
+    let mut left_triangles: Vec<Triangle> = Vec::new();
+    let mut right_triangles: Vec<Triangle> = Vec::new();
     for triangle in &parent.triangles {
         let in_left = intersect_triangle_aabb(triangle, &left_aabb);
         let in_right = intersect_triangle_aabb(triangle, &right_aabb);
@@ -30,8 +30,8 @@ fn split_box<'t>(parent: KdBox<'t>, plane: &Aap) -> KdSplit<'t> {
             println!("{}", strfix(format!("let wrong_triangle = {:?};", [triangle])));
         }
         debug_assert!(in_left || in_right);
-        if in_left { left_triangles.push(&triangle); }
-        if in_right { right_triangles.push(&triangle); }
+        if in_left { left_triangles.push(triangle.clone()); }
+        if in_right { right_triangles.push(triangle.clone()); }
     }
     KdSplit{
         left: KdBox{boundary: left_aabb, triangles: left_triangles},
@@ -39,7 +39,7 @@ fn split_box<'t>(parent: KdBox<'t>, plane: &Aap) -> KdSplit<'t> {
     }
 }
 
-fn median(triangles: &[&Triangle], axis: Axis) -> f32 {
+fn median(triangles: &[Triangle], axis: Axis) -> f32 {
     let mut points: Vec<f32> = triangles
         .iter()
         .map(|t| [t.min()[axis], t.max()[axis]])
@@ -56,9 +56,9 @@ fn median(triangles: &[&Triangle], axis: Axis) -> f32 {
 
 static NEXT_AXIS: [Axis; 3] = [Axis::Y, Axis::Z, Axis::X];
 
-fn build_kdtree_median_internal<'t>(max_depth: u32, depth: u32, axis: Axis, parent: KdBox<'t>) -> Box<KdNode<'t>> {
+fn build_kdtree_median_internal(max_depth: u32, depth: u32, axis: Axis, parent: KdBox) -> Box<KdNode> {
     if depth >= max_depth {
-        return Box::new(KdNode::Leaf(parent.triangles.clone()))
+        return Box::new(KdNode::Leaf(parent.triangles))
     }
 
     let plane = Aap{ axis, distance: median(&parent.triangles, axis) };
@@ -68,10 +68,10 @@ fn build_kdtree_median_internal<'t>(max_depth: u32, depth: u32, axis: Axis, pare
     Box::new(KdNode::Node { plane, left, right })
 }
 
-pub fn build_kdtree_median<'t>(max_depth: u32, triangles: &'t [Triangle]) -> KdTree<'t> {
-    let kdbox: KdBox<'t> = KdBox{
+pub fn build_kdtree_median(max_depth: u32, triangles: &[Triangle]) -> KdTree {
+    let kdbox: KdBox = KdBox{
         boundary: triangles_bounding_box(triangles).enlarge(&vector![0.1, 0.1, 0.1]),
-        triangles: triangles.iter().collect()
+        triangles: triangles.to_vec()
     };
     KdTree{ root: *build_kdtree_median_internal(max_depth, 0, Axis::X, kdbox) }
 }

@@ -1,16 +1,10 @@
 use nalgebra::Vector3;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Triangle {
   pub v0: Vector3<f32>,
   pub v1: Vector3<f32>,
   pub v2: Vector3<f32>,
-  // pub n0: Vector3<f32>,
-  // pub n1: Vector3<f32>,
-  // pub n2: Vector3<f32>,
-  // pub uv0: Vector2<f32>,
-  // pub uv1: Vector2<f32>,
-  // pub uv2: Vector2<f32>,
 }
 
 impl Triangle {
