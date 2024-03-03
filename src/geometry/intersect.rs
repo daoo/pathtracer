@@ -217,4 +217,12 @@ mod tests_intersect_triangle_aabb {
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), false);
     }
+
+    #[test]
+    fn triangle_that_should_not_fail() {
+        let right_aabb = Aabb { center: vector![-0.41130003, -0.767225, 0.5476], half_size: vector![0.6887, 0.23302495, 0.5524] };
+        let wrong_triangle = Triangle { v0: vector![0.2774, -0.5342, -0.0028], v1: vector![0.7444, -0.5342, -0.0028], v2: vector![0.7444, -1.0012, -0.0028] };
+
+        assert_eq!(intersect_triangle_aabb(&wrong_triangle, &right_aabb), true);
+    }
 }

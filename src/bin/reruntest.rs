@@ -1,6 +1,5 @@
 use nalgebra::vector;
 use pathtracer::geometry::aabb::*;
-use pathtracer::geometry::intersect::*;
 use pathtracer::geometry::triangle::*;
 use pathtracer::wavefront::*;
 use std::env;
@@ -28,20 +27,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
-        let left_aabb = Aabb { center: vector![-0.36130002, -0.76769996, 0.0], half_size: vector![0.6387, 0.23349997, 1.0] };
-        let right_aabb = Aabb { center: vector![-0.36130002, 0.23289996, 0.0], half_size: vector![0.6387, 0.7671, 1.0] };
-        let left_triangles = [Triangle { v0: vector![-1.0, -1.0, 1.0], v1: vector![-1.0, -1.0, -1.0], v2: vector![-1.0, 1.0, 1.0] }, Triangle { v0: vector![-1.0, 1.0, -1.0], v1: vector![-1.0, 1.0, 1.0], v2: vector![-1.0, -1.0, -1.0] }, Triangle { v0: vector![-1.0, -1.0, -1.0], v1: vector![-1.0, -1.0, 1.0], v2: vector![1.0, -1.0, -1.0] }, Triangle { v0: vector![1.0, -1.0, 1.0], v1: vector![1.0, -1.0, -1.0], v2: vector![-1.0, -1.0, 1.0] }, Triangle { v0: vector![-1.0, -1.0, -1.0], v1: vector![1.0, -1.0, -1.0], v2: vector![-1.0, 1.0, -1.0] }, Triangle { v0: vector![1.0, 1.0, -1.0], v1: vector![-1.0, 1.0, -1.0], v2: vector![1.0, -1.0, -1.0] }, Triangle { v0: vector![-0.4889, -1.0005, -0.0048], v1: vector![-0.771, -1.0005, -0.4176], v2: vector![-0.3581, -1.0005, -0.6997] }, Triangle { v0: vector![-0.3581, -1.0005, -0.6997], v1: vector![-0.076, -1.0005, -0.2868], v2: vector![-0.4889, -1.0005, -0.0048] }, Triangle { v0: vector![-0.4889, -1.0005, -0.0048], v1: vector![-0.076, -1.0005, -0.2868], v2: vector![-0.076, 0.0158, -0.2868] }, Triangle { v0: vector![-0.076, 0.0158, -0.2868], v1: vector![-0.4889, 0.0158, -0.0048], v2: vector![-0.4889, -1.0005, -0.0048] }, Triangle { v0: vector![-0.076, -1.0005, -0.2868], v1: vector![-0.3581, -1.0005, -0.6997], v2: vector![-0.3581, 0.0158, -0.6997] }, Triangle { v0: vector![-0.3581, 0.0158, -0.6997], v1: vector![-0.076, 0.0158, -0.2868], v2: vector![-0.076, -1.0005, -0.2868] }, Triangle { v0: vector![-0.3581, -1.0005, -0.6997], v1: vector![-0.771, -1.0005, -0.4176], v2: vector![-0.771, 0.0158, -0.4176] }, Triangle { v0: vector![-0.771, 0.0158, -0.4176], v1: vector![-0.3581, 0.0158, -0.6997], v2: vector![-0.3581, -1.0005, -0.6997] }, Triangle { v0: vector![-0.771, -1.0005, -0.4176], v1: vector![-0.4889, -1.0005, -0.0048], v2: vector![-0.4889, 0.0158, -0.0048] }, Triangle { v0: vector![-0.4889, 0.0158, -0.0048], v1: vector![-0.771, 0.0158, -0.4176], v2: vector![-0.771, -1.0005, -0.4176] }, Triangle { v0: vector![0.2774, -1.0012, -0.0028], v1: vector![0.2774, -1.0012, 0.464], v2: vector![0.2774, -0.5342, 0.464] }, Triangle { v0: vector![0.2774, -0.5342, 0.464], v1: vector![0.2774, -0.5342, -0.0028], v2: vector![0.2774, -1.0012, -0.0028] }];
-        let right_triangles = [Triangle { v0: vector![-1.0, -1.0, 1.0], v1: vector![-1.0, -1.0, -1.0], v2: vector![-1.0, 1.0, 1.0] }, Triangle { v0: vector![-1.0, 1.0, -1.0], v1: vector![-1.0, 1.0, 1.0], v2: vector![-1.0, -1.0, -1.0] }, Triangle { v0: vector![1.0, 1.0, 1.0], v1: vector![-1.0, 1.0, 1.0], v2: vector![1.0, 1.0, -1.0] }, Triangle { v0: vector![-1.0, 1.0, -1.0], v1: vector![1.0, 1.0, -1.0], v2: vector![-1.0, 1.0, 1.0] }, Triangle { v0: vector![-1.0, -1.0, -1.0], v1: vector![1.0, -1.0, -1.0], v2: vector![-1.0, 1.0, -1.0] }, Triangle { v0: vector![1.0, 1.0, -1.0], v1: vector![-1.0, 1.0, -1.0], v2: vector![1.0, -1.0, -1.0] }, Triangle { v0: vector![-0.4889, 0.0158, -0.0048], v1: vector![-0.076, 0.0158, -0.2868], v2: vector![-0.3581, 0.0158, -0.6997] }, Triangle { v0: vector![-0.3581, 0.0158, -0.6997], v1: vector![-0.771, 0.0158, -0.4176], v2: vector![-0.4889, 0.0158, -0.0048] }, Triangle { v0: vector![-0.4889, -1.0005, -0.0048], v1: vector![-0.076, -1.0005, -0.2868], v2: vector![-0.076, 0.0158, -0.2868] }, Triangle { v0: vector![-0.076, 0.0158, -0.2868], v1: vector![-0.4889, 0.0158, -0.0048], v2: vector![-0.4889, -1.0005, -0.0048] }, Triangle { v0: vector![-0.076, -1.0005, -0.2868], v1: vector![-0.3581, -1.0005, -0.6997], v2: vector![-0.3581, 0.0158, -0.6997] }, Triangle { v0: vector![-0.3581, 0.0158, -0.6997], v1: vector![-0.076, 0.0158, -0.2868], v2: vector![-0.076, -1.0005, -0.2868] }, Triangle { v0: vector![-0.3581, -1.0005, -0.6997], v1: vector![-0.771, -1.0005, -0.4176], v2: vector![-0.771, 0.0158, -0.4176] }, Triangle { v0: vector![-0.771, 0.0158, -0.4176], v1: vector![-0.3581, 0.0158, -0.6997], v2: vector![-0.3581, -1.0005, -0.6997] }, Triangle { v0: vector![-0.771, -1.0005, -0.4176], v1: vector![-0.4889, -1.0005, -0.0048], v2: vector![-0.4889, 0.0158, -0.0048] }, Triangle { v0: vector![-0.4889, 0.0158, -0.0048], v1: vector![-0.771, 0.0158, -0.4176], v2: vector![-0.771, -1.0005, -0.4176] }];
+        let left_aabb = Aabb { center: vector![-0.41130003, -1.050725, 0.5476], half_size: vector![0.6887, 0.050475, 0.5524] };
+        let right_aabb = Aabb { center: vector![-0.41130003, -0.767225, 0.5476], half_size: vector![0.6887, 0.23302495, 0.5524] };
+        let triangles = [Triangle { v0: vector![-1.0, -1.0, 1.0], v1: vector![-1.0, -1.0, -1.0], v2: vector![-1.0, 1.0, 1.0] }, Triangle { v0: vector![-1.0, -1.0, -1.0], v1: vector![-1.0, -1.0, 1.0], v2: vector![1.0, -1.0, -1.0] }, Triangle { v0: vector![1.0, -1.0, 1.0], v1: vector![1.0, -1.0, -1.0], v2: vector![-1.0, -1.0, 1.0] }, Triangle { v0: vector![-0.4889, -1.0005, -0.0048], v1: vector![-0.771, -1.0005, -0.4176], v2: vector![-0.3581, -1.0005, -0.6997] }, Triangle { v0: vector![-0.3581, -1.0005, -0.6997], v1: vector![-0.076, -1.0005, -0.2868], v2: vector![-0.4889, -1.0005, -0.0048] }, Triangle { v0: vector![-0.4889, -1.0005, -0.0048], v1: vector![-0.076, -1.0005, -0.2868], v2: vector![-0.076, 0.0158, -0.2868] }, Triangle { v0: vector![-0.076, 0.0158, -0.2868], v1: vector![-0.4889, 0.0158, -0.0048], v2: vector![-0.4889, -1.0005, -0.0048] }, Triangle { v0: vector![-0.771, -1.0005, -0.4176], v1: vector![-0.4889, -1.0005, -0.0048], v2: vector![-0.4889, 0.0158, -0.0048] }, Triangle { v0: vector![0.2774, -1.0012, 0.464], v1: vector![0.2774, -1.0012, -0.0028], v2: vector![0.7444, -1.0012, -0.0028] }, Triangle { v0: vector![0.7444, -1.0012, -0.0028], v1: vector![0.7444, -1.0012, 0.464], v2: vector![0.2774, -1.0012, 0.464] }, Triangle { v0: vector![0.2774, -1.0012, 0.464], v1: vector![0.7444, -1.0012, 0.464], v2: vector![0.7444, -0.5342, 0.464] }, Triangle { v0: vector![0.7444, -0.5342, 0.464], v1: vector![0.2774, -0.5342, 0.464], v2: vector![0.2774, -1.0012, 0.464] }, Triangle { v0: vector![0.7444, -1.0012, -0.0028], v1: vector![0.2774, -1.0012, -0.0028], v2: vector![0.2774, -0.5342, -0.0028] }, Triangle { v0: vector![0.2774, -0.5342, -0.0028], v1: vector![0.7444, -0.5342, -0.0028], v2: vector![0.7444, -1.0012, -0.0028] }, Triangle { v0: vector![0.2774, -1.0012, -0.0028], v1: vector![0.2774, -1.0012, 0.464], v2: vector![0.2774, -0.5342, 0.464] }, Triangle { v0: vector![0.2774, -0.5342, 0.464], v1: vector![0.2774, -0.5342, -0.0028], v2: vector![0.2774, -1.0012, -0.0028] }];
+        let wrong_triangle = [Triangle { v0: vector![0.2774, -0.5342, -0.0028], v1: vector![0.7444, -0.5342, -0.0028], v2: vector![0.7444, -1.0012, -0.0028] }];
 
         rec.log_timeless(
-            "left_aabb",
+            "left/aabb",
             &rerun::Boxes3D::from_centers_and_half_sizes(
                 [(left_aabb.center.x, left_aabb.center.y, left_aabb.center.z)],
                 [(left_aabb.half_size.x, left_aabb.half_size.y, left_aabb.half_size.z)],
             ),
         )?;
         rec.log_timeless(
-            "right_aabb",
+            "right/aabb",
             &rerun::Boxes3D::from_centers_and_half_sizes(
                 [(right_aabb.center.x, right_aabb.center.y, right_aabb.center.z)],
                 [(right_aabb.half_size.x, right_aabb.half_size.y, right_aabb.half_size.z)],
@@ -49,37 +48,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
 
         let mut i = 0;
-        for t in left_triangles {
+        for t in triangles {
             let points = [
                 [t.v0.x, t.v0.y, t.v0.z],
                 [t.v1.x, t.v1.y, t.v1.z],
                 [t.v2.x, t.v2.y, t.v2.z],
                 [t.v0.x, t.v0.y, t.v0.z],
             ];
-            let intersecting = intersect_triangle_aabb(&t, &left_aabb);
             let good = [0, 255, 0];
             let bad = [255, 0, 0];
-            let color = if intersecting { good } else { bad };
+            let color = if t == wrong_triangle[0] { bad } else { good };
             rec.log_timeless(
-                format!("left_triangle{}", i),
-                &rerun::LineStrips3D::new([points]).with_colors([color]))?;
-            i += 1;
-        }
-
-        let mut i = 0;
-        for t in right_triangles {
-            let points = [
-                [t.v0.x, t.v0.y, t.v0.z],
-                [t.v1.x, t.v1.y, t.v1.z],
-                [t.v2.x, t.v2.y, t.v2.z],
-                [t.v0.x, t.v0.y, t.v0.z],
-            ];
-            let intersecting = intersect_triangle_aabb(&t, &right_aabb);
-            let good = [0, 0, 255];
-            let bad = [255, 255, 0];
-            let color = if intersecting { good } else { bad };
-            rec.log_timeless(
-                format!("right_triangle{}", i),
+                format!("triangles/triangle{}", i),
                 &rerun::LineStrips3D::new([points]).with_colors([color]))?;
             i += 1;
         }

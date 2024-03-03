@@ -1,6 +1,7 @@
 use crate::geometry::aabb::*;
 use crate::geometry::bounding::*;
 use crate::kdtree::*;
+use nalgebra::vector;
 
 #[derive(Clone, Debug)]
 struct KdBox<'t> {
@@ -68,7 +69,9 @@ fn build_kdtree_median_internal<'t>(max_depth: u32, depth: u32, axis: Axis, pare
 }
 
 pub fn build_kdtree_median<'t>(max_depth: u32, triangles: &'t [Triangle]) -> KdTree<'t> {
-    let triangle_refs: Vec<&'t Triangle> = triangles.iter().collect();
-    let boundary: KdBox<'t> = KdBox{ boundary: bounding(triangles), triangles: triangle_refs };
-    KdTree{ root: *build_kdtree_median_internal(max_depth, 0, Axis::X, boundary) }
+    let kdbox: KdBox<'t> = KdBox{
+        boundary: bounding(triangles).enlarge(&vector![0.1, 0.1, 0.1]),
+        triangles: triangles.iter().collect()
+    };
+    KdTree{ root: *build_kdtree_median_internal(max_depth, 0, Axis::X, kdbox) }
 }
