@@ -4,6 +4,7 @@ version = "1.0.0"
 edition = "2021"
 
 [dependencies]
+image = { version = "0.24.9", features = ["png"] }
 nalgebra = "*"
 nom = "*"
 rand = { version = "0.8.5", features = ["small_rng"] }
