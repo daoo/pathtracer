@@ -24,8 +24,8 @@ fn main() {
     let scene = Scene::from_wavefront(&obj, &mtl);
     println!("Triangles: {}", scene.triangles.len());
 
-    let width: u32 = 128;
-    let height: u32 = 128;
+    let width: u32 = 1024;
+    let height: u32 = 1024;
     let pinhole = Pinhole::new(&scene.cameras[0], width as f32 / height as f32);
     let mut buffer: DMatrix<Vector3<f32>> = DMatrix::zeros(width as usize, height as usize);
 
