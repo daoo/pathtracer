@@ -1,10 +1,11 @@
 mod sampling;
 pub mod camera;
 pub mod geometry;
+pub mod image_buffer;
 pub mod kdtree;
 pub mod light;
 pub mod material;
-pub mod raytracer;
 pub mod pathtracer;
+pub mod raytracer;
 pub mod scene;
 pub mod wavefront;

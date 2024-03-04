@@ -1,9 +1,10 @@
 use crate::camera::*;
 use crate::geometry::ray::*;
+use crate::image_buffer::ImageBuffer;
 use crate::light::*;
 use crate::material::*;
 use crate::scene::*;
-use nalgebra::{vector, Vector2, Vector3, UnitVector3, DMatrix};
+use nalgebra::{vector, Vector2, Vector3, UnitVector3};
 use rand::rngs::SmallRng;
 
 fn light_contribution(
@@ -100,7 +101,7 @@ pub fn render(
         max_bounces: u32,
         scene: &Scene,
         camera: &Pinhole,
-        buffer: &mut DMatrix<Vector3<f32>>,
+        buffer: &mut ImageBuffer,
         rng: &mut SmallRng) {
     let buffer_size = vector![buffer.ncols() as f32, buffer.nrows() as f32];
     for y in 0..buffer.nrows() {
