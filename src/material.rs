@@ -49,12 +49,36 @@ pub struct FresnelBlendMaterial {
     pub r0: f32,
 }
 
+impl FresnelBlendMaterial {
+    pub fn new_approx(reflection: Rc<dyn Material>, refraction: Rc<dyn Material>, r0: f32) -> Rc<dyn Material> {
+        // TODO: Examine if this optimization is even correct.
+        if r0 < 0.01 {
+            reflection
+        } else if r0 > 0.99 {
+            refraction
+        } else {
+            Rc::new(FresnelBlendMaterial { reflection, refraction, r0 })
+        }
+    }
+}
+
 pub struct BlendMaterial {
     pub first: Rc<dyn Material>,
     pub second: Rc<dyn Material>,
     pub factor: f32,
 }
 
+impl BlendMaterial {
+    pub fn new_approx(first: Rc<dyn Material>, second: Rc<dyn Material>, factor: f32) -> Rc<dyn Material> {
+        if factor < 0.01 {
+            second
+        } else if factor > 0.99 {
+            first
+        } else {
+            Rc::new(BlendMaterial { first, second, factor })
+        }
+    }
+}
 
 pub trait Material {
     fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32>;
@@ -119,11 +143,10 @@ impl Material for SpecularRefractiveMaterial {
 }
 
 fn reflectance(r0: f32, wo: &Vector3<f32>, n: &Vector3<f32>) -> f32 {
-  r0 + (1.0 - r0) * (1.0 - wo.dot(n).abs().powf(5.0))
+    r0 + (1.0 - r0) * (1.0 - wo.dot(n).abs().powf(5.0))
 }
 
-impl Material for FresnelBlendMaterial
-{
+impl Material for FresnelBlendMaterial {
     fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
         let reflection = self.reflection.brdf(wo, wi, n);
         let refraction = self.refraction.brdf(wo, wi, n);
@@ -140,8 +163,7 @@ impl Material for FresnelBlendMaterial
     }
 }
 
-impl Material for BlendMaterial
-{
+impl Material for BlendMaterial {
     fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
         let first = self.first.brdf(wo, wi, n);
         let second = self.second.brdf(wo, wi, n);

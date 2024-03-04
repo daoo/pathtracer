@@ -83,47 +83,17 @@ fn triangle_texcoords_from_obj(obj: &obj::Obj) -> Vec<TriangleTexcoords> {
         .collect()
 }
 
-fn blend1_from_mtl(material: &mtl::Material) -> Rc<dyn Material> {
+fn blend_from_mtl(material: &mtl::Material) -> Rc<dyn Material> {
     let refraction = SpecularRefractiveMaterial { index_of_refraction: material.index_of_refraction };
     let reflection = DiffuseReflectiveMaterial { reflectance: material.diffuse_reflection };
-    if material.transparency >= 0.99 {
-        Rc::new(refraction)
-    } else if material.transparency <= 0.01 {
-        Rc::new(reflection)
-    } else {
-        Rc::new(BlendMaterial {
-            first: Rc::new(refraction),
-            second: Rc::new(reflection),
-            factor: material.transparency
-        })
-    }
-}
-
-fn blend0_from_mtl(material: &mtl::Material, blend1: Rc<dyn Material>) -> Rc<dyn Material> {
+    let transparency_blend = BlendMaterial::new_approx(Rc::new(refraction), Rc::new(reflection), material.transparency);
     let specular = SpecularReflectiveMaterial { reflectance: material.specular_reflection };
-    if material.reflection_90_degrees >= 0.99 {
-        Rc::new(FresnelBlendMaterial {
-            reflection: Rc::new(specular),
-            refraction: blend1,
-            r0: material.reflection_0_degrees,
-        })
-    } else if material.reflection_90_degrees <= 0.01 {
-        blend1
-    } else {
-        Rc::new(BlendMaterial {
-            first: Rc::new(FresnelBlendMaterial {
-                reflection: Rc::new(specular),
-                refraction: blend1.clone(),
-                r0: material.reflection_0_degrees,
-            }),
-            second: blend1,
-            factor: material.reflection_90_degrees
-        })
-    }
+    let fresnel_blend = FresnelBlendMaterial::new_approx(Rc::new(specular), transparency_blend.clone(), material.reflection_0_degrees);
+    BlendMaterial::new_approx(fresnel_blend, transparency_blend, material.reflection_90_degrees)
 }
 
 fn material_from_mtl(material: &mtl::Material) -> (&str, Rc<dyn Material>) {
-    (&material.name, blend0_from_mtl(&material, blend1_from_mtl(&material)))
+    (&material.name, blend_from_mtl(&material))
 }
 
 fn triangle_materials_from_obj_and_mtl(obj: &obj::Obj, mtl: &mtl::Mtl) -> Vec<Rc<dyn Material>> {
