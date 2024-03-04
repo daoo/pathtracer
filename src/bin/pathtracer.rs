@@ -8,6 +8,8 @@ use rand::SeedableRng;
 use rand::rngs::SmallRng;
 use std::fs;
 use std::str;
+use std::time::Duration;
+use std::time::Instant;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -41,10 +43,20 @@ fn main() {
     let mut buffer = ImageBuffer::new(args.width, args.height);
 
     let mut rng = SmallRng::from_entropy();
-
-    for iteration in 1..args.iterations {
-        println!("Rendering iteration {} / {}...", iteration, args.iterations);
+    println!("Rendering {} iteration(s)...", args.iterations);
+    let mut time_sum = Duration::new(0, 0);
+    for iteration in 0..args.iterations {
+        let t1 = Instant::now();
         pathtracer::render(args.max_bounces, &scene, &pinhole, &mut buffer, &mut rng);
+        let t2 = Instant::now();
+        let duration = t2 - t1;
+        time_sum += duration;
+        println!(
+            "Rendered iteration {} / {} in {:?} (mean: {:?})...",
+            iteration + 1,
+            args.iterations,
+            duration,
+            time_sum / (iteration + 1));
     }
 
     println!("Writing {}...", args.output.display());
