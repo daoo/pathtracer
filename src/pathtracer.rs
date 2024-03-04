@@ -59,7 +59,7 @@ fn trace_ray(
     let material = &scene.triangle_materials[triangle_index];
 
     // TODO: How to chose offset?
-    let offset = 0.000001 * n.into_inner();
+    let offset = 0.0001 * n.into_inner();
     let point_above = point + offset;
     let point_below = point - offset;
 
