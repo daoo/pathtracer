@@ -95,7 +95,8 @@ impl BlendMaterial {
     }
 }
 
-pub trait Material {
+// TODO: Don't really understand the Arc + Send + Sync stuff.
+pub trait Material: Send + Sync {
     fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32>;
 
     fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample;
