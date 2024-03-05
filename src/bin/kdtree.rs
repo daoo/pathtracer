@@ -1,11 +1,18 @@
+use clap::Parser;
 use pathtracer::geometry::triangle::*;
-use pathtracer::kdtree::build::*;
 use pathtracer::kdtree::*;
+use pathtracer::kdtree::build::*;
 use pathtracer::wavefront::*;
-use std::env;
 use std::fs;
-use std::path::Path;
 use std::str;
+
+#[derive(Parser, Debug)]
+struct Args {
+    #[arg(short, long, required = true)]
+    input: std::path::PathBuf,
+    #[arg(short, long, default_value_t = 3)]
+    max_depth: u32,
+}
 
 fn print_triangles(all_triangles: &[Triangle], triangles: &[Triangle]) -> Vec<usize> {
     triangles
@@ -31,24 +38,22 @@ fn print(depth: usize, all_triangles: &[Triangle], kdtree: &KdNode) {
 }
 
 fn main() {
-    for arg in env::args().skip(1) {
-        let path = Path::new(&arg);
-        let bytes = fs::read(path).unwrap();
-        let input = str::from_utf8(&bytes).unwrap();
-        let obj = obj::obj(input);
-        let mut triangles: Vec<Triangle> = Vec::new();
-        for chunk in &obj.chunks {
-            for face in &chunk.faces {
-                triangles.push(Triangle {
-                    v0: obj.index_vertex(&face.p0),
-                    v1: obj.index_vertex(&face.p1),
-                    v2: obj.index_vertex(&face.p2),
-                })
-            }
+    let args = Args::parse();
+    let bytes = fs::read(args.input).unwrap();
+    let input = str::from_utf8(&bytes).unwrap();
+    let obj = obj::obj(input);
+    let mut triangles: Vec<Triangle> = Vec::new();
+    for chunk in &obj.chunks {
+        for face in &chunk.faces {
+            triangles.push(Triangle {
+                v0: obj.index_vertex(&face.p0),
+                v1: obj.index_vertex(&face.p1),
+                v2: obj.index_vertex(&face.p2),
+            })
         }
-
-        let kdtree = build_kdtree_median(5, &triangles);
-
-        print(0, &triangles, &kdtree.root);
     }
+
+    let kdtree = build_kdtree_median(args.max_depth, &triangles);
+
+    print(0, &triangles, &kdtree.root);
 }
