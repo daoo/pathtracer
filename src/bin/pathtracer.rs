@@ -8,6 +8,7 @@ use rand::rngs::SmallRng;
 use rand::SeedableRng;
 use std::fs;
 use std::str;
+use std::thread;
 use std::time::Duration;
 use std::time::Instant;
 
@@ -25,6 +26,29 @@ struct Args {
     max_bounces: u32,
     #[arg(short, long, default_value_t = 16)]
     iterations: u32,
+    #[arg(short, long, default_value_t = 1)]
+    threads: u32,
+}
+
+fn work(width: usize, height: usize, max_bounces: u32, scene: &Scene, pinhole: &Pinhole, iterations: u32) -> ImageBuffer {
+    let mut rng = SmallRng::from_entropy();
+    let mut buffer = ImageBuffer::new(width, height);
+    let mut time_sum = Duration::new(0, 0);
+    for iteration in 0..iterations {
+        let t1 = Instant::now();
+        pathtracer::render(max_bounces, &scene, &pinhole, &mut buffer, &mut rng);
+        let t2 = Instant::now();
+        let duration = t2 - t1;
+        time_sum += duration;
+        println!(
+            "Rendered iteration {} / {} in {:?} (mean: {:?})...",
+            iteration + 1,
+            iterations,
+            duration,
+            time_sum / (iteration + 1)
+        );
+    }
+    buffer
 }
 
 fn main() {
@@ -40,25 +64,19 @@ fn main() {
     println!("Triangles: {}", scene.triangle_normals.len());
 
     let pinhole = Pinhole::new(&scene.cameras[0], args.width as f32 / args.height as f32);
-    let mut buffer = ImageBuffer::new(args.width, args.height);
 
-    let mut rng = SmallRng::from_entropy();
     println!("Rendering {} iteration(s)...", args.iterations);
-    let mut time_sum = Duration::new(0, 0);
-    for iteration in 0..args.iterations {
-        let t1 = Instant::now();
-        pathtracer::render(args.max_bounces, &scene, &pinhole, &mut buffer, &mut rng);
-        let t2 = Instant::now();
-        let duration = t2 - t1;
-        time_sum += duration;
-        println!(
-            "Rendered iteration {} / {} in {:?} (mean: {:?})...",
-            iteration + 1,
-            args.iterations,
-            duration,
-            time_sum / (iteration + 1)
-        );
-    }
+    let threads = (0..args.threads).into_iter().map(|i| {
+        thread::spawn(|| work(
+                args.width,
+                args.height,
+                args.max_bounces,
+                &scene,
+                &pinhole,
+                args.iterations / args.threads))
+    });
+    let results = threads.map(|t| t.join().unwrap()).collect::<Vec<_>>();
+    let buffer = ImageBuffer::sum(&results);
 
     println!("Writing {}...", args.output.display());
     buffer

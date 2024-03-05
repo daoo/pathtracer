@@ -31,6 +31,14 @@ impl ImageBuffer {
         self.0.nrows()
     }
 
+    pub fn sum(buffers: &[ImageBuffer]) -> ImageBuffer {
+        let mut accum = buffers[0].0.clone();
+        for buffer in buffers.iter().skip(1) {
+            accum += &buffer.0;
+        }
+        ImageBuffer(accum)
+    }
+
     pub fn div(&self, value: f32) -> Self {
         ImageBuffer(self.0.map(|e| e / value))
     }
