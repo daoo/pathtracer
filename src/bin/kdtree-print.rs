@@ -1,7 +1,7 @@
 use clap::Parser;
 use pathtracer::geometry::triangle::*;
-use pathtracer::kdtree::*;
 use pathtracer::kdtree::build::*;
+use pathtracer::kdtree::*;
 use pathtracer::wavefront::*;
 use std::fs;
 use std::str;
@@ -14,25 +14,14 @@ struct Args {
     max_depth: u32,
 }
 
-fn print_triangles(all_triangles: &[Triangle], triangles: &[Triangle]) -> Vec<usize> {
-    triangles
-        .iter()
-        .map(|t1| all_triangles.iter().position(|t2| t1 == t2).unwrap())
-        .collect()
-}
-
-fn print(depth: usize, all_triangles: &[Triangle], kdtree: &KdNode) {
+fn print(depth: usize, kdtree: &KdNode) {
     let indent = "  ".repeat(depth);
     match kdtree {
-        KdNode::Leaf(triangles) => println!(
-            "{}Leaf: {:?}",
-            indent,
-            print_triangles(all_triangles, triangles)
-        ),
+        KdNode::Leaf(triangle_indices) => println!("{}Leaf: {:?}", indent, triangle_indices),
         KdNode::Node { plane, left, right } => {
             println!("{}Split: {:?}", "  ".repeat(depth), plane);
-            print(depth + 1, all_triangles, left);
-            print(depth + 1, all_triangles, right);
+            print(depth + 1, left);
+            print(depth + 1, right);
         }
     }
 }
@@ -53,7 +42,6 @@ fn main() {
         }
     }
 
-    let kdtree = build_kdtree_median(args.max_depth, &triangles);
-
-    print(0, &triangles, &kdtree.root);
+    let kdtree = build_kdtree_median(args.max_depth, triangles);
+    print(0, &kdtree.root);
 }

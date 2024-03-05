@@ -7,7 +7,7 @@ pub mod build;
 
 #[derive(Debug, PartialEq)]
 pub enum KdNode {
-    Leaf(Vec<Triangle>),
+    Leaf(Vec<u32>),
     Node {
         plane: Aap,
         left: Box<KdNode>,
@@ -18,6 +18,7 @@ pub enum KdNode {
 #[derive(Debug, PartialEq)]
 pub struct KdTree {
     pub root: KdNode,
+    pub triangles: Vec<Triangle>,
 }
 
 impl KdTree {
@@ -28,8 +29,12 @@ impl KdTree {
         let mut t2 = tmax;
         loop {
             match node {
-                KdNode::Leaf(triangles) => {
-                    match intersect_closest_triangle_ray(triangles, ray, t1, t2) {
+                KdNode::Leaf(triangle_indices) => {
+                    let triangles = triangle_indices
+                        .into_iter()
+                        .map(|i| self.triangles[*i as usize].clone())
+                        .collect::<Vec<_>>();
+                    match intersect_closest_triangle_ray(&triangles, ray, t1, t2) {
                         Some((_, result)) => return Some(result),
                         None if t2 == tmax => return None,
                         _ => {
@@ -84,6 +89,7 @@ mod tests {
     fn intersect_empty_tree() {
         let tree = KdTree {
             root: KdNode::Leaf(vec![]),
+            triangles: vec![],
         };
         let ray = Ray::between(&vector![0., 0., 0.], &vector![1., 1., 1.]);
 
@@ -108,9 +114,10 @@ mod tests {
                     axis: Axis::X,
                     distance: 1.,
                 },
-                left: Box::new(KdNode::Leaf(vec![triangle0.clone(), triangle1.clone()])),
-                right: Box::new(KdNode::Leaf(vec![triangle0.clone(), triangle1.clone()])),
+                left: Box::new(KdNode::Leaf(vec![0, 1])),
+                right: Box::new(KdNode::Leaf(vec![0, 1])),
             },
+            triangles: vec![triangle0, triangle1],
         };
         let ray1 = Ray::between(&vector![1., 1., -2.], &vector![1., 1., 2.]);
         let ray2 = ray1.reverse();
@@ -151,9 +158,10 @@ mod tests {
                     axis: Axis::X,
                     distance: 1.,
                 },
-                left: Box::new(KdNode::Leaf(vec![triangle0])),
-                right: Box::new(KdNode::Leaf(vec![triangle1])),
+                left: Box::new(KdNode::Leaf(vec![0])),
+                right: Box::new(KdNode::Leaf(vec![1])),
             },
+            triangles: vec![triangle0, triangle1],
         };
         let ray_triangle0_v0 = Ray::between(&vector![0., 0., -1.], &vector![0., 0., 1.]);
         let ray_triangle1_v1 = Ray::between(&vector![2., 0., -1.], &vector![2., 0., 1.]);
@@ -194,9 +202,10 @@ mod tests {
                     axis: Axis::X,
                     distance: 1.,
                 },
-                left: Box::new(KdNode::Leaf(vec![triangle0])),
-                right: Box::new(KdNode::Leaf(vec![triangle1])),
+                left: Box::new(KdNode::Leaf(vec![0])),
+                right: Box::new(KdNode::Leaf(vec![1])),
             },
+            triangles: vec![triangle0, triangle1],
         };
         let ray1 = Ray::between(&vector![-1., 0., 0.], &vector![3., 0., 0.]);
         let ray2 = ray1.reverse();
