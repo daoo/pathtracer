@@ -1,7 +1,11 @@
 use nalgebra::Vector3;
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
-pub enum Axis { X = 0, Y = 1, Z = 2 }
+pub enum Axis {
+    X = 0,
+    Y = 1,
+    Z = 2,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Aap {

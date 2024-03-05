@@ -1,10 +1,10 @@
 use nalgebra::{vector, Vector2, Vector3};
-use nom::IResult;
 use nom::bytes::complete::tag_no_case;
 use nom::character::complete::{char, i32, multispace0};
 use nom::combinator::{opt, rest};
 use nom::number::complete::float;
 use nom::sequence::Tuple;
+use nom::IResult;
 use std::cmp::Ordering;
 use std::path::Path;
 use std::path::PathBuf;
@@ -31,18 +31,21 @@ pub struct Chunk {
 
 impl Chunk {
     pub fn new(material: String) -> Chunk {
-        Chunk { faces: Vec::new(), material }
+        Chunk {
+            faces: Vec::new(),
+            material,
+        }
     }
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Obj {
-  pub mtl_lib: PathBuf,
+    pub mtl_lib: PathBuf,
 
-  pub vertices: Vec<Vector3<f32>>,
-  pub normals: Vec<Vector3<f32>>,
-  pub texcoords: Vec<Vector2<f32>>,
-  pub chunks: Vec<Chunk>,
+    pub vertices: Vec<Vector3<f32>>,
+    pub normals: Vec<Vector3<f32>>,
+    pub texcoords: Vec<Vector2<f32>>,
+    pub chunks: Vec<Chunk>,
 }
 
 impl Obj {
@@ -67,7 +70,11 @@ fn index_wavefront_vec<T: Default + Clone>(v: &[T], i: i32) -> T {
     }
 }
 
-fn tagged<'a, O>(name: &str, data: impl Fn(&'a str) -> IResult<&'a str, O>, input: &'a str) -> IResult<&'a str, O> {
+fn tagged<'a, O>(
+    name: &str,
+    data: impl Fn(&'a str) -> IResult<&'a str, O>,
+    input: &'a str,
+) -> IResult<&'a str, O> {
     let (input, _) = tag_no_case(name)(input)?;
     let (input, _) = multispace0(input)?;
     data(input)
@@ -96,7 +103,7 @@ fn point(input: &str) -> IResult<&str, Point> {
 fn triangle(input: &str) -> IResult<&str, Face> {
     (point, multispace0, point, multispace0, point)
         .parse(input)
-        .map(|(input, (p0, _, p1, _, p2))| (input, Face{ p0, p1, p2 }))
+        .map(|(input, (p0, _, p1, _, p2))| (input, Face { p0, p1, p2 }))
 }
 
 pub fn obj(input: &str) -> Obj {
@@ -109,7 +116,7 @@ pub fn obj(input: &str) -> Obj {
     for line in input.lines() {
         let line = line.trim();
         if line.is_empty() || line.starts_with('#') {
-            continue
+            continue;
         }
 
         if let Ok((_, x)) = tagged("mtllib", rest, line) {
@@ -138,7 +145,7 @@ pub fn obj(input: &str) -> Obj {
         vertices,
         normals,
         texcoords,
-        chunks
+        chunks,
     }
 }
 
@@ -171,8 +178,8 @@ mod tests {
 
     #[test]
     fn test_point() {
-        assert_eq!(point("1/2/3"), Ok(("", Point{v:1, t:2, n:3})));
-        assert_eq!(point("1//3"), Ok(("", Point{v:1, t:0, n:3})));
+        assert_eq!(point("1/2/3"), Ok(("", Point { v: 1, t: 2, n: 3 })));
+        assert_eq!(point("1//3"), Ok(("", Point { v: 1, t: 0, n: 3 })));
     }
 
     #[test]
@@ -184,22 +191,28 @@ mod tests {
 
     #[test]
     fn test_faces() {
-        assert_eq!(obj("usemtl m1\nf 1/2/3 4/5/6 7/8/9").chunks, [Chunk{
-            faces: vec![Face{
-                p0: Point{v:1, t:2, n:3},
-                p1: Point{v:4, t:5, n:6},
-                p2: Point{v:7, t:8, n:9}
-            }],
-            material: "m1".to_string()
-        }]);
+        assert_eq!(
+            obj("usemtl m1\nf 1/2/3 4/5/6 7/8/9").chunks,
+            [Chunk {
+                faces: vec![Face {
+                    p0: Point { v: 1, t: 2, n: 3 },
+                    p1: Point { v: 4, t: 5, n: 6 },
+                    p2: Point { v: 7, t: 8, n: 9 }
+                }],
+                material: "m1".to_string()
+            }]
+        );
     }
 
     #[test]
     fn test_usemtl() {
-        assert_eq!(obj("usemtl m1").chunks, [Chunk{
-            faces: vec![],
-            material: "m1".to_string(),
-        }]);
+        assert_eq!(
+            obj("usemtl m1").chunks,
+            [Chunk {
+                faces: vec![],
+                material: "m1".to_string(),
+            }]
+        );
     }
 
     #[test]

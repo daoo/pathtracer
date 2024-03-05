@@ -10,11 +10,16 @@ pub struct SphericalLight {
 }
 
 impl SphericalLight {
-    pub fn new(center: Vector3<f32>, radius: f32, color: &Vector3<f32>, intensity: f32) -> SphericalLight {
+    pub fn new(
+        center: Vector3<f32>,
+        radius: f32,
+        color: &Vector3<f32>,
+        intensity: f32,
+    ) -> SphericalLight {
         SphericalLight {
             center,
             intensity: color * intensity,
-            radius
+            radius,
         }
     }
 

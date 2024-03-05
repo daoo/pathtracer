@@ -4,7 +4,7 @@ use crate::image_buffer::ImageBuffer;
 use crate::light::*;
 use crate::material::*;
 use crate::scene::*;
-use nalgebra::{vector, Vector2, Vector3, UnitVector3};
+use nalgebra::{vector, UnitVector3, Vector2, Vector3};
 
 fn light_contribution(
     scene: &Scene,
@@ -13,12 +13,15 @@ fn light_contribution(
     offset_point: Vector3<f32>,
     wi: Vector3<f32>,
     n: UnitVector3<f32>,
-    light: &SphericalLight) -> Vector3<f32>
-{
+    light: &SphericalLight,
+) -> Vector3<f32> {
     let direction = light.center - target;
-    let shadow_ray = Ray { origin: offset_point, direction };
+    let shadow_ray = Ray {
+        origin: offset_point,
+        direction,
+    };
     if scene.intersect_any(&shadow_ray, 0.0, 1.0) {
-        return Vector3::zeros()
+        return Vector3::zeros();
     }
 
     let wr = direction.normalize();
@@ -45,9 +48,12 @@ fn trace_ray(scene: &Scene, ray: &Ray) -> Vector3<f32> {
     let offset_point = point + 0.0001 * n.into_inner();
 
     let material = &scene.triangle_materials[triangle_index];
-    scene.lights.iter()
-        .map(|light| light_contribution(
-                scene, material.as_ref(), point, offset_point, wi, n, light))
+    scene
+        .lights
+        .iter()
+        .map(|light| {
+            light_contribution(scene, material.as_ref(), point, offset_point, wi, n, light)
+        })
         .sum()
 }
 

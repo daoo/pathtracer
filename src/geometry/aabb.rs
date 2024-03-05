@@ -1,6 +1,6 @@
 use crate::geometry::aap::Aap;
-use nalgebra::{vector, Vector3};
 use nalgebra;
+use nalgebra::{vector, Vector3};
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Aabb {
@@ -12,7 +12,10 @@ impl Aabb {
     pub fn from_extents(min: &Vector3<f32>, max: &Vector3<f32>) -> Aabb {
         let size = max - min;
         let half_size = size / 2.;
-        Aabb { center: min + half_size, half_size }
+        Aabb {
+            center: min + half_size,
+            half_size,
+        }
     }
 
     pub fn empty() -> Aabb {
@@ -38,7 +41,9 @@ impl Aabb {
     }
 
     pub fn surface_area(&self) -> f32 {
-        8. * (self.half_size.x * self.half_size.y + self.half_size.x * self.half_size.z + self.half_size.y * self.half_size.z)
+        8. * (self.half_size.x * self.half_size.y
+            + self.half_size.x * self.half_size.z
+            + self.half_size.y * self.half_size.z)
     }
 
     pub fn volume(&self) -> f32 {
@@ -46,11 +51,17 @@ impl Aabb {
     }
 
     pub fn translate(&self, delta: &Vector3<f32>) -> Aabb {
-        Aabb{center: self.center + delta, half_size: self.half_size}
+        Aabb {
+            center: self.center + delta,
+            half_size: self.half_size,
+        }
     }
 
     pub fn enlarge(&self, delta: &Vector3<f32>) -> Aabb {
-        Aabb{center: self.center, half_size: self.half_size + delta}
+        Aabb {
+            center: self.center,
+            half_size: self.half_size + delta,
+        }
     }
 
     pub fn clamp(&self, v: Vector3<f32>) -> Vector3<f32> {
@@ -72,8 +83,14 @@ impl Aabb {
         snd_center[plane.axis] = plane.distance + snd_half_axis;
         snd_half_size[plane.axis] = snd_half_axis;
 
-        let fst = Aabb {center: fst_center, half_size: fst_half_size};
-        let snd = Aabb {center: snd_center, half_size: snd_half_size};
+        let fst = Aabb {
+            center: fst_center,
+            half_size: fst_half_size,
+        };
+        let snd = Aabb {
+            center: snd_center,
+            half_size: snd_half_size,
+        };
         (fst, snd)
     }
 }

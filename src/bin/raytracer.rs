@@ -1,9 +1,9 @@
-use clap::Parser;
 use ::pathtracer::camera::*;
 use ::pathtracer::image_buffer::*;
 use ::pathtracer::raytracer;
 use ::pathtracer::scene::*;
 use ::pathtracer::wavefront::*;
+use clap::Parser;
 use std::fs;
 use std::str;
 
@@ -38,5 +38,7 @@ fn main() {
     raytracer::render(&scene, &pinhole, &mut buffer);
 
     println!("Writing {}...", args.output.display());
-    buffer.save_with_format(&args.output, image::ImageFormat::Png).unwrap();
+    buffer
+        .save_with_format(&args.output, image::ImageFormat::Png)
+        .unwrap();
 }

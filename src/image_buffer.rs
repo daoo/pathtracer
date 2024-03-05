@@ -1,5 +1,8 @@
 use nalgebra::{DMatrix, Vector3};
-use std::{path::Path, ops::{Index, IndexMut}};
+use std::{
+    ops::{Index, IndexMut},
+    path::Path,
+};
 
 pub struct ImageBuffer(DMatrix<Vector3<f32>>);
 
@@ -12,7 +15,8 @@ fn to_rgb_u8(vector: &Vector3<f32>) -> image::Rgb<u8> {
     image::Rgb([
         (gamma_correct(vector.x) * 255.0) as u8,
         (gamma_correct(vector.y) * 255.0) as u8,
-        (gamma_correct(vector.z) * 255.0) as u8])
+        (gamma_correct(vector.z) * 255.0) as u8,
+    ])
 }
 
 impl ImageBuffer {
@@ -20,14 +24,22 @@ impl ImageBuffer {
         ImageBuffer(DMatrix::zeros(width, height))
     }
 
-    pub fn ncols(&self) -> usize { self.0.ncols() }
-    pub fn nrows(&self) -> usize { self.0.nrows() }
+    pub fn ncols(&self) -> usize {
+        self.0.ncols()
+    }
+    pub fn nrows(&self) -> usize {
+        self.0.nrows()
+    }
 
     pub fn div(&self, value: f32) -> Self {
         ImageBuffer(self.0.map(|e| e / value))
     }
 
-    pub fn save_with_format(&self, path: &Path, format: image::ImageFormat) -> Result<(), image::ImageError> {
+    pub fn save_with_format(
+        &self,
+        path: &Path,
+        format: image::ImageFormat,
+    ) -> Result<(), image::ImageError> {
         let mut image = image::RgbImage::new(self.0.ncols() as u32, self.0.nrows() as u32);
         for y in 0..self.0.nrows() {
             for x in 0..self.0.ncols() {

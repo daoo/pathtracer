@@ -4,8 +4,8 @@ use ::pathtracer::pathtracer;
 use ::pathtracer::scene::*;
 use ::pathtracer::wavefront::*;
 use clap::Parser;
-use rand::SeedableRng;
 use rand::rngs::SmallRng;
+use rand::SeedableRng;
 use std::fs;
 use std::str;
 use std::time::Duration;
@@ -56,11 +56,13 @@ fn main() {
             iteration + 1,
             args.iterations,
             duration,
-            time_sum / (iteration + 1));
+            time_sum / (iteration + 1)
+        );
     }
 
     println!("Writing {}...", args.output.display());
     buffer
         .div(args.iterations as f32)
-        .save_with_format(&args.output, image::ImageFormat::Png).unwrap();
+        .save_with_format(&args.output, image::ImageFormat::Png)
+        .unwrap();
 }

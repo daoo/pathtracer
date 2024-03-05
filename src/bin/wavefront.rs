@@ -1,10 +1,10 @@
 extern crate pathtracer;
 
+use pathtracer::wavefront::{mtl, obj};
 use std::env;
 use std::fs;
-use std::str;
 use std::path::Path;
-use pathtracer::wavefront::{mtl, obj};
+use std::str;
 
 fn main() {
     for arg in env::args().skip(1) {

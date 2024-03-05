@@ -17,13 +17,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut triangles: Vec<Triangle> = Vec::new();
         for chunk in &obj.chunks {
             for face in &chunk.faces {
-                triangles.push(
-                    Triangle{
-                        v0: obj.index_vertex(&face.p0),
-                        v1: obj.index_vertex(&face.p1),
-                        v2: obj.index_vertex(&face.p2),
-                    }
-                );
+                triangles.push(Triangle {
+                    v0: obj.index_vertex(&face.p0),
+                    v1: obj.index_vertex(&face.p1),
+                    v2: obj.index_vertex(&face.p2),
+                });
             }
         }
 
@@ -59,7 +57,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let color = if t == wrong_triangle[0] { bad } else { good };
             rec.log_timeless(
                 format!("triangles/triangle{}", i),
-                &rerun::LineStrips3D::new([points]).with_colors([color]))?;
+                &rerun::LineStrips3D::new([points]).with_colors([color]),
+            )?;
         }
 
         // let mut i = 0;

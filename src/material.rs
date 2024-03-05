@@ -1,7 +1,7 @@
 use crate::sampling::*;
-use nalgebra::{RealField, vector, Vector3};
-use rand::Rng;
+use nalgebra::{vector, RealField, Vector3};
 use rand::rngs::SmallRng;
+use rand::Rng;
 use std::rc::Rc;
 
 fn perpendicular(v: &Vector3<f32>) -> Vector3<f32> {
@@ -10,7 +10,6 @@ fn perpendicular(v: &Vector3<f32>) -> Vector3<f32> {
     } else {
         vector![-v.z, 0., v.x]
     }
-
 }
 
 fn is_same_sign(a: f32, b: f32) -> bool {
@@ -18,7 +17,7 @@ fn is_same_sign(a: f32, b: f32) -> bool {
 }
 
 fn is_same_hemisphere(wi: &Vector3<f32>, wo: &Vector3<f32>, n: &Vector3<f32>) -> bool {
-  is_same_sign(wi.dot(n), wo.dot(n))
+    is_same_sign(wi.dot(n), wo.dot(n))
 }
 
 #[derive(Debug)]
@@ -50,14 +49,22 @@ pub struct FresnelBlendMaterial {
 }
 
 impl FresnelBlendMaterial {
-    pub fn new_approx(reflection: Rc<dyn Material>, refraction: Rc<dyn Material>, r0: f32) -> Rc<dyn Material> {
+    pub fn new_approx(
+        reflection: Rc<dyn Material>,
+        refraction: Rc<dyn Material>,
+        r0: f32,
+    ) -> Rc<dyn Material> {
         // TODO: Examine if this optimization is even correct.
         if r0 < 0.01 {
             reflection
         } else if r0 > 0.99 {
             refraction
         } else {
-            Rc::new(FresnelBlendMaterial { reflection, refraction, r0 })
+            Rc::new(FresnelBlendMaterial {
+                reflection,
+                refraction,
+                r0,
+            })
         }
     }
 }
@@ -69,13 +76,21 @@ pub struct BlendMaterial {
 }
 
 impl BlendMaterial {
-    pub fn new_approx(first: Rc<dyn Material>, second: Rc<dyn Material>, factor: f32) -> Rc<dyn Material> {
+    pub fn new_approx(
+        first: Rc<dyn Material>,
+        second: Rc<dyn Material>,
+        factor: f32,
+    ) -> Rc<dyn Material> {
         if factor < 0.01 {
             second
         } else if factor > 0.99 {
             first
         } else {
-            Rc::new(BlendMaterial { first, second, factor })
+            Rc::new(BlendMaterial {
+                first,
+                second,
+                factor,
+            })
         }
     }
 }
@@ -97,10 +112,10 @@ impl Material for DiffuseReflectiveMaterial {
         let s = cosine_sample_hemisphere(rng);
 
         let wo = (s.x * tangent + s.y * bitangent + s.z * n).normalize();
-        MaterialSample{
+        MaterialSample {
             pdf: s.norm(),
             brdf: self.brdf(wi, &wo, n),
-            wo
+            wo,
         }
     }
 }
@@ -112,8 +127,16 @@ impl Material for SpecularReflectiveMaterial {
 
     fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, _: &mut SmallRng) -> MaterialSample {
         let wo = (2.0 * wi.dot(n).abs() * n - wi).normalize();
-        let pdf = if is_same_hemisphere(wi, &wo, n) { wo.dot(n).abs() } else { 0.0 };
-        MaterialSample { pdf, brdf: self.reflectance, wo }
+        let pdf = if is_same_hemisphere(wi, &wo, n) {
+            wo.dot(n).abs()
+        } else {
+            0.0
+        };
+        MaterialSample {
+            pdf,
+            brdf: self.reflectance,
+            wo,
+        }
     }
 }
 
@@ -124,21 +147,30 @@ impl Material for SpecularRefractiveMaterial {
 
     fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample {
         let a = (-wi).dot(n);
-        let eta = if a < 0.0  { 1.0 / self.index_of_refraction } else { self.index_of_refraction };
+        let eta = if a < 0.0 {
+            1.0 / self.index_of_refraction
+        } else {
+            self.index_of_refraction
+        };
         let n = if a < 0.0 { *n } else { -n };
 
         let w = -a * eta;
         let k = 1.0 + (w - eta) * (w + eta);
         if k < 0.0 {
-            const TOTAL_INTERNAL_REFLECTION: SpecularReflectiveMaterial = SpecularReflectiveMaterial {
-                reflectance: vector![1.0, 1.0, 1.0],
-            };
+            const TOTAL_INTERNAL_REFLECTION: SpecularReflectiveMaterial =
+                SpecularReflectiveMaterial {
+                    reflectance: vector![1.0, 1.0, 1.0],
+                };
             return TOTAL_INTERNAL_REFLECTION.sample(wi, &n, rng);
         }
 
         let k = k.sqrt();
         let wo = (-eta * wi + (w - k) * n).normalize();
-        MaterialSample { pdf: 1.0, brdf: vector![1., 1., 1.], wo }
+        MaterialSample {
+            pdf: 1.0,
+            brdf: vector![1., 1., 1.],
+            wo,
+        }
     }
 }
 

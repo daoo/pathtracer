@@ -1,5 +1,5 @@
 use crate::geometry::ray::*;
-use nalgebra::{Vector3, UnitVector3};
+use nalgebra::{UnitVector3, Vector3};
 
 #[derive(Clone, Debug)]
 pub struct Camera {
@@ -11,14 +11,19 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(position: &Vector3<f32>, target: &Vector3<f32>, up: &Vector3<f32>, fov_degrees: f32) -> Camera {
+    pub fn new(
+        position: &Vector3<f32>,
+        target: &Vector3<f32>,
+        up: &Vector3<f32>,
+        fov_degrees: f32,
+    ) -> Camera {
         let direction = UnitVector3::new_normalize(target - position);
         Camera {
             position: *position,
             direction,
             up: UnitVector3::new_normalize(*up),
             right: UnitVector3::new_normalize(direction.cross(up)),
-            fov_degrees
+            fov_degrees,
         }
     }
 }

@@ -2,9 +2,9 @@ use nalgebra::Vector3;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Triangle {
-  pub v0: Vector3<f32>,
-  pub v1: Vector3<f32>,
-  pub v2: Vector3<f32>,
+    pub v0: Vector3<f32>,
+    pub v1: Vector3<f32>,
+    pub v2: Vector3<f32>,
 }
 
 impl Triangle {
@@ -59,7 +59,7 @@ mod tests {
 
     #[test]
     fn test_center() {
-        let triangle = Triangle{
+        let triangle = Triangle {
             v0: vector![0., 0., 0.],
             v1: vector![1., 1., 1.],
             v2: vector![-1., -1., -1.],
