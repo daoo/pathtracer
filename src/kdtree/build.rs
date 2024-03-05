@@ -135,7 +135,7 @@ pub fn build_kdtree_median(max_depth: u32, triangles: Vec<Triangle>) -> KdTree {
         triangles,
     };
     KdTree {
-        root: *builder.build(0, Axis::X, kdbox),
+        root: builder.build(0, Axis::X, kdbox),
         triangles: builder.triangles,
     }
 }

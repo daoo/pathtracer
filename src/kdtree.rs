@@ -17,14 +17,14 @@ pub enum KdNode {
 
 #[derive(Debug, PartialEq)]
 pub struct KdTree {
-    pub root: KdNode,
+    pub root: Box<KdNode>,
     pub triangles: Vec<Triangle>,
 }
 
 impl KdTree {
     pub fn intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(usize, TriangleRayIntersection)> {
         debug_assert!(tmin < tmax);
-        let mut node = &self.root;
+        let mut node = self.root.as_ref();
         let mut t1 = tmin;
         let mut t2 = tmax;
         loop {
@@ -34,14 +34,14 @@ impl KdTree {
                         .into_iter()
                         .map(|i| self.triangles[*i as usize].clone())
                         .collect::<Vec<_>>();
-                    match intersect_closest_triangle_ray(&triangles, ray, t1, t2) {
-                        Some((index, result)) => return Some((triangle_indices[index] as usize, result)),
-                        None if t2 == tmax => return None,
-                        _ => {
-                            t1 = t2;
-                            t2 = tmax;
-                            node = &self.root;
-                        }
+                    if let Some((index, result)) = intersect_closest_triangle_ray(&triangles, ray, t1, t2) {
+                        return Some((triangle_indices[index] as usize, result));
+                    } else if t2 == tmax {
+                        return None
+                    } else {
+                        t1 = t2;
+                        t2 = tmax;
+                        node = &self.root;
                     }
                 }
                 KdNode::Node { plane, left, right } => {
@@ -55,18 +55,18 @@ impl KdTree {
                     } else {
                         let t = (plane.distance - ray.origin[axis]) / ray.direction[axis];
                         let fst = if ray.direction[axis] >= 0. {
-                            left
+                            left.as_ref()
                         } else {
-                            right
+                            right.as_ref()
                         };
-                        let snd = if ray.direction[axis] >= 0. {
-                            right
+                        let snd: &KdNode = if ray.direction[axis] >= 0. {
+                            right.as_ref()
                         } else {
-                            left
+                            left.as_ref()
                         };
-                        if t >= tmax {
+                        if t >= t2 {
                             node = fst;
-                        } else if t <= tmin {
+                        } else if t <= t1 {
                             node = snd;
                         } else {
                             node = fst;
@@ -88,7 +88,7 @@ mod tests {
     #[test]
     fn intersect_empty_tree() {
         let tree = KdTree {
-            root: KdNode::Leaf(vec![]),
+            root: Box::new(KdNode::Leaf(vec![])),
             triangles: vec![],
         };
         let ray = Ray::between(&vector![0., 0., 0.], &vector![1., 1., 1.]);
@@ -109,14 +109,14 @@ mod tests {
             v2: vector![2., 2., 1.],
         };
         let tree = KdTree {
-            root: KdNode::Node {
+            root: Box::new(KdNode::Node {
                 plane: Aap {
                     axis: Axis::X,
                     distance: 1.,
                 },
                 left: Box::new(KdNode::Leaf(vec![0, 1])),
                 right: Box::new(KdNode::Leaf(vec![0, 1])),
-            },
+            }),
             triangles: vec![triangle0, triangle1],
         };
         let ray1 = Ray::between(&vector![1., 1., -2.], &vector![1., 1., 2.]);
@@ -153,14 +153,14 @@ mod tests {
             v2: vector![2., 1., 0.],
         };
         let tree = KdTree {
-            root: KdNode::Node {
+            root: Box::new(KdNode::Node {
                 plane: Aap {
                     axis: Axis::X,
                     distance: 1.,
                 },
                 left: Box::new(KdNode::Leaf(vec![0])),
                 right: Box::new(KdNode::Leaf(vec![1])),
-            },
+            }),
             triangles: vec![triangle0, triangle1],
         };
         let ray_triangle0_v0 = Ray::between(&vector![0., 0., -1.], &vector![0., 0., 1.]);
@@ -197,14 +197,14 @@ mod tests {
             v2: vector![2., 1., 1.],
         };
         let tree = KdTree {
-            root: KdNode::Node {
+            root: Box::new(KdNode::Node {
                 plane: Aap {
                     axis: Axis::X,
                     distance: 1.,
                 },
                 left: Box::new(KdNode::Leaf(vec![0])),
                 right: Box::new(KdNode::Leaf(vec![1])),
-            },
+            }),
             triangles: vec![triangle0, triangle1],
         };
         let ray1 = Ray::between(&vector![-1., 0., 0.], &vector![3., 0., 0.]);
