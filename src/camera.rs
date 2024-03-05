@@ -14,7 +14,7 @@ impl Camera {
     pub fn new(position: &Vector3<f32>, target: &Vector3<f32>, up: &Vector3<f32>, fov_degrees: f32) -> Camera {
         let direction = UnitVector3::new_normalize(target - position);
         Camera {
-            position: position.clone(),
+            position: *position,
             direction,
             up: UnitVector3::new_normalize(*up),
             right: UnitVector3::new_normalize(direction.cross(up)),

@@ -30,19 +30,19 @@ impl Aabb {
     }
 
     pub fn min(&self) -> Vector3<f32> {
-        &self.center - &self.half_size
+        self.center - self.half_size
     }
 
     pub fn max(&self) -> Vector3<f32> {
-        &self.center + &self.half_size
+        self.center + self.half_size
     }
 
     pub fn surface_area(&self) -> f32 {
-        8. * (&self.half_size.x * &self.half_size.y + &self.half_size.x * &self.half_size.z + &self.half_size.y * &self.half_size.z)
+        8. * (self.half_size.x * self.half_size.y + self.half_size.x * self.half_size.z + self.half_size.y * self.half_size.z)
     }
 
     pub fn volume(&self) -> f32 {
-        8. * &self.half_size.x * &self.half_size.y * &self.half_size.z
+        8. * self.half_size.x * self.half_size.y * self.half_size.z
     }
 
     pub fn translate(&self, delta: &Vector3<f32>) -> Aabb {
@@ -50,7 +50,7 @@ impl Aabb {
     }
 
     pub fn enlarge(&self, delta: &Vector3<f32>) -> Aabb {
-        Aabb{center: self.center, half_size: &self.half_size + delta}
+        Aabb{center: self.center, half_size: self.half_size + delta}
     }
 
     pub fn clamp(&self, v: Vector3<f32>) -> Vector3<f32> {

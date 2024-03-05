@@ -20,11 +20,11 @@ pub fn intersect_triangle_ray(triangle: &Triangle, ray: &Ray) -> Option<Triangle
         return None
     }
 
-    let s = &ray.origin - &triangle.v0;
+    let s = ray.origin - triangle.v0;
     let f = 1. / a;
     let u = f * s.dot(&q);
-    if u < 0. || u > 1. {
-        return None
+    if !(0. ..=1.).contains(&u) {
+        return None;
     }
 
     let r = s.cross(&b0);
@@ -164,13 +164,13 @@ pub fn intersect_closest_triangle_ray(triangles: &[Triangle], ray: &Ray, tmin: f
 }
 
 pub fn intersect_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> bool {
-    let v0 = &triangle.v0 - &aabb.center;
-    let v1 = &triangle.v1 - &aabb.center;
-    let v2 = &triangle.v2 - &aabb.center;
+    let v0 = triangle.v0 - aabb.center;
+    let v1 = triangle.v1 - aabb.center;
+    let v2 = triangle.v2 - aabb.center;
 
-    let f0 = &v1 - &v0;
-    let f1 = &v2 - &v1;
-    let f2 = &v0 - &v2;
+    let f0 = v1 - v0;
+    let f1 = v2 - v1;
+    let f2 = v0 - v2;
 
     let u0 = vector![1., 0., 0.];
     let u1 = vector![0., 1., 0.];

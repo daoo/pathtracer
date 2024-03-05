@@ -34,7 +34,7 @@ fn main() {
         let path = Path::new(&arg);
         let bytes = fs::read(path).unwrap();
         let input = str::from_utf8(&bytes).unwrap();
-        let obj = obj::obj(&input);
+        let obj = obj::obj(input);
         let mut triangles: Vec<Triangle> = Vec::new();
         for chunk in &obj.chunks {
             for face in &chunk.faces {

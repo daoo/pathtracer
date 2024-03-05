@@ -5,7 +5,7 @@ pub struct ImageBuffer(DMatrix<Vector3<f32>>);
 
 fn gamma_correct(x: f32) -> f32 {
     const GAMMA_POWER: f32 = 1.0 / 2.2;
-    return 1.0f32.min(x.powf(GAMMA_POWER));
+    1.0f32.min(x.powf(GAMMA_POWER))
 }
 
 fn to_rgb_u8(vector: &Vector3<f32>) -> image::Rgb<u8> {

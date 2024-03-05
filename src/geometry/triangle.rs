@@ -17,11 +17,11 @@ impl Triangle {
     }
 
     pub fn base0(&self) -> Vector3<f32> {
-        &self.v1 - &self.v0
+        self.v1 - self.v0
     }
 
     pub fn base1(&self) -> Vector3<f32> {
-        &self.v2 - &self.v0
+        self.v2 - self.v0
     }
 
     pub fn base_center(&self) -> Vector3<f32> {
@@ -29,15 +29,15 @@ impl Triangle {
     }
 
     pub fn edge0(&self) -> Vector3<f32> {
-        &self.v1 - &self.v0
+        self.v1 - self.v0
     }
 
     pub fn edge1(&self) -> Vector3<f32> {
-        &self.v2 - &self.v1
+        self.v2 - self.v1
     }
 
     pub fn edge2(&self) -> Vector3<f32> {
-        &self.v0 - &self.v2
+        self.v0 - self.v2
     }
 }
 

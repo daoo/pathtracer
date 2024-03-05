@@ -2,9 +2,9 @@ use nalgebra::{vector, Vector2, Vector3};
 use rand::Rng;
 use rand::rngs::SmallRng;
 
-fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vector2<f32> {
-  vector![rng.gen(), rng.gen()]
-}
+// fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vector2<f32> {
+//   vector![rng.gen(), rng.gen()]
+// }
 
 pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> Vector3<f32> {
   let z = rng.gen_range(-1.0..1.0);
@@ -15,17 +15,17 @@ pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> Vector3<f32> {
   vector![x, y, z]
 }
 
-fn uniform_sample_hemisphere(rng: &mut SmallRng) -> Vector3<f32> {
-  let r = uniform_sample_unit_square(rng);
+// fn uniform_sample_hemisphere(rng: &mut SmallRng) -> Vector3<f32> {
+//   let r = uniform_sample_unit_square(rng);
 
-  let a = 2.0 * (r.y * (1.0 - r.y)).sqrt();
-  let b = std::f32::consts::TAU * r.x;
-  vector![
-      a * b.cos(),
-      a * b.sin(),
-      (1.0 - 2.0 * r.y).abs()
-  ]
-}
+//   let a = 2.0 * (r.y * (1.0 - r.y)).sqrt();
+//   let b = std::f32::consts::TAU * r.x;
+//   vector![
+//       a * b.cos(),
+//       a * b.sin(),
+//       (1.0 - 2.0 * r.y).abs()
+//   ]
+// }
 
 fn concentric_sample_unit_disk(rng: &mut SmallRng) -> Vector2<f32> {
   let x = rng.gen_range(-1.0..1.0);
@@ -56,15 +56,15 @@ mod tests {
     use rand::SeedableRng;
     use super::*;
 
-    #[test]
-    fn test_uniform_sample_unit_square() {
-        let mut rng = SmallRng::from_entropy();
-        for _ in 0..1000 {
-            let point = uniform_sample_unit_square(&mut rng);
-            assert!(point >= vector![0.0, 0.0]);
-            assert!(point <= vector![1.0, 1.0]);
-        }
-    }
+    // #[test]
+    // fn test_uniform_sample_unit_square() {
+    //     let mut rng = SmallRng::from_entropy();
+    //     for _ in 0..1000 {
+    //         let point = uniform_sample_unit_square(&mut rng);
+    //         assert!(point >= vector![0.0, 0.0]);
+    //         assert!(point <= vector![1.0, 1.0]);
+    //     }
+    // }
 
     #[test]
     fn test_uniform_sample_unit_sphere() {
@@ -76,16 +76,16 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_uniform_sample_hemisphere() {
-        let mut rng = SmallRng::from_entropy();
-        for _ in 0..1000 {
-            let point = uniform_sample_hemisphere(&mut rng);
-            let error = (point.norm_squared() - 1.0).abs();
-            // TODO: Check which hemisphere
-            assert!(error <= 1e-6, "{}", error);
-        }
-    }
+    // #[test]
+    // fn test_uniform_sample_hemisphere() {
+    //     let mut rng = SmallRng::from_entropy();
+    //     for _ in 0..1000 {
+    //         let point = uniform_sample_hemisphere(&mut rng);
+    //         let error = (point.norm_squared() - 1.0).abs();
+    //         // TODO: Check which hemisphere
+    //         assert!(error <= 1e-6, "{}", error);
+    //     }
+    // }
 
     #[test]
     fn test_concentric_sample_disk() {

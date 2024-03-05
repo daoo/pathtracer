@@ -21,9 +21,7 @@ pub struct Material {
 
 impl Material {
     pub fn new(name: String) -> Material {
-        let mut material: Material = Default::default();
-        material.name = name;
-        material
+        Material { name, ..Default::default() }
     }
 }
 
@@ -68,7 +66,7 @@ pub fn mtl(input: &str) -> Mtl {
 
   for line in input.lines() {
       let line = line.trim();
-      if line.is_empty() || line.starts_with("#") {
+      if line.is_empty() || line.starts_with('#') {
           continue
       }
 

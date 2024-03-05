@@ -12,8 +12,8 @@ fn main() {
         let bytes = fs::read(path).unwrap();
         let input = str::from_utf8(&bytes).unwrap();
         match path.extension().and_then(|s| s.to_str()) {
-            Some("obj") => println!("{:#?}", obj::obj(&input)),
-            Some("mtl") => println!("{:#?}", mtl::mtl(&input)),
+            Some("obj") => println!("{:#?}", obj::obj(input)),
+            Some("mtl") => println!("{:#?}", mtl::mtl(input)),
             _ => panic!("Unexpected file extension for {:?}", path),
         }
     }

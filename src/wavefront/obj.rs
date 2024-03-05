@@ -5,6 +5,7 @@ use nom::character::complete::{char, i32, multispace0};
 use nom::combinator::{opt, rest};
 use nom::number::complete::float;
 use nom::sequence::Tuple;
+use std::cmp::Ordering;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -59,12 +60,10 @@ impl Obj {
 }
 
 fn index_wavefront_vec<T: Default + Clone>(v: &[T], i: i32) -> T {
-    if i == 0 {
-        Default::default()
-    } else if i < 0 {
-        v[((v.len() as i32) + i) as usize].clone()
-    } else {
-        v[(i - 1) as usize].clone()
+    match i.cmp(&0) {
+        Ordering::Equal => Default::default(),
+        Ordering::Less => v[((v.len() as i32) + i) as usize].clone(),
+        Ordering::Greater => v[(i - 1) as usize].clone(),
     }
 }
 
@@ -109,7 +108,7 @@ pub fn obj(input: &str) -> Obj {
 
     for line in input.lines() {
         let line = line.trim();
-        if line.is_empty() || line.starts_with("#") {
+        if line.is_empty() || line.starts_with('#') {
             continue
         }
 

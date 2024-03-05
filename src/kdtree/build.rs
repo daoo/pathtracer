@@ -42,8 +42,7 @@ fn split_box(parent: KdBox, plane: &Aap) -> KdSplit {
 fn median(triangles: &[Triangle], axis: Axis) -> f32 {
     let mut points: Vec<f32> = triangles
         .iter()
-        .map(|t| [t.min()[axis], t.max()[axis]])
-        .flatten()
+        .flat_map(|t| [t.min()[axis], t.max()[axis]])
         .collect();
     points.sort_by(f32::total_cmp);
     let middle = points.len() / 2;

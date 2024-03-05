@@ -44,42 +44,39 @@ pub struct Scene {
 fn triangles_from_obj(obj: &obj::Obj) -> Vec<Triangle> {
     obj.chunks
         .iter()
-        .map(|chunk| chunk.faces
+        .flat_map(|chunk| chunk.faces
              .iter()
              .map(|face| Triangle {
                 v0: obj.index_vertex(&face.p0),
                 v1: obj.index_vertex(&face.p1),
                 v2: obj.index_vertex(&face.p2),
              }))
-        .flatten()
         .collect()
 }
 
 fn triangle_normals_from_obj(obj: &obj::Obj) -> Vec<TriangleNormals> {
     obj.chunks
         .iter()
-        .map(|chunk| chunk.faces
+        .flat_map(|chunk| chunk.faces
              .iter()
              .map(|face| TriangleNormals {
                 n0: obj.index_normal(&face.p0),
                 n1: obj.index_normal(&face.p1),
                 n2: obj.index_normal(&face.p2),
              }))
-        .flatten()
         .collect()
 }
 
 fn triangle_texcoords_from_obj(obj: &obj::Obj) -> Vec<TriangleTexcoords> {
     obj.chunks
         .iter()
-        .map(|chunk| chunk.faces
+        .flat_map(|chunk| chunk.faces
              .iter()
              .map(|face| TriangleTexcoords {
                 uv0: obj.index_texcoord(&face.p0),
                 uv1: obj.index_texcoord(&face.p1),
                 uv2: obj.index_texcoord(&face.p2),
              }))
-        .flatten()
         .collect()
 }
 
@@ -93,7 +90,7 @@ fn blend_from_mtl(material: &mtl::Material) -> Rc<dyn Material> {
 }
 
 fn material_from_mtl(material: &mtl::Material) -> (&str, Rc<dyn Material>) {
-    (&material.name, blend_from_mtl(&material))
+    (&material.name, blend_from_mtl(material))
 }
 
 fn triangle_materials_from_obj_and_mtl(obj: &obj::Obj, mtl: &mtl::Mtl) -> Vec<Rc<dyn Material>> {

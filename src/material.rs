@@ -97,9 +97,9 @@ impl Material for DiffuseReflectiveMaterial {
         let s = cosine_sample_hemisphere(rng);
 
         let wo = (s.x * tangent + s.y * bitangent + s.z * n).normalize();
-        return MaterialSample{
+        MaterialSample{
             pdf: s.norm(),
-            brdf: self.brdf(&wi, &wo, &n),
+            brdf: self.brdf(wi, &wo, n),
             wo
         }
     }
@@ -112,8 +112,8 @@ impl Material for SpecularReflectiveMaterial {
 
     fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, _: &mut SmallRng) -> MaterialSample {
         let wo = (2.0 * wi.dot(n).abs() * n - wi).normalize();
-        let pdf = if is_same_hemisphere(&wi, &wo, &n) { wo.dot(n).abs() } else { 0.0 };
-        return MaterialSample { pdf, brdf: self.reflectance, wo };
+        let pdf = if is_same_hemisphere(wi, &wo, n) { wo.dot(n).abs() } else { 0.0 };
+        MaterialSample { pdf, brdf: self.reflectance, wo }
     }
 }
 
@@ -133,7 +133,7 @@ impl Material for SpecularRefractiveMaterial {
             const TOTAL_INTERNAL_REFLECTION: SpecularReflectiveMaterial = SpecularReflectiveMaterial {
                 reflectance: vector![1.0, 1.0, 1.0],
             };
-            return TOTAL_INTERNAL_REFLECTION.sample(&wi, &n, rng);
+            return TOTAL_INTERNAL_REFLECTION.sample(wi, &n, rng);
         }
 
         let k = k.sqrt();

@@ -13,7 +13,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let path = Path::new(&arg);
         let bytes = fs::read(path).unwrap();
         let input = str::from_utf8(&bytes).unwrap();
-        let obj = obj::obj(&input);
+        let obj = obj::obj(input);
         let mut triangles: Vec<Triangle> = Vec::new();
         for chunk in &obj.chunks {
             for face in &chunk.faces {
@@ -47,8 +47,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ),
         )?;
 
-        let mut i = 0;
-        for t in triangles {
+        for (i, t) in triangles.into_iter().enumerate() {
             let points = [
                 [t.v0.x, t.v0.y, t.v0.z],
                 [t.v1.x, t.v1.y, t.v1.z],
@@ -61,7 +60,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             rec.log_timeless(
                 format!("triangles/triangle{}", i),
                 &rerun::LineStrips3D::new([points]).with_colors([color]))?;
-            i += 1;
         }
 
         // let mut i = 0;

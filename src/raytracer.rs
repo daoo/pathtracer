@@ -47,7 +47,7 @@ fn trace_ray(scene: &Scene, ray: &Ray) -> Vector3<f32> {
     let material = &scene.triangle_materials[triangle_index];
     scene.lights.iter()
         .map(|light| light_contribution(
-                scene, material.as_ref(), point, offset_point, wi, n, &light))
+                scene, material.as_ref(), point, offset_point, wi, n, light))
         .sum()
 }
 

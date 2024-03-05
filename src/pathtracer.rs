@@ -1,35 +1,9 @@
 use crate::camera::*;
 use crate::geometry::ray::*;
 use crate::image_buffer::ImageBuffer;
-use crate::light::*;
-use crate::material::*;
 use crate::scene::*;
-use nalgebra::{vector, Vector2, Vector3, UnitVector3};
+use nalgebra::{vector, Vector2, Vector3};
 use rand::rngs::SmallRng;
-
-fn light_contribution(
-    scene: &Scene,
-    material: &dyn Material,
-    target: Vector3<f32>,
-    offset_point: Vector3<f32>,
-    wi: Vector3<f32>,
-    n: UnitVector3<f32>,
-    light: &SphericalLight,
-    rng: &mut SmallRng,
-    ) -> Vector3<f32>
-{
-    let source = light.sample(rng);
-    let direction = source - target;
-    let shadow_ray = Ray { origin: offset_point, direction };
-    if scene.intersect_any(&shadow_ray, 0.0, 1.0) {
-        return Vector3::zeros();
-    }
-
-    let wr = direction.normalize();
-    let radiance = light.emitted(target);
-
-    material.brdf(&wi, &wr, &n).component_mul(&radiance) * wr.dot(&n).abs()
-}
 
 fn environment_contribution(_: &Ray) -> Vector3<f32> {
     vector![0.8, 0.8, 0.8]
@@ -64,8 +38,19 @@ fn trace_ray(
     let point_below = point - offset;
 
     let incoming_radiance: Vector3<f32> = scene.lights.iter()
-        .map(|light| light_contribution(
-                scene, material.as_ref(), point, point_above, wi, n, &light, rng))
+        .map(|light| {
+            let source = light.sample(rng);
+            let direction = source - point;
+            let shadow_ray = Ray { origin: point_above, direction };
+            if scene.intersect_any(&shadow_ray, 0.0, 1.0) {
+                return Vector3::zeros();
+            }
+
+            let wr = direction.normalize();
+            let radiance = light.emitted(point);
+
+            material.brdf(&wi, &wr, &n).component_mul(&radiance) * wr.dot(&n).abs()
+        })
         .sum();
 
     let accumulated_radiance = accumulated_radiance + accumulated_transport.component_mul(&incoming_radiance);
