@@ -2,6 +2,8 @@ use crate::camera::*;
 use crate::geometry::algorithms::*;
 use crate::geometry::ray::*;
 use crate::geometry::triangle::*;
+use crate::kdtree::KdTree;
+use crate::kdtree::build::build_kdtree_median;
 use crate::light::*;
 use crate::material::*;
 use crate::wavefront::*;
@@ -30,7 +32,7 @@ pub struct TriangleTexcoords {
 }
 
 pub struct Scene {
-    pub triangles: Vec<Triangle>,
+    pub kdtree: KdTree,
     pub triangle_normals: Vec<TriangleNormals>,
     pub triangle_texcoords: Vec<TriangleTexcoords>,
     pub triangle_materials: Vec<Rc<dyn Material>>,
@@ -142,7 +144,7 @@ impl Scene {
         tmin: f32,
         tmax: f32,
     ) -> Option<(usize, TriangleRayIntersection)> {
-        intersect_closest_triangle_ray(&self.triangles, ray, tmin, tmax)
+        self.kdtree.intersect(ray, tmin, tmax)
     }
 
     pub fn intersect_any(&self, ray: &Ray, tmin: f32, tmax: f32) -> bool {
@@ -150,8 +152,10 @@ impl Scene {
     }
 
     pub fn from_wavefront(obj: &obj::Obj, mtl: &mtl::Mtl) -> Scene {
+        let triangles =  triangles_from_obj(obj);
+        let kdtree = build_kdtree_median(3, triangles);
         Scene {
-            triangles: triangles_from_obj(obj),
+            kdtree,
             triangle_normals: triangle_normals_from_obj(obj),
             triangle_texcoords: triangle_texcoords_from_obj(obj),
             triangle_materials: triangle_materials_from_obj_and_mtl(obj, mtl),

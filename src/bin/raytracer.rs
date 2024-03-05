@@ -29,7 +29,7 @@ fn main() {
     let mtl = mtl::mtl(str::from_utf8(&fs::read(mtl_path).unwrap()).unwrap());
     println!("Building scene...");
     let scene = Scene::from_wavefront(&obj, &mtl);
-    println!("Triangles: {}", scene.triangles.len());
+    println!("Triangles: {}", scene.triangle_normals.len());
 
     let pinhole = Pinhole::new(&scene.cameras[0], args.width as f32 / args.height as f32);
     let mut buffer = ImageBuffer::new(args.width, args.height);

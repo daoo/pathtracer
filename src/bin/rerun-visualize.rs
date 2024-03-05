@@ -25,23 +25,126 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
-        let left_aabb = Aabb { center: vector![-0.41130003, -1.050725, 0.5476], half_size: vector![0.6887, 0.050475, 0.5524] };
-        let right_aabb = Aabb { center: vector![-0.41130003, -0.767225, 0.5476], half_size: vector![0.6887, 0.23302495, 0.5524] };
-        let triangles = [Triangle { v0: vector![-1.0, -1.0, 1.0], v1: vector![-1.0, -1.0, -1.0], v2: vector![-1.0, 1.0, 1.0] }, Triangle { v0: vector![-1.0, -1.0, -1.0], v1: vector![-1.0, -1.0, 1.0], v2: vector![1.0, -1.0, -1.0] }, Triangle { v0: vector![1.0, -1.0, 1.0], v1: vector![1.0, -1.0, -1.0], v2: vector![-1.0, -1.0, 1.0] }, Triangle { v0: vector![-0.4889, -1.0005, -0.0048], v1: vector![-0.771, -1.0005, -0.4176], v2: vector![-0.3581, -1.0005, -0.6997] }, Triangle { v0: vector![-0.3581, -1.0005, -0.6997], v1: vector![-0.076, -1.0005, -0.2868], v2: vector![-0.4889, -1.0005, -0.0048] }, Triangle { v0: vector![-0.4889, -1.0005, -0.0048], v1: vector![-0.076, -1.0005, -0.2868], v2: vector![-0.076, 0.0158, -0.2868] }, Triangle { v0: vector![-0.076, 0.0158, -0.2868], v1: vector![-0.4889, 0.0158, -0.0048], v2: vector![-0.4889, -1.0005, -0.0048] }, Triangle { v0: vector![-0.771, -1.0005, -0.4176], v1: vector![-0.4889, -1.0005, -0.0048], v2: vector![-0.4889, 0.0158, -0.0048] }, Triangle { v0: vector![0.2774, -1.0012, 0.464], v1: vector![0.2774, -1.0012, -0.0028], v2: vector![0.7444, -1.0012, -0.0028] }, Triangle { v0: vector![0.7444, -1.0012, -0.0028], v1: vector![0.7444, -1.0012, 0.464], v2: vector![0.2774, -1.0012, 0.464] }, Triangle { v0: vector![0.2774, -1.0012, 0.464], v1: vector![0.7444, -1.0012, 0.464], v2: vector![0.7444, -0.5342, 0.464] }, Triangle { v0: vector![0.7444, -0.5342, 0.464], v1: vector![0.2774, -0.5342, 0.464], v2: vector![0.2774, -1.0012, 0.464] }, Triangle { v0: vector![0.7444, -1.0012, -0.0028], v1: vector![0.2774, -1.0012, -0.0028], v2: vector![0.2774, -0.5342, -0.0028] }, Triangle { v0: vector![0.2774, -0.5342, -0.0028], v1: vector![0.7444, -0.5342, -0.0028], v2: vector![0.7444, -1.0012, -0.0028] }, Triangle { v0: vector![0.2774, -1.0012, -0.0028], v1: vector![0.2774, -1.0012, 0.464], v2: vector![0.2774, -0.5342, 0.464] }, Triangle { v0: vector![0.2774, -0.5342, 0.464], v1: vector![0.2774, -0.5342, -0.0028], v2: vector![0.2774, -1.0012, -0.0028] }];
-        let wrong_triangle = [Triangle { v0: vector![0.2774, -0.5342, -0.0028], v1: vector![0.7444, -0.5342, -0.0028], v2: vector![0.7444, -1.0012, -0.0028] }];
+        let left_aabb = Aabb {
+            center: vector![-0.41130003, -1.050725, 0.5476],
+            half_size: vector![0.6887, 0.050475, 0.5524],
+        };
+        let right_aabb = Aabb {
+            center: vector![-0.41130003, -0.767225, 0.5476],
+            half_size: vector![0.6887, 0.23302495, 0.5524],
+        };
+        let triangles = [
+            Triangle {
+                v0: vector![-1.0, -1.0, 1.0],
+                v1: vector![-1.0, -1.0, -1.0],
+                v2: vector![-1.0, 1.0, 1.0],
+            },
+            Triangle {
+                v0: vector![-1.0, -1.0, -1.0],
+                v1: vector![-1.0, -1.0, 1.0],
+                v2: vector![1.0, -1.0, -1.0],
+            },
+            Triangle {
+                v0: vector![1.0, -1.0, 1.0],
+                v1: vector![1.0, -1.0, -1.0],
+                v2: vector![-1.0, -1.0, 1.0],
+            },
+            Triangle {
+                v0: vector![-0.4889, -1.0005, -0.0048],
+                v1: vector![-0.771, -1.0005, -0.4176],
+                v2: vector![-0.3581, -1.0005, -0.6997],
+            },
+            Triangle {
+                v0: vector![-0.3581, -1.0005, -0.6997],
+                v1: vector![-0.076, -1.0005, -0.2868],
+                v2: vector![-0.4889, -1.0005, -0.0048],
+            },
+            Triangle {
+                v0: vector![-0.4889, -1.0005, -0.0048],
+                v1: vector![-0.076, -1.0005, -0.2868],
+                v2: vector![-0.076, 0.0158, -0.2868],
+            },
+            Triangle {
+                v0: vector![-0.076, 0.0158, -0.2868],
+                v1: vector![-0.4889, 0.0158, -0.0048],
+                v2: vector![-0.4889, -1.0005, -0.0048],
+            },
+            Triangle {
+                v0: vector![-0.771, -1.0005, -0.4176],
+                v1: vector![-0.4889, -1.0005, -0.0048],
+                v2: vector![-0.4889, 0.0158, -0.0048],
+            },
+            Triangle {
+                v0: vector![0.2774, -1.0012, 0.464],
+                v1: vector![0.2774, -1.0012, -0.0028],
+                v2: vector![0.7444, -1.0012, -0.0028],
+            },
+            Triangle {
+                v0: vector![0.7444, -1.0012, -0.0028],
+                v1: vector![0.7444, -1.0012, 0.464],
+                v2: vector![0.2774, -1.0012, 0.464],
+            },
+            Triangle {
+                v0: vector![0.2774, -1.0012, 0.464],
+                v1: vector![0.7444, -1.0012, 0.464],
+                v2: vector![0.7444, -0.5342, 0.464],
+            },
+            Triangle {
+                v0: vector![0.7444, -0.5342, 0.464],
+                v1: vector![0.2774, -0.5342, 0.464],
+                v2: vector![0.2774, -1.0012, 0.464],
+            },
+            Triangle {
+                v0: vector![0.7444, -1.0012, -0.0028],
+                v1: vector![0.2774, -1.0012, -0.0028],
+                v2: vector![0.2774, -0.5342, -0.0028],
+            },
+            Triangle {
+                v0: vector![0.2774, -0.5342, -0.0028],
+                v1: vector![0.7444, -0.5342, -0.0028],
+                v2: vector![0.7444, -1.0012, -0.0028],
+            },
+            Triangle {
+                v0: vector![0.2774, -1.0012, -0.0028],
+                v1: vector![0.2774, -1.0012, 0.464],
+                v2: vector![0.2774, -0.5342, 0.464],
+            },
+            Triangle {
+                v0: vector![0.2774, -0.5342, 0.464],
+                v1: vector![0.2774, -0.5342, -0.0028],
+                v2: vector![0.2774, -1.0012, -0.0028],
+            },
+        ];
+        let wrong_triangle = [Triangle {
+            v0: vector![0.2774, -0.5342, -0.0028],
+            v1: vector![0.7444, -0.5342, -0.0028],
+            v2: vector![0.7444, -1.0012, -0.0028],
+        }];
 
         rec.log_timeless(
             "left/aabb",
             &rerun::Boxes3D::from_centers_and_half_sizes(
                 [(left_aabb.center.x, left_aabb.center.y, left_aabb.center.z)],
-                [(left_aabb.half_size.x, left_aabb.half_size.y, left_aabb.half_size.z)],
+                [(
+                    left_aabb.half_size.x,
+                    left_aabb.half_size.y,
+                    left_aabb.half_size.z,
+                )],
             ),
         )?;
         rec.log_timeless(
             "right/aabb",
             &rerun::Boxes3D::from_centers_and_half_sizes(
-                [(right_aabb.center.x, right_aabb.center.y, right_aabb.center.z)],
-                [(right_aabb.half_size.x, right_aabb.half_size.y, right_aabb.half_size.z)],
+                [(
+                    right_aabb.center.x,
+                    right_aabb.center.y,
+                    right_aabb.center.z,
+                )],
+                [(
+                    right_aabb.half_size.x,
+                    right_aabb.half_size.y,
+                    right_aabb.half_size.z,
+                )],
             ),
         )?;
 
