@@ -32,6 +32,10 @@ impl Aabb {
         }
     }
 
+    pub fn size(&self) -> Vector3<f32> {
+        2.0 * self.half_size
+    }
+
     pub fn min(&self) -> Vector3<f32> {
         self.center - self.half_size
     }

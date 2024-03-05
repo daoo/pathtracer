@@ -17,6 +17,18 @@ struct KdSplit {
 
 fn split_box(parent: KdBox, plane: &Aap) -> KdSplit {
     let (left_aabb, right_aabb) = parent.boundary.split(plane);
+    debug_assert!(
+        left_aabb.size()[plane.axis] > 0.1,
+        "left_aabb too small {:?} {:?}",
+        plane,
+        left_aabb
+    );
+    debug_assert!(
+        right_aabb.size()[plane.axis] > 0.1,
+        "right_aabb to small {:?} {:?}",
+        plane,
+        right_aabb
+    );
     let mut left_triangles: Vec<Triangle> = Vec::new();
     let mut right_triangles: Vec<Triangle> = Vec::new();
     for triangle in &parent.triangles {
@@ -55,17 +67,29 @@ fn split_box(parent: KdBox, plane: &Aap) -> KdSplit {
     }
 }
 
-fn median(triangles: &[Triangle], axis: Axis) -> f32 {
-    let mut points: Vec<f32> = triangles
+fn potential_split_points(triangles: &[Triangle], axis: Axis, boundary: &Aabb) -> Vec<f32> {
+    let min = boundary.min()[axis] + 0.1;
+    let max = boundary.max()[axis] - 0.1;
+    let mut points = triangles
         .iter()
-        .flat_map(|t| [t.min()[axis], t.max()[axis]])
-        .collect();
+        .flat_map(|t| [t.min()[axis] - 0.1, t.max()[axis] + 0.1])
+        .filter(|p| p > &min && p < &max)
+        .collect::<Vec<_>>();
     points.sort_by(f32::total_cmp);
-    let middle = points.len() / 2;
-    if points.len() % 2 == 0 {
-        (points[middle] + points[middle + 1]) / 2.
+    points
+}
+
+fn median(values: &[f32]) -> f32 {
+    debug_assert!(!values.is_empty());
+    if values.len() == 1 {
+        return values[0];
+    }
+
+    let middle = values.len() / 2;
+    if values.len() % 2 == 0 {
+        (values[middle - 1] + values[middle]) / 2.
     } else {
-        points[middle]
+        values[middle]
     }
 }
 
@@ -81,9 +105,14 @@ fn build_kdtree_median_internal(
         return Box::new(KdNode::Leaf(parent.triangles));
     }
 
+    let points = potential_split_points(&parent.triangles, axis, &parent.boundary);
+    if points.is_empty() {
+        return  Box::new(KdNode::Leaf(parent.triangles));
+    }
+
     let plane = Aap {
         axis,
-        distance: median(&parent.triangles, axis),
+        distance: median(&points),
     };
     let split = split_box(parent, &plane);
     let left = build_kdtree_median_internal(max_depth, depth + 1, NEXT_AXIS[axis], split.left);
