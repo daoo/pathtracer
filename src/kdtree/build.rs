@@ -84,7 +84,7 @@ impl KdTreeBuilder {
     }
 
     fn build(&self, depth: u32, axis: Axis, parent: KdBox) -> Box<KdNode> {
-        if depth >= self.max_depth {
+        if depth >= self.max_depth || parent.triangle_indices.is_empty() {
             return Box::new(KdNode::Leaf(parent.triangle_indices));
         }
 
