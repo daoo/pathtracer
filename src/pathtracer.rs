@@ -65,7 +65,7 @@ fn trace_ray(
 
     let sample = material.sample(&wi, &n, rng);
 
-    if sample.pdf < 0.000001 {
+    if sample.pdf < 0.00001 {
         return accumulated_radiance;
     }
 
@@ -73,7 +73,7 @@ fn trace_ray(
     let accumulated_transport =
         accumulated_transport.component_mul(&(sample.brdf * (cosine_term / sample.pdf)));
 
-    if accumulated_transport.norm_squared() <= 0.000001 {
+    if accumulated_transport.norm_squared() <= 0.00001 {
         return accumulated_radiance;
     }
 
