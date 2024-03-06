@@ -1,7 +1,7 @@
 use crate::sampling::*;
 use nalgebra::{vector, RealField, Vector3};
-use rand::Rng;
 use rand::rngs::SmallRng;
+use rand::Rng;
 use std::sync::Arc;
 
 fn perpendicular(v: &Vector3<f32>) -> Vector3<f32> {
@@ -54,18 +54,11 @@ impl FresnelBlendMaterial {
         refraction: Arc<dyn Material>,
         r0: f32,
     ) -> Arc<dyn Material> {
-        // TODO: Examine if this optimization is even correct.
-        if r0 < 0.01 {
-            reflection
-        } else if r0 > 0.99 {
-            refraction
-        } else {
-            Arc::new(FresnelBlendMaterial {
-                reflection,
-                refraction,
-                r0,
-            })
-        }
+        Arc::new(FresnelBlendMaterial {
+            reflection,
+            refraction,
+            r0,
+        })
     }
 }
 
@@ -81,17 +74,11 @@ impl BlendMaterial {
         second: Arc<dyn Material>,
         factor: f32,
     ) -> Arc<dyn Material> {
-        if factor < 0.01 {
-            second
-        } else if factor > 0.99 {
-            first
-        } else {
-            Arc::new(BlendMaterial {
-                first,
-                second,
-                factor,
-            })
-        }
+        Arc::new(BlendMaterial {
+            first,
+            second,
+            factor,
+        })
     }
 }
 
