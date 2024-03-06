@@ -166,12 +166,16 @@ fn reflectance(r0: f32, wo: &Vector3<f32>, n: &Vector3<f32>) -> f32 {
     r0 + (1.0 - r0) * (1.0 - wo.dot(n).abs()).powf(5.0)
 }
 
+fn mix(x: Vector3<f32>, y: Vector3<f32>, a: f32) -> Vector3<f32> {
+    x * (1.0 - a) + y * a
+}
+
 impl Material for FresnelBlendMaterial {
     fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
-        let reflection = self.reflection.brdf(wo, wi, n);
-        let refraction = self.refraction.brdf(wo, wi, n);
-        let factor = reflectance(self.r0, wo, n);
-        reflection * (1.0 - factor) + refraction * factor
+        mix(
+            self.refraction.brdf(wo, wi, n),
+            self.reflection.brdf(wo, wi, n),
+            reflectance(self.r0, wo, n))
     }
 
     fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample {
@@ -185,9 +189,7 @@ impl Material for FresnelBlendMaterial {
 
 impl Material for BlendMaterial {
     fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
-        let first = self.first.brdf(wo, wi, n);
-        let second = self.second.brdf(wo, wi, n);
-        first * (1.0 - self.factor) + second * self.factor
+        mix(self.second.brdf(wo, wi, n), self.first.brdf(wo, wi, n), self.factor)
     }
 
     fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample {
