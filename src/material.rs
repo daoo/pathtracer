@@ -1,8 +1,8 @@
 use crate::sampling::*;
 use nalgebra::{vector, RealField, Vector3};
-use rand::rngs::SmallRng;
 use rand::Rng;
-use std::rc::Rc;
+use rand::rngs::SmallRng;
+use std::sync::Arc;
 
 fn perpendicular(v: &Vector3<f32>) -> Vector3<f32> {
     if v.x.abs() < v.y.abs() {
@@ -43,24 +43,24 @@ pub struct SpecularRefractiveMaterial {
 }
 
 pub struct FresnelBlendMaterial {
-    pub reflection: Rc<dyn Material>,
-    pub refraction: Rc<dyn Material>,
+    pub reflection: Arc<dyn Material>,
+    pub refraction: Arc<dyn Material>,
     pub r0: f32,
 }
 
 impl FresnelBlendMaterial {
     pub fn new_approx(
-        reflection: Rc<dyn Material>,
-        refraction: Rc<dyn Material>,
+        reflection: Arc<dyn Material>,
+        refraction: Arc<dyn Material>,
         r0: f32,
-    ) -> Rc<dyn Material> {
+    ) -> Arc<dyn Material> {
         // TODO: Examine if this optimization is even correct.
         if r0 < 0.01 {
             reflection
         } else if r0 > 0.99 {
             refraction
         } else {
-            Rc::new(FresnelBlendMaterial {
+            Arc::new(FresnelBlendMaterial {
                 reflection,
                 refraction,
                 r0,
@@ -70,23 +70,23 @@ impl FresnelBlendMaterial {
 }
 
 pub struct BlendMaterial {
-    pub first: Rc<dyn Material>,
-    pub second: Rc<dyn Material>,
+    pub first: Arc<dyn Material>,
+    pub second: Arc<dyn Material>,
     pub factor: f32,
 }
 
 impl BlendMaterial {
     pub fn new_approx(
-        first: Rc<dyn Material>,
-        second: Rc<dyn Material>,
+        first: Arc<dyn Material>,
+        second: Arc<dyn Material>,
         factor: f32,
-    ) -> Rc<dyn Material> {
+    ) -> Arc<dyn Material> {
         if factor < 0.01 {
             second
         } else if factor > 0.99 {
             first
         } else {
-            Rc::new(BlendMaterial {
+            Arc::new(BlendMaterial {
                 first,
                 second,
                 factor,

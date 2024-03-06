@@ -9,7 +9,7 @@ use crate::material::*;
 use crate::wavefront::*;
 use nalgebra::{UnitVector3, Vector2, Vector3};
 use std::collections::BTreeMap;
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Debug, PartialEq)]
 pub struct TriangleNormals {
@@ -35,7 +35,7 @@ pub struct Scene {
     pub kdtree: KdTree,
     pub triangle_normals: Vec<TriangleNormals>,
     pub triangle_texcoords: Vec<TriangleTexcoords>,
-    pub triangle_materials: Vec<Rc<dyn Material>>,
+    pub triangle_materials: Vec<Arc<dyn Material>>,
     pub cameras: Vec<Camera>,
     pub lights: Vec<SphericalLight>,
 }
@@ -79,7 +79,7 @@ fn triangle_texcoords_from_obj(obj: &obj::Obj) -> Vec<TriangleTexcoords> {
         .collect()
 }
 
-fn blend_from_mtl(material: &mtl::Material) -> Rc<dyn Material> {
+fn blend_from_mtl(material: &mtl::Material) -> Arc<dyn Material> {
     let refraction = SpecularRefractiveMaterial {
         index_of_refraction: material.index_of_refraction,
     };
@@ -87,15 +87,15 @@ fn blend_from_mtl(material: &mtl::Material) -> Rc<dyn Material> {
         reflectance: material.diffuse_reflection,
     };
     let transparency_blend = BlendMaterial::new_approx(
-        Rc::new(refraction),
-        Rc::new(reflection),
+        Arc::new(refraction),
+        Arc::new(reflection),
         material.transparency,
     );
     let specular = SpecularReflectiveMaterial {
         reflectance: material.specular_reflection,
     };
     let fresnel_blend = FresnelBlendMaterial::new_approx(
-        Rc::new(specular),
+        Arc::new(specular),
         transparency_blend.clone(),
         material.reflection_0_degrees,
     );
@@ -106,13 +106,13 @@ fn blend_from_mtl(material: &mtl::Material) -> Rc<dyn Material> {
     )
 }
 
-fn material_from_mtl(material: &mtl::Material) -> (&str, Rc<dyn Material>) {
+fn material_from_mtl(material: &mtl::Material) -> (&str, Arc<dyn Material>) {
     (&material.name, blend_from_mtl(material))
 }
 
-fn triangle_materials_from_obj_and_mtl(obj: &obj::Obj, mtl: &mtl::Mtl) -> Vec<Rc<dyn Material>> {
+fn triangle_materials_from_obj_and_mtl(obj: &obj::Obj, mtl: &mtl::Mtl) -> Vec<Arc<dyn Material>> {
     let materials = BTreeMap::from_iter(mtl.materials.iter().map(material_from_mtl));
-    let mut triangle_materials: Vec<Rc<dyn Material>> = Vec::new();
+    let mut triangle_materials: Vec<Arc<dyn Material>> = Vec::new();
     for chunk in &obj.chunks {
         for _ in &chunk.faces {
             triangle_materials.push(materials[chunk.material.as_str()].clone());
