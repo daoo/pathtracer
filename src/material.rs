@@ -163,7 +163,7 @@ impl Material for SpecularRefractiveMaterial {
 }
 
 fn reflectance(r0: f32, wo: &Vector3<f32>, n: &Vector3<f32>) -> f32 {
-    r0 + (1.0 - r0) * (1.0 - wo.dot(n).abs().powf(5.0))
+    r0 + (1.0 - r0) * (1.0 - wo.dot(n).abs()).powf(5.0)
 }
 
 impl Material for FresnelBlendMaterial {
