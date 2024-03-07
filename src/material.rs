@@ -2,7 +2,6 @@ use crate::sampling::*;
 use nalgebra::{vector, RealField, Vector3};
 use rand::rngs::SmallRng;
 use rand::Rng;
-use std::sync::Arc;
 
 fn perpendicular(v: &Vector3<f32>) -> Vector3<f32> {
     if v.x.abs() < v.y.abs() {
@@ -42,44 +41,26 @@ pub struct SpecularRefractiveMaterial {
     pub index_of_refraction: f32,
 }
 
-pub struct FresnelBlendMaterial {
-    pub reflection: Arc<dyn Material>,
-    pub refraction: Arc<dyn Material>,
+#[derive(Clone, Debug)]
+pub struct FresnelBlendMaterial<M1, M2>
+where
+    M1: Material,
+    M2: Material,
+{
+    pub reflection: M1,
+    pub refraction: M2,
     pub r0: f32,
 }
 
-impl FresnelBlendMaterial {
-    pub fn new_approx(
-        reflection: Arc<dyn Material>,
-        refraction: Arc<dyn Material>,
-        r0: f32,
-    ) -> Arc<dyn Material> {
-        Arc::new(FresnelBlendMaterial {
-            reflection,
-            refraction,
-            r0,
-        })
-    }
-}
-
-pub struct BlendMaterial {
-    pub first: Arc<dyn Material>,
-    pub second: Arc<dyn Material>,
+#[derive(Clone, Debug)]
+pub struct BlendMaterial<M1, M2>
+where
+    M1: Material,
+    M2: Material,
+{
+    pub first: M1,
+    pub second: M2,
     pub factor: f32,
-}
-
-impl BlendMaterial {
-    pub fn new_approx(
-        first: Arc<dyn Material>,
-        second: Arc<dyn Material>,
-        factor: f32,
-    ) -> Arc<dyn Material> {
-        Arc::new(BlendMaterial {
-            first,
-            second,
-            factor,
-        })
-    }
 }
 
 // TODO: Don't really understand the Arc + Send + Sync stuff.
@@ -170,7 +151,11 @@ fn mix(x: Vector3<f32>, y: Vector3<f32>, a: f32) -> Vector3<f32> {
     x * (1.0 - a) + y * a
 }
 
-impl Material for FresnelBlendMaterial {
+impl<M1, M2> Material for FresnelBlendMaterial<M1, M2>
+where
+    M1: Material,
+    M2: Material,
+{
     fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
         mix(
             self.refraction.brdf(wo, wi, n),
@@ -188,7 +173,11 @@ impl Material for FresnelBlendMaterial {
     }
 }
 
-impl Material for BlendMaterial {
+impl<M1, M2> Material for BlendMaterial<M1, M2>
+where
+    M1: Material,
+    M2: Material,
+{
     fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
         mix(
             self.second.brdf(wo, wi, n),

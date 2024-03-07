@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use nalgebra::vector;
 use pathtracer::material::*;
 use plotters::prelude::*;
@@ -25,13 +23,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         index_of_refraction: 1.55,
     };
     let fresnel_blend = FresnelBlendMaterial {
-        refraction: Arc::new(specular_refractive.clone()),
-        reflection: Arc::new(diffuse_reflective.clone()),
+        refraction: specular_refractive.clone(),
+        reflection: diffuse_reflective.clone(),
         r0: 0.0,
     };
     let fresnel_blend = BlendMaterial {
-        first: Arc::new(specular_refractive),
-        second: Arc::new(diffuse_reflective),
+        first: specular_refractive,
+        second: diffuse_reflective,
         factor: 1.0,
     };
     let material = fresnel_blend;

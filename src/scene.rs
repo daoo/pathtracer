@@ -86,24 +86,24 @@ fn blend_from_mtl(material: &mtl::Material) -> Arc<dyn Material> {
     let reflection = DiffuseReflectiveMaterial {
         reflectance: material.diffuse_reflection,
     };
-    let transparency_blend = BlendMaterial::new_approx(
-        Arc::new(refraction),
-        Arc::new(reflection),
-        material.transparency,
-    );
+    let transparency_blend = BlendMaterial {
+        first: refraction,
+        second: reflection,
+        factor: material.transparency,
+    };
     let specular = SpecularReflectiveMaterial {
         reflectance: material.specular_reflection,
     };
-    let fresnel_blend = FresnelBlendMaterial::new_approx(
-        Arc::new(specular),
-        transparency_blend.clone(),
-        material.reflection_0_degrees,
-    );
-    BlendMaterial::new_approx(
-        fresnel_blend,
-        transparency_blend,
-        material.reflection_90_degrees,
-    )
+    let fresnel_blend = FresnelBlendMaterial {
+        reflection: specular,
+        refraction: transparency_blend.clone(),
+        r0: material.reflection_0_degrees,
+    };
+    Arc::new(BlendMaterial {
+        first: fresnel_blend,
+        second: transparency_blend,
+        factor: material.reflection_90_degrees,
+    })
 }
 
 fn material_from_mtl(material: &mtl::Material) -> (&str, Arc<dyn Material>) {
