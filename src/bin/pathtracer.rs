@@ -4,8 +4,8 @@ use ::pathtracer::pathtracer;
 use ::pathtracer::scene::*;
 use ::pathtracer::wavefront::*;
 use clap::Parser;
-use rand::SeedableRng;
 use rand::rngs::SmallRng;
+use rand::SeedableRng;
 use rayon::prelude::*;
 use std::fs;
 use std::str;
@@ -29,7 +29,15 @@ struct Args {
     threads: u32,
 }
 
-fn work(thread: u32, width: usize, height: usize, max_bounces: u32, scene: &Scene, pinhole: &Pinhole, iterations: u32) -> ImageBuffer {
+fn work(
+    thread: u32,
+    width: usize,
+    height: usize,
+    max_bounces: u32,
+    scene: &Scene,
+    pinhole: &Pinhole,
+    iterations: u32,
+) -> ImageBuffer {
     let mut rng = SmallRng::from_entropy();
     let mut buffer = ImageBuffer::new(width, height);
     for iteration in 0..iterations {
@@ -65,9 +73,20 @@ fn main() {
     println!("Rendering {} iteration(s)...", args.iterations);
 
     let iterations_per_thread = args.iterations / args.threads;
-    let buffers = (0..args.threads).into_par_iter().map(|thread| {
-        work(thread, args.width, args.height, args.max_bounces, &scene, &pinhole, iterations_per_thread)
-    }).collect::<Vec<_>>();
+    let buffers = (0..args.threads)
+        .into_par_iter()
+        .map(|thread| {
+            work(
+                thread,
+                args.width,
+                args.height,
+                args.max_bounces,
+                &scene,
+                &pinhole,
+                iterations_per_thread,
+            )
+        })
+        .collect::<Vec<_>>();
     let buffer = ImageBuffer::sum(&buffers);
 
     println!("Writing {}...", args.output.display());

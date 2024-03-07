@@ -22,7 +22,12 @@ pub struct KdTree {
 }
 
 impl KdTree {
-    pub fn intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(usize, TriangleRayIntersection)> {
+    pub fn intersect(
+        &self,
+        ray: &Ray,
+        tmin: f32,
+        tmax: f32,
+    ) -> Option<(usize, TriangleRayIntersection)> {
         debug_assert!(tmin < tmax);
         let mut node = self.root.as_ref();
         let mut t1 = tmin;
@@ -34,10 +39,12 @@ impl KdTree {
                         .into_iter()
                         .map(|i| self.triangles[*i as usize].clone())
                         .collect::<Vec<_>>();
-                    if let Some((index, result)) = intersect_closest_triangle_ray(&triangles, ray, t1, t2) {
+                    if let Some((index, result)) =
+                        intersect_closest_triangle_ray(&triangles, ray, t1, t2)
+                    {
                         return Some((triangle_indices[index] as usize, result));
                     } else if t2 == tmax {
-                        return None
+                        return None;
                     } else {
                         t1 = t2;
                         t2 = tmax;
@@ -124,19 +131,25 @@ mod tests {
 
         assert_eq!(
             tree.intersect(&ray1, 0., 1.),
-            Some((0, TriangleRayIntersection {
-                t: 0.25,
-                u: 0.,
-                v: 0.5
-            }))
+            Some((
+                0,
+                TriangleRayIntersection {
+                    t: 0.25,
+                    u: 0.,
+                    v: 0.5
+                }
+            ))
         );
         assert_eq!(
             tree.intersect(&ray2, 0., 1.),
-            Some((1, TriangleRayIntersection {
-                t: 0.25,
-                u: 0.,
-                v: 0.5
-            }))
+            Some((
+                1,
+                TriangleRayIntersection {
+                    t: 0.25,
+                    u: 0.,
+                    v: 0.5
+                }
+            ))
         );
     }
 
@@ -168,19 +181,25 @@ mod tests {
 
         assert_eq!(
             tree.intersect(&ray_triangle0_v0, 0., 1.),
-            Some((0, TriangleRayIntersection {
-                t: 0.5,
-                u: 0.,
-                v: 0.
-            }))
+            Some((
+                0,
+                TriangleRayIntersection {
+                    t: 0.5,
+                    u: 0.,
+                    v: 0.
+                }
+            ))
         );
         assert_eq!(
             tree.intersect(&ray_triangle1_v1, 0., 1.),
-            Some((1, TriangleRayIntersection {
-                t: 0.5,
-                u: 1.,
-                v: 0.
-            }))
+            Some((
+                1,
+                TriangleRayIntersection {
+                    t: 0.5,
+                    u: 1.,
+                    v: 0.
+                }
+            ))
         );
     }
 
@@ -212,19 +231,25 @@ mod tests {
 
         assert_eq!(
             tree.intersect(&ray1, 0., 1.),
-            Some((0, TriangleRayIntersection {
-                t: 0.25,
-                u: 0.,
-                v: 0.5
-            }))
+            Some((
+                0,
+                TriangleRayIntersection {
+                    t: 0.25,
+                    u: 0.,
+                    v: 0.5
+                }
+            ))
         );
         assert_eq!(
             tree.intersect(&ray2, 0., 1.),
-            Some((1, TriangleRayIntersection {
-                t: 0.25,
-                u: 0.,
-                v: 0.5
-            }))
+            Some((
+                1,
+                TriangleRayIntersection {
+                    t: 0.25,
+                    u: 0.,
+                    v: 0.5
+                }
+            ))
         );
     }
 }
