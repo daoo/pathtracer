@@ -2,9 +2,9 @@ use nalgebra::{vector, Vector2, Vector3};
 use rand::rngs::SmallRng;
 use rand::Rng;
 
-// fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vector2<f32> {
-//   vector![rng.gen(), rng.gen()]
-// }
+pub fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vector2<f32> {
+  vector![rng.gen(), rng.gen()]
+}
 
 pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> Vector3<f32> {
     let z = rng.gen_range(-1.0..1.0);
