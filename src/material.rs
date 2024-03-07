@@ -20,24 +20,24 @@ fn is_same_hemisphere(wi: &Vector3<f32>, wo: &Vector3<f32>, n: &Vector3<f32>) ->
     is_same_sign(wi.dot(n), wo.dot(n))
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct MaterialSample {
     pub pdf: f32,
     pub brdf: Vector3<f32>,
     pub wo: Vector3<f32>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct DiffuseReflectiveMaterial {
     pub reflectance: Vector3<f32>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct SpecularReflectiveMaterial {
     pub reflectance: Vector3<f32>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct SpecularRefractiveMaterial {
     pub index_of_refraction: f32,
 }
