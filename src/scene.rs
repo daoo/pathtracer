@@ -11,7 +11,7 @@ use nalgebra::{UnitVector3, Vector2, Vector3};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TriangleNormals {
     pub n0: Vector3<f32>,
     pub n1: Vector3<f32>,
@@ -24,7 +24,7 @@ impl TriangleNormals {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TriangleTexcoords {
     pub uv0: Vector2<f32>,
     pub uv1: Vector2<f32>,

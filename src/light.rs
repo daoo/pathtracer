@@ -2,7 +2,7 @@ use crate::sampling::*;
 use nalgebra::Vector3;
 use rand::rngs::SmallRng;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct SphericalLight {
     pub center: Vector3<f32>,
     pub intensity: Vector3<f32>,
