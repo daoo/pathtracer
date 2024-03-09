@@ -28,8 +28,8 @@ pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> Vector3<f32> {
 // }
 
 fn concentric_sample_unit_disk(rng: &mut SmallRng) -> Vector2<f32> {
-    let x = rng.gen_range(-1.0..1.0);
-    let y = rng.gen_range(-1.0..1.0);
+    let x = rng.gen_range(-1.0..=1.0);
+    let y = rng.gen_range(-1.0..=1.0);
     if x == 0.0 && y == 0.0 {
         return Vector2::zeros();
     }
@@ -102,7 +102,7 @@ mod tests {
         for _ in 0..1000 {
             let point = cosine_sample_hemisphere(&mut rng);
             let error = (point.norm_squared() - 1.0).abs();
-            // TODO: Check which hemisphere
+            assert!(point.z >= 0.0 && point.z <= 1.0);
             assert!(error <= 1e-6, "{}", error);
         }
     }
