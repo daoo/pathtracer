@@ -36,7 +36,7 @@ impl KdTree {
             match node {
                 KdNode::Leaf(triangle_indices) => {
                     let triangles = triangle_indices
-                        .into_iter()
+                        .iter()
                         .map(|i| self.triangles[*i as usize].clone())
                         .collect::<Vec<_>>();
                     if let Some((index, result)) =

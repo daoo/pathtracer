@@ -109,7 +109,7 @@ fn work(
     let mut buffer = ImageBuffer::new(width, height);
     for iteration in 0..iterations {
         let t1 = Instant::now();
-        pathtracer::render(max_bounces, &scene, &pinhole, &mut buffer, &mut rng);
+        pathtracer::render(max_bounces, scene, pinhole, &mut buffer, &mut rng);
         let t2 = Instant::now();
         let duration = t2 - t1;
         println!(

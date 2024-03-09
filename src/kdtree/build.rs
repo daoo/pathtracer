@@ -41,8 +41,8 @@ impl KdTreeBuilder {
         let mut right_triangle_indices: Vec<u32> = Vec::new();
         for triangle_index in parent.triangle_indices {
             let triangle = &self.triangles[triangle_index as usize];
-            let in_left = intersect_triangle_aabb(&triangle, &left_aabb);
-            let in_right = intersect_triangle_aabb(&triangle, &right_aabb);
+            let in_left = intersect_triangle_aabb(triangle, &left_aabb);
+            let in_right = intersect_triangle_aabb(triangle, &right_aabb);
             debug_assert!(in_left || in_right);
             if in_left {
                 left_triangle_indices.push(triangle_index);
@@ -65,14 +65,14 @@ impl KdTreeBuilder {
 
     fn potential_split_points(
         &self,
-        triangle_indices: &Vec<u32>,
+        triangle_indices: &[u32],
         axis: Axis,
         boundary: &Aabb,
     ) -> Vec<f32> {
         let min = boundary.min()[axis] + 0.1;
         let max = boundary.max()[axis] - 0.1;
         let mut points = triangle_indices
-            .into_iter()
+            .iter()
             .flat_map(|i| {
                 let triangle = &self.triangles[*i as usize];
                 [triangle.min()[axis] - 0.1, triangle.max()[axis] + 0.1]
@@ -127,7 +127,6 @@ pub fn build_kdtree_median(max_depth: u32, triangles: Vec<Triangle>) -> KdTree {
             start: 0u32,
             end: triangles.len() as u32,
         }
-        .into_iter()
         .collect(),
     };
     let builder = KdTreeBuilder {
