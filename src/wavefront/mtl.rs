@@ -6,7 +6,7 @@ use nom::number::complete::float;
 use nom::sequence::Tuple;
 use nom::IResult;
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Material {
     pub name: String,
     pub diffuse_map: String,
@@ -23,7 +23,14 @@ impl Material {
     pub fn new(name: String) -> Material {
         Material {
             name,
-            ..Default::default()
+            diffuse_map: String::new(),
+            diffuse_reflection: vector![0.7, 0.7, 0.7],
+            specular_reflection: vector![1.0, 1.0, 1.0],
+            emittance: vector![0.0, 0.0, 0.0],
+            transparency: 0.0,
+            reflection_0_degrees: 0.0,
+            reflection_90_degrees: 0.0,
+            index_of_refraction: 1.0,
         }
     }
 }
