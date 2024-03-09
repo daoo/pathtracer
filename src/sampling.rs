@@ -3,7 +3,7 @@ use rand::rngs::SmallRng;
 use rand::Rng;
 
 pub fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vector2<f32> {
-  vector![rng.gen(), rng.gen()]
+    vector![rng.gen(), rng.gen()]
 }
 
 pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> Vector3<f32> {
