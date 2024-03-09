@@ -56,15 +56,15 @@ mod tests {
     use super::*;
     use rand::SeedableRng;
 
-    // #[test]
-    // fn test_uniform_sample_unit_square() {
-    //     let mut rng = SmallRng::from_entropy();
-    //     for _ in 0..1000 {
-    //         let point = uniform_sample_unit_square(&mut rng);
-    //         assert!(point >= vector![0.0, 0.0]);
-    //         assert!(point <= vector![1.0, 1.0]);
-    //     }
-    // }
+    #[test]
+    fn test_uniform_sample_unit_square() {
+        let mut rng = SmallRng::from_entropy();
+        for _ in 0..1000 {
+            let point = uniform_sample_unit_square(&mut rng);
+            assert!(point >= vector![0.0, 0.0]);
+            assert!(point <= vector![1.0, 1.0]);
+        }
+    }
 
     #[test]
     fn test_uniform_sample_unit_sphere() {
