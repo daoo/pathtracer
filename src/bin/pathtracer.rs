@@ -9,7 +9,8 @@ use rand::SeedableRng;
 use rayon::prelude::*;
 use std::fs;
 use std::str;
-use std::time::Instant;
+use std::sync::mpsc;
+use std::time;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -37,11 +38,11 @@ struct Work<'a> {
     pinhole: &'a Pinhole,
 }
 
-fn worker_thread<'a>(work: &'a Work, thread: u32, iterations: u32) -> ImageBuffer {
+fn worker_thread(work: &Work, iterations: u32, tx: &mpsc::Sender<time::Duration>) -> ImageBuffer {
     let mut rng = SmallRng::from_entropy();
     let mut buffer = ImageBuffer::new(work.width, work.height);
-    for iteration in 0..iterations {
-        let t1 = Instant::now();
+    for _ in 0..iterations {
+        let t1 = time::Instant::now();
         pathtracer::render(
             work.max_bounces,
             work.scene,
@@ -49,17 +50,38 @@ fn worker_thread<'a>(work: &'a Work, thread: u32, iterations: u32) -> ImageBuffe
             &mut buffer,
             &mut rng,
         );
-        let t2 = Instant::now();
+        let t2 = time::Instant::now();
         let duration = t2 - t1;
-        println!(
-            "Thread {} rendered iteration {} / {} in {:?}...",
-            thread,
-            iteration + 1,
-            iterations,
-            duration
-        );
+        tx.send(duration).unwrap();
     }
     buffer
+}
+
+fn printer_thread(threads: u32, iterations: u32, rx: mpsc::Receiver<time::Duration>) {
+    let mut total = 0.0;
+    let mut total_squared = 0.0;
+    let mut completed = 0;
+    loop {
+        let duration = rx.recv().unwrap();
+        if duration.is_zero() {
+            return;
+        }
+        let seconds = duration.as_secs_f64();
+        total += seconds;
+        total_squared += seconds * seconds;
+        completed += 1;
+        let mean = total / completed as f64;
+        let sdev = ((total_squared / completed as f64) - mean * mean).sqrt();
+        let eta = ((iterations - completed) as f64) / (threads as f64 * mean);
+        println!(
+            "[{}/{}] mean: {:?}, sdev: {:?}, eta: {:?}",
+            completed,
+            iterations,
+            time::Duration::from_secs_f64(mean),
+            time::Duration::from_secs_f64(sdev),
+            time::Duration::from_secs_f64(eta)
+        );
+    }
 }
 
 fn main() {
@@ -86,11 +108,14 @@ fn main() {
         pinhole: &pinhole,
     };
     let iterations_per_thread = args.iterations / args.threads;
+    let (tx, rx) = mpsc::channel();
     let buffers = (0..args.threads)
         .into_par_iter()
-        .map(|thread| worker_thread(&work, thread, iterations_per_thread))
-        .collect::<Vec<_>>();
-    let buffer = ImageBuffer::sum(&buffers);
+        .map(|_| worker_thread(&work, iterations_per_thread, &tx));
+    let printer = std::thread::spawn(move || printer_thread(args.threads, args.iterations, rx));
+    let buffer = ImageBuffer::sum(&buffers.collect::<Vec<_>>());
+    tx.send(time::Duration::ZERO).unwrap();
+    printer.join().unwrap();
 
     println!("Writing {}...", args.output.display());
     buffer
