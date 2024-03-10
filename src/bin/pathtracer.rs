@@ -8,6 +8,7 @@ use rand::rngs::SmallRng;
 use rand::SeedableRng;
 use rayon::prelude::*;
 use std::fs;
+use std::io::prelude::*;
 use std::str;
 use std::sync::mpsc;
 use std::time;
@@ -70,17 +71,21 @@ fn printer_thread(threads: u32, iterations: u32, rx: mpsc::Receiver<time::Durati
         total += seconds;
         total_squared += seconds * seconds;
         completed += 1;
-        let mean = total / completed as f64;
-        let sdev = ((total_squared / completed as f64) - mean * mean).sqrt();
-        let eta = ((iterations - completed) as f64) / (threads as f64 * mean);
-        println!(
-            "[{}/{}] mean: {:?}, sdev: {:?}, eta: {:?}",
-            completed,
-            iterations,
-            time::Duration::from_secs_f64(mean),
-            time::Duration::from_secs_f64(sdev),
-            time::Duration::from_secs_f64(eta)
-        );
+        if completed % threads == 0 {
+            let mean = total / completed as f64;
+            let sdev = ((total_squared / completed as f64) - mean * mean).sqrt();
+            let eta = ((iterations - completed) as f64) / (threads as f64 * mean);
+            print!(
+                "{}[{}/{}] mean: {:?}, sdev: {:?}, eta: {:?}\r",
+                termion::clear::CurrentLine,
+                completed,
+                iterations,
+                time::Duration::from_secs_f64(mean),
+                time::Duration::from_secs_f64(sdev),
+                time::Duration::from_secs_f64(eta)
+            );
+            std::io::stdout().flush().unwrap();
+        }
     }
 }
 
