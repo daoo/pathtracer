@@ -131,7 +131,7 @@ impl Material for SpecularRefractiveMaterial {
             (self.index_of_refraction, -*n)
         };
 
-        let w = (-wi).dot(&n_refracted) * eta;
+        let w = -(-wi).dot(&n_refracted) * eta;
         let k = 1.0 + (w - eta) * (w + eta);
         if k < 0.0 {
             const TOTAL_INTERNAL_REFLECTION: SpecularReflectiveMaterial =
