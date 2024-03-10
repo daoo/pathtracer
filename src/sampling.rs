@@ -1,4 +1,4 @@
-use nalgebra::{vector, Vector2, Vector3, UnitVector3};
+use nalgebra::{vector, UnitVector3, Vector2, Vector3};
 use rand::rngs::SmallRng;
 use rand::Rng;
 

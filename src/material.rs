@@ -1,5 +1,5 @@
 use crate::sampling::*;
-use nalgebra::{vector, RealField, Vector3, UnitVector3};
+use nalgebra::{vector, RealField, UnitVector3, Vector3};
 use rand::rngs::SmallRng;
 use rand::Rng;
 
@@ -66,7 +66,8 @@ where
 pub trait Material {
     fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &UnitVector3<f32>) -> Vector3<f32>;
 
-    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, rng: &mut SmallRng) -> MaterialSample;
+    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, rng: &mut SmallRng)
+        -> MaterialSample;
 }
 
 impl Material for DiffuseReflectiveMaterial {
@@ -74,7 +75,12 @@ impl Material for DiffuseReflectiveMaterial {
         self.reflectance * f32::frac_1_pi()
     }
 
-    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, rng: &mut SmallRng) -> MaterialSample {
+    fn sample(
+        &self,
+        wi: &Vector3<f32>,
+        n: &UnitVector3<f32>,
+        rng: &mut SmallRng,
+    ) -> MaterialSample {
         let tangent = perpendicular(n).normalize();
         let bitangent = n.cross(&tangent);
         let s = cosine_sample_hemisphere(rng);
@@ -113,7 +119,12 @@ impl Material for SpecularRefractiveMaterial {
         Vector3::zeros()
     }
 
-    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, rng: &mut SmallRng) -> MaterialSample {
+    fn sample(
+        &self,
+        wi: &Vector3<f32>,
+        n: &UnitVector3<f32>,
+        rng: &mut SmallRng,
+    ) -> MaterialSample {
         let (eta, n_refracted) = if (-wi).dot(n) < 0.0 {
             (1.0 / self.index_of_refraction, *n)
         } else {
@@ -161,7 +172,12 @@ where
         )
     }
 
-    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, rng: &mut SmallRng) -> MaterialSample {
+    fn sample(
+        &self,
+        wi: &Vector3<f32>,
+        n: &UnitVector3<f32>,
+        rng: &mut SmallRng,
+    ) -> MaterialSample {
         if rng.gen::<f32>() < reflectance(self.r0, wi, n) {
             self.reflection.sample(wi, n, rng)
         } else {
@@ -183,7 +199,12 @@ where
         )
     }
 
-    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, rng: &mut SmallRng) -> MaterialSample {
+    fn sample(
+        &self,
+        wi: &Vector3<f32>,
+        n: &UnitVector3<f32>,
+        rng: &mut SmallRng,
+    ) -> MaterialSample {
         if rng.gen::<f32>() < self.factor {
             self.first.sample(wi, n, rng)
         } else {

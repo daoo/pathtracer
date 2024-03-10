@@ -65,7 +65,10 @@ fn printer_thread(threads: u32, iterations: u32, rx: mpsc::Receiver<time::Durati
         let duration = rx.recv().unwrap();
         if duration.is_zero() {
             println!();
-            println!("Total time: {:.2}", time::Duration::seconds_f64(total) / (threads as f64));
+            println!(
+                "Total time: {:.2}",
+                time::Duration::seconds_f64(total) / (threads as f64)
+            );
             return;
         }
         let seconds = duration.as_seconds_f64();
