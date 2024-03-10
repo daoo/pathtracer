@@ -11,7 +11,6 @@ use std::fs;
 use std::io::prelude::*;
 use std::str;
 use std::sync::mpsc;
-use std::time;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -65,9 +64,19 @@ fn printer_thread(threads: u32, iterations: u32, rx: mpsc::Receiver<time::Durati
     loop {
         let duration = rx.recv().unwrap();
         if duration.is_zero() {
+            let mean = total / completed as f64;
+            let sdev = ((total_squared / completed as f64) - mean * mean).sqrt();
+            println!();
+            println!(
+                "Done iterations: {}, time: {}, mean: {}, sdev: {}",
+                iterations,
+                time::Duration::seconds_f64(total),
+                time::Duration::seconds_f64(mean),
+                time::Duration::seconds_f64(sdev)
+            );
             return;
         }
-        let seconds = duration.as_secs_f64();
+        let seconds = duration.as_seconds_f64();
         total += seconds;
         total_squared += seconds * seconds;
         completed += 1;
@@ -76,13 +85,14 @@ fn printer_thread(threads: u32, iterations: u32, rx: mpsc::Receiver<time::Durati
             let sdev = ((total_squared / completed as f64) - mean * mean).sqrt();
             let eta = ((iterations - completed) as f64) / (threads as f64 * mean);
             print!(
-                "{}[{}/{}] mean: {:?}, sdev: {:?}, eta: {:?}\r",
+                "{}{}[{}/{}] mean: {:.2}, sdev: {:.2}, eta: {:.2}",
                 termion::clear::CurrentLine,
+                termion::cursor::Left(u16::MAX),
                 completed,
                 iterations,
-                time::Duration::from_secs_f64(mean),
-                time::Duration::from_secs_f64(sdev),
-                time::Duration::from_secs_f64(eta)
+                time::Duration::seconds_f64(mean),
+                time::Duration::seconds_f64(sdev),
+                time::Duration::seconds_f64(eta)
             );
             std::io::stdout().flush().unwrap();
         }
