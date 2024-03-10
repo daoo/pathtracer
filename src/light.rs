@@ -28,6 +28,6 @@ impl SphericalLight {
     }
 
     pub fn sample(&self, rng: &mut SmallRng) -> Vector3<f32> {
-        self.center + uniform_sample_unit_sphere(rng) * self.radius
+        self.center + *uniform_sample_unit_sphere(rng) * self.radius
     }
 }

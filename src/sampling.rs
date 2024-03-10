@@ -1,4 +1,4 @@
-use nalgebra::{vector, Vector2, Vector3};
+use nalgebra::{vector, Vector2, Vector3, UnitVector3};
 use rand::rngs::SmallRng;
 use rand::Rng;
 
@@ -6,13 +6,13 @@ pub fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vector2<f32> {
     vector![rng.gen(), rng.gen()]
 }
 
-pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> Vector3<f32> {
+pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> UnitVector3<f32> {
     let z = rng.gen_range(-1.0..1.0);
     let a = rng.gen_range(0.0..std::f32::consts::TAU);
     let r = (1.0f32 - z * z).sqrt();
     let x = r * a.cos();
     let y = r * a.sin();
-    vector![x, y, z]
+    UnitVector3::new_unchecked(vector![x, y, z])
 }
 
 // fn uniform_sample_hemisphere(rng: &mut SmallRng) -> Vector3<f32> {
@@ -71,8 +71,8 @@ mod tests {
         let mut rng = SmallRng::from_entropy();
         for _ in 0..1000 {
             let point = uniform_sample_unit_sphere(&mut rng);
-            let error = (point.norm_squared() - 1.0).abs();
-            assert!(error <= 1e-6, "{}", error);
+            let error = point.norm();
+            assert!(error >= 0.9999999 && error <= 1.0000001, "{}", error);
         }
     }
 
