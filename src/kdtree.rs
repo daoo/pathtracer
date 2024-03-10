@@ -22,6 +22,30 @@ pub struct KdTree {
 }
 
 impl KdTree {
+    fn intersect_closest_triangle_ray(
+        &self,
+        triangles: &[u32],
+        ray: &Ray,
+        tmin: f32,
+        tmax: f32,
+    ) -> Option<(usize, TriangleRayIntersection)> {
+        debug_assert!(tmin < tmax);
+        let mut closest: Option<(usize, TriangleRayIntersection)> = None;
+        let t1 = tmin;
+        let mut t2 = tmax;
+        for index in triangles {
+            let index = *index as usize;
+            closest = match intersect_triangle_ray(&self.triangles[index], ray) {
+                Some(intersection) if intersection.t >= t1 && intersection.t <= t2 => {
+                    t2 = intersection.t;
+                    Some((index, intersection))
+                }
+                _ => closest,
+            };
+        }
+        closest
+    }
+
     pub fn intersect(
         &self,
         ray: &Ray,
@@ -35,14 +59,8 @@ impl KdTree {
         loop {
             match node {
                 KdNode::Leaf(triangle_indices) => {
-                    let triangles = triangle_indices
-                        .iter()
-                        .map(|i| self.triangles[*i as usize].clone())
-                        .collect::<Vec<_>>();
-                    if let Some((index, result)) =
-                        intersect_closest_triangle_ray(&triangles, ray, t1, t2)
-                    {
-                        return Some((triangle_indices[index] as usize, result));
+                    if let Some(result) = self.intersect_closest_triangle_ray(&triangle_indices, ray, t1, t2) {
+                        return Some(result);
                     } else if t2 == tmax {
                         return None;
                     } else {
