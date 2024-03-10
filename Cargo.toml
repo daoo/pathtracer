@@ -12,3 +12,6 @@ rand = { version = "0.8.5", default-features = false, features = ["small_rng", "
 rayon = "1.9.0"
 termion = "3.0.0"
 time = { version = "0.3.34", features = ["formatting"] }
+
+[profile.release]
+codegen-units = 1
