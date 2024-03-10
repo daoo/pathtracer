@@ -114,26 +114,24 @@ impl Material for SpecularRefractiveMaterial {
     }
 
     fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample {
-        let a = (-wi).dot(n);
-        let eta = if a < 0.0 {
-            1.0 / self.index_of_refraction
+        let (eta, n_refracted) = if (-wi).dot(n) < 0.0 {
+            (1.0 / self.index_of_refraction, *n)
         } else {
-            self.index_of_refraction
+            (self.index_of_refraction, -n)
         };
-        let n = if a < 0.0 { *n } else { -n };
 
-        let w = -a * eta;
+        let w = (-wi).dot(&n_refracted) * eta;
         let k = 1.0 + (w - eta) * (w + eta);
         if k < 0.0 {
             const TOTAL_INTERNAL_REFLECTION: SpecularReflectiveMaterial =
                 SpecularReflectiveMaterial {
                     reflectance: vector![1.0, 1.0, 1.0],
                 };
-            return TOTAL_INTERNAL_REFLECTION.sample(wi, &n, rng);
+            return TOTAL_INTERNAL_REFLECTION.sample(wi, &n_refracted, rng);
         }
 
         let k = k.sqrt();
-        let wo = (-eta * wi + (w - k) * n).normalize();
+        let wo = (-eta * wi + (w - k) * n_refracted).normalize();
         MaterialSample {
             pdf: 1.0,
             brdf: vector![1., 1., 1.],
