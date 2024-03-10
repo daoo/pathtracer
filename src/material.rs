@@ -151,6 +151,47 @@ impl Material for SpecularRefractiveMaterial {
     }
 }
 
+#[cfg(test)]
+mod specular_refractive_material_tests {
+    use rand::SeedableRng;
+
+    use super::*;
+
+    #[test]
+    fn refraction_into_medium() {
+        let material = SpecularRefractiveMaterial { index_of_refraction: 1.5 };
+        let wi = vector![-1.0, 1.0, 0.0].normalize();
+        let n = UnitVector3::new_normalize(vector![0.0, 1.0, 0.0]);
+        let mut rng = SmallRng::seed_from_u64(0);
+
+        let actual = material.sample(&wi, &n, &mut rng);
+
+        let theta1 = wi.dot(&n).acos();
+        let theta2 = actual.wo.dot(&-n).acos();
+        dbg!(theta1.sin(), theta2.sin());
+        assert_eq!(theta1, f32::frac_pi_4());
+        assert_eq!(theta2.sin(), theta1.sin() / 1.5);
+        assert!(actual.wo.y < 0.0);
+    }
+
+    #[test]
+    fn reflection_out_of_medium() {
+        let material = SpecularRefractiveMaterial { index_of_refraction: 1.5 };
+        let wi = vector![-1.0, -1.0, 0.0].normalize();
+        let n = UnitVector3::new_normalize(vector![0.0, 1.0, 0.0]);
+        let mut rng = SmallRng::seed_from_u64(0);
+
+        let actual = material.sample(&wi, &n, &mut rng);
+
+        let theta1 = wi.dot(&n).acos();
+        let theta2 = actual.wo.dot(&-n).acos();
+        dbg!(theta1, theta2);
+        assert_eq!(theta1, f32::pi() - f32::frac_pi_4());
+        assert_eq!(theta2.sin(), theta1.sin() / 1.5);
+        assert!(actual.wo.y > 0.0);
+    }
+}
+
 fn reflectance(r0: f32, wi: &Vector3<f32>, n: &Vector3<f32>) -> f32 {
     r0 + (1.0 - r0) * (1.0 - wi.dot(n).abs()).powf(5.0)
 }
