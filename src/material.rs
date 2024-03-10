@@ -1,5 +1,5 @@
 use crate::sampling::*;
-use nalgebra::{vector, RealField, Vector3};
+use nalgebra::{vector, RealField, Vector3, UnitVector3};
 use rand::rngs::SmallRng;
 use rand::Rng;
 
@@ -15,7 +15,7 @@ fn is_same_sign(a: f32, b: f32) -> bool {
     a.signum() == b.signum()
 }
 
-fn is_same_hemisphere(wi: &Vector3<f32>, wo: &Vector3<f32>, n: &Vector3<f32>) -> bool {
+fn is_same_hemisphere(wi: &Vector3<f32>, wo: &Vector3<f32>, n: &UnitVector3<f32>) -> bool {
     is_same_sign(wi.dot(n), wo.dot(n))
 }
 
@@ -64,22 +64,22 @@ where
 }
 
 pub trait Material {
-    fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32>;
+    fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &UnitVector3<f32>) -> Vector3<f32>;
 
-    fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample;
+    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, rng: &mut SmallRng) -> MaterialSample;
 }
 
 impl Material for DiffuseReflectiveMaterial {
-    fn brdf(&self, _: &Vector3<f32>, _: &Vector3<f32>, _: &Vector3<f32>) -> Vector3<f32> {
+    fn brdf(&self, _: &Vector3<f32>, _: &Vector3<f32>, _: &UnitVector3<f32>) -> Vector3<f32> {
         self.reflectance * f32::frac_1_pi()
     }
 
-    fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample {
+    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, rng: &mut SmallRng) -> MaterialSample {
         let tangent = perpendicular(n).normalize();
         let bitangent = n.cross(&tangent);
         let s = cosine_sample_hemisphere(rng);
 
-        let wo = (s.x * tangent + s.y * bitangent + s.z * n).normalize();
+        let wo = (s.x * tangent + s.y * bitangent + s.z * n.into_inner()).normalize();
         MaterialSample {
             pdf: s.norm(),
             brdf: self.brdf(wi, &wo, n),
@@ -89,12 +89,12 @@ impl Material for DiffuseReflectiveMaterial {
 }
 
 impl Material for SpecularReflectiveMaterial {
-    fn brdf(&self, _: &Vector3<f32>, _: &Vector3<f32>, _: &Vector3<f32>) -> Vector3<f32> {
+    fn brdf(&self, _: &Vector3<f32>, _: &Vector3<f32>, _: &UnitVector3<f32>) -> Vector3<f32> {
         Vector3::zeros()
     }
 
-    fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, _: &mut SmallRng) -> MaterialSample {
-        let wo = (2.0 * wi.dot(n).abs() * n - wi).normalize();
+    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, _: &mut SmallRng) -> MaterialSample {
+        let wo = (2.0 * wi.dot(n).abs() * n.into_inner() - wi).normalize();
         let pdf = if is_same_hemisphere(wi, &wo, n) {
             wo.dot(n).abs()
         } else {
@@ -109,15 +109,15 @@ impl Material for SpecularReflectiveMaterial {
 }
 
 impl Material for SpecularRefractiveMaterial {
-    fn brdf(&self, _: &Vector3<f32>, _: &Vector3<f32>, _: &Vector3<f32>) -> Vector3<f32> {
+    fn brdf(&self, _: &Vector3<f32>, _: &Vector3<f32>, _: &UnitVector3<f32>) -> Vector3<f32> {
         Vector3::zeros()
     }
 
-    fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample {
+    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, rng: &mut SmallRng) -> MaterialSample {
         let (eta, n_refracted) = if (-wi).dot(n) < 0.0 {
             (1.0 / self.index_of_refraction, *n)
         } else {
-            (self.index_of_refraction, -n)
+            (self.index_of_refraction, -*n)
         };
 
         let w = (-wi).dot(&n_refracted) * eta;
@@ -131,7 +131,7 @@ impl Material for SpecularRefractiveMaterial {
         }
 
         let k = k.sqrt();
-        let wo = (-eta * wi + (w - k) * n_refracted).normalize();
+        let wo = (-eta * wi + (w - k) * *n_refracted).normalize();
         MaterialSample {
             pdf: 1.0,
             brdf: vector![1., 1., 1.],
@@ -153,7 +153,7 @@ where
     M1: Material,
     M2: Material,
 {
-    fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
+    fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &UnitVector3<f32>) -> Vector3<f32> {
         mix(
             self.refraction.brdf(wi, wo, n),
             self.reflection.brdf(wi, wo, n),
@@ -161,7 +161,7 @@ where
         )
     }
 
-    fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample {
+    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, rng: &mut SmallRng) -> MaterialSample {
         if rng.gen::<f32>() < reflectance(self.r0, wi, n) {
             self.reflection.sample(wi, n, rng)
         } else {
@@ -175,7 +175,7 @@ where
     M1: Material,
     M2: Material,
 {
-    fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
+    fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &UnitVector3<f32>) -> Vector3<f32> {
         mix(
             self.second.brdf(wi, wo, n),
             self.first.brdf(wi, wo, n),
@@ -183,7 +183,7 @@ where
         )
     }
 
-    fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample {
+    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, rng: &mut SmallRng) -> MaterialSample {
         if rng.gen::<f32>() < self.factor {
             self.first.sample(wi, n, rng)
         } else {
