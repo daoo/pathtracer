@@ -78,7 +78,7 @@ fn trace_ray(
         } else {
             point_below
         },
-        direction: sample.wo,
+        direction: *sample.wo,
     };
     trace_ray(
         max_bounces,

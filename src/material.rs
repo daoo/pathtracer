@@ -23,7 +23,7 @@ fn is_same_hemisphere(wi: &Vector3<f32>, wo: &Vector3<f32>, n: &UnitVector3<f32>
 pub struct MaterialSample {
     pub pdf: f32,
     pub brdf: Vector3<f32>,
-    pub wo: Vector3<f32>,
+    pub wo: UnitVector3<f32>,
 }
 
 #[derive(Clone, Debug)]
@@ -79,7 +79,7 @@ impl Material for DiffuseReflectiveMaterial {
         let bitangent = n.cross(&tangent);
         let s = cosine_sample_hemisphere(rng);
 
-        let wo = (s.x * tangent + s.y * bitangent + s.z * n.into_inner()).normalize();
+        let wo = UnitVector3::new_normalize(s.x * tangent + s.y * bitangent + s.z * n.into_inner());
         MaterialSample {
             pdf: s.norm(),
             brdf: self.brdf(wi, &wo, n),
@@ -94,7 +94,7 @@ impl Material for SpecularReflectiveMaterial {
     }
 
     fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, _: &mut SmallRng) -> MaterialSample {
-        let wo = (2.0 * wi.dot(n).abs() * n.into_inner() - wi).normalize();
+        let wo = UnitVector3::new_normalize(2.0 * wi.dot(n).abs() * n.into_inner() - wi);
         let pdf = if is_same_hemisphere(wi, &wo, n) {
             wo.dot(n).abs()
         } else {
@@ -131,7 +131,7 @@ impl Material for SpecularRefractiveMaterial {
         }
 
         let k = k.sqrt();
-        let wo = (-eta * wi + (w - k) * *n_refracted).normalize();
+        let wo = UnitVector3::new_normalize(-eta * wi + (w - k) * *n_refracted);
         MaterialSample {
             pdf: 1.0,
             brdf: vector![1., 1., 1.],
