@@ -1,6 +1,6 @@
 use nalgebra::{DMatrix, Vector3};
 use std::{
-    ops::{Index, IndexMut},
+    ops::{Add, Index, IndexMut},
     path::Path,
 };
 
@@ -31,14 +31,6 @@ impl ImageBuffer {
         self.0.nrows()
     }
 
-    pub fn sum(buffers: &[ImageBuffer]) -> ImageBuffer {
-        let mut accum = buffers[0].0.clone();
-        for buffer in buffers.iter().skip(1) {
-            accum += &buffer.0;
-        }
-        ImageBuffer(accum)
-    }
-
     pub fn div(&self, value: f32) -> Self {
         ImageBuffer(self.0.map(|e| e / value))
     }
@@ -55,6 +47,14 @@ impl ImageBuffer {
             }
         }
         image.save_with_format(path, format)
+    }
+}
+
+impl Add for ImageBuffer {
+    type Output = ImageBuffer;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        ImageBuffer(self.0 + rhs.0)
     }
 }
 

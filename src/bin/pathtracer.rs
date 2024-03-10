@@ -128,7 +128,7 @@ fn main() {
         .into_par_iter()
         .map(|_| worker_thread(&work, iterations_per_thread, &tx));
     let printer = std::thread::spawn(move || printer_thread(args.threads, args.iterations, rx));
-    let buffer = ImageBuffer::sum(&buffers.collect::<Vec<_>>());
+    let buffer = buffers.reduce_with(|a, b| a + b).unwrap();
     tx.send(time::Duration::ZERO).unwrap();
     printer.join().unwrap();
 
