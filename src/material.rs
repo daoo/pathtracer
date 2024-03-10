@@ -64,7 +64,7 @@ where
 }
 
 pub trait Material {
-    fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32>;
+    fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32>;
 
     fn sample(&self, wi: &Vector3<f32>, n: &Vector3<f32>, rng: &mut SmallRng) -> MaterialSample;
 }
@@ -140,8 +140,8 @@ impl Material for SpecularRefractiveMaterial {
     }
 }
 
-fn reflectance(r0: f32, wo: &Vector3<f32>, n: &Vector3<f32>) -> f32 {
-    r0 + (1.0 - r0) * (1.0 - wo.dot(n).abs()).powf(5.0)
+fn reflectance(r0: f32, wi: &Vector3<f32>, n: &Vector3<f32>) -> f32 {
+    r0 + (1.0 - r0) * (1.0 - wi.dot(n).abs()).powf(5.0)
 }
 
 fn mix(x: Vector3<f32>, y: Vector3<f32>, a: f32) -> Vector3<f32> {
@@ -153,11 +153,11 @@ where
     M1: Material,
     M2: Material,
 {
-    fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
+    fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
         mix(
-            self.refraction.brdf(wo, wi, n),
-            self.reflection.brdf(wo, wi, n),
-            reflectance(self.r0, wo, n),
+            self.refraction.brdf(wi, wo, n),
+            self.reflection.brdf(wi, wo, n),
+            reflectance(self.r0, wi, n),
         )
     }
 
@@ -175,10 +175,10 @@ where
     M1: Material,
     M2: Material,
 {
-    fn brdf(&self, wo: &Vector3<f32>, wi: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
+    fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &Vector3<f32>) -> Vector3<f32> {
         mix(
-            self.second.brdf(wo, wi, n),
-            self.first.brdf(wo, wi, n),
+            self.second.brdf(wi, wo, n),
+            self.first.brdf(wi, wo, n),
             self.factor,
         )
     }
