@@ -68,7 +68,7 @@ fn trace_ray(
     let accumulated_transport =
         accumulated_transport.component_mul(&(sample.brdf * (cosine_term / sample.pdf)));
 
-    if accumulated_transport.norm_squared() <= 0.00001 {
+    if accumulated_transport.norm_squared() <= 0.00001 * 0.00001 {
         return accumulated_radiance;
     }
 
