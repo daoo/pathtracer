@@ -29,20 +29,26 @@ struct Args {
     threads: u32,
 }
 
-fn work(
-    thread: u32,
+struct Work<'a> {
     width: usize,
     height: usize,
     max_bounces: u32,
-    scene: &Scene,
-    pinhole: &Pinhole,
-    iterations: u32,
-) -> ImageBuffer {
+    scene: &'a Scene,
+    pinhole: &'a Pinhole,
+}
+
+fn worker_thread<'a>(work: &'a Work, thread: u32, iterations: u32) -> ImageBuffer {
     let mut rng = SmallRng::from_entropy();
-    let mut buffer = ImageBuffer::new(width, height);
+    let mut buffer = ImageBuffer::new(work.width, work.height);
     for iteration in 0..iterations {
         let t1 = Instant::now();
-        pathtracer::render(max_bounces, scene, pinhole, &mut buffer, &mut rng);
+        pathtracer::render(
+            work.max_bounces,
+            work.scene,
+            work.pinhole,
+            &mut buffer,
+            &mut rng,
+        );
         let t2 = Instant::now();
         let duration = t2 - t1;
         println!(
@@ -72,20 +78,17 @@ fn main() {
 
     println!("Rendering {} iteration(s)...", args.iterations);
 
+    let work = Work {
+        width: args.width,
+        height: args.height,
+        max_bounces: args.max_bounces,
+        scene: &scene,
+        pinhole: &pinhole,
+    };
     let iterations_per_thread = args.iterations / args.threads;
     let buffers = (0..args.threads)
         .into_par_iter()
-        .map(|thread| {
-            work(
-                thread,
-                args.width,
-                args.height,
-                args.max_bounces,
-                &scene,
-                &pinhole,
-                iterations_per_thread,
-            )
-        })
+        .map(|thread| worker_thread(&work, thread, iterations_per_thread))
         .collect::<Vec<_>>();
     let buffer = ImageBuffer::sum(&buffers);
 
