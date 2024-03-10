@@ -1,21 +1,14 @@
 use ::pathtracer::camera::*;
-use ::pathtracer::geometry::triangle::Triangle;
 use ::pathtracer::image_buffer::ImageBuffer;
-use ::pathtracer::kdtree::build::build_kdtree_median;
-use ::pathtracer::light::SphericalLight;
-use ::pathtracer::material::*;
 use ::pathtracer::pathtracer;
 use ::pathtracer::scene::*;
 use ::pathtracer::wavefront::*;
 use clap::Parser;
-use nalgebra::vector;
-use nalgebra::UnitVector3;
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
 use rayon::prelude::*;
 use std::fs;
 use std::str;
-use std::sync::Arc;
 use std::time::Instant;
 
 #[derive(Parser, Debug)]
@@ -34,66 +27,6 @@ struct Args {
     iterations: u32,
     #[arg(short, long, default_value_t = 1)]
     threads: u32,
-}
-
-fn test_scene() -> Scene {
-    let triangles = vec![Triangle {
-        v0: vector![0.0, 0.0, 0.0],
-        v1: vector![1.0, 0.0, 0.0],
-        v2: vector![1.0, 1.0, 0.0],
-    }];
-    let refraction = SpecularRefractiveMaterial {
-        index_of_refraction: 1.55,
-    };
-    let reflection = DiffuseReflectiveMaterial {
-        reflectance: vector![1.0, 0.0, 0.0],
-    };
-    let transparency_blend = BlendMaterial {
-        first: refraction,
-        second: reflection,
-        factor: 1.0,
-    };
-    let specular = SpecularReflectiveMaterial {
-        reflectance: vector![1.0, 0.0, 0.0],
-    };
-    let fresnel_blend = FresnelBlendMaterial {
-        reflection: specular,
-        refraction: transparency_blend.clone(),
-        r0: 0.3,
-    };
-    let blend = BlendMaterial {
-        first: fresnel_blend,
-        second: transparency_blend,
-        factor: 1.0,
-    };
-    let material = blend;
-    let kdtree = build_kdtree_median(1, triangles);
-    Scene {
-        kdtree,
-        triangle_normals: vec![TriangleNormals {
-            n0: vector![0.0, 0.0, -1.0],
-            n1: vector![0.0, 0.0, -1.0],
-            n2: vector![0.0, 0.0, -1.0],
-        }],
-        triangle_texcoords: vec![TriangleTexcoords {
-            uv0: vector![0.0, 0.0],
-            uv1: vector![1.0, 0.0],
-            uv2: vector![0.0, 1.0],
-        }],
-        triangle_materials: vec![Arc::new(material)],
-        cameras: vec![Camera {
-            position: vector![0.0, 0.0, -2.0],
-            direction: UnitVector3::new_normalize(vector![0.0, 0.0, 1.0]),
-            up: UnitVector3::new_normalize(vector![0.0, 1.0, 0.0]),
-            right: UnitVector3::new_normalize(vector![1.0, 0.0, 0.0]),
-            fov_degrees: 45.0,
-        }],
-        lights: vec![SphericalLight {
-            center: vector![0.0, 4.0, -4.0],
-            intensity: vector![1.0, 1.0, 1.0],
-            radius: 1.0,
-        }],
-    }
 }
 
 fn work(
@@ -133,7 +66,6 @@ fn main() {
     let mtl = mtl::mtl(str::from_utf8(&fs::read(mtl_path).unwrap()).unwrap());
     println!("Building scene...");
     let scene = Scene::from_wavefront(&obj, &mtl);
-    // let scene = test_scene();
     println!("Triangles: {}", scene.triangle_normals.len());
 
     let pinhole = Pinhole::new(&scene.cameras[0], args.width as f32 / args.height as f32);
