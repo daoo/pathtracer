@@ -41,9 +41,10 @@ struct Work<'a> {
 fn worker_thread(work: &Work, iterations: u32, tx: &mpsc::Sender<time::Duration>) -> ImageBuffer {
     let mut rng = SmallRng::from_entropy();
     let mut buffer = ImageBuffer::new(work.width, work.height);
-    for _ in 0..iterations {
+    for iteration in 0..iterations {
         let t1 = time::Instant::now();
         pathtracer::render(
+            iteration,
             work.max_bounces,
             work.scene,
             work.pinhole,

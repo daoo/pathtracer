@@ -11,7 +11,8 @@ fn environment_contribution(_: &Ray) -> Vector3<f32> {
 }
 
 fn trace_ray(
-    // pixel: (u32, u32),
+    iteration: u32,
+    pixel: (u32, u32),
     max_bounces: u32,
     scene: &Scene,
     ray: Ray,
@@ -26,6 +27,20 @@ fn trace_ray(
 
     let intersection = scene.intersect(&ray, 0.0, std::f32::MAX);
     if intersection.is_none() {
+        if (365..375).contains(&pixel.0) && (425..435).contains(&pixel.1) {
+            // eprintln!(
+            //     "{},{},{},{},{},{},{},{},{}",
+            //     iteration,
+            //     pixel.0,
+            //     pixel.1,
+            //     ray.origin.x,
+            //     ray.origin.y,
+            //     ray.origin.z,
+            //     ray.direction.x * 10.0,
+            //     ray.direction.y * 10.0,
+            //     ray.direction.z * 10.0
+            // );
+        }
         return accumulated_radiance
             + accumulated_transport.component_mul(&environment_contribution(&ray));
     }
@@ -41,10 +56,20 @@ fn trace_ray(
     let point_above = point + offset;
     let point_below = point - offset;
 
-    // eprintln!(
-    //     "{},{},{},{},{},{},{},{}",
-    //     pixel.0, pixel.1, ray.origin.x, ray.origin.y, ray.origin.z, point.x, point.y, point.z
-    // );
+    if (365..375).contains(&pixel.0) && (425..435).contains(&pixel.1) {
+        // eprintln!(
+        //     "{},{},{},{},{},{},{},{},{}",
+        //     iteration,
+        //     pixel.0,
+        //     pixel.1,
+        //     ray.origin.x,
+        //     ray.origin.y,
+        //     ray.origin.z,
+        //     point.x,
+        //     point.y,
+        //     point.z
+        // );
+    }
 
     let incoming_radiance: Vector3<f32> = scene
         .lights
@@ -87,7 +112,8 @@ fn trace_ray(
         direction: *sample.wo,
     };
     trace_ray(
-        // pixel,
+        iteration,
+        pixel,
         max_bounces,
         scene,
         next_ray,
@@ -99,6 +125,7 @@ fn trace_ray(
 }
 
 pub fn render(
+    iteration: u32,
     max_bounces: u32,
     scene: &Scene,
     camera: &Pinhole,
@@ -112,7 +139,8 @@ pub fn render(
             let scene_direction = pixel_center.component_div(&buffer_size);
             let ray = camera.ray(scene_direction.x, scene_direction.y);
             buffer[(x, y)] += trace_ray(
-                //(x as u32, y as u32),
+                iteration,
+                (x as u32, y as u32),
                 max_bounces,
                 scene,
                 ray,
