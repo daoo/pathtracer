@@ -168,9 +168,8 @@ mod specular_refractive_material_tests {
 
         let theta1 = wi.dot(&n).acos();
         let theta2 = actual.wo.dot(&-n).acos();
-        dbg!(theta1.sin(), theta2.sin());
         assert_eq!(theta1, f32::frac_pi_4());
-        assert_eq!(theta2.sin(), theta1.sin() / 1.5);
+        assert!((theta2.sin() - theta1.sin() / 1.5).abs() <= 0.0000001);
         assert!(actual.wo.y < 0.0);
     }
 
@@ -184,10 +183,11 @@ mod specular_refractive_material_tests {
         let actual = material.sample(&wi, &n, &mut rng);
 
         let theta1 = wi.dot(&n).acos();
-        let theta2 = actual.wo.dot(&-n).acos();
-        dbg!(theta1, theta2);
+        let theta2 = actual.wo.dot(&n).acos();
         assert_eq!(theta1, f32::pi() - f32::frac_pi_4());
-        assert_eq!(theta2.sin(), theta1.sin() / 1.5);
+        dbg!(wi, actual.wo, n);
+        dbg!(theta2.sin(), theta1.sin() / 1.5);
+        assert!((theta2.sin() - theta1.sin() / 1.5).abs() <= 0.0000001);
         assert!(actual.wo.y > 0.0);
     }
 }
