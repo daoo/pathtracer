@@ -44,17 +44,12 @@ fn trace_ray(
         .lights
         .iter()
         .map(|light| {
-            let source = light.sample(rng);
-            let direction = source - point;
-            let shadow_ray = Ray {
-                origin: point_above,
-                direction,
-            };
+            let shadow_ray = Ray::between(&point_above, &light.sample(rng));
             if scene.intersect_any(&shadow_ray, 0.0, 1.0) {
                 return Vector3::zeros();
             }
 
-            let wo = direction.normalize();
+            let wo = shadow_ray.direction.normalize();
             let radiance = light.emitted(point);
 
             material.brdf(&wi, &wo, &n).component_mul(&radiance) * wo.dot(&n).abs()
