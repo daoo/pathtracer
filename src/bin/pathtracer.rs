@@ -75,7 +75,7 @@ fn printer_thread(threads: u32, iterations: u32, rx: mpsc::Receiver<time::Durati
         if completed % threads == 0 {
             let mean = total / completed as f64;
             let sdev = ((total_squared / completed as f64) - mean * mean).sqrt();
-            let eta = ((iterations - completed) as f64) / (threads as f64 * mean);
+            let eta = ((iterations - completed) as f64 * mean) / (threads as f64);
             print!(
                 "{}{}[{}/{}] mean: {:.2}, sdev: {:.2}, eta: {:.2}",
                 termion::clear::CurrentLine,
