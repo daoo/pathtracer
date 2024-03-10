@@ -81,7 +81,7 @@ impl Material for DiffuseReflectiveMaterial {
 
         let wo = UnitVector3::new_normalize(s.x * tangent + s.y * bitangent + s.z * n.into_inner());
         MaterialSample {
-            pdf: s.norm(),
+            pdf: 1.0,
             brdf: self.brdf(wi, &wo, n),
             wo,
         }
