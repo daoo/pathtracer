@@ -11,6 +11,7 @@ fn environment_contribution(_: &Ray) -> Vector3<f32> {
 }
 
 fn trace_ray(
+    // pixel: (u32, u32),
     max_bounces: u32,
     scene: &Scene,
     ray: Ray,
@@ -39,6 +40,11 @@ fn trace_ray(
     let point = ray.param(intersection.t);
     let point_above = point + offset;
     let point_below = point - offset;
+
+    // eprintln!(
+    //     "{},{},{},{},{},{},{},{}",
+    //     pixel.0, pixel.1, ray.origin.x, ray.origin.y, ray.origin.z, point.x, point.y, point.z
+    // );
 
     let incoming_radiance: Vector3<f32> = scene
         .lights
@@ -81,6 +87,7 @@ fn trace_ray(
         direction: *sample.wo,
     };
     trace_ray(
+        // pixel,
         max_bounces,
         scene,
         next_ray,
@@ -105,6 +112,7 @@ pub fn render(
             let scene_direction = pixel_center.component_div(&buffer_size);
             let ray = camera.ray(scene_direction.x, scene_direction.y);
             buffer[(x, y)] += trace_ray(
+                //(x as u32, y as u32),
                 max_bounces,
                 scene,
                 ray,
