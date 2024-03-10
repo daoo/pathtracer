@@ -31,12 +31,12 @@ fn trace_ray(
     let (triangle_index, intersection) = intersection.unwrap();
 
     let wi = -ray.direction;
-    let point = ray.param(intersection.t);
     let n = scene.triangle_normals[triangle_index].lerp(intersection.u, intersection.v);
     let material = &scene.triangle_materials[triangle_index];
 
     // TODO: How to chose offset?
     let offset = 0.00001 * n.into_inner();
+    let point = ray.param(intersection.t);
     let point_above = point + offset;
     let point_below = point - offset;
 
@@ -54,10 +54,10 @@ fn trace_ray(
                 return Vector3::zeros();
             }
 
-            let wr = direction.normalize();
+            let wo = direction.normalize();
             let radiance = light.emitted(point);
 
-            material.brdf(&wi, &wr, &n).component_mul(&radiance) * wr.dot(&n).abs()
+            material.brdf(&wi, &wo, &n).component_mul(&radiance) * wo.dot(&n).abs()
         })
         .sum();
 
@@ -65,7 +65,6 @@ fn trace_ray(
         accumulated_radiance + accumulated_transport.component_mul(&incoming_radiance);
 
     let sample = material.sample(&wi, &n, rng);
-
     if sample.pdf < 0.00001 {
         return accumulated_radiance;
     }

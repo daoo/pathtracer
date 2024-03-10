@@ -80,19 +80,19 @@ fn triangle_texcoords_from_obj(obj: &obj::Obj) -> Vec<TriangleTexcoords> {
 }
 
 fn blend_from_mtl(material: &mtl::Material) -> Arc<dyn Material + Send + Sync> {
+    let reflection = DiffuseReflectiveMaterial {
+        reflectance: material.diffuse_reflection,
+    };
     let refraction = SpecularRefractiveMaterial {
         index_of_refraction: material.index_of_refraction,
     };
-    let reflection = DiffuseReflectiveMaterial {
-        reflectance: material.diffuse_reflection,
+    let specular = SpecularReflectiveMaterial {
+        reflectance: material.specular_reflection,
     };
     let transparency_blend = BlendMaterial {
         first: refraction,
         second: reflection,
         factor: material.transparency,
-    };
-    let specular = SpecularReflectiveMaterial {
-        reflectance: material.specular_reflection,
     };
     let fresnel_blend = FresnelBlendMaterial {
         reflection: specular,
