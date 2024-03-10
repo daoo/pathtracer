@@ -64,16 +64,8 @@ fn printer_thread(threads: u32, iterations: u32, rx: mpsc::Receiver<time::Durati
     loop {
         let duration = rx.recv().unwrap();
         if duration.is_zero() {
-            let mean = total / completed as f64;
-            let sdev = ((total_squared / completed as f64) - mean * mean).sqrt();
             println!();
-            println!(
-                "Done iterations: {}, time: {:.2}, mean: {:.2}, sdev: {:.2}",
-                iterations,
-                time::Duration::seconds_f64(total),
-                time::Duration::seconds_f64(mean),
-                time::Duration::seconds_f64(sdev)
-            );
+            println!("Total time: {:.2}", time::Duration::seconds_f64(total));
             return;
         }
         let seconds = duration.as_seconds_f64();
