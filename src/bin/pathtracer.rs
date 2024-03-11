@@ -109,7 +109,10 @@ fn main() {
 
     let pinhole = Pinhole::new(&scene.cameras[0], args.width as f32 / args.height as f32);
 
-    println!("Rendering {} px x {} px image with {} iteration(s)...", args.width, args.height, args.iterations);
+    println!(
+        "Rendering {} px x {} px image with {} iteration(s)...",
+        args.width, args.height, args.iterations
+    );
 
     let work = Work {
         width: args.width,

@@ -159,7 +159,9 @@ mod specular_refractive_material_tests {
 
     #[test]
     fn refraction_into_medium() {
-        let material = SpecularRefractiveMaterial { index_of_refraction: 1.5 };
+        let material = SpecularRefractiveMaterial {
+            index_of_refraction: 1.5,
+        };
         let wi = vector![-1.0, 1.0, 0.0].normalize();
         let n = UnitVector3::new_normalize(vector![0.0, 1.0, 0.0]);
         let mut rng = SmallRng::seed_from_u64(0);
@@ -175,7 +177,9 @@ mod specular_refractive_material_tests {
 
     #[test]
     fn reflection_out_of_medium() {
-        let material = SpecularRefractiveMaterial { index_of_refraction: 1.5 };
+        let material = SpecularRefractiveMaterial {
+            index_of_refraction: 1.5,
+        };
         let wi = vector![-1.0, -1.0, 0.0].normalize();
         let n = UnitVector3::new_normalize(vector![0.0, 1.0, 0.0]);
         let mut rng = SmallRng::seed_from_u64(0);
