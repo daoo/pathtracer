@@ -1,7 +1,7 @@
 use clap::Parser;
 use pathtracer::{
     geometry::triangle::Triangle,
-    kdtree::{build_naive::build_kdtree_median, KdNode},
+    kdtree::{build_sah::build_kdtree_sah, KdNode},
     wavefront::obj,
 };
 
@@ -41,6 +41,6 @@ fn main() {
         }
     }
 
-    let kdtree = build_kdtree_median(args.max_depth, triangles);
+    let kdtree = build_kdtree_sah(args.max_depth, triangles);
     print(0, &kdtree.root);
 }

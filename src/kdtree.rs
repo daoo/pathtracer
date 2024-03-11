@@ -5,6 +5,7 @@ use crate::geometry::triangle::*;
 
 pub mod build;
 pub mod build_naive;
+pub mod build_sah;
 
 #[derive(Debug, PartialEq)]
 pub enum KdNode {
