@@ -1,29 +1,26 @@
-use std::ops::Range;
-
-use crate::geometry::aabb::*;
-use crate::geometry::algorithms::*;
-use crate::kdtree::*;
-use nalgebra::vector;
+use crate::geometry::{
+    aabb::Aabb, aap::Aap, algorithms::intersect_triangle_aabb, triangle::Triangle,
+};
 
 #[derive(Debug)]
-struct KdBox {
-    boundary: Aabb,
-    triangle_indices: Vec<u32>,
+pub struct KdBox {
+    pub boundary: Aabb,
+    pub triangle_indices: Vec<u32>,
 }
 
 #[derive(Debug)]
-struct KdSplit {
-    left: KdBox,
-    right: KdBox,
+pub struct KdSplit {
+    pub left: KdBox,
+    pub right: KdBox,
 }
 
-struct KdTreeBuilder {
-    max_depth: u32,
-    triangles: Vec<Triangle>,
+pub struct KdTreeInputs {
+    pub max_depth: u32,
+    pub triangles: Vec<Triangle>,
 }
 
-impl KdTreeBuilder {
-    fn split_box(&self, parent: KdBox, plane: &Aap) -> KdSplit {
+impl KdTreeInputs {
+    pub fn split_box(&self, parent: KdBox, plane: &Aap) -> KdSplit {
         let (left_aabb, right_aabb) = parent.boundary.split(plane);
         debug_assert!(
             left_aabb.size()[plane.axis] > 0.1,
@@ -61,80 +58,5 @@ impl KdTreeBuilder {
                 triangle_indices: right_triangle_indices,
             },
         }
-    }
-
-    fn potential_split_points(
-        &self,
-        triangle_indices: &[u32],
-        axis: Axis,
-        boundary: &Aabb,
-    ) -> Vec<f32> {
-        let min = boundary.min()[axis] + 0.1;
-        let max = boundary.max()[axis] - 0.1;
-        let mut points = triangle_indices
-            .iter()
-            .flat_map(|i| {
-                let triangle = &self.triangles[*i as usize];
-                [triangle.min()[axis] - 0.1, triangle.max()[axis] + 0.1]
-            })
-            .filter(|p| p > &min && p < &max)
-            .collect::<Vec<_>>();
-        points.sort_by(f32::total_cmp);
-        points
-    }
-
-    fn build(&self, depth: u32, axis: Axis, parent: KdBox) -> Box<KdNode> {
-        if depth >= self.max_depth || parent.triangle_indices.is_empty() {
-            return Box::new(KdNode::Leaf(parent.triangle_indices));
-        }
-
-        let points = self.potential_split_points(&parent.triangle_indices, axis, &parent.boundary);
-        if points.is_empty() {
-            return Box::new(KdNode::Leaf(parent.triangle_indices));
-        }
-
-        let plane = Aap {
-            axis,
-            distance: median(&points),
-        };
-        let split = self.split_box(parent, &plane);
-        let left = self.build(depth + 1, NEXT_AXIS[axis], split.left);
-        let right = self.build(depth + 1, NEXT_AXIS[axis], split.right);
-        Box::new(KdNode::Node { plane, left, right })
-    }
-}
-
-fn median(values: &[f32]) -> f32 {
-    debug_assert!(!values.is_empty());
-    if values.len() == 1 {
-        return values[0];
-    }
-
-    let middle = values.len() / 2;
-    if values.len() % 2 == 0 {
-        (values[middle - 1] + values[middle]) / 2.
-    } else {
-        values[middle]
-    }
-}
-
-static NEXT_AXIS: [Axis; 3] = [Axis::Y, Axis::Z, Axis::X];
-
-pub fn build_kdtree_median(max_depth: u32, triangles: Vec<Triangle>) -> KdTree {
-    let kdbox: KdBox = KdBox {
-        boundary: triangles_bounding_box(&triangles).enlarge(&vector![0.1, 0.1, 0.1]),
-        triangle_indices: Range {
-            start: 0u32,
-            end: triangles.len() as u32,
-        }
-        .collect(),
-    };
-    let builder = KdTreeBuilder {
-        max_depth,
-        triangles,
-    };
-    KdTree {
-        root: builder.build(0, Axis::X, kdbox),
-        triangles: builder.triangles,
     }
 }

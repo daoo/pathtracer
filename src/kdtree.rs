@@ -4,6 +4,7 @@ use crate::geometry::ray::*;
 use crate::geometry::triangle::*;
 
 pub mod build;
+pub mod build_naive;
 
 #[derive(Debug, PartialEq)]
 pub enum KdNode {

@@ -1,10 +1,9 @@
 use clap::Parser;
-use pathtracer::geometry::triangle::*;
-use pathtracer::kdtree::build::*;
-use pathtracer::kdtree::*;
-use pathtracer::wavefront::*;
-use std::fs;
-use std::str;
+use pathtracer::{
+    geometry::triangle::Triangle,
+    kdtree::{build_naive::build_kdtree_median, KdNode},
+    wavefront::obj,
+};
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -28,8 +27,8 @@ fn print(depth: usize, kdtree: &KdNode) {
 
 fn main() {
     let args = Args::parse();
-    let bytes = fs::read(args.input).unwrap();
-    let input = str::from_utf8(&bytes).unwrap();
+    let bytes = std::fs::read(args.input).unwrap();
+    let input = std::str::from_utf8(&bytes).unwrap();
     let obj = obj::obj(input);
     let mut triangles: Vec<Triangle> = Vec::new();
     for chunk in &obj.chunks {

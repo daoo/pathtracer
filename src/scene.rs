@@ -2,7 +2,7 @@ use crate::camera::*;
 use crate::geometry::algorithms::*;
 use crate::geometry::ray::*;
 use crate::geometry::triangle::*;
-use crate::kdtree::build::build_kdtree_median;
+use crate::kdtree::build_naive::build_kdtree_median;
 use crate::kdtree::KdTree;
 use crate::light::*;
 use crate::material::*;
