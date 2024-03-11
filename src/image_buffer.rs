@@ -21,7 +21,7 @@ fn to_rgb_u8(vector: &Vector3<f32>) -> image::Rgb<u8> {
 
 impl ImageBuffer {
     pub fn new(width: usize, height: usize) -> Self {
-        ImageBuffer(DMatrix::zeros(width, height))
+        ImageBuffer(DMatrix::zeros(height, width))
     }
 
     pub fn ncols(&self) -> usize {
@@ -43,7 +43,7 @@ impl ImageBuffer {
         let mut image = image::RgbImage::new(self.0.ncols() as u32, self.0.nrows() as u32);
         for y in 0..self.0.nrows() {
             for x in 0..self.0.ncols() {
-                image[(x as u32, y as u32)] = to_rgb_u8(&self.0[(x, y)]);
+                image[(x as u32, y as u32)] = to_rgb_u8(&self.0[(y, x)]);
             }
         }
         image.save_with_format(path, format)
@@ -62,12 +62,12 @@ impl Index<(usize, usize)> for ImageBuffer {
     type Output = Vector3<f32>;
 
     fn index(&self, index: (usize, usize)) -> &Self::Output {
-        &self.0[index]
+        &self.0[(index.1, index.0)]
     }
 }
 
 impl IndexMut<(usize, usize)> for ImageBuffer {
     fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
-        &mut self.0[index]
+        &mut self.0[(index.1, index.0)]
     }
 }
