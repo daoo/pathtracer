@@ -36,7 +36,7 @@ impl KdTreeInputs {
             })
             .filter(|p| p > &min && p < &max)
             .collect::<Vec<_>>();
-        points.sort_by(f32::total_cmp);
+        points.sort_unstable_by(f32::total_cmp);
         points
     }
 
