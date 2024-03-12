@@ -14,7 +14,7 @@ use std::sync::mpsc;
 
 #[derive(Parser, Debug)]
 struct Args {
-    #[arg(short, long, required = true)]
+    #[arg(short = 'i', long, required = true)]
     input: std::path::PathBuf,
     #[arg(short, long, required = true)]
     output: std::path::PathBuf,
@@ -24,7 +24,7 @@ struct Args {
     height: usize,
     #[arg(short, long, default_value_t = 10)]
     max_bounces: u32,
-    #[arg(short, long, default_value_t = 16)]
+    #[arg(short = 'n', long, default_value_t = 16)]
     iterations: u32,
     #[arg(short, long, default_value_t = 1)]
     threads: u32,
