@@ -16,9 +16,14 @@ struct Args {
 fn print(depth: usize, kdtree: &KdNode) {
     let indent = "  ".repeat(depth);
     match kdtree {
-        KdNode::Leaf(triangle_indices) => println!("{}Leaf: {:?}", indent, triangle_indices),
+        KdNode::Leaf(triangle_indices) => println!("{}Leaf {:?}", indent, triangle_indices),
         KdNode::Node { plane, left, right } => {
-            println!("{}Split: {:?}", "  ".repeat(depth), plane);
+            println!(
+                "{}Split {:?} {}",
+                "  ".repeat(depth),
+                plane.axis,
+                plane.distance
+            );
             print(depth + 1, left);
             print(depth + 1, right);
         }
@@ -27,6 +32,7 @@ fn print(depth: usize, kdtree: &KdNode) {
 
 fn main() {
     let args = Args::parse();
+    println!("Reading {:?}...", &args.input);
     let bytes = std::fs::read(args.input).unwrap();
     let input = std::str::from_utf8(&bytes).unwrap();
     let obj = obj::obj(input);
@@ -41,6 +47,17 @@ fn main() {
         }
     }
 
+    println!(
+        "Building kdtree for {} triangle(s) with max depth {}...",
+        triangles.len(),
+        args.max_depth
+    );
+
+    let t1 = time::Instant::now();
     let kdtree = build_kdtree_sah(args.max_depth, triangles);
+    let t2 = time::Instant::now();
+    let duration = t2 - t1;
+    println!("Done in {:.3}.", duration);
+
     print(0, &kdtree.root);
 }
