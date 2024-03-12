@@ -62,7 +62,7 @@ impl KdTree {
             match node {
                 KdNode::Leaf(triangle_indices) => {
                     if let Some(result) =
-                        self.intersect_closest_triangle_ray(&triangle_indices, ray, t1, t2)
+                        self.intersect_closest_triangle_ray(triangle_indices, ray, t1, t2)
                     {
                         return Some(result);
                     } else if t2 == tmax {
