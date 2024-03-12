@@ -27,20 +27,20 @@ fn trace_ray(
 
     let intersection = scene.intersect(&ray, 0.0, std::f32::MAX);
     if intersection.is_none() {
-        if (365..375).contains(&pixel.0) && (425..435).contains(&pixel.1) {
-            // eprintln!(
-            //     "{},{},{},{},{},{},{},{},{}",
-            //     iteration,
-            //     pixel.0,
-            //     pixel.1,
-            //     ray.origin.x,
-            //     ray.origin.y,
-            //     ray.origin.z,
-            //     ray.direction.x * 10.0,
-            //     ray.direction.y * 10.0,
-            //     ray.direction.z * 10.0
-            // );
-        }
+        // if (365..375).contains(&pixel.0) && (425..435).contains(&pixel.1) {
+        //     eprintln!(
+        //         "{},{},{},{},{},{},{},{},{}",
+        //         iteration,
+        //         pixel.0,
+        //         pixel.1,
+        //         ray.origin.x,
+        //         ray.origin.y,
+        //         ray.origin.z,
+        //         ray.direction.x * 10.0,
+        //         ray.direction.y * 10.0,
+        //         ray.direction.z * 10.0
+        //     );
+        // }
         return accumulated_radiance
             + accumulated_transport.component_mul(&environment_contribution(&ray));
     }
@@ -56,20 +56,20 @@ fn trace_ray(
     let point_above = point + offset;
     let point_below = point - offset;
 
-    if (365..375).contains(&pixel.0) && (425..435).contains(&pixel.1) {
-        // eprintln!(
-        //     "{},{},{},{},{},{},{},{},{}",
-        //     iteration,
-        //     pixel.0,
-        //     pixel.1,
-        //     ray.origin.x,
-        //     ray.origin.y,
-        //     ray.origin.z,
-        //     point.x,
-        //     point.y,
-        //     point.z
-        // );
-    }
+    // if (365..375).contains(&pixel.0) && (425..435).contains(&pixel.1) {
+    //     eprintln!(
+    //         "{},{},{},{},{},{},{},{},{}",
+    //         iteration,
+    //         pixel.0,
+    //         pixel.1,
+    //         ray.origin.x,
+    //         ray.origin.y,
+    //         ray.origin.z,
+    //         point.x,
+    //         point.y,
+    //         point.z
+    //     );
+    // }
 
     let incoming_radiance: Vector3<f32> = scene
         .lights
@@ -91,7 +91,7 @@ fn trace_ray(
         accumulated_radiance + accumulated_transport.component_mul(&incoming_radiance);
 
     let sample = material.sample(&wi, &n, rng);
-    if sample.pdf < 0.00001 {
+    if sample.pdf <= 0.01 {
         return accumulated_radiance;
     }
 
@@ -99,7 +99,7 @@ fn trace_ray(
     let accumulated_transport =
         accumulated_transport.component_mul(&(sample.brdf * (cosine_term / sample.pdf)));
 
-    if accumulated_transport.norm_squared() <= 0.00001 * 0.00001 {
+    if accumulated_transport.norm() <= 0.01 {
         return accumulated_radiance;
     }
 
