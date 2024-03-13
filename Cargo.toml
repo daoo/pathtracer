@@ -4,6 +4,7 @@ version = "1.0.0"
 edition = "2021"
 
 [dependencies]
+assert_approx_eq = "1.1.0"
 clap = { version = "4.5.1", default-features = false, features = ["std", "derive"] }
 image = { version = "0.24.9", default-features = false, features = ["png"] }
 nalgebra = "0.32.4"
