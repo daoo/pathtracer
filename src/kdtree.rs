@@ -17,6 +17,25 @@ pub enum KdNode {
     },
 }
 
+impl KdNode {
+    pub fn new_leaf(triangle_indices: Vec<u32>) -> Box<KdNode> {
+        Box::new(KdNode::Leaf(triangle_indices))
+    }
+
+    pub fn new_node(
+        axis: Axis,
+        distance: f32,
+        left: Box<KdNode>,
+        right: Box<KdNode>,
+    ) -> Box<KdNode> {
+        Box::new(KdNode::Node {
+            plane: Aap { axis, distance },
+            left,
+            right,
+        })
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct KdTree {
     pub root: Box<KdNode>,

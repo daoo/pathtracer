@@ -96,7 +96,7 @@ fn build(inputs: &KdTreeInputs, depth: u32, parent: KdBox) -> Box<KdNode> {
 
 pub fn build_kdtree_sah(max_depth: u32, triangles: Vec<Triangle>) -> KdTree {
     let kdbox: KdBox = KdBox {
-        boundary: triangles_bounding_box(&triangles).enlarge(&vector![0.1, 0.1, 0.1]),
+        boundary: triangles_bounding_box(&triangles).enlarge(&vector![0.5, 0.5, 0.5]),
         triangle_indices: (0u32..triangles.len() as u32).collect(),
     };
     let inputs = KdTreeInputs {
@@ -106,5 +106,54 @@ pub fn build_kdtree_sah(max_depth: u32, triangles: Vec<Triangle>) -> KdTree {
     KdTree {
         root: build(&inputs, 0, kdbox),
         triangles: inputs.triangles,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test() {
+        let triangles = vec![Triangle {
+            v0: vector![0.0, 0.0, 0.0],
+            v1: vector![1.0, 0.0, 0.0],
+            v2: vector![1.0, 1.0, 0.0],
+        }];
+        let tree = build_kdtree_sah(6, triangles);
+
+        let expected = KdNode::new_node(
+            Axis::Z,
+            -0.1,
+            KdNode::new_leaf(vec![]),
+            KdNode::new_node(
+                Axis::Z,
+                0.1,
+                KdNode::new_node(
+                    Axis::Y,
+                    -0.1,
+                    KdNode::new_leaf(vec![]),
+                    KdNode::new_node(
+                        Axis::Y,
+                        1.1,
+                        KdNode::new_node(
+                            Axis::X,
+                            -0.1,
+                            KdNode::new_leaf(vec![]),
+                            KdNode::new_node(
+                                Axis::X,
+                                1.1,
+                                KdNode::new_leaf(vec![0]),
+                                KdNode::new_leaf(vec![]),
+                            ),
+                        ),
+                        KdNode::new_leaf(vec![]),
+                    ),
+                ),
+                KdNode::new_leaf(vec![]),
+            ),
+        );
+        dbg!(&tree.root);
+        assert_eq!(tree.root, expected);
     }
 }
