@@ -56,8 +56,9 @@ fn find_best_split(inputs: &KdTreeInputs, parent: &KdBox) -> Option<KdSplit> {
 
     AXES.iter()
         .flat_map(|axis| {
-            inputs
-                .potential_split_points(parent, *axis)
+            let mut points = inputs.potential_split_points(parent, *axis);
+            points.dedup();
+            points
                 .iter()
                 .map(|distance| {
                     split_and_calculate_cost(
