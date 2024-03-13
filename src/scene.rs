@@ -4,6 +4,7 @@ use crate::geometry::ray::*;
 use crate::geometry::triangle::*;
 use crate::kdtree::build_naive::build_kdtree_median;
 use crate::kdtree::KdTree;
+use crate::kdtree::build_sah::build_kdtree_sah;
 use crate::light::*;
 use crate::material::*;
 use crate::wavefront::*;
@@ -158,7 +159,8 @@ impl Scene {
 
     pub fn from_wavefront(obj: &obj::Obj, mtl: &mtl::Mtl) -> Scene {
         let triangles = triangles_from_obj(obj);
-        let kdtree = build_kdtree_median(15, triangles);
+        // let kdtree = build_kdtree_median(15, triangles);
+        let kdtree = build_kdtree_sah(15, triangles);
         Scene {
             kdtree,
             triangle_normals: triangle_normals_from_obj(obj),

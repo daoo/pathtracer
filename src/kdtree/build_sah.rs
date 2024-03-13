@@ -1,4 +1,5 @@
 use nalgebra::vector;
+use rayon::prelude::*;
 
 use crate::geometry::{
     aabb::Aabb,
@@ -54,12 +55,12 @@ fn find_best_split(inputs: &KdTreeInputs, parent: &KdBox) -> Option<KdSplit> {
 
     let min_by_snd = |a: (_, f32), b: (_, f32)| if a.1 <= b.1 { a } else { b };
 
-    AXES.iter()
+    AXES.par_iter()
         .flat_map(|axis| {
             let mut points = inputs.potential_split_points(parent, *axis);
             points.dedup();
             points
-                .iter()
+                .par_iter()
                 .map(|distance| {
                     split_and_calculate_cost(
                         inputs,
@@ -70,9 +71,9 @@ fn find_best_split(inputs: &KdTreeInputs, parent: &KdBox) -> Option<KdSplit> {
                         },
                     )
                 })
-                .reduce(min_by_snd)
+                .reduce_with(min_by_snd)
         })
-        .reduce(min_by_snd)
+        .reduce_with(min_by_snd)
         .map(|a| a.0)
 }
 
