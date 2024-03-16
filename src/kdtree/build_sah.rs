@@ -1,3 +1,4 @@
+use nalgebra::vector;
 use rayon::prelude::*;
 
 use crate::{
@@ -57,7 +58,7 @@ impl SahKdTreeBuilder {
 impl KdTreeBuilder for SahKdTreeBuilder {
     fn starting_box(&self) -> KdBox {
         KdBox {
-            boundary: triangles_bounding_box(&self.triangles),
+            boundary: triangles_bounding_box(&self.triangles).enlarge(&vector![0.5, 0.5, 0.5]),
             triangle_indices: (0u32..self.triangles.len() as u32).collect(),
         }
     }
@@ -158,7 +159,6 @@ mod tests {
                 KdNode::new_leaf(vec![]),
             ),
         );
-        dbg!(&tree.root);
         assert_eq!(tree.root, expected);
     }
 }

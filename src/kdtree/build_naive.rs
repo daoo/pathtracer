@@ -1,3 +1,5 @@
+use nalgebra::vector;
+
 use crate::{
     geometry::{
         aap::{Aap, Axis},
@@ -33,7 +35,7 @@ fn median(values: &[f32]) -> f32 {
 impl KdTreeBuilder for MedianKdTreeBuilder {
     fn starting_box(&self) -> KdBox {
         KdBox {
-            boundary: triangles_bounding_box(&self.triangles),
+            boundary: triangles_bounding_box(&self.triangles).enlarge(&vector![0.5, 0.5, 0.5]),
             triangle_indices: (0u32..self.triangles.len() as u32).collect(),
         }
     }
