@@ -7,17 +7,21 @@ pub enum Axis {
     Z = 2,
 }
 
+impl Axis {
+    pub fn from_u32(n: u32) -> Axis {
+        match n % 3 {
+            0 => Axis::X,
+            1 => Axis::Y,
+            2 => Axis::Z,
+            _ => panic!("Impossible modulo result.")
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Aap {
     pub axis: Axis,
     pub distance: f32,
-}
-
-impl std::ops::Index<Axis> for [Axis; 3] {
-    type Output = Axis;
-    fn index(&self, idx: Axis) -> &Axis {
-        &self[idx as usize]
-    }
 }
 
 impl std::ops::Index<Axis> for Vector3<f32> {

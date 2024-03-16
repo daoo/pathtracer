@@ -3,7 +3,9 @@ use std::fmt::Display;
 use clap::{Parser, ValueEnum};
 use pathtracer::{
     geometry::triangle::Triangle,
-    kdtree::{build_sah::build_kdtree_sah, KdNode, build_naive::build_kdtree_median},
+    kdtree::{
+        build::build_kdtree, build_naive::MedianKdTreeBuilder, build_sah::SahKdTreeBuilder, KdNode,
+    },
     wavefront::obj,
 };
 
@@ -37,8 +39,11 @@ struct Args {
     #[arg(short = 't', long, default_value_t = 0.1)]
     traverse_cost: f32,
 
-    #[arg(short = 'c', long, default_value_t = 0.3)]
+    #[arg(short = 'c', long, default_value_t = 1.0)]
     intersect_cost: f32,
+
+    #[arg(short = 'e', long, default_value_t = 0.8)]
+    empty_factor: f32,
 }
 
 fn print(depth: usize, kdtree: &KdNode) {
@@ -81,11 +86,21 @@ fn main() {
         triangles.len(),
         args.max_depth
     );
-
     let t1 = time::Instant::now();
     let kdtree = match args.method {
-        KdTreeMethod::Median => build_kdtree_median(args.max_depth, triangles),
-        KdTreeMethod::Sah => build_kdtree_sah(args.max_depth, triangles),
+        KdTreeMethod::Median => {
+            let builder = MedianKdTreeBuilder { triangles };
+            build_kdtree(builder, args.max_depth)
+        }
+        KdTreeMethod::Sah => {
+            let builder = SahKdTreeBuilder {
+                triangles,
+                traverse_cost: args.traverse_cost,
+                intersect_cost: args.intersect_cost,
+                empty_factor: args.empty_factor,
+            };
+            build_kdtree(builder, args.max_depth)
+        }
     };
     let t2 = time::Instant::now();
     let duration = t2 - t1;

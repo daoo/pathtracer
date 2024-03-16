@@ -2,9 +2,9 @@ use crate::camera::*;
 use crate::geometry::algorithms::*;
 use crate::geometry::ray::*;
 use crate::geometry::triangle::*;
-use crate::kdtree::build_naive::build_kdtree_median;
+use crate::kdtree::build::build_kdtree;
+use crate::kdtree::build_sah::SahKdTreeBuilder;
 use crate::kdtree::KdTree;
-use crate::kdtree::build_sah::build_kdtree_sah;
 use crate::light::*;
 use crate::material::*;
 use crate::wavefront::*;
@@ -158,9 +158,13 @@ impl Scene {
     }
 
     pub fn from_wavefront(obj: &obj::Obj, mtl: &mtl::Mtl) -> Scene {
-        let triangles = triangles_from_obj(obj);
-        // let kdtree = build_kdtree_median(15, triangles);
-        let kdtree = build_kdtree_sah(15, triangles);
+        let builder = SahKdTreeBuilder {
+            traverse_cost: 0.1,
+            intersect_cost: 1.0,
+            empty_factor: 0.8,
+            triangles: triangles_from_obj(obj),
+        };
+        let kdtree = build_kdtree(builder, 15);
         Scene {
             kdtree,
             triangle_normals: triangle_normals_from_obj(obj),
