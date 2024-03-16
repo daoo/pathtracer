@@ -1,3 +1,4 @@
+use crate::geometry::aabb::Aabb;
 use crate::geometry::aap::*;
 use crate::geometry::algorithms::*;
 use crate::geometry::ray::*;
@@ -42,7 +43,50 @@ pub struct KdTree {
     pub triangles: Vec<Triangle>,
 }
 
+fn tree_cost(
+    cost_traverse: f32,
+    cost_intersect: f32,
+    scene_surface_area: f32,
+    parent: Aabb,
+    node: &KdNode,
+) -> f32 {
+    match node {
+        KdNode::Leaf(triangle_indices) => {
+            cost_intersect * triangle_indices.len() as f32 * parent.surface_area()
+                / scene_surface_area
+        }
+        KdNode::Node { plane, left, right } => {
+            let cost = parent.surface_area() / scene_surface_area;
+            let (left_aabb, right_aabb) = parent.split(plane);
+            cost + tree_cost(
+                cost_traverse,
+                cost_intersect,
+                scene_surface_area,
+                left_aabb,
+                left,
+            ) + tree_cost(
+                cost_traverse,
+                cost_intersect,
+                scene_surface_area,
+                right_aabb,
+                right,
+            )
+        }
+    }
+}
+
 impl KdTree {
+    pub fn cost(&self, cost_traverse: f32, cost_intersect: f32) -> f32 {
+        let bounding_box = triangles_bounding_box(&self.triangles);
+        tree_cost(
+            cost_traverse,
+            cost_intersect,
+            bounding_box.surface_area(),
+            bounding_box,
+            self.root.as_ref(),
+        )
+    }
+
     fn intersect_closest_triangle_ray(
         &self,
         triangles: &[u32],
