@@ -1,6 +1,6 @@
 # Pathtracer
 
-[![build](https://github.com/daoo/pathtracer/workflows/build/badge.svg)](https://github.com/daoo/pathtracer/actions?query=workflow%3Abuild)
+[![build and test](https://github.com/daoo/pathtracer/actions/workflows/rust.yaml/badge.svg)](https://github.com/daoo/pathtracer/actions/workflows/rust.yaml)
 
 A pathtracer written in rust which loads and renders obj files with (custom) mtl files.
 
