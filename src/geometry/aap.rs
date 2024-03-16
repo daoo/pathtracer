@@ -13,7 +13,7 @@ impl Axis {
             0 => Axis::X,
             1 => Axis::Y,
             2 => Axis::Z,
-            _ => panic!("Impossible modulo result.")
+            _ => panic!("Impossible modulo result."),
         }
     }
 }
