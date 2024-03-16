@@ -82,7 +82,7 @@ fn tree_cost(
                 right_aabb,
                 right,
             );
-            let node_cost = split_cost + left_cost + right_cost;
+            let node_cost = cost_traverse + split_cost + left_cost + right_cost;
             if left.is_empty() || right.is_empty() {
                 empty_factor * node_cost
             } else {

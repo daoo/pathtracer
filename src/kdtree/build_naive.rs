@@ -42,7 +42,7 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
 
     fn find_best_split(&self, depth: u32, parent: &KdBox) -> Option<KdSplit> {
         let axis = Axis::from_u32(depth % 3);
-        let points = potential_split_points(&self.triangles, &parent, axis);
+        let points = potential_split_points(&self.triangles, parent, axis);
         if points.is_empty() {
             return None;
         }
@@ -50,7 +50,7 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
             axis,
             distance: median(&points),
         };
-        Some(split_box(&self.triangles, &parent, plane))
+        Some(split_box(&self.triangles, parent, plane))
     }
 
     fn terminate(&self, _: &KdBox, _: &super::build::KdSplit) -> bool {

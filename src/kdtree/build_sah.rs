@@ -93,7 +93,7 @@ impl KdTreeBuilder for SahKdTreeBuilder {
     }
 
     fn terminate(&self, parent: &KdBox, split: &KdSplit) -> bool {
-        let split_cost = self.calculate_sah_cost(&parent.boundary, &split);
+        let split_cost = self.calculate_sah_cost(&parent.boundary, split);
         split_cost >= self.intersect_cost * parent.triangle_indices.len() as f32
     }
 

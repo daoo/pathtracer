@@ -79,7 +79,7 @@ pub fn potential_split_points(triangles: &[Triangle], parent: &KdBox, axis: Axis
     points
 }
 
-pub fn split_box(triangles: &Vec<Triangle>, parent: &KdBox, plane: Aap) -> KdSplit {
+pub fn split_box(triangles: &[Triangle], parent: &KdBox, plane: Aap) -> KdSplit {
     let (left_aabb, right_aabb) = parent.boundary.split(&plane);
     debug_assert!(
         left_aabb.size()[plane.axis] > 0.1,
