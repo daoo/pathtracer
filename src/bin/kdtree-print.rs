@@ -105,7 +105,7 @@ fn main() {
     let t2 = time::Instant::now();
     let duration = t2 - t1;
 
-    let cost = kdtree.cost(args.traverse_cost, args.intersect_cost);
+    let cost = kdtree.cost(args.traverse_cost, args.intersect_cost, args.empty_factor);
 
     eprintln!("Done in {:.3} with cost {:.3}.", duration, cost);
 

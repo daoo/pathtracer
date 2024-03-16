@@ -35,6 +35,13 @@ impl KdNode {
             right,
         })
     }
+
+    pub fn is_empty(&self) -> bool {
+        match self {
+            KdNode::Leaf(triangle_indices) => triangle_indices.is_empty(),
+            KdNode::Node { .. } => false,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -46,6 +53,7 @@ pub struct KdTree {
 fn tree_cost(
     cost_traverse: f32,
     cost_intersect: f32,
+    empty_factor: f32,
     scene_surface_area: f32,
     parent: Aabb,
     node: &KdNode,
@@ -56,31 +64,41 @@ fn tree_cost(
                 / scene_surface_area
         }
         KdNode::Node { plane, left, right } => {
-            let cost = parent.surface_area() / scene_surface_area;
+            let split_cost = parent.surface_area() / scene_surface_area;
             let (left_aabb, right_aabb) = parent.split(plane);
-            cost + tree_cost(
+            let left_cost = tree_cost(
                 cost_traverse,
                 cost_intersect,
+                empty_factor,
                 scene_surface_area,
                 left_aabb,
                 left,
-            ) + tree_cost(
+            );
+            let right_cost = tree_cost(
                 cost_traverse,
                 cost_intersect,
+                empty_factor,
                 scene_surface_area,
                 right_aabb,
                 right,
-            )
+            );
+            let node_cost = split_cost + left_cost + right_cost;
+            if left.is_empty() || right.is_empty() {
+                empty_factor * node_cost
+            } else {
+                node_cost
+            }
         }
     }
 }
 
 impl KdTree {
-    pub fn cost(&self, cost_traverse: f32, cost_intersect: f32) -> f32 {
+    pub fn cost(&self, cost_traverse: f32, cost_intersect: f32, empty_factor: f32) -> f32 {
         let bounding_box = triangles_bounding_box(&self.triangles);
         tree_cost(
             cost_traverse,
             cost_intersect,
+            empty_factor,
             bounding_box.surface_area(),
             bounding_box,
             self.root.as_ref(),
