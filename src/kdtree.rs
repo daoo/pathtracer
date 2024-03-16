@@ -83,11 +83,11 @@ fn tree_cost(
                 right,
             );
             let node_cost = cost_traverse + split_cost + left_cost + right_cost;
-            if left.is_empty() || right.is_empty() {
-                empty_factor * node_cost
-            } else {
-                node_cost
-            }
+            let factor = match left.is_empty() || right.is_empty() {
+                true => empty_factor,
+                _ => 1.0,
+            };
+            factor * node_cost
         }
     }
 }
