@@ -1,6 +1,7 @@
 use crate::camera::*;
 use crate::geometry::ray::*;
 use crate::image_buffer::ImageBuffer;
+use crate::raylogger::RayLoggerWithMeta;
 use crate::sampling::*;
 use crate::scene::*;
 use nalgebra::{vector, Vector2, Vector3};
@@ -11,8 +12,7 @@ fn environment_contribution(_: &Ray) -> Vector3<f32> {
 }
 
 fn trace_ray(
-    iteration: u32,
-    pixel: (u32, u32),
+    _ray_logger: &mut RayLoggerWithMeta,
     max_bounces: u32,
     scene: &Scene,
     ray: Ray,
@@ -27,20 +27,7 @@ fn trace_ray(
 
     let intersection = scene.intersect(&ray, 0.0, std::f32::MAX);
     if intersection.is_none() {
-        // if (365..375).contains(&pixel.0) && (425..435).contains(&pixel.1) {
-        //     eprintln!(
-        //         "{},{},{},{},{},{},{},{},{}",
-        //         iteration,
-        //         pixel.0,
-        //         pixel.1,
-        //         ray.origin.x,
-        //         ray.origin.y,
-        //         ray.origin.z,
-        //         ray.direction.x * 10.0,
-        //         ray.direction.y * 10.0,
-        //         ray.direction.z * 10.0
-        //     );
-        // }
+        //_ray_logger.log(&ray.extend(10.0)).unwrap();
         return accumulated_radiance
             + accumulated_transport.component_mul(&environment_contribution(&ray));
     }
@@ -56,20 +43,12 @@ fn trace_ray(
     let point_above = point + offset;
     let point_below = point - offset;
 
-    // if (365..375).contains(&pixel.0) && (425..435).contains(&pixel.1) {
-    //     eprintln!(
-    //         "{},{},{},{},{},{},{},{},{}",
-    //         iteration,
-    //         pixel.0,
-    //         pixel.1,
-    //         ray.origin.x,
-    //         ray.origin.y,
-    //         ray.origin.z,
-    //         point.x,
-    //         point.y,
-    //         point.z
-    //     );
-    // }
+    // _ray_logger
+    //     .log(&Ray {
+    //         origin: ray.origin,
+    //         direction: point,
+    //     })
+    //     .unwrap();
 
     let incoming_radiance: Vector3<f32> = scene
         .lights
@@ -112,8 +91,7 @@ fn trace_ray(
         direction: *sample.wo,
     };
     trace_ray(
-        iteration,
-        pixel,
+        _ray_logger,
         max_bounces,
         scene,
         next_ray,
@@ -125,7 +103,7 @@ fn trace_ray(
 }
 
 pub fn render(
-    iteration: u32,
+    ray_logger: &RayLoggerWithMeta,
     max_bounces: u32,
     scene: &Scene,
     camera: &Pinhole,
@@ -138,9 +116,9 @@ pub fn render(
             let pixel_center = Vector2::new(x as f32, y as f32) + uniform_sample_unit_square(rng);
             let scene_direction = pixel_center.component_div(&buffer_size);
             let ray = camera.ray(scene_direction.x, scene_direction.y);
+            let mut logger = ray_logger.with_meta(&[x as u16, y as u16]);
             buffer[(x, y)] += trace_ray(
-                iteration,
-                (x as u32, y as u32),
+                &mut logger,
                 max_bounces,
                 scene,
                 ray,

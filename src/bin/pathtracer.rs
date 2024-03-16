@@ -1,6 +1,7 @@
 use ::pathtracer::camera::*;
 use ::pathtracer::image_buffer::ImageBuffer;
 use ::pathtracer::pathtracer;
+use ::pathtracer::raylogger::RayLogger;
 use ::pathtracer::scene::*;
 use ::pathtracer::wavefront::*;
 use clap::Parser;
@@ -9,6 +10,7 @@ use rand::SeedableRng;
 use rayon::prelude::*;
 use std::fs;
 use std::io::prelude::*;
+use std::path::Path;
 use std::str;
 use std::sync::mpsc;
 
@@ -38,13 +40,22 @@ struct Work<'a> {
     pinhole: &'a Pinhole,
 }
 
-fn worker_thread(work: &Work, iterations: u32, tx: &mpsc::Sender<time::Duration>) -> ImageBuffer {
+fn worker_thread(
+    thread: u32,
+    work: &Work,
+    iterations: u32,
+    tx: &mpsc::Sender<time::Duration>,
+) -> ImageBuffer {
     let mut rng = SmallRng::from_entropy();
     let mut buffer = ImageBuffer::new(work.width, work.height);
+    let path = format!("/tmp/raylog{}.bin", thread);
+    let ray_logger = RayLogger::create(Path::new(&path)).unwrap();
+    let ray_logger = ray_logger.to_meta();
     for iteration in 0..iterations {
         let t1 = time::Instant::now();
+        let ray_logger_ = ray_logger.with_meta(&[iteration as u16]);
         pathtracer::render(
-            iteration,
+            &ray_logger_,
             work.max_bounces,
             work.scene,
             work.pinhole,
@@ -125,7 +136,7 @@ fn main() {
     let (tx, rx) = mpsc::channel();
     let buffers = (0..args.threads)
         .into_par_iter()
-        .map(|_| worker_thread(&work, iterations_per_thread, &tx));
+        .map(|i| worker_thread(i, &work, iterations_per_thread, &tx));
     let printer = std::thread::spawn(move || printer_thread(args.threads, args.iterations, rx));
     let buffer = buffers.reduce_with(|a, b| a + b).unwrap();
     tx.send(time::Duration::ZERO).unwrap();
