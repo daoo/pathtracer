@@ -47,7 +47,7 @@ fn split_and_calculate_cost(inputs: &KdTreeInputs, parent: &KdBox, plane: Aap) -
     (split, cost)
 }
 
-fn find_best_split(inputs: &KdTreeInputs, parent: &KdBox) -> Option<KdSplit> {
+fn find_best_split(inputs: &KdTreeInputs, parent: &KdBox) -> Option<(KdSplit, f32)> {
     debug_assert!(parent.boundary.volume() > 0.0);
     debug_assert!(!parent.triangle_indices.is_empty());
 
@@ -74,7 +74,7 @@ fn find_best_split(inputs: &KdTreeInputs, parent: &KdBox) -> Option<KdSplit> {
                 .reduce_with(min_by_snd)
         })
         .reduce_with(min_by_snd)
-        .map(|a| a.0)
+        .map(|a| a)
 }
 
 fn build(inputs: &KdTreeInputs, depth: u32, parent: KdBox) -> Box<KdNode> {
@@ -84,11 +84,14 @@ fn build(inputs: &KdTreeInputs, depth: u32, parent: KdBox) -> Box<KdNode> {
 
     match find_best_split(inputs, &parent) {
         None => Box::new(KdNode::Leaf(parent.triangle_indices)),
+        Some(split) if split.1 >= COST_INTERSECT * parent.triangle_indices.len() as f32 => {
+            Box::new(KdNode::Leaf(parent.triangle_indices))
+        }
         Some(split) => {
-            let left = build(inputs, depth + 1, split.left);
-            let right = build(inputs, depth + 1, split.right);
+            let left = build(inputs, depth + 1, split.0.left);
+            let right = build(inputs, depth + 1, split.0.right);
             Box::new(KdNode::Node {
-                plane: split.plane,
+                plane: split.0.plane,
                 left,
                 right,
             })
