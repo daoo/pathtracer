@@ -164,7 +164,7 @@ impl Scene {
             empty_factor: 0.8,
             triangles: triangles_from_obj(obj),
         };
-        let kdtree = build_kdtree(builder, 15);
+        let kdtree = build_kdtree(builder, 8);
         Scene {
             kdtree,
             triangle_normals: triangle_normals_from_obj(obj),
