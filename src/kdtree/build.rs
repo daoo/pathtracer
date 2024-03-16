@@ -63,7 +63,7 @@ where
     builder.make_tree(root)
 }
 
-pub fn potential_split_points(triangles: &Vec<Triangle>, parent: &KdBox, axis: Axis) -> Vec<f32> {
+pub fn potential_split_points(triangles: &[Triangle], parent: &KdBox, axis: Axis) -> Vec<f32> {
     let min = parent.boundary.min()[axis] + 0.1;
     let max = parent.boundary.max()[axis] - 0.1;
     let mut points = parent
