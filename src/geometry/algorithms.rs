@@ -263,55 +263,55 @@ pub fn intersect_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> bool {
     let f1 = v2 - v1;
     let f2 = v0 - v2;
 
-    let u0 = vector![1., 0., 0.];
-    let u1 = vector![0., 1., 0.];
-    let u2 = vector![0., 0., 1.];
+    const U0: Vector3<f32> = vector![1., 0., 0.];
+    const U1: Vector3<f32> = vector![0., 1., 0.];
+    const U2: Vector3<f32> = vector![0., 0., 1.];
 
     let test_axis = |axis: Vector3<f32>| {
         let p0 = v0.dot(&axis);
         let p1 = v1.dot(&axis);
         let p2 = v2.dot(&axis);
-        let r = aabb.half_size.x * u0.dot(&axis).abs()
-            + aabb.half_size.y * u1.dot(&axis).abs()
-            + aabb.half_size.z * u2.dot(&axis).abs();
+        let r = aabb.half_size.x * U0.dot(&axis).abs()
+            + aabb.half_size.y * U1.dot(&axis).abs()
+            + aabb.half_size.z * U2.dot(&axis).abs();
         (-p0.max(p1.max(p2))).max(p0.min(p1.min(p2))) > r
     };
 
-    if test_axis(u0.cross(&f0)) {
+    if test_axis(U0.cross(&f0)) {
         return false;
     }
-    if test_axis(u0.cross(&f1)) {
+    if test_axis(U0.cross(&f1)) {
         return false;
     }
-    if test_axis(u0.cross(&f2)) {
+    if test_axis(U0.cross(&f2)) {
         return false;
     }
-    if test_axis(u1.cross(&f0)) {
+    if test_axis(U1.cross(&f0)) {
         return false;
     }
-    if test_axis(u1.cross(&f1)) {
+    if test_axis(U1.cross(&f1)) {
         return false;
     }
-    if test_axis(u1.cross(&f2)) {
+    if test_axis(U1.cross(&f2)) {
         return false;
     }
-    if test_axis(u2.cross(&f0)) {
+    if test_axis(U2.cross(&f0)) {
         return false;
     }
-    if test_axis(u2.cross(&f1)) {
+    if test_axis(U2.cross(&f1)) {
         return false;
     }
-    if test_axis(u2.cross(&f2)) {
+    if test_axis(U2.cross(&f2)) {
         return false;
     }
 
-    if test_axis(u0) {
+    if test_axis(U0) {
         return false;
     }
-    if test_axis(u1) {
+    if test_axis(U1) {
         return false;
     }
-    if test_axis(u2) {
+    if test_axis(U2) {
         return false;
     }
 
