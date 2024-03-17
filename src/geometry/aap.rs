@@ -1,4 +1,4 @@
-use nalgebra::Vector3;
+use nalgebra::{vector, Vector3};
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub enum Axis {
@@ -22,6 +22,16 @@ impl Axis {
 pub struct Aap {
     pub axis: Axis,
     pub distance: f32,
+}
+
+impl Aap {
+    pub fn vector(&self) -> Vector3<f32> {
+        match self.axis {
+            Axis::X => vector![self.distance, 0.0, 0.0],
+            Axis::Y => vector![0.0, self.distance, 0.0],
+            Axis::Z => vector![0.0, 0.0, self.distance],
+        }
+    }
 }
 
 impl std::ops::Index<Axis> for Vector3<f32> {

@@ -3,6 +3,8 @@ use crate::geometry::ray::Ray;
 use crate::geometry::triangle::Triangle;
 use nalgebra::{vector, Vector3};
 
+use super::aap::Aap;
+
 #[derive(Debug, PartialEq)]
 pub struct TriangleRayIntersection {
     pub t: f32,
@@ -412,5 +414,51 @@ mod tests {
             half_size: vector![1., 1., 1.],
         };
         assert_eq!(actual, expected);
+    }
+}
+
+pub fn intersect_ray_plane(ray: &Ray, plane: &Aap) -> Option<f32> {
+    dbg!(plane.vector().dot(&ray.direction));
+    dbg!(ray.direction.dot(&ray.direction));
+    let t = plane.vector().dot(&ray.direction) / ray.direction.dot(&ray.direction);
+    if t >= 0.0 || t <= 0.0 {
+        Some(t)
+    } else {
+        None
+    }
+}
+
+#[cfg(test)]
+mod tests_intersect_ray_plane {
+    use crate::geometry::aap::Axis;
+
+    use super::*;
+
+    #[test]
+    fn test_unit_ray_and_plane() {
+        let plane = Aap {
+            axis: Axis::X,
+            distance: 1.0,
+        };
+        let ray = Ray {
+            origin: vector![0.0, 0.0, 0.0],
+            direction: vector![1.0, 0.0, 0.0],
+        };
+
+        assert_eq!(intersect_ray_plane(&ray, &plane), Some(1.0));
+    }
+
+    #[test]
+    fn test_ray_from_origo_to_plane() {
+        let plane = Aap {
+            axis: Axis::X,
+            distance: 5.0,
+        };
+        let ray = Ray {
+            origin: vector![0.0, 0.0, 0.0],
+            direction: vector![5.0, 0.0, 0.0],
+        };
+
+        assert_eq!(intersect_ray_plane(&ray, &plane), Some(1.0));
     }
 }
