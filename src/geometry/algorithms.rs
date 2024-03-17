@@ -2,8 +2,9 @@ use crate::geometry::aabb::Aabb;
 use crate::geometry::ray::Ray;
 use crate::geometry::triangle::Triangle;
 use nalgebra::{vector, Vector3};
+use smallvec::SmallVec;
 
-use super::aap::Aap;
+use super::aap::{Aap, Axis};
 
 #[derive(Debug, PartialEq)]
 pub struct TriangleRayIntersection {
@@ -417,36 +418,24 @@ mod tests {
     }
 }
 
-pub fn intersect_ray_plane(ray: &Ray, plane: &Aap) -> Option<f32> {
-    dbg!(plane.vector().dot(&ray.direction));
-    dbg!(ray.direction.dot(&ray.direction));
-    let t = plane.vector().dot(&ray.direction) / ray.direction.dot(&ray.direction);
-    if t >= 0.0 || t <= 0.0 {
-        Some(t)
-    } else {
-        None
+pub fn intersect_ray_aap(ray: &Ray, plane: &Aap) -> Option<f32> {
+    let d = plane.distance - ray.origin[plane.axis];
+    let a = plane.axis.as_vector3(d);
+    let b = ray.direction;
+    let f = a.dot(&b);
+    if f == 0.0 {
+        // Ray parallel to plane (ray direction vector orthogonal to plane vector).
+        return None;
     }
+    let t = f / b.dot(&b);
+    (0.0..=1.0).contains(&t).then_some(t)
 }
 
 #[cfg(test)]
-mod tests_intersect_ray_plane {
+mod tests_intersect_ray_aap {
     use crate::geometry::aap::Axis;
 
     use super::*;
-
-    #[test]
-    fn test_unit_ray_and_plane() {
-        let plane = Aap {
-            axis: Axis::X,
-            distance: 1.0,
-        };
-        let ray = Ray {
-            origin: vector![0.0, 0.0, 0.0],
-            direction: vector![1.0, 0.0, 0.0],
-        };
-
-        assert_eq!(intersect_ray_plane(&ray, &plane), Some(1.0));
-    }
 
     #[test]
     fn test_ray_from_origo_to_plane() {
@@ -454,11 +443,199 @@ mod tests_intersect_ray_plane {
             axis: Axis::X,
             distance: 5.0,
         };
-        let ray = Ray {
-            origin: vector![0.0, 0.0, 0.0],
-            direction: vector![5.0, 0.0, 0.0],
-        };
+        let ray = Ray::between(&Vector3::zeros(), &vector![5.0, 0.0, 0.0]);
 
-        assert_eq!(intersect_ray_plane(&ray, &plane), Some(1.0));
+        assert_eq!(intersect_ray_aap(&ray, &plane), Some(1.0));
+    }
+
+    #[test]
+    fn test_ray_from_origo_to_beyond_plane() {
+        let plane = Aap {
+            axis: Axis::X,
+            distance: 5.0,
+        };
+        let ray = Ray::between(&Vector3::zeros(), &vector![10.0, 0.0, 0.0]);
+
+        assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.5));
+    }
+
+    #[test]
+    fn test_ray_from_origo_to_short_of_plane() {
+        let plane = Aap {
+            axis: Axis::X,
+            distance: 5.0,
+        };
+        let ray = Ray::between(&Vector3::zeros(), &vector![4.0, 0.0, 0.0]);
+
+        assert_eq!(intersect_ray_aap(&ray, &plane), None);
+    }
+
+    #[test]
+    fn test_ray_from_just_before_plane_to_beyond_plane() {
+        let plane = Aap {
+            axis: Axis::X,
+            distance: 5.0,
+        };
+        let ray = Ray::between(&vector![4.0, 0.0, 0.0], &vector![6.0, 0.0, 0.0]);
+
+        assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.5));
+    }
+
+    #[test]
+    fn test_ray_from_just_after_plane_to_before_plane() {
+        let plane = Aap {
+            axis: Axis::X,
+            distance: 5.0,
+        };
+        let ray = Ray::between(&vector![6.0, 0.0, 0.0], &vector![4.0, 0.0, 0.0]);
+
+        assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.5));
+    }
+
+    #[test]
+    fn test_non_axis_aligned_ray_through_plane() {
+        let plane = Aap {
+            axis: Axis::X,
+            distance: 2.0,
+        };
+        let ray = Ray::between(&vector![1.0, 1.0, 0.0], &(vector![3.0, 3.0, 0.0]));
+
+        assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.25));
+    }
+
+    #[test]
+    fn test_ray_parallel_to_plane() {
+        let plane = Aap {
+            axis: Axis::X,
+            distance: 2.0,
+        };
+        let ray = Ray::between(&vector![0.0, 0.0, 0.0], &(vector![0.0, 1.0, 0.0]));
+
+        assert_eq!(intersect_ray_aap(&ray, &plane), None);
+    }
+
+    #[test]
+    fn test() {
+        let plane = Aap {
+            axis: Axis::Y,
+            distance: 4.0,
+        };
+        let ray = Ray::between(&vector![12.0, 0.0, 0.0], &vector![6.0, 6.0, 0.0]);
+
+        let actual = intersect_ray_aap(&ray, &plane);
+
+        assert_eq!(actual.map(|t| ray.param(t)), Some(vector![8.0, 4.0, 0.0]));
+    }
+}
+
+pub fn clip_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> SmallVec<[Vector3<f32>; 18]> {
+    let mut points = SmallVec::<[Vector3<f32>; 18]>::new();
+    let aabb_min = aabb.min();
+    let aabb_max = aabb.max();
+
+    let mut test_against_plane = |ray: &Ray, axis, extreme: &Vector3<f32>| {
+        let plane = Aap {
+            axis,
+            distance: extreme[axis],
+        };
+        match intersect_ray_aap(ray, &plane) {
+            Some(param) => {
+                let point = ray.param(param);
+                if point >= aabb_min && point <= aabb_max {
+                    points.push(point);
+                }
+            }
+            _ => (),
+        }
+    };
+
+    let mut test_axes = |ray| {
+        test_against_plane(&ray, Axis::X, &aabb_min);
+        test_against_plane(&ray, Axis::X, &aabb_max);
+        test_against_plane(&ray, Axis::Y, &aabb_min);
+        test_against_plane(&ray, Axis::Y, &aabb_max);
+        test_against_plane(&ray, Axis::Z, &aabb_min);
+        test_against_plane(&ray, Axis::Z, &aabb_max);
+    };
+
+    test_axes(triangle.edge0_ray());
+    test_axes(triangle.edge1_ray());
+    test_axes(triangle.edge2_ray());
+
+    // TODO: Avoid having to dedup by special-casing intersection.
+    points.dedup();
+    points
+}
+
+#[cfg(test)]
+mod tests_clip_triangle_aabb {
+    use super::*;
+    use smallvec::smallvec;
+
+    #[test]
+    pub fn triangle_completely_enclosed_in_box() {
+        let triangle = Triangle {
+            v0: vector![1.0, 1.0, 1.0],
+            v1: vector![2.0, 1.0, 1.0],
+            v2: vector![2.0, 2.0, 1.0],
+        };
+        let aabb = Aabb::from_extents(&vector![0.0, 0.0, 0.0], &vector![2.0, 2.0, 2.0]);
+
+        let actual = clip_triangle_aabb(&triangle, &aabb);
+
+        let expected: SmallVec<[_; 3]> = smallvec![triangle.v1, triangle.v2, triangle.v0];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    pub fn triangle_above_box() {
+        let triangle = Triangle {
+            v0: vector![0.0, 2.0, 0.0],
+            v1: vector![1.0, 2.0, 0.0],
+            v2: vector![1.0, 2.0, 1.0],
+        };
+        let aabb = Aabb::from_extents(&vector![0.0, 0.0, 0.0], &vector![1.0, 1.0, 1.0]);
+
+        let actual = clip_triangle_aabb(&triangle, &aabb);
+
+        let expected: SmallVec<[Vector3<f32>; 3]> = smallvec![];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    pub fn triangle_below_box() {
+        let triangle = Triangle {
+            v0: vector![0.0, -1.0, 0.0],
+            v1: vector![1.0, -1.0, 0.0],
+            v2: vector![1.0, -1.0, 1.0],
+        };
+        let aabb = Aabb::from_extents(&vector![0.0, 0.0, 0.0], &vector![1.0, 1.0, 1.0]);
+
+        let actual = clip_triangle_aabb(&triangle, &aabb);
+
+        let expected: SmallVec<[Vector3<f32>; 3]> = smallvec![];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    pub fn triangle_in_zplane_with_all_edges_intersecting_box_sides() {
+        let triangle = Triangle {
+            v0: vector![0.0, 0.0, 0.0],
+            v1: vector![12.0, 0.0, 0.0],
+            v2: vector![6.0, 6.0, 0.0],
+        };
+        let aabb = Aabb::from_extents(&vector![2.0, -1.0, 0.0], &vector![10.0, 4.0, 0.0]);
+
+        let actual = clip_triangle_aabb(&triangle, &aabb);
+
+        let expected: SmallVec<[Vector3<f32>; 3]> = smallvec![
+            vector![2.0, 0.0, 0.0],
+            vector![10.0, 0.0, 0.0],
+            vector![10.0, 2.0, 0.0],
+            vector![8.0, 4.0, 0.0],
+            vector![4.0, 4.0, 0.0],
+            vector![2.0, 2.0, 0.0],
+        ];
+        assert_eq!(actual, expected);
     }
 }

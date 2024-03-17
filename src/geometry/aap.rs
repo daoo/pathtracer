@@ -16,6 +16,14 @@ impl Axis {
             _ => panic!("Impossible modulo result."),
         }
     }
+
+    pub fn as_vector3(&self, v: f32) -> Vector3<f32> {
+        match self {
+            Axis::X => vector![v, 0.0, 0.0],
+            Axis::Y => vector![0.0, v, 0.0],
+            Axis::Z => vector![0.0, 0.0, v],
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
@@ -26,11 +34,7 @@ pub struct Aap {
 
 impl Aap {
     pub fn vector(&self) -> Vector3<f32> {
-        match self.axis {
-            Axis::X => vector![self.distance, 0.0, 0.0],
-            Axis::Y => vector![0.0, self.distance, 0.0],
-            Axis::Z => vector![0.0, 0.0, self.distance],
-        }
+        self.axis.as_vector3(self.distance)
     }
 }
 

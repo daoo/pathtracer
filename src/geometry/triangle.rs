@@ -1,5 +1,7 @@
 use nalgebra::Vector3;
 
+use super::ray::Ray;
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Triangle {
     pub v0: Vector3<f32>,
@@ -38,6 +40,27 @@ impl Triangle {
 
     pub fn edge2(&self) -> Vector3<f32> {
         self.v0 - self.v2
+    }
+
+    pub fn edge0_ray(&self) -> Ray {
+        Ray {
+            origin: self.v0,
+            direction: self.edge0(),
+        }
+    }
+
+    pub fn edge1_ray(&self) -> Ray {
+        Ray {
+            origin: self.v1,
+            direction: self.edge1(),
+        }
+    }
+
+    pub fn edge2_ray(&self) -> Ray {
+        Ray {
+            origin: self.v2,
+            direction: self.edge2(),
+        }
     }
 }
 
