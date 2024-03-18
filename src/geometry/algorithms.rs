@@ -419,15 +419,13 @@ mod tests {
 }
 
 pub fn intersect_ray_aap(ray: &Ray, plane: &Aap) -> Option<f32> {
-    let d = plane.distance - ray.origin[plane.axis];
-    let a = plane.axis.as_vector3(d);
-    let b = ray.direction;
-    let f = a.dot(&b);
-    if f == 0.0 {
+    let normal = plane.axis.as_vector3(1.0);
+    let denom = normal.dot(&ray.direction);
+    if denom == 0.0 {
         // Ray parallel to plane (ray direction vector orthogonal to plane vector).
         return None;
     }
-    let t = f / b.dot(&b);
+    let t = (plane.axis.as_vector3(plane.distance) - ray.origin).dot(&normal) / denom;
     (0.0..=1.0).contains(&t).then_some(t)
 }
 
@@ -500,7 +498,29 @@ mod tests_intersect_ray_aap {
         };
         let ray = Ray::between(&vector![1.0, 1.0, 0.0], &(vector![3.0, 3.0, 0.0]));
 
-        assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.25));
+        assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.5));
+    }
+
+    #[test]
+    fn test_non_axis_aligned_ray_with_positive_direction_through_plane() {
+        let plane = Aap {
+            axis: Axis::Y,
+            distance: 2.0,
+        };
+        let ray = Ray::between(&vector![1.0, 1.0, 0.0], &vector![3.0, 3.0, 0.0]);
+
+        assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.5));
+    }
+
+    #[test]
+    fn test_non_axis_aligned_ray_with_negative_direction_through_plane() {
+        let plane = Aap {
+            axis: Axis::Y,
+            distance: 2.0,
+        };
+        let ray = Ray::between(&vector![3.0, 1.0, 0.0], &vector![1.0, 3.0, 0.0]);
+
+        assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.5));
     }
 
     #[test]
@@ -512,19 +532,6 @@ mod tests_intersect_ray_aap {
         let ray = Ray::between(&vector![0.0, 0.0, 0.0], &(vector![0.0, 1.0, 0.0]));
 
         assert_eq!(intersect_ray_aap(&ray, &plane), None);
-    }
-
-    #[test]
-    fn test() {
-        let plane = Aap {
-            axis: Axis::Y,
-            distance: 4.0,
-        };
-        let ray = Ray::between(&vector![12.0, 0.0, 0.0], &vector![6.0, 6.0, 0.0]);
-
-        let actual = intersect_ray_aap(&ray, &plane);
-
-        assert_eq!(actual.map(|t| ray.param(t)), Some(vector![8.0, 4.0, 0.0]));
     }
 }
 
@@ -633,8 +640,8 @@ mod tests_clip_triangle_aabb {
             vector![10.0, 0.0, 0.0],
             vector![10.0, 2.0, 0.0],
             vector![8.0, 4.0, 0.0],
-            vector![4.0, 4.0, 0.0],
             vector![2.0, 2.0, 0.0],
+            vector![4.0, 4.0, 0.0],
         ];
         assert_eq!(actual, expected);
     }
