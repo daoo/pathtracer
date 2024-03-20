@@ -545,15 +545,12 @@ pub fn clip_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> SmallVec<[Vector3
             axis,
             distance: extreme[axis],
         };
-        match intersect_ray_aap(ray, &plane) {
-            Some(param) => {
-                let point = ray.param(param);
-                if point >= aabb_min && point <= aabb_max {
-                    points.push(point);
-                }
+        intersect_ray_aap(ray, &plane).map(|param| {
+            let point = ray.param(param);
+            if (aabb_min..=aabb_max).contains(&point) {
+                points.push(point)
             }
-            _ => (),
-        }
+        })
     };
 
     let mut test_axes = |ray| {
