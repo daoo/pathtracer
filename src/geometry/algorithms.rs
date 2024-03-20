@@ -586,7 +586,7 @@ mod tests_clip_triangle_aabb {
             v1: vector![2.0, 1.0, 1.0],
             v2: vector![2.0, 2.0, 1.0],
         };
-        let aabb = Aabb::from_extents(&vector![0.0, 0.0, 0.0], &vector![2.0, 2.0, 2.0]);
+        let aabb = Aabb::from_extents(&vector![0.0, 0.0, 0.0], &vector![3.0, 3.0, 3.0]);
 
         let actual = clip_triangle_aabb(&triangle, &aabb);
 
