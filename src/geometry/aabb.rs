@@ -1,6 +1,7 @@
-use crate::geometry::aap::Aap;
 use nalgebra;
 use nalgebra::{vector, Vector3};
+
+use super::aap::Aap;
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Aabb {

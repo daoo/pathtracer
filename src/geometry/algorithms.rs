@@ -1,10 +1,7 @@
-use crate::geometry::aabb::Aabb;
-use crate::geometry::ray::Ray;
-use crate::geometry::triangle::Triangle;
 use nalgebra::{vector, Vector3};
 use smallvec::SmallVec;
 
-use super::aap::{Aap, Axis};
+use super::{aabb::Aabb, aap::Aap, ray::Ray, triangle::Triangle};
 
 #[derive(Debug, PartialEq)]
 pub struct TriangleRayIntersection {
@@ -431,8 +428,7 @@ pub fn intersect_ray_aap(ray: &Ray, plane: &Aap) -> Option<f32> {
 
 #[cfg(test)]
 mod tests_intersect_ray_aap {
-    use crate::geometry::aap::Axis;
-
+    use super::super::aap::Axis;
     use super::*;
 
     #[test]
