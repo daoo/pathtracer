@@ -22,7 +22,7 @@ print(rays)
 rays = rays[(rays.px >= 670) & (rays.px <= 675) & (rays.py >= 814) & (rays.py <= 820)]
 print(rays)
 
-rerun.init('ray_visualization')
+rerun.init('raytracing')
 rerun.connect()
 rerun.log('rays', rerun.ViewCoordinates.RIGHT_HAND_Y_UP, timeless=True)
 
