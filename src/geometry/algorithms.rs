@@ -535,40 +535,53 @@ mod tests_intersect_ray_aap {
     }
 }
 
+/// Clip Triangle against AABB.
+///
+/// Implements the Sutherland-Hodgman algorithm.
 pub fn clip_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> SmallVec<[Vector3<f32>; 18]> {
-    let mut points = SmallVec::<[Vector3<f32>; 18]>::new();
     let aabb_min = aabb.min();
     let aabb_max = aabb.max();
+    let clip_planes = [
+        (false, Aap::new_x(aabb_min.x)),
+        (false, Aap::new_y(aabb_min.y)),
+        (false, Aap::new_z(aabb_min.z)),
+        (true, Aap::new_x(aabb_max.x)),
+        (true, Aap::new_y(aabb_max.y)),
+        (true, Aap::new_z(aabb_max.z)),
+    ];
 
-    let mut test_against_plane = |ray: &Ray, axis, extreme: &Vector3<f32>| {
-        let plane = Aap {
-            axis,
-            distance: extreme[axis],
-        };
-        intersect_ray_aap(ray, &plane).map(|param| {
-            let point = ray.param(param);
-            if (aabb_min..=aabb_max).contains(&point) {
-                points.push(point)
+    let is_inside = |clip_plane: &(bool, Aap), point: &Vector3<f32>| {
+        if clip_plane.0 {
+            point[clip_plane.1.axis] <= clip_plane.1.distance
+        } else {
+            point[clip_plane.1.axis] >= clip_plane.1.distance
+        }
+    };
+
+    let mut output = SmallVec::<[Vector3<f32>; 18]>::new();
+    output.push(triangle.v1);
+    output.push(triangle.v2);
+    output.push(triangle.v0);
+
+    for clip_plane @ (_, plane) in clip_planes {
+        let input = output.clone();
+        output.clear();
+        for (i, b) in input.iter().enumerate() {
+            let a = input[(i as isize - 1).rem_euclid(input.len() as isize) as usize];
+            let ray = Ray::between(&a, &b);
+            let intersecting = intersect_ray_aap(&ray, &plane).map(|t| ray.param(t));
+            if is_inside(&clip_plane, &b) {
+                if !is_inside(&clip_plane, &a) {
+                    output.push(intersecting.unwrap());
+                }
+                output.push(*b);
+            } else if is_inside(&clip_plane, &a) {
+                output.push(intersecting.unwrap());
             }
-        })
-    };
+        }
+    }
 
-    let mut test_axes = |ray| {
-        test_against_plane(&ray, Axis::X, &aabb_min);
-        test_against_plane(&ray, Axis::X, &aabb_max);
-        test_against_plane(&ray, Axis::Y, &aabb_min);
-        test_against_plane(&ray, Axis::Y, &aabb_max);
-        test_against_plane(&ray, Axis::Z, &aabb_min);
-        test_against_plane(&ray, Axis::Z, &aabb_max);
-    };
-
-    test_axes(triangle.edge0_ray());
-    test_axes(triangle.edge1_ray());
-    test_axes(triangle.edge2_ray());
-
-    // TODO: Avoid having to dedup by special-casing intersection.
-    points.dedup();
-    points
+    output
 }
 
 #[cfg(test)]
@@ -637,8 +650,8 @@ mod tests_clip_triangle_aabb {
             vector![10.0, 0.0, 0.0],
             vector![10.0, 2.0, 0.0],
             vector![8.0, 4.0, 0.0],
-            vector![2.0, 2.0, 0.0],
             vector![4.0, 4.0, 0.0],
+            vector![2.0, 2.0, 0.0],
         ];
         assert_eq!(actual, expected);
     }

@@ -33,6 +33,27 @@ pub struct Aap {
 }
 
 impl Aap {
+    pub fn new_x(distance: f32) -> Aap {
+        Aap {
+            axis: Axis::X,
+            distance,
+        }
+    }
+
+    pub fn new_y(distance: f32) -> Aap {
+        Aap {
+            axis: Axis::Y,
+            distance,
+        }
+    }
+
+    pub fn new_z(distance: f32) -> Aap {
+        Aap {
+            axis: Axis::Z,
+            distance,
+        }
+    }
+
     pub fn vector(&self) -> Vector3<f32> {
         self.axis.as_vector3(self.distance)
     }
