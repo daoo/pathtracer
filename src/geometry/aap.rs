@@ -1,6 +1,6 @@
 use nalgebra::{vector, Vector3};
 
-#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Axis {
     X = 0,
     Y = 1,
