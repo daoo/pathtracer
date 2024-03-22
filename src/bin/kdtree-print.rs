@@ -4,7 +4,7 @@ use clap::{Parser, ValueEnum};
 use pathtracer::{
     geometry::triangle::Triangle,
     kdtree::{
-        build::build_kdtree, build_naive::MedianKdTreeBuilder, build_sah::SahKdTreeBuilder, KdNode,
+        build::build_kdtree, build_median::MedianKdTreeBuilder, build_sah::SahKdTreeBuilder, KdNode,
     },
     wavefront::obj,
 };
