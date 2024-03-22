@@ -1,16 +1,14 @@
 use nalgebra::vector;
 
-use crate::{
-    geometry::{
-        aap::{Aap, Axis},
-        algorithms::triangles_bounding_box,
-        triangle::Triangle,
-    },
-    kdtree::build::potential_split_points,
+use crate::geometry::{
+    aap::{Aap, Axis},
+    algorithms::triangles_bounding_box,
+    triangle::Triangle,
 };
 
 use super::{
     build::{split_box, KdBox, KdSplit, KdTreeBuilder},
+    split::perfect_splits,
     KdNode, KdTree,
 };
 
@@ -42,7 +40,13 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
 
     fn find_best_split(&self, depth: u32, parent: &KdBox) -> Option<KdSplit> {
         let axis = Axis::from_u32(depth % 3);
-        let points = potential_split_points(&self.triangles, parent, axis);
+        let min = parent.boundary.min()[axis];
+        let max = parent.boundary.max()[axis];
+        let points = perfect_splits(&self.triangles, parent)
+            .iter()
+            .filter(|s| s.axis == axis && s.distance > min && s.distance < max)
+            .map(|s| s.distance)
+            .collect::<Vec<_>>();
         if points.is_empty() {
             return None;
         }
