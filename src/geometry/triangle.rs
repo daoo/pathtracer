@@ -62,6 +62,10 @@ impl Triangle {
             direction: self.edge2(),
         }
     }
+
+    pub fn as_arrays(&self) -> [[f32; 3]; 3] {
+        [self.v0.into(), self.v1.into(), self.v2.into()]
+    }
 }
 
 #[cfg(test)]
