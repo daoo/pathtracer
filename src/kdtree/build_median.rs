@@ -7,8 +7,8 @@ use crate::geometry::{
 };
 
 use super::{
-    build::{split_box, KdBox, KdSplit, KdTreeBuilder},
-    split::perfect_splits,
+    build::{KdBox, KdSplit, KdTreeBuilder},
+    split::{clip_triangles, partition_triangles, perfect_splits},
     KdNode, KdTree,
 };
 
@@ -16,18 +16,15 @@ pub struct MedianKdTreeBuilder {
     pub triangles: Vec<Triangle>,
 }
 
-fn median(values: &[f32]) -> f32 {
-    debug_assert!(!values.is_empty());
-    if values.len() == 1 {
-        return values[0];
+fn median(splits: &[Aap]) -> Aap {
+    debug_assert!(!splits.is_empty());
+    if splits.len() == 1 {
+        return splits[0];
     }
 
-    let middle = values.len() / 2;
-    if values.len() % 2 == 0 {
-        (values[middle - 1] + values[middle]) / 2.
-    } else {
-        values[middle]
-    }
+    let middle = splits.len() / 2;
+    // TODO: If not evenly divisible by 2 this biases towards the first in order.
+    splits[middle]
 }
 
 impl KdTreeBuilder for MedianKdTreeBuilder {
@@ -42,19 +39,33 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
         let axis = Axis::from_u32(depth % 3);
         let min = parent.boundary.min()[axis];
         let max = parent.boundary.max()[axis];
-        let points = perfect_splits(&self.triangles, parent)
-            .iter()
-            .filter(|s| s.axis == axis && s.distance > min && s.distance < max)
-            .map(|s| s.distance)
+        let clipped = clip_triangles(&self.triangles, parent);
+        let planes = perfect_splits(&clipped)
+            .into_iter()
+            .filter_map(|s| {
+                (s.axis == axis && s.distance > min && s.distance < max).then_some(Aap {
+                    axis: s.axis,
+                    distance: s.distance,
+                })
+            })
             .collect::<Vec<_>>();
-        if points.is_empty() {
+        if planes.is_empty() {
             return None;
         }
-        let plane = Aap {
-            axis,
-            distance: median(&points),
-        };
-        Some(split_box(&self.triangles, parent, plane))
+        let best = median(&planes);
+        let (left_aabb, right_aabb) = parent.boundary.split(&best);
+        let (left_triangles, right_triangles) = partition_triangles(&clipped, &best);
+        Some(KdSplit {
+            plane: best,
+            left: KdBox {
+                boundary: left_aabb,
+                triangle_indices: left_triangles,
+            },
+            right: KdBox {
+                boundary: right_aabb,
+                triangle_indices: right_triangles,
+            },
+        })
     }
 
     fn terminate(&self, _: &KdBox, _: &super::build::KdSplit) -> bool {
