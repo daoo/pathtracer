@@ -2,12 +2,13 @@ use nalgebra::Vector3;
 use smallvec::SmallVec;
 
 use crate::geometry::{
+    aabb::Aabb,
     aap::{Aap, Axis},
     algorithms::clip_triangle_aabb,
     triangle::Triangle,
 };
 
-use super::build::KdBox;
+use super::build::{KdBox, KdSplit};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum SplitKind {
@@ -203,5 +204,25 @@ mod partition_triangles_tests {
         let actual = partition_triangles(clipped.as_slice(), &plane);
 
         assert_eq!(actual, (vec![0, 1], vec![1, 2]));
+    }
+}
+
+pub fn split_and_partition(
+    clipped: &[(u32, SmallVec<[Vector3<f32>; 18]>)],
+    aabb: &Aabb,
+    plane: Aap,
+) -> KdSplit {
+    let (left_aabb, right_aabb) = aabb.split(&plane);
+    let (left_triangles, right_triangles) = partition_triangles(&clipped, &plane);
+    KdSplit {
+        plane,
+        left: KdBox {
+            boundary: left_aabb,
+            triangle_indices: left_triangles,
+        },
+        right: KdBox {
+            boundary: right_aabb,
+            triangle_indices: right_triangles,
+        },
     }
 }

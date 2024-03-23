@@ -159,12 +159,12 @@ impl Scene {
 
     pub fn from_wavefront(obj: &obj::Obj, mtl: &mtl::Mtl) -> Scene {
         let builder = SahKdTreeBuilder {
-            traverse_cost: 0.1,
+            traverse_cost: 4.0,
             intersect_cost: 1.0,
             empty_factor: 0.8,
             triangles: triangles_from_obj(obj),
         };
-        let kdtree = build_kdtree(builder, 8);
+        let kdtree = build_kdtree(builder, 20);
         Scene {
             kdtree,
             triangle_normals: triangle_normals_from_obj(obj),

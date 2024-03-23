@@ -1,18 +1,15 @@
-use nalgebra::vector;
+use nalgebra::{vector, Vector3};
 use rayon::prelude::*;
+use smallvec::SmallVec;
 
 use crate::{
-    geometry::{
-        aabb::Aabb,
-        aap::{Aap, Axis},
-        algorithms::triangles_bounding_box,
-        triangle::Triangle,
-    },
-    kdtree::build::potential_split_points,
+    geometry::{aabb::Aabb, aap::Aap, algorithms::triangles_bounding_box, triangle::Triangle},
+    kdtree::split::{clip_triangles, perfect_splits},
 };
 
 use super::{
-    build::{split_box, KdBox, KdSplit, KdTreeBuilder},
+    build::{KdBox, KdSplit, KdTreeBuilder},
+    split::split_and_partition,
     KdNode, KdTree,
 };
 
@@ -48,8 +45,13 @@ impl SahKdTreeBuilder {
         self.calculate_sah_cost_helper(probability, counts)
     }
 
-    fn split_and_calculate_cost(&self, parent: &KdBox, plane: Aap) -> (KdSplit, f32) {
-        let split = split_box(&self.triangles, parent, plane);
+    fn split_and_calculate_cost(
+        &self,
+        parent: &KdBox,
+        plane: Aap,
+        clipped: &[(u32, SmallVec<[Vector3<f32>; 18]>)],
+    ) -> (KdSplit, f32) {
+        let split = split_and_partition(&clipped, &parent.boundary, plane);
         let cost = self.calculate_sah_cost(&parent.boundary, &split);
         (split, cost)
     }
@@ -67,26 +69,26 @@ impl KdTreeBuilder for SahKdTreeBuilder {
         debug_assert!(parent.boundary.volume() > 0.0);
         debug_assert!(!parent.triangle_indices.is_empty());
 
-        const AXES: [Axis; 3] = [Axis::X, Axis::Y, Axis::Z];
+        let min = parent.boundary.min();
+        let max = parent.boundary.max();
 
         let min_by_snd = |a: (_, f32), b: (_, f32)| if a.1 <= b.1 { a } else { b };
 
-        AXES.par_iter()
-            .flat_map(|axis| {
-                let mut points = potential_split_points(&self.triangles, parent, *axis);
-                points.dedup();
-                points
-                    .par_iter()
-                    .map(|distance| {
-                        self.split_and_calculate_cost(
-                            parent,
-                            Aap {
-                                axis: *axis,
-                                distance: *distance,
-                            },
-                        )
-                    })
-                    .reduce_with(min_by_snd)
+        let clipped = clip_triangles(&self.triangles, parent);
+        let mut splits = perfect_splits(&clipped);
+        splits.dedup();
+        splits
+            .par_iter()
+            .filter_map(|s| {
+                if s.distance > min[s.axis] && s.distance < max[s.axis] {
+                    let plane = Aap {
+                        axis: s.axis,
+                        distance: s.distance,
+                    };
+                    Some(self.split_and_calculate_cost(parent, plane, &clipped))
+                } else {
+                    None
+                }
             })
             .reduce_with(min_by_snd)
             .map(|a| a.0)
@@ -109,7 +111,10 @@ impl KdTreeBuilder for SahKdTreeBuilder {
 mod tests {
     use nalgebra::vector;
 
-    use crate::kdtree::{build::build_kdtree, KdNode};
+    use crate::{
+        geometry::aap::Axis,
+        kdtree::{build::build_kdtree, KdNode},
+    };
 
     use super::*;
 
@@ -129,30 +134,20 @@ mod tests {
         let tree = build_kdtree(builder, 6);
 
         let expected = KdNode::new_node(
-            Axis::Z,
-            -0.1,
+            Axis::X,
+            0.0,
             KdNode::new_leaf(vec![]),
             KdNode::new_node(
-                Axis::Z,
-                0.1,
+                Axis::X,
+                1.0,
                 KdNode::new_node(
                     Axis::Y,
-                    -0.1,
+                    0.0,
                     KdNode::new_leaf(vec![]),
                     KdNode::new_node(
                         Axis::Y,
-                        1.1,
-                        KdNode::new_node(
-                            Axis::X,
-                            -0.1,
-                            KdNode::new_leaf(vec![]),
-                            KdNode::new_node(
-                                Axis::X,
-                                1.1,
-                                KdNode::new_leaf(vec![0]),
-                                KdNode::new_leaf(vec![]),
-                            ),
-                        ),
+                        1.0,
+                        KdNode::new_leaf(vec![0]),
                         KdNode::new_leaf(vec![]),
                     ),
                 ),

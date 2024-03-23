@@ -8,7 +8,7 @@ use crate::geometry::{
 
 use super::{
     build::{KdBox, KdSplit, KdTreeBuilder},
-    split::{clip_triangles, partition_triangles, perfect_splits},
+    split::{clip_triangles, perfect_splits, split_and_partition},
     KdNode, KdTree,
 };
 
@@ -53,19 +53,7 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
             return None;
         }
         let best = median(&planes);
-        let (left_aabb, right_aabb) = parent.boundary.split(&best);
-        let (left_triangles, right_triangles) = partition_triangles(&clipped, &best);
-        Some(KdSplit {
-            plane: best,
-            left: KdBox {
-                boundary: left_aabb,
-                triangle_indices: left_triangles,
-            },
-            right: KdBox {
-                boundary: right_aabb,
-                triangle_indices: right_triangles,
-            },
-        })
+        Some(split_and_partition(&clipped, &parent.boundary, best))
     }
 
     fn terminate(&self, _: &KdBox, _: &super::build::KdSplit) -> bool {
