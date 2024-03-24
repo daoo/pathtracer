@@ -2,9 +2,9 @@ name: build and test
 
 on:
   push:
-    branches: [ rust_rewrite ]
+    branches: [ master ]
   pull_request:
-    branches: [ rust_rewrite ]
+    branches: [ master ]
   schedule:
     - cron: "0 3 1 * *"
 
