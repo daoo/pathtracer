@@ -1,15 +1,14 @@
-use nalgebra::{vector, Vector3};
+use nalgebra::vector;
 use rayon::prelude::*;
-use smallvec::SmallVec;
 
 use crate::{
     geometry::{aabb::Aabb, aap::Aap, algorithms::triangles_bounding_box, triangle::Triangle},
-    kdtree::split::{clip_triangles, perfect_splits},
+    kdtree::split::{clip_triangle, PerfectSplit},
 };
 
 use super::{
     build::{KdBox, KdSplit, KdTreeBuilder},
-    split::split_and_partition,
+    split::{split_and_partition, ClippedTriangle},
     KdNode, KdTree,
 };
 
@@ -49,7 +48,7 @@ impl SahKdTreeBuilder {
         &self,
         parent: &KdBox,
         plane: Aap,
-        clipped: &[(u32, SmallVec<[Vector3<f32>; 18]>)],
+        clipped: &[ClippedTriangle],
     ) -> (KdSplit, f32) {
         let split = split_and_partition(&clipped, &parent.boundary, plane);
         let cost = self.calculate_sah_cost(&parent.boundary, &split);
@@ -74,8 +73,16 @@ impl KdTreeBuilder for SahKdTreeBuilder {
 
         let min_by_snd = |a: (_, f32), b: (_, f32)| if a.1 <= b.1 { a } else { b };
 
-        let clipped = clip_triangles(&self.triangles, parent);
-        let mut splits = perfect_splits(&clipped);
+        let clipped_triangles = parent
+            .triangle_indices
+            .iter()
+            .filter_map(|i| clip_triangle(&self.triangles, &parent.boundary, *i))
+            .collect::<Vec<_>>();
+        let mut splits = clipped_triangles
+            .iter()
+            .flat_map(|clipped| clipped.perfect_splits())
+            .collect::<Vec<_>>();
+        splits.sort_unstable_by(PerfectSplit::total_cmp);
         splits.dedup();
         splits
             .par_iter()
@@ -85,7 +92,7 @@ impl KdTreeBuilder for SahKdTreeBuilder {
                         axis: s.axis,
                         distance: s.distance,
                     };
-                    Some(self.split_and_calculate_cost(parent, plane, &clipped))
+                    Some(self.split_and_calculate_cost(parent, plane, &clipped_triangles))
                 } else {
                     None
                 }

@@ -1,5 +1,4 @@
 use nalgebra::Vector3;
-use smallvec::SmallVec;
 
 use crate::geometry::{
     aabb::Aabb,
@@ -10,90 +9,73 @@ use crate::geometry::{
 
 use super::build::{KdBox, KdSplit};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum SplitKind {
-    Start,
-    End,
-}
-
 #[derive(Debug, PartialEq)]
 pub struct PerfectSplit {
     pub axis: Axis,
-    pub kind: SplitKind,
     pub distance: f32,
 }
 
 impl PerfectSplit {
-    fn new_x(kind: SplitKind, distance: f32) -> Self {
+    fn new_x(distance: f32) -> Self {
         PerfectSplit {
             axis: Axis::X,
-            kind,
             distance,
         }
     }
 
-    fn new_y(kind: SplitKind, distance: f32) -> Self {
+    fn new_y(distance: f32) -> Self {
         PerfectSplit {
             axis: Axis::Y,
-            kind,
             distance,
         }
     }
 
-    fn new_z(kind: SplitKind, distance: f32) -> Self {
+    fn new_z(distance: f32) -> Self {
         PerfectSplit {
             axis: Axis::Z,
-            kind,
             distance,
         }
     }
 
-    fn total_cmp(&self, other: &Self) -> std::cmp::Ordering {
+    pub fn total_cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.axis
             .cmp(&other.axis)
-            .then(self.kind.cmp(&other.kind))
             .then(f32::total_cmp(&self.distance, &other.distance))
     }
 }
 
-pub fn clip_triangles(
-    triangles: &[Triangle],
-    parent: &KdBox,
-) -> Vec<(u32, SmallVec<[Vector3<f32>; 18]>)> {
-    parent
-        .triangle_indices
-        .iter()
-        .filter_map(|i| {
-            let triangle = &triangles[*i as usize];
-            let clipped = clip_triangle_aabb(&triangle, &parent.boundary);
-            (!clipped.is_empty()).then_some((*i, clipped))
-        })
-        .collect()
+#[derive(Debug, PartialEq)]
+pub struct ClippedTriangle {
+    index: u32,
+    min: Vector3<f32>,
+    max: Vector3<f32>,
 }
 
-pub fn perfect_splits(
-    clipped_triangles: &[(u32, SmallVec<[Vector3<f32>; 18]>)],
-) -> Vec<PerfectSplit> {
-    let mut points = clipped_triangles
+impl ClippedTriangle {
+    pub fn perfect_splits(&self) -> [PerfectSplit; 6] {
+        [
+            PerfectSplit::new_x(self.min.x),
+            PerfectSplit::new_x(self.max.x),
+            PerfectSplit::new_y(self.min.y),
+            PerfectSplit::new_y(self.max.y),
+            PerfectSplit::new_z(self.min.z),
+            PerfectSplit::new_z(self.max.z),
+        ]
+    }
+}
+
+pub fn clip_triangle(triangles: &[Triangle], aabb: &Aabb, index: u32) -> Option<ClippedTriangle> {
+    let triangle = &triangles[index as usize];
+    let clipped = clip_triangle_aabb(&triangle, &aabb);
+    if clipped.is_empty() {
+        return None;
+    }
+    let start = (clipped[0], clipped[0]);
+    let (min, max) = clipped[1..]
         .iter()
-        .flat_map(|clipped_triangle| {
-            let start = (clipped_triangle.1[0], clipped_triangle.1[0]);
-            let (min, max) = clipped_triangle
-                .1
-                .iter()
-                .fold(start, |(min, max), b| (min.inf(b), max.sup(b)));
-            vec![
-                PerfectSplit::new_x(SplitKind::Start, min.x),
-                PerfectSplit::new_x(SplitKind::End, max.x),
-                PerfectSplit::new_y(SplitKind::Start, min.y),
-                PerfectSplit::new_y(SplitKind::End, max.y),
-                PerfectSplit::new_z(SplitKind::Start, min.z),
-                PerfectSplit::new_z(SplitKind::End, max.z),
-            ]
-        })
-        .collect::<Vec<_>>();
-    points.sort_unstable_by(PerfectSplit::total_cmp);
-    points
+        .fold(start, |(min, max), b| (min.inf(b), max.sup(b)));
+
+    Some(ClippedTriangle { index, min, max })
 }
 
 #[cfg(test)]
@@ -111,54 +93,36 @@ mod tests {
             v1: vector![1.0, 0.0, 0.0],
             v2: vector![1.0, 1.0, 0.0],
         };
-        let triangles = [triangle];
-        let parent = KdBox {
-            boundary: Aabb::from_extents(&vector![0.0, 0.0, 0.0], &vector![2.0, 1.0, 1.0]),
-            triangle_indices: vec![0],
+        let aabb = Aabb::from_extents(&vector![0.0, 0.0, 0.0], &vector![2.0, 1.0, 1.0]);
+
+        let actual = clip_triangle(&[triangle], &aabb, 0);
+
+        let expected = ClippedTriangle {
+            index: 0,
+            min: vector![0.0, 0.0, 0.0],
+            max: vector![1.0, 1.0, 0.0],
         };
-        let clipped_triangles = clip_triangles(&triangles, &parent);
-
-        let actual = perfect_splits(&clipped_triangles);
-
-        let expected = vec![
-            PerfectSplit::new_x(SplitKind::Start, 0.0),
-            PerfectSplit::new_x(SplitKind::End, 1.0),
-            PerfectSplit::new_y(SplitKind::Start, 0.0),
-            PerfectSplit::new_y(SplitKind::End, 1.0),
-            PerfectSplit::new_z(SplitKind::Start, 0.0),
-            PerfectSplit::new_z(SplitKind::End, 0.0),
-        ];
-        assert_eq!(actual, expected);
+        assert_eq!(actual, Some(expected));
     }
 }
 
-pub enum Spanning {
-    Left,
-    Plane,
-    Right,
-    Both,
-}
-
 pub fn partition_triangles(
-    clipped: &[(u32, SmallVec<[Vector3<f32>; 18]>)],
+    clipped_triangles: &[ClippedTriangle],
     plane: &Aap,
 ) -> (Vec<u32>, Vec<u32>) {
     let mut left_triangles: Vec<u32> = Vec::new();
     let mut right_triangles: Vec<u32> = Vec::new();
-    for (i, points) in clipped {
-        let (a, b) = points.iter().fold(
-            (points[0][plane.axis], points[0][plane.axis]),
-            |(a, b), p| (a.min(p[plane.axis]), b.max(p[plane.axis])),
-        );
-        let planar = a == plane.distance && b == plane.distance;
-        let left = a < plane.distance;
-        let right = b > plane.distance;
+    for clipped in clipped_triangles {
+        let planar =
+            clipped.min[plane.axis] == plane.distance && clipped.max[plane.axis] == plane.distance;
+        let left = clipped.min[plane.axis] < plane.distance;
+        let right = clipped.max[plane.axis] > plane.distance;
         // TODO: What to do with planar triangles?
         if left || planar {
-            left_triangles.push(*i);
+            left_triangles.push(clipped.index);
         }
         if right || planar {
-            right_triangles.push(*i);
+            right_triangles.push(clipped.index);
         }
     }
     (left_triangles, right_triangles)
@@ -168,34 +132,26 @@ pub fn partition_triangles(
 mod partition_triangles_tests {
     use nalgebra::vector;
 
-    use crate::geometry::aabb::Aabb;
-
     use super::*;
 
     #[test]
     fn test() {
-        let triangle0 = Triangle {
-            v0: vector![0.0, 0.0, 0.0],
-            v1: vector![1.0, 0.0, 0.0],
-            v2: vector![1.0, 1.0, 0.0],
+        let triangle0 = ClippedTriangle {
+            index: 0,
+            min: vector![0.0, 0.0, 0.0],
+            max: vector![1.0, 1.0, 0.0],
         };
-        let triangle1 = Triangle {
-            v0: vector![1.0, 0.0, 0.0],
-            v1: vector![1.0, 1.0, 0.0],
-            v2: vector![1.0, 1.0, 1.0],
+        let triangle1 = ClippedTriangle {
+            index: 1,
+            min: vector![1.0, 0.0, 0.0],
+            max: vector![1.0, 1.0, 1.0],
         };
-        let triangle2 = Triangle {
-            v0: vector![1.0, 0.0, 0.0],
-            v1: vector![2.0, 0.0, 0.0],
-            v2: vector![2.0, 1.0, 0.0],
+        let triangle2 = ClippedTriangle {
+            index: 2,
+            min: vector![1.0, 0.0, 0.0],
+            max: vector![2.0, 1.0, 0.0],
         };
-        let triangles = [triangle0, triangle1, triangle2];
-        let aabb = Aabb::from_extents(&vector![0.0, 0.0, 0.0], &vector![2.0, 1.0, 1.0]);
-        let clipped: Vec<_> = triangles
-            .iter()
-            .enumerate()
-            .map(|(i, t)| (i as u32, clip_triangle_aabb(&t, &aabb)))
-            .collect();
+        let clipped = [triangle0, triangle1, triangle2];
         let plane = Aap {
             axis: Axis::X,
             distance: 1.0,
@@ -207,11 +163,7 @@ mod partition_triangles_tests {
     }
 }
 
-pub fn split_and_partition(
-    clipped: &[(u32, SmallVec<[Vector3<f32>; 18]>)],
-    aabb: &Aabb,
-    plane: Aap,
-) -> KdSplit {
+pub fn split_and_partition(clipped: &[ClippedTriangle], aabb: &Aabb, plane: Aap) -> KdSplit {
     let (left_aabb, right_aabb) = aabb.split(&plane);
     let (left_triangles, right_triangles) = partition_triangles(&clipped, &plane);
     KdSplit {

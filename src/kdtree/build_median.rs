@@ -1,4 +1,5 @@
 use nalgebra::vector;
+use rayon::prelude::*;
 
 use crate::geometry::{
     aap::{Aap, Axis},
@@ -8,7 +9,7 @@ use crate::geometry::{
 
 use super::{
     build::{KdBox, KdSplit, KdTreeBuilder},
-    split::{clip_triangles, perfect_splits, split_and_partition},
+    split::{clip_triangle, split_and_partition},
     KdNode, KdTree,
 };
 
@@ -39,9 +40,14 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
         let axis = Axis::from_u32(depth % 3);
         let min = parent.boundary.min()[axis];
         let max = parent.boundary.max()[axis];
-        let clipped = clip_triangles(&self.triangles, parent);
-        let planes = perfect_splits(&clipped)
-            .into_iter()
+        let clipped_triangles = parent
+            .triangle_indices
+            .par_iter()
+            .filter_map(|i| clip_triangle(&self.triangles, &parent.boundary, *i))
+            .collect::<Vec<_>>();
+        let planes = clipped_triangles
+            .iter()
+            .flat_map(|clipped| clipped.perfect_splits())
             .filter_map(|s| {
                 (s.axis == axis && s.distance > min && s.distance < max).then_some(Aap {
                     axis: s.axis,
@@ -53,7 +59,11 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
             return None;
         }
         let best = median(&planes);
-        Some(split_and_partition(&clipped, &parent.boundary, best))
+        Some(split_and_partition(
+            &clipped_triangles,
+            &parent.boundary,
+            best,
+        ))
     }
 
     fn terminate(&self, _: &KdBox, _: &super::build::KdSplit) -> bool {
