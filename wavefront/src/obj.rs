@@ -1,4 +1,3 @@
-use nalgebra::{vector, Vector2, Vector3};
 use nom::bytes::complete::tag_no_case;
 use nom::character::complete::{char, i32, multispace0};
 use nom::combinator::{opt, rest};
@@ -42,22 +41,22 @@ impl Chunk {
 pub struct Obj {
     pub mtl_lib: PathBuf,
 
-    pub vertices: Vec<Vector3<f32>>,
-    pub normals: Vec<Vector3<f32>>,
-    pub texcoords: Vec<Vector2<f32>>,
+    pub vertices: Vec<[f32; 3]>,
+    pub normals: Vec<[f32; 3]>,
+    pub texcoords: Vec<[f32; 2]>,
     pub chunks: Vec<Chunk>,
 }
 
 impl Obj {
-    pub fn index_vertex(&self, point: &Point) -> Vector3<f32> {
+    pub fn index_vertex(&self, point: &Point) -> [f32; 3] {
         index_wavefront_vec(&self.vertices, point.v)
     }
 
-    pub fn index_texcoord(&self, point: &Point) -> Vector2<f32> {
+    pub fn index_texcoord(&self, point: &Point) -> [f32; 2] {
         index_wavefront_vec(&self.texcoords, point.t)
     }
 
-    pub fn index_normal(&self, point: &Point) -> Vector3<f32> {
+    pub fn index_normal(&self, point: &Point) -> [f32; 3] {
         index_wavefront_vec(&self.normals, point.n)
     }
 }
@@ -80,14 +79,14 @@ fn tagged<'a, O>(
     data(input)
 }
 
-fn vec2(input: &str) -> IResult<&str, Vector2<f32>> {
+fn vec2(input: &str) -> IResult<&str, [f32; 2]> {
     let (input, (x, _, y)) = (float, multispace0, float).parse(input)?;
-    Ok((input, vector![x, y]))
+    Ok((input, [x, y]))
 }
 
-fn vec3(input: &str) -> IResult<&str, Vector3<f32>> {
+fn vec3(input: &str) -> IResult<&str, [f32; 3]> {
     let (input, (x, _, y, _, z)) = (float, multispace0, float, multispace0, float).parse(input)?;
-    Ok((input, vector![x, y, z]))
+    Ok((input, [x, y, z]))
 }
 
 fn i32_or_zero(input: &str) -> IResult<&str, i32> {
@@ -109,9 +108,9 @@ fn triangle(input: &str) -> IResult<&str, Face> {
 pub fn obj(input: &str) -> Obj {
     let mut mtl_lib = Path::new("");
     let mut chunks: Vec<Chunk> = Vec::new();
-    let mut vertices: Vec<Vector3<f32>> = Vec::new();
-    let mut normals: Vec<Vector3<f32>> = Vec::new();
-    let mut texcoords: Vec<Vector2<f32>> = Vec::new();
+    let mut vertices: Vec<[f32; 3]> = Vec::new();
+    let mut normals: Vec<[f32; 3]> = Vec::new();
+    let mut texcoords: Vec<[f32; 2]> = Vec::new();
 
     for line in input.lines() {
         let line = line.trim();
@@ -162,18 +161,18 @@ mod tests {
 
     #[test]
     fn test_vec2() {
-        assert_eq!(vec2("0 0"), Ok(("", vector![0., 0.])));
-        assert_eq!(vec2("1 2"), Ok(("", vector![1., 2.])));
-        assert_eq!(vec2("1. 2."), Ok(("", vector![1., 2.])));
-        assert_eq!(vec2("-1. -2."), Ok(("", vector![-1., -2.])));
+        assert_eq!(vec2("0 0"), Ok(("", [0., 0.])));
+        assert_eq!(vec2("1 2"), Ok(("", [1., 2.])));
+        assert_eq!(vec2("1. 2."), Ok(("", [1., 2.])));
+        assert_eq!(vec2("-1. -2."), Ok(("", [-1., -2.])));
     }
 
     #[test]
     fn test_vec3() {
-        assert_eq!(vec3("0 0 0"), Ok(("", vector![0., 0., 0.])));
-        assert_eq!(vec3("1 2 3"), Ok(("", vector![1., 2., 3.])));
-        assert_eq!(vec3("1. 2. 3."), Ok(("", vector![1., 2., 3.])));
-        assert_eq!(vec3("-1. -2. -3."), Ok(("", vector![-1., -2., -3.])));
+        assert_eq!(vec3("0 0 0"), Ok(("", [0., 0., 0.])));
+        assert_eq!(vec3("1 2 3"), Ok(("", [1., 2., 3.])));
+        assert_eq!(vec3("1. 2. 3."), Ok(("", [1., 2., 3.])));
+        assert_eq!(vec3("-1. -2. -3."), Ok(("", [-1., -2., -3.])));
     }
 
     #[test]
@@ -184,9 +183,9 @@ mod tests {
 
     #[test]
     fn test_data() {
-        assert_eq!(obj("v 1 2 3").vertices, [vector![1., 2., 3.]]);
-        assert_eq!(obj("vt 1 2").texcoords, [vector![1., 2.]]);
-        assert_eq!(obj("vn 1 2 3").normals, [vector![1., 2., 3.]]);
+        assert_eq!(obj("v 1 2 3").vertices, [[1., 2., 3.]]);
+        assert_eq!(obj("vt 1 2").texcoords, [[1., 2.]]);
+        assert_eq!(obj("vn 1 2 3").normals, [[1., 2., 3.]]);
     }
 
     #[test]

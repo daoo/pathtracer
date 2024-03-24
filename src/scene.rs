@@ -46,9 +46,9 @@ fn triangles_from_obj(obj: &obj::Obj) -> Vec<Triangle> {
         .iter()
         .flat_map(|chunk| {
             chunk.faces.iter().map(|face| Triangle {
-                v0: obj.index_vertex(&face.p0),
-                v1: obj.index_vertex(&face.p1),
-                v2: obj.index_vertex(&face.p2),
+                v0: obj.index_vertex(&face.p0).into(),
+                v1: obj.index_vertex(&face.p1).into(),
+                v2: obj.index_vertex(&face.p2).into(),
             })
         })
         .collect()
@@ -59,9 +59,9 @@ fn triangle_normals_from_obj(obj: &obj::Obj) -> Vec<TriangleNormals> {
         .iter()
         .flat_map(|chunk| {
             chunk.faces.iter().map(|face| TriangleNormals {
-                n0: obj.index_normal(&face.p0),
-                n1: obj.index_normal(&face.p1),
-                n2: obj.index_normal(&face.p2),
+                n0: obj.index_normal(&face.p0).into(),
+                n1: obj.index_normal(&face.p1).into(),
+                n2: obj.index_normal(&face.p2).into(),
             })
         })
         .collect()
@@ -72,9 +72,9 @@ fn triangle_texcoords_from_obj(obj: &obj::Obj) -> Vec<TriangleTexcoords> {
         .iter()
         .flat_map(|chunk| {
             chunk.faces.iter().map(|face| TriangleTexcoords {
-                uv0: obj.index_texcoord(&face.p0),
-                uv1: obj.index_texcoord(&face.p1),
-                uv2: obj.index_texcoord(&face.p2),
+                uv0: obj.index_texcoord(&face.p0).into(),
+                uv1: obj.index_texcoord(&face.p1).into(),
+                uv2: obj.index_texcoord(&face.p2).into(),
             })
         })
         .collect()
@@ -82,13 +82,13 @@ fn triangle_texcoords_from_obj(obj: &obj::Obj) -> Vec<TriangleTexcoords> {
 
 fn blend_from_mtl(material: &mtl::Material) -> Arc<dyn Material + Send + Sync> {
     let reflection = DiffuseReflectiveMaterial {
-        reflectance: material.diffuse_reflection,
+        reflectance: material.diffuse_reflection.into(),
     };
     let refraction = SpecularRefractiveMaterial {
         index_of_refraction: material.index_of_refraction,
     };
     let specular = SpecularReflectiveMaterial {
-        reflectance: material.specular_reflection,
+        reflectance: material.specular_reflection.into(),
     };
     let transparency_blend = BlendMaterial {
         first: refraction,
@@ -130,7 +130,14 @@ fn triangle_materials_from_obj_and_mtl(
 fn cameras_from_mtl(mtl: &mtl::Mtl) -> Vec<Camera> {
     mtl.cameras
         .iter()
-        .map(|camera| Camera::new(&camera.position, &camera.target, &camera.up, camera.fov))
+        .map(|camera| {
+            Camera::new(
+                &camera.position.into(),
+                &camera.target.into(),
+                &camera.up.into(),
+                camera.fov,
+            )
+        })
         .collect()
 }
 
@@ -138,7 +145,12 @@ fn lights_from_mtl(mtl: &mtl::Mtl) -> Vec<SphericalLight> {
     mtl.lights
         .iter()
         .map(|light| {
-            SphericalLight::new(light.position, light.radius, &light.color, light.intensity)
+            SphericalLight::new(
+                light.position.into(),
+                light.radius,
+                &light.color.into(),
+                light.intensity,
+            )
         })
         .collect()
 }

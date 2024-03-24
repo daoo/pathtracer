@@ -73,9 +73,9 @@ fn main() {
     for chunk in &obj.chunks {
         for face in &chunk.faces {
             triangles.push(Triangle {
-                v0: obj.index_vertex(&face.p0),
-                v1: obj.index_vertex(&face.p1),
-                v2: obj.index_vertex(&face.p2),
+                v0: obj.index_vertex(&face.p0).into(),
+                v1: obj.index_vertex(&face.p1).into(),
+                v2: obj.index_vertex(&face.p2).into(),
             })
         }
     }

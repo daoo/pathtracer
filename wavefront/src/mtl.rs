@@ -1,4 +1,3 @@
-use nalgebra::{vector, Vector3};
 use nom::bytes::complete::tag_no_case;
 use nom::character::complete::multispace0;
 use nom::combinator::rest;
@@ -10,9 +9,9 @@ use nom::IResult;
 pub struct Material {
     pub name: String,
     pub diffuse_map: String,
-    pub diffuse_reflection: Vector3<f32>,
-    pub specular_reflection: Vector3<f32>,
-    pub emittance: Vector3<f32>,
+    pub diffuse_reflection: [f32; 3],
+    pub specular_reflection: [f32; 3],
+    pub emittance: [f32; 3],
     pub transparency: f32,
     pub reflection_0_degrees: f32,
     pub reflection_90_degrees: f32,
@@ -24,9 +23,9 @@ impl Material {
         Material {
             name,
             diffuse_map: String::new(),
-            diffuse_reflection: vector![0.7, 0.7, 0.7],
-            specular_reflection: vector![1.0, 1.0, 1.0],
-            emittance: vector![0.0, 0.0, 0.0],
+            diffuse_reflection: [0.7, 0.7, 0.7],
+            specular_reflection: [1.0, 1.0, 1.0],
+            emittance: [0.0, 0.0, 0.0],
             transparency: 0.0,
             reflection_0_degrees: 0.0,
             reflection_90_degrees: 0.0,
@@ -37,17 +36,17 @@ impl Material {
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Light {
-    pub position: Vector3<f32>,
-    pub color: Vector3<f32>,
+    pub position: [f32; 3],
+    pub color: [f32; 3],
     pub radius: f32,
     pub intensity: f32,
 }
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Camera {
-    pub position: Vector3<f32>,
-    pub target: Vector3<f32>,
-    pub up: Vector3<f32>,
+    pub position: [f32; 3],
+    pub target: [f32; 3],
+    pub up: [f32; 3],
     pub fov: f32,
 }
 
@@ -68,9 +67,9 @@ fn tagged<'a, O>(
     data(input)
 }
 
-fn vec3(input: &str) -> IResult<&str, Vector3<f32>> {
+fn vec3(input: &str) -> IResult<&str, [f32; 3]> {
     let (input, (x, _, y, _, z)) = (float, multispace0, float, multispace0, float).parse(input)?;
-    Ok((input, vector![x, y, z]))
+    Ok((input, [x, y, z]))
 }
 
 pub fn mtl(input: &str) -> Mtl {
@@ -140,10 +139,10 @@ mod tests {
 
     #[test]
     fn test_vec3() {
-        assert_eq!(vec3("0 0 0"), Ok(("", vector![0., 0., 0.])));
-        assert_eq!(vec3("1 2 3"), Ok(("", vector![1., 2., 3.])));
-        assert_eq!(vec3("1. 2. 3."), Ok(("", vector![1., 2., 3.])));
-        assert_eq!(vec3("-1. -2. -3."), Ok(("", vector![-1., -2., -3.])));
+        assert_eq!(vec3("0 0 0"), Ok(("", [0., 0., 0.])));
+        assert_eq!(vec3("1 2 3"), Ok(("", [1., 2., 3.])));
+        assert_eq!(vec3("1. 2. 3."), Ok(("", [1., 2., 3.])));
+        assert_eq!(vec3("-1. -2. -3."), Ok(("", [-1., -2., -3.])));
     }
 
     #[test]
@@ -151,11 +150,11 @@ mod tests {
         assert_eq!(mtl("newlight l1").lights.len(), 1);
         assert_eq!(
             mtl("newlight l1\nlightposition 1. 2. 3.").lights[0].position,
-            vector![1., 2., 3.]
+            [1., 2., 3.]
         );
         assert_eq!(
             mtl("newlight l1\nlightcolor 1. 2. 3.").lights[0].color,
-            vector![1., 2., 3.]
+            [1., 2., 3.]
         );
         assert_eq!(mtl("newlight l1\nlightradius 1.").lights[0].radius, 1.);
         assert_eq!(
@@ -169,15 +168,15 @@ mod tests {
         assert_eq!(mtl("newcamera c1").cameras.len(), 1);
         assert_eq!(
             mtl("newcamera c1\ncameraposition 1. 2. 3.").cameras[0].position,
-            vector![1., 2., 3.]
+            [1., 2., 3.]
         );
         assert_eq!(
             mtl("newcamera c1\ncameratarget 1. 2. 3.").cameras[0].target,
-            vector![1., 2., 3.]
+            [1., 2., 3.]
         );
         assert_eq!(
             mtl("newcamera c1\ncameraup 1. 2. 3.").cameras[0].up,
-            vector![1., 2., 3.]
+            [1., 2., 3.]
         );
         assert_eq!(mtl("newcamera c1\ncamerafov 1.").cameras[0].fov, 1.);
     }
@@ -188,11 +187,11 @@ mod tests {
         assert_eq!(mtl("newmtl m1").materials[0].name, "m1");
         assert_eq!(
             mtl("newmtl m1\nkd 1. 2. 3.").materials[0].diffuse_reflection,
-            vector![1., 2., 3.]
+            [1., 2., 3.]
         );
         assert_eq!(
             mtl("newmtl m1\nks 1. 2. 3.").materials[0].specular_reflection,
-            vector![1., 2., 3.]
+            [1., 2., 3.]
         );
         assert_eq!(
             mtl("newmtl m1\nreflat0deg 1.").materials[0].reflection_0_degrees,
