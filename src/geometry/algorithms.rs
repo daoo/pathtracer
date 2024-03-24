@@ -564,9 +564,9 @@ pub fn clip_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> SmallVec<[Vector3
         output.clear();
         for (i, b) in input.iter().enumerate() {
             let a = input[(i as isize - 1).rem_euclid(input.len() as isize) as usize];
-            let ray = Ray::between(&a, &b);
+            let ray = Ray::between(&a, b);
             let intersecting = intersect_ray_aap(&ray, &plane).map(|t| ray.param(t));
-            if is_inside(&clip_plane, &b) {
+            if is_inside(&clip_plane, b) {
                 if !is_inside(&clip_plane, &a) {
                     output.push(intersecting.unwrap());
                 }

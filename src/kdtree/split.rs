@@ -66,7 +66,7 @@ impl ClippedTriangle {
 
 pub fn clip_triangle(triangles: &[Triangle], aabb: &Aabb, index: u32) -> Option<ClippedTriangle> {
     let triangle = &triangles[index as usize];
-    let clipped = clip_triangle_aabb(&triangle, &aabb);
+    let clipped = clip_triangle_aabb(triangle, aabb);
     if clipped.is_empty() {
         return None;
     }
@@ -165,7 +165,7 @@ mod partition_triangles_tests {
 
 pub fn split_and_partition(clipped: &[ClippedTriangle], aabb: &Aabb, plane: Aap) -> KdSplit {
     let (left_aabb, right_aabb) = aabb.split(&plane);
-    let (left_triangles, right_triangles) = partition_triangles(&clipped, &plane);
+    let (left_triangles, right_triangles) = partition_triangles(clipped, &plane);
     KdSplit {
         plane,
         left: KdBox {

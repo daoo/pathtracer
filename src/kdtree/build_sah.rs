@@ -50,7 +50,7 @@ impl SahKdTreeBuilder {
         plane: Aap,
         clipped: &[ClippedTriangle],
     ) -> (KdSplit, f32) {
-        let split = split_and_partition(&clipped, &parent.boundary, plane);
+        let split = split_and_partition(clipped, &parent.boundary, plane);
         let cost = self.calculate_sah_cost(&parent.boundary, &split);
         (split, cost)
     }
