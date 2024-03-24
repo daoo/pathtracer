@@ -3,7 +3,6 @@ use ::pathtracer::image_buffer::ImageBuffer;
 use ::pathtracer::pathtracer;
 use ::pathtracer::raylogger::RayLogger;
 use ::pathtracer::scene::*;
-use ::pathtracer::wavefront::*;
 use clap::Parser;
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
@@ -13,6 +12,7 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::str;
 use std::sync::mpsc;
+use wavefront::{mtl, obj};
 
 #[derive(Parser, Debug)]
 struct Args {

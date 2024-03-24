@@ -9,4 +9,3 @@ pub mod raylogger;
 pub mod raytracer;
 mod sampling;
 pub mod scene;
-pub mod wavefront;

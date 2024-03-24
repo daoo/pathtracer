@@ -2,10 +2,10 @@ use ::pathtracer::camera::*;
 use ::pathtracer::image_buffer::*;
 use ::pathtracer::raytracer;
 use ::pathtracer::scene::*;
-use ::pathtracer::wavefront::*;
 use clap::Parser;
 use std::fs;
 use std::str;
+use wavefront::{mtl, obj};
 
 #[derive(Parser, Debug)]
 struct Args {

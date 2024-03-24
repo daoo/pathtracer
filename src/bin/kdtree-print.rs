@@ -6,8 +6,8 @@ use pathtracer::{
     kdtree::{
         build::build_kdtree, build_median::MedianKdTreeBuilder, build_sah::SahKdTreeBuilder, KdNode,
     },
-    wavefront::obj,
 };
+use wavefront::obj;
 
 #[derive(Clone, Debug, ValueEnum)]
 enum KdTreeMethod {

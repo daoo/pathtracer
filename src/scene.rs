@@ -7,10 +7,10 @@ use crate::kdtree::build_sah::SahKdTreeBuilder;
 use crate::kdtree::KdTree;
 use crate::light::*;
 use crate::material::*;
-use crate::wavefront::*;
 use nalgebra::{UnitVector3, Vector2, Vector3};
 use std::collections::BTreeMap;
 use std::sync::Arc;
+use wavefront::{mtl, obj};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TriangleNormals {
