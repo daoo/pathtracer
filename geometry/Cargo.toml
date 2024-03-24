@@ -1,0 +1,8 @@
+[package]
+name = "geometry"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+nalgebra = { version = "0.32.4", default-features = false, features = ["macros"] }
+smallvec = { version = "1.13.2", default-features = false }

@@ -1,12 +1,12 @@
 use crate::camera::*;
-use crate::geometry::algorithms::*;
-use crate::geometry::ray::*;
-use crate::geometry::triangle::*;
 use crate::kdtree::build::build_kdtree;
 use crate::kdtree::build_sah::SahKdTreeBuilder;
 use crate::kdtree::KdTree;
 use crate::light::*;
 use crate::material::*;
+use geometry::algorithms::TriangleRayIntersection;
+use geometry::ray::Ray;
+use geometry::triangle::Triangle;
 use nalgebra::{UnitVector3, Vector2, Vector3};
 use std::collections::BTreeMap;
 use std::sync::Arc;

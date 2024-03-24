@@ -1,4 +1,4 @@
-use crate::geometry::ray::*;
+use geometry::ray::Ray;
 use nalgebra::{UnitVector3, Vector3};
 
 #[derive(Clone, Debug)]

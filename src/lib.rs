@@ -1,5 +1,4 @@
 pub mod camera;
-pub mod geometry;
 pub mod image_buffer;
 pub mod kdtree;
 pub mod light;

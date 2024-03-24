@@ -1,4 +1,4 @@
-use crate::geometry::{aabb::Aabb, aap::Aap};
+use geometry::{aabb::Aabb, aap::Aap};
 
 use super::{KdNode, KdTree};
 

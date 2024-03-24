@@ -1,11 +1,9 @@
 use std::fmt::Display;
 
 use clap::{Parser, ValueEnum};
-use pathtracer::{
-    geometry::triangle::Triangle,
-    kdtree::{
-        build::build_kdtree, build_median::MedianKdTreeBuilder, build_sah::SahKdTreeBuilder, KdNode,
-    },
+use geometry::triangle::Triangle;
+use pathtracer::kdtree::{
+    build::build_kdtree, build_median::MedianKdTreeBuilder, build_sah::SahKdTreeBuilder, KdNode,
 };
 use wavefront::obj;
 

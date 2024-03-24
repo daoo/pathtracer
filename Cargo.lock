@@ -178,6 +178,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "geometry"
+version = "1.0.0"
+dependencies = [
+ "nalgebra",
+ "smallvec",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -361,6 +369,7 @@ version = "1.0.0"
 dependencies = [
  "assert_approx_eq",
  "clap",
+ "geometry",
  "image",
  "nalgebra",
  "rand",
@@ -535,9 +544,9 @@ checksum = "d66dc143e6b11c1eddc06d5c423cfc97062865baf299914ab64caa38182078fe"
 
 [[package]]
 name = "smallvec"
-version = "1.13.1"
+version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6ecd384b10a64542d77071bd64bd7b231f4ed5940fba55e98c3de13824cf3d7"
+checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
 name = "syn"

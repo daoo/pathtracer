@@ -1,8 +1,10 @@
-use crate::geometry::aabb::Aabb;
-use crate::geometry::aap::*;
-use crate::geometry::algorithms::*;
-use crate::geometry::ray::*;
-use crate::geometry::triangle::*;
+use geometry::{
+    aabb::Aabb,
+    aap::{Aap, Axis},
+    algorithms::{intersect_triangle_ray, triangles_bounding_box, TriangleRayIntersection},
+    ray::Ray,
+    triangle::Triangle,
+};
 
 pub mod build;
 pub mod build_median;
@@ -193,7 +195,6 @@ impl KdTree {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::geometry::aap::Axis;
     use nalgebra::vector;
 
     #[test]

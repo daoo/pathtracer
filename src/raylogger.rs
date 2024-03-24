@@ -4,7 +4,7 @@ use std::{
     path::Path,
 };
 
-use crate::geometry::ray::Ray;
+use geometry::ray::Ray;
 
 pub struct RayLogger {
     file: File,

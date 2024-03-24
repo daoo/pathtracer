@@ -1,9 +1,9 @@
 use crate::camera::*;
-use crate::geometry::ray::*;
 use crate::image_buffer::ImageBuffer;
 use crate::light::*;
 use crate::material::*;
 use crate::scene::*;
+use geometry::ray::Ray;
 use nalgebra::{vector, UnitVector3, Vector2, Vector3};
 
 fn light_contribution(

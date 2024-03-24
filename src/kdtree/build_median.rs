@@ -1,7 +1,7 @@
 use nalgebra::vector;
 use rayon::prelude::*;
 
-use crate::geometry::{
+use geometry::{
     aap::{Aap, Axis},
     algorithms::triangles_bounding_box,
     triangle::Triangle,

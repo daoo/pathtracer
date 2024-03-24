@@ -1,4 +1,4 @@
-workspace = { members = ["wavefront"] }
+workspace = { members = [ "geometry","wavefront"] }
 
 [package]
 name = "pathtracer"
@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 assert_approx_eq = "1.1.0"
 clap = { version = "4.5.1", default-features = false, features = ["std", "derive"] }
+geometry = { version = "1.0.0", path = "geometry" }
 image = { version = "0.24.9", default-features = false, features = ["png"] }
 nalgebra = "0.32.4"
 rand = { version = "0.8.5", default-features = false, features = ["small_rng", "std"] }

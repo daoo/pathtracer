@@ -1,9 +1,9 @@
 use crate::camera::*;
-use crate::geometry::ray::*;
 use crate::image_buffer::ImageBuffer;
 use crate::raylogger::RayLoggerWithMeta;
 use crate::sampling::*;
 use crate::scene::*;
+use geometry::ray::Ray;
 use nalgebra::{vector, Vector2, Vector3};
 use rand::rngs::SmallRng;
 
