@@ -80,27 +80,23 @@ pub fn clip_triangle(triangles: &[Triangle], aabb: &Aabb, index: u32) -> Option<
 
 #[cfg(test)]
 mod tests {
-    use nalgebra::vector;
-
-    use crate::geometry::aabb::Aabb;
-
     use super::*;
 
     #[test]
     fn test() {
         let triangle = Triangle {
-            v0: vector![0.0, 0.0, 0.0],
-            v1: vector![1.0, 0.0, 0.0],
-            v2: vector![1.0, 1.0, 0.0],
+            v0: Vector3::new(0.0, 0.0, 0.0),
+            v1: Vector3::new(1.0, 0.0, 0.0),
+            v2: Vector3::new(1.0, 1.0, 0.0),
         };
-        let aabb = Aabb::from_extents(&vector![0.0, 0.0, 0.0], &vector![2.0, 1.0, 1.0]);
+        let aabb = Aabb::from_extents(&Vector3::new(0.0, 0.0, 0.0), &Vector3::new(2.0, 1.0, 1.0));
 
         let actual = clip_triangle(&[triangle], &aabb, 0);
 
         let expected = ClippedTriangle {
             index: 0,
-            min: vector![0.0, 0.0, 0.0],
-            max: vector![1.0, 1.0, 0.0],
+            min: Vector3::new(0.0, 0.0, 0.0),
+            max: Vector3::new(1.0, 1.0, 0.0),
         };
         assert_eq!(actual, Some(expected));
     }
@@ -130,26 +126,24 @@ pub fn partition_triangles(
 
 #[cfg(test)]
 mod partition_triangles_tests {
-    use nalgebra::vector;
-
     use super::*;
 
     #[test]
     fn test() {
         let triangle0 = ClippedTriangle {
             index: 0,
-            min: vector![0.0, 0.0, 0.0],
-            max: vector![1.0, 1.0, 0.0],
+            min: Vector3::new(0.0, 0.0, 0.0),
+            max: Vector3::new(1.0, 1.0, 0.0),
         };
         let triangle1 = ClippedTriangle {
             index: 1,
-            min: vector![1.0, 0.0, 0.0],
-            max: vector![1.0, 1.0, 1.0],
+            min: Vector3::new(1.0, 0.0, 0.0),
+            max: Vector3::new(1.0, 1.0, 1.0),
         };
         let triangle2 = ClippedTriangle {
             index: 2,
-            min: vector![1.0, 0.0, 0.0],
-            max: vector![2.0, 1.0, 0.0],
+            min: Vector3::new(1.0, 0.0, 0.0),
+            max: Vector3::new(2.0, 1.0, 0.0),
         };
         let clipped = [triangle0, triangle1, triangle2];
         let plane = Aap {

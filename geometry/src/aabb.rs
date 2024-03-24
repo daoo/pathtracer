@@ -1,5 +1,4 @@
-use nalgebra;
-use nalgebra::{vector, Vector3};
+use nalgebra::Vector3;
 
 use super::aap::Aap;
 
@@ -28,8 +27,8 @@ impl Aabb {
 
     pub fn unit() -> Aabb {
         Aabb {
-            center: vector![0., 0., 0.],
-            half_size: vector![0.5, 0.5, 0.5],
+            center: Vector3::new(0., 0., 0.),
+            half_size: Vector3::new(0.5, 0.5, 0.5),
         }
     }
 
@@ -76,8 +75,16 @@ impl Aabb {
     pub fn split(&self, plane: &Aap) -> (Aabb, Aabb) {
         let fst_half_axis = (plane.distance - self.min()[plane.axis]) / 2.;
         let snd_half_axis = (self.max()[plane.axis] - plane.distance) / 2.;
-        debug_assert!(fst_half_axis >= 0.0, "fst_half_axis is negative {}", fst_half_axis);
-        debug_assert!(snd_half_axis >= 0.0, "snd_half_axis is negative {}", snd_half_axis);
+        debug_assert!(
+            fst_half_axis >= 0.0,
+            "fst_half_axis is negative {}",
+            fst_half_axis
+        );
+        debug_assert!(
+            snd_half_axis >= 0.0,
+            "snd_half_axis is negative {}",
+            snd_half_axis
+        );
 
         let mut fst_center = self.center;
         let mut fst_half_size = self.half_size;

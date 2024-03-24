@@ -1,13 +1,13 @@
 use crate::sampling::*;
-use nalgebra::{vector, RealField, UnitVector3, Vector3};
+use nalgebra::{RealField, UnitVector3, Vector3};
 use rand::rngs::SmallRng;
 use rand::Rng;
 
 fn perpendicular(v: &Vector3<f32>) -> Vector3<f32> {
     if v.x.abs() < v.y.abs() {
-        vector![0., -v.z, v.y]
+        Vector3::new(0., -v.z, v.y)
     } else {
-        vector![-v.z, 0., v.x]
+        Vector3::new(-v.z, 0., v.x)
     }
 }
 
@@ -136,7 +136,7 @@ impl Material for SpecularRefractiveMaterial {
         if k < 0.0 {
             const TOTAL_INTERNAL_REFLECTION: SpecularReflectiveMaterial =
                 SpecularReflectiveMaterial {
-                    reflectance: vector![1.0, 1.0, 1.0],
+                    reflectance: Vector3::new(1.0, 1.0, 1.0),
                 };
             return TOTAL_INTERNAL_REFLECTION.sample(wi, &n_refracted, rng);
         }
@@ -145,7 +145,7 @@ impl Material for SpecularRefractiveMaterial {
         let wo = UnitVector3::new_normalize(-eta * wi + (w - k) * *n_refracted);
         MaterialSample {
             pdf: 1.0,
-            brdf: vector![1., 1., 1.],
+            brdf: Vector3::new(1., 1., 1.),
             wo,
         }
     }
@@ -163,8 +163,8 @@ mod specular_refractive_material_tests {
         let material = SpecularRefractiveMaterial {
             index_of_refraction: 1.5,
         };
-        let wi = vector![-1.0, 2.0, 0.0].normalize();
-        let n = UnitVector3::new_normalize(vector![0.0, 1.0, 0.0]);
+        let wi = Vector3::new(-1.0, 2.0, 0.0).normalize();
+        let n = UnitVector3::new_normalize(Vector3::new(0.0, 1.0, 0.0));
         let mut rng = SmallRng::seed_from_u64(0);
 
         let actual = material.sample(&wi, &n, &mut rng);
@@ -182,8 +182,8 @@ mod specular_refractive_material_tests {
         let material = SpecularRefractiveMaterial {
             index_of_refraction: 1.5,
         };
-        let wi = vector![-1.0, -2.0, 0.0].normalize();
-        let n = UnitVector3::new_normalize(vector![0.0, 1.0, 0.0]);
+        let wi = Vector3::new(-1.0, -2.0, 0.0).normalize();
+        let n = UnitVector3::new_normalize(Vector3::new(0.0, 1.0, 0.0));
         let mut rng = SmallRng::seed_from_u64(0);
 
         let actual = material.sample(&wi, &n, &mut rng);

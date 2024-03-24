@@ -1,4 +1,4 @@
-use nalgebra::{vector, Vector3};
+use nalgebra::Vector3;
 use smallvec::SmallVec;
 
 use super::{aabb::Aabb, aap::Aap, ray::Ray, triangle::Triangle};
@@ -40,18 +40,17 @@ pub fn intersect_triangle_ray(triangle: &Triangle, ray: &Ray) -> Option<Triangle
 #[cfg(test)]
 mod tests_intersect_triangle_ray {
     use super::*;
-    use nalgebra::vector;
 
     #[test]
     fn through_base_center() {
         let triangle = Triangle {
-            v0: vector![0., 0., 0.],
-            v1: vector![1., 0., 0.],
-            v2: vector![0., 1., 0.],
+            v0: Vector3::new(0., 0., 0.),
+            v1: Vector3::new(1., 0., 0.),
+            v2: Vector3::new(0., 1., 0.),
         };
         let ray = Ray::between(
-            &vector![triangle.base_center().x, triangle.base_center().y, -1.],
-            &vector![triangle.base_center().x, triangle.base_center().y, 1.],
+            &Vector3::new(triangle.base_center().x, triangle.base_center().y, -1.),
+            &Vector3::new(triangle.base_center().x, triangle.base_center().y, 1.),
         );
 
         assert_eq!(
@@ -67,13 +66,13 @@ mod tests_intersect_triangle_ray {
     #[test]
     fn through_v0() {
         let triangle = Triangle {
-            v0: vector![0., 0., 0.],
-            v1: vector![1., 0., 0.],
-            v2: vector![0., 1., 0.],
+            v0: Vector3::new(0., 0., 0.),
+            v1: Vector3::new(1., 0., 0.),
+            v2: Vector3::new(0., 1., 0.),
         };
         let ray = Ray::between(
-            &vector![triangle.v0.x, triangle.v0.y, -1.],
-            &vector![triangle.v0.x, triangle.v0.y, 1.],
+            &Vector3::new(triangle.v0.x, triangle.v0.y, -1.),
+            &Vector3::new(triangle.v0.x, triangle.v0.y, 1.),
         );
 
         assert_eq!(
@@ -89,13 +88,13 @@ mod tests_intersect_triangle_ray {
     #[test]
     fn through_v1() {
         let triangle = Triangle {
-            v0: vector![0., 0., 0.],
-            v1: vector![1., 0., 0.],
-            v2: vector![0., 1., 0.],
+            v0: Vector3::new(0., 0., 0.),
+            v1: Vector3::new(1., 0., 0.),
+            v2: Vector3::new(0., 1., 0.),
         };
         let ray = Ray::between(
-            &vector![triangle.v1.x, triangle.v1.y, -1.],
-            &vector![triangle.v1.x, triangle.v1.y, 1.],
+            &Vector3::new(triangle.v1.x, triangle.v1.y, -1.),
+            &Vector3::new(triangle.v1.x, triangle.v1.y, 1.),
         );
 
         assert_eq!(
@@ -111,13 +110,13 @@ mod tests_intersect_triangle_ray {
     #[test]
     fn through_v2() {
         let triangle = Triangle {
-            v0: vector![0., 0., 0.],
-            v1: vector![1., 0., 0.],
-            v2: vector![0., 1., 0.],
+            v0: Vector3::new(0., 0., 0.),
+            v1: Vector3::new(1., 0., 0.),
+            v2: Vector3::new(0., 1., 0.),
         };
         let ray = Ray::between(
-            &vector![triangle.v2.x, triangle.v2.y, -1.],
-            &vector![triangle.v2.x, triangle.v2.y, 1.],
+            &Vector3::new(triangle.v2.x, triangle.v2.y, -1.),
+            &Vector3::new(triangle.v2.x, triangle.v2.y, 1.),
         );
 
         assert_eq!(
@@ -133,14 +132,14 @@ mod tests_intersect_triangle_ray {
     #[test]
     fn through_edge0() {
         let triangle = Triangle {
-            v0: vector![0., 0., 0.],
-            v1: vector![1., 0., 0.],
-            v2: vector![0., 1., 0.],
+            v0: Vector3::new(0., 0., 0.),
+            v1: Vector3::new(1., 0., 0.),
+            v2: Vector3::new(0., 1., 0.),
         };
         let intersection_point = triangle.v0 + triangle.edge0() / 2.;
         let ray = Ray::between(
-            &vector![intersection_point.x, intersection_point.y, -1.],
-            &vector![intersection_point.x, intersection_point.y, 1.],
+            &Vector3::new(intersection_point.x, intersection_point.y, -1.),
+            &Vector3::new(intersection_point.x, intersection_point.y, 1.),
         );
 
         assert_eq!(
@@ -156,14 +155,14 @@ mod tests_intersect_triangle_ray {
     #[test]
     fn through_edge1() {
         let triangle = Triangle {
-            v0: vector![0., 0., 0.],
-            v1: vector![1., 0., 0.],
-            v2: vector![0., 1., 0.],
+            v0: Vector3::new(0., 0., 0.),
+            v1: Vector3::new(1., 0., 0.),
+            v2: Vector3::new(0., 1., 0.),
         };
         let intersection_point = triangle.v1 + triangle.edge1() / 2.;
         let ray = Ray::between(
-            &vector![intersection_point.x, intersection_point.y, -1.],
-            &vector![intersection_point.x, intersection_point.y, 1.],
+            &Vector3::new(intersection_point.x, intersection_point.y, -1.),
+            &Vector3::new(intersection_point.x, intersection_point.y, 1.),
         );
 
         assert_eq!(
@@ -179,14 +178,14 @@ mod tests_intersect_triangle_ray {
     #[test]
     fn through_edge2() {
         let triangle = Triangle {
-            v0: vector![0., 0., 0.],
-            v1: vector![1., 0., 0.],
-            v2: vector![0., 1., 0.],
+            v0: Vector3::new(0., 0., 0.),
+            v1: Vector3::new(1., 0., 0.),
+            v2: Vector3::new(0., 1., 0.),
         };
         let intersection_point = triangle.v2 + triangle.edge2() / 2.;
         let ray = Ray::between(
-            &vector![intersection_point.x, intersection_point.y, -1.],
-            &vector![intersection_point.x, intersection_point.y, 1.],
+            &Vector3::new(intersection_point.x, intersection_point.y, -1.),
+            &Vector3::new(intersection_point.x, intersection_point.y, 1.),
         );
 
         assert_eq!(
@@ -202,13 +201,13 @@ mod tests_intersect_triangle_ray {
     #[test]
     fn parallel_touching() {
         let triangle = Triangle {
-            v0: vector![0., 0., 0.],
-            v1: vector![1., 0., 0.],
-            v2: vector![0., 1., 0.],
+            v0: Vector3::new(0., 0., 0.),
+            v1: Vector3::new(1., 0., 0.),
+            v2: Vector3::new(0., 1., 0.),
         };
         let ray = Ray::between(
-            &vector![triangle.v0.x, triangle.v0.y, 0.],
-            &vector![triangle.v1.x, triangle.v1.y, 0.],
+            &Vector3::new(triangle.v0.x, triangle.v0.y, 0.),
+            &Vector3::new(triangle.v1.x, triangle.v1.y, 0.),
         );
 
         assert_eq!(intersect_triangle_ray(&triangle, &ray), None);
@@ -217,13 +216,13 @@ mod tests_intersect_triangle_ray {
     #[test]
     fn parallel_not_touching() {
         let triangle = Triangle {
-            v0: vector![0., 0., 0.],
-            v1: vector![1., 0., 0.],
-            v2: vector![0., 1., 0.],
+            v0: Vector3::new(0., 0., 0.),
+            v1: Vector3::new(1., 0., 0.),
+            v2: Vector3::new(0., 1., 0.),
         };
         let ray = Ray::between(
-            &vector![triangle.v0.x, triangle.v0.y, 1.],
-            &vector![triangle.v1.x, triangle.v1.y, 1.],
+            &Vector3::new(triangle.v0.x, triangle.v0.y, 1.),
+            &Vector3::new(triangle.v1.x, triangle.v1.y, 1.),
         );
 
         assert_eq!(intersect_triangle_ray(&triangle, &ray), None);
@@ -232,13 +231,13 @@ mod tests_intersect_triangle_ray {
     #[test]
     fn almost_parallel_touching() {
         let triangle = Triangle {
-            v0: vector![0., 0., 0.],
-            v1: vector![1., 0., 0.],
-            v2: vector![0., 1., 0.],
+            v0: Vector3::new(0., 0., 0.),
+            v1: Vector3::new(1., 0., 0.),
+            v2: Vector3::new(0., 1., 0.),
         };
         let ray = Ray::between(
-            &vector![triangle.v0.x, triangle.v0.y, -0.000001],
-            &vector![triangle.v1.x, triangle.v1.y, 0.000001],
+            &Vector3::new(triangle.v0.x, triangle.v0.y, -0.000001),
+            &Vector3::new(triangle.v1.x, triangle.v1.y, 0.000001),
         );
 
         assert_eq!(
@@ -261,9 +260,9 @@ pub fn intersect_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> bool {
     let f1 = v2 - v1;
     let f2 = v0 - v2;
 
-    const U0: Vector3<f32> = vector![1., 0., 0.];
-    const U1: Vector3<f32> = vector![0., 1., 0.];
-    const U2: Vector3<f32> = vector![0., 0., 1.];
+    const U0: Vector3<f32> = Vector3::new(1., 0., 0.);
+    const U1: Vector3<f32> = Vector3::new(0., 1., 0.);
+    const U2: Vector3<f32> = Vector3::new(0., 0., 1.);
 
     let test_axis = |axis: Vector3<f32>| {
         let p0 = v0.dot(&axis);
@@ -324,18 +323,17 @@ pub fn intersect_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> bool {
 #[cfg(test)]
 mod tests_intersect_triangle_aabb {
     use super::*;
-    use nalgebra::vector;
 
     #[test]
     fn triangle_completely_inside() {
         let triangle = Triangle {
-            v0: vector![1., 1., 1.],
-            v1: vector![2., 1., 1.],
-            v2: vector![1., 2., 1.],
+            v0: Vector3::new(1., 1., 1.),
+            v1: Vector3::new(2., 1., 1.),
+            v2: Vector3::new(1., 2., 1.),
         };
         let aabb = Aabb {
-            center: vector![1., 1., 1.],
-            half_size: vector![1., 1., 1.],
+            center: Vector3::new(1., 1., 1.),
+            half_size: Vector3::new(1., 1., 1.),
         };
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
@@ -344,13 +342,13 @@ mod tests_intersect_triangle_aabb {
     #[test]
     fn triangle_contained_in_one_face() {
         let triangle = Triangle {
-            v0: vector![1., 1., 2.],
-            v1: vector![2., 1., 2.],
-            v2: vector![1., 2., 2.],
+            v0: Vector3::new(1., 1., 2.),
+            v1: Vector3::new(2., 1., 2.),
+            v2: Vector3::new(1., 2., 2.),
         };
         let aabb = Aabb {
-            center: vector![1., 1., 1.],
-            half_size: vector![1., 1., 1.],
+            center: Vector3::new(1., 1., 1.),
+            half_size: Vector3::new(1., 1., 1.),
         };
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
@@ -359,13 +357,13 @@ mod tests_intersect_triangle_aabb {
     #[test]
     fn triangle_outside() {
         let triangle = Triangle {
-            v0: vector![10., 10., 10.],
-            v1: vector![11., 10., 10.],
-            v2: vector![10., 11., 10.],
+            v0: Vector3::new(10., 10., 10.),
+            v1: Vector3::new(11., 10., 10.),
+            v2: Vector3::new(10., 11., 10.),
         };
         let aabb = Aabb {
-            center: vector![1., 1., 1.],
-            half_size: vector![1., 1., 1.],
+            center: Vector3::new(1., 1., 1.),
+            half_size: Vector3::new(1., 1., 1.),
         };
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), false);
@@ -388,28 +386,27 @@ pub fn triangles_bounding_box(triangles: &[Triangle]) -> Aabb {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nalgebra::vector;
 
     #[test]
     fn test_bounding() {
         let triangles = [
             Triangle {
-                v0: vector![1., 1., 0.],
-                v1: vector![1., 1., 1.],
-                v2: vector![0., 0., 0.],
+                v0: Vector3::new(1., 1., 0.),
+                v1: Vector3::new(1., 1., 1.),
+                v2: Vector3::new(0., 0., 0.),
             },
             Triangle {
-                v0: vector![-1., -1., 0.],
-                v1: vector![-1., -1., -1.],
-                v2: vector![0., 0., 0.],
+                v0: Vector3::new(-1., -1., 0.),
+                v1: Vector3::new(-1., -1., -1.),
+                v2: Vector3::new(0., 0., 0.),
             },
         ];
 
         let actual = triangles_bounding_box(&triangles);
 
         let expected = Aabb {
-            center: vector![0., 0., 0.],
-            half_size: vector![1., 1., 1.],
+            center: Vector3::new(0., 0., 0.),
+            half_size: Vector3::new(1., 1., 1.),
         };
         assert_eq!(actual, expected);
     }
@@ -437,7 +434,7 @@ mod tests_intersect_ray_aap {
             axis: Axis::X,
             distance: 5.0,
         };
-        let ray = Ray::between(&Vector3::zeros(), &vector![5.0, 0.0, 0.0]);
+        let ray = Ray::between(&Vector3::zeros(), &Vector3::new(5.0, 0.0, 0.0));
 
         assert_eq!(intersect_ray_aap(&ray, &plane), Some(1.0));
     }
@@ -448,7 +445,7 @@ mod tests_intersect_ray_aap {
             axis: Axis::X,
             distance: 5.0,
         };
-        let ray = Ray::between(&Vector3::zeros(), &vector![10.0, 0.0, 0.0]);
+        let ray = Ray::between(&Vector3::zeros(), &Vector3::new(10.0, 0.0, 0.0));
 
         assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.5));
     }
@@ -459,7 +456,7 @@ mod tests_intersect_ray_aap {
             axis: Axis::X,
             distance: 5.0,
         };
-        let ray = Ray::between(&Vector3::zeros(), &vector![4.0, 0.0, 0.0]);
+        let ray = Ray::between(&Vector3::zeros(), &Vector3::new(4.0, 0.0, 0.0));
 
         assert_eq!(intersect_ray_aap(&ray, &plane), None);
     }
@@ -470,7 +467,7 @@ mod tests_intersect_ray_aap {
             axis: Axis::X,
             distance: 5.0,
         };
-        let ray = Ray::between(&vector![4.0, 0.0, 0.0], &vector![6.0, 0.0, 0.0]);
+        let ray = Ray::between(&Vector3::new(4.0, 0.0, 0.0), &Vector3::new(6.0, 0.0, 0.0));
 
         assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.5));
     }
@@ -481,7 +478,7 @@ mod tests_intersect_ray_aap {
             axis: Axis::X,
             distance: 5.0,
         };
-        let ray = Ray::between(&vector![6.0, 0.0, 0.0], &vector![4.0, 0.0, 0.0]);
+        let ray = Ray::between(&Vector3::new(6.0, 0.0, 0.0), &Vector3::new(4.0, 0.0, 0.0));
 
         assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.5));
     }
@@ -492,7 +489,7 @@ mod tests_intersect_ray_aap {
             axis: Axis::X,
             distance: 2.0,
         };
-        let ray = Ray::between(&vector![1.0, 1.0, 0.0], &(vector![3.0, 3.0, 0.0]));
+        let ray = Ray::between(&Vector3::new(1.0, 1.0, 0.0), &(Vector3::new(3.0, 3.0, 0.0)));
 
         assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.5));
     }
@@ -503,7 +500,7 @@ mod tests_intersect_ray_aap {
             axis: Axis::Y,
             distance: 2.0,
         };
-        let ray = Ray::between(&vector![1.0, 1.0, 0.0], &vector![3.0, 3.0, 0.0]);
+        let ray = Ray::between(&Vector3::new(1.0, 1.0, 0.0), &Vector3::new(3.0, 3.0, 0.0));
 
         assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.5));
     }
@@ -514,7 +511,7 @@ mod tests_intersect_ray_aap {
             axis: Axis::Y,
             distance: 2.0,
         };
-        let ray = Ray::between(&vector![3.0, 1.0, 0.0], &vector![1.0, 3.0, 0.0]);
+        let ray = Ray::between(&Vector3::new(3.0, 1.0, 0.0), &Vector3::new(1.0, 3.0, 0.0));
 
         assert_eq!(intersect_ray_aap(&ray, &plane), Some(0.5));
     }
@@ -525,7 +522,7 @@ mod tests_intersect_ray_aap {
             axis: Axis::X,
             distance: 2.0,
         };
-        let ray = Ray::between(&vector![0.0, 0.0, 0.0], &(vector![0.0, 1.0, 0.0]));
+        let ray = Ray::between(&Vector3::new(0.0, 0.0, 0.0), &(Vector3::new(0.0, 1.0, 0.0)));
 
         assert_eq!(intersect_ray_aap(&ray, &plane), None);
     }
@@ -588,11 +585,11 @@ mod tests_clip_triangle_aabb {
     #[test]
     pub fn triangle_completely_enclosed_in_box() {
         let triangle = Triangle {
-            v0: vector![1.0, 1.0, 1.0],
-            v1: vector![2.0, 1.0, 1.0],
-            v2: vector![2.0, 2.0, 1.0],
+            v0: Vector3::new(1.0, 1.0, 1.0),
+            v1: Vector3::new(2.0, 1.0, 1.0),
+            v2: Vector3::new(2.0, 2.0, 1.0),
         };
-        let aabb = Aabb::from_extents(&vector![0.0, 0.0, 0.0], &vector![3.0, 3.0, 3.0]);
+        let aabb = Aabb::from_extents(&Vector3::new(0.0, 0.0, 0.0), &Vector3::new(3.0, 3.0, 3.0));
 
         let actual = clip_triangle_aabb(&triangle, &aabb);
 
@@ -603,11 +600,11 @@ mod tests_clip_triangle_aabb {
     #[test]
     pub fn triangle_above_box() {
         let triangle = Triangle {
-            v0: vector![0.0, 2.0, 0.0],
-            v1: vector![1.0, 2.0, 0.0],
-            v2: vector![1.0, 2.0, 1.0],
+            v0: Vector3::new(0.0, 2.0, 0.0),
+            v1: Vector3::new(1.0, 2.0, 0.0),
+            v2: Vector3::new(1.0, 2.0, 1.0),
         };
-        let aabb = Aabb::from_extents(&vector![0.0, 0.0, 0.0], &vector![1.0, 1.0, 1.0]);
+        let aabb = Aabb::from_extents(&Vector3::new(0.0, 0.0, 0.0), &Vector3::new(1.0, 1.0, 1.0));
 
         let actual = clip_triangle_aabb(&triangle, &aabb);
 
@@ -618,11 +615,11 @@ mod tests_clip_triangle_aabb {
     #[test]
     pub fn triangle_below_box() {
         let triangle = Triangle {
-            v0: vector![0.0, -1.0, 0.0],
-            v1: vector![1.0, -1.0, 0.0],
-            v2: vector![1.0, -1.0, 1.0],
+            v0: Vector3::new(0.0, -1.0, 0.0),
+            v1: Vector3::new(1.0, -1.0, 0.0),
+            v2: Vector3::new(1.0, -1.0, 1.0),
         };
-        let aabb = Aabb::from_extents(&vector![0.0, 0.0, 0.0], &vector![1.0, 1.0, 1.0]);
+        let aabb = Aabb::from_extents(&Vector3::new(0.0, 0.0, 0.0), &Vector3::new(1.0, 1.0, 1.0));
 
         let actual = clip_triangle_aabb(&triangle, &aabb);
 
@@ -633,21 +630,21 @@ mod tests_clip_triangle_aabb {
     #[test]
     pub fn triangle_in_zplane_with_all_edges_intersecting_box_sides() {
         let triangle = Triangle {
-            v0: vector![0.0, 0.0, 0.0],
-            v1: vector![12.0, 0.0, 0.0],
-            v2: vector![6.0, 6.0, 0.0],
+            v0: Vector3::new(0.0, 0.0, 0.0),
+            v1: Vector3::new(12.0, 0.0, 0.0),
+            v2: Vector3::new(6.0, 6.0, 0.0),
         };
-        let aabb = Aabb::from_extents(&vector![2.0, -1.0, 0.0], &vector![10.0, 4.0, 0.0]);
+        let aabb = Aabb::from_extents(&Vector3::new(2.0, -1.0, 0.0), &Vector3::new(10.0, 4.0, 0.0));
 
         let actual = clip_triangle_aabb(&triangle, &aabb);
 
         let expected: SmallVec<[Vector3<f32>; 3]> = smallvec![
-            vector![2.0, 0.0, 0.0],
-            vector![10.0, 0.0, 0.0],
-            vector![10.0, 2.0, 0.0],
-            vector![8.0, 4.0, 0.0],
-            vector![4.0, 4.0, 0.0],
-            vector![2.0, 2.0, 0.0],
+            Vector3::new(2.0, 0.0, 0.0),
+            Vector3::new(10.0, 0.0, 0.0),
+            Vector3::new(10.0, 2.0, 0.0),
+            Vector3::new(8.0, 4.0, 0.0),
+            Vector3::new(4.0, 4.0, 0.0),
+            Vector3::new(2.0, 2.0, 0.0),
         ];
         assert_eq!(actual, expected);
     }

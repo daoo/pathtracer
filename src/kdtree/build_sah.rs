@@ -1,4 +1,4 @@
-use nalgebra::vector;
+use nalgebra::Vector3;
 use rayon::prelude::*;
 
 use crate::kdtree::split::{clip_triangle, PerfectSplit};
@@ -57,7 +57,7 @@ impl SahKdTreeBuilder {
 impl KdTreeBuilder for SahKdTreeBuilder {
     fn starting_box(&self) -> KdBox {
         KdBox {
-            boundary: triangles_bounding_box(&self.triangles).enlarge(&vector![0.5, 0.5, 0.5]),
+            boundary: triangles_bounding_box(&self.triangles).enlarge(&Vector3::new(0.5, 0.5, 0.5)),
             triangle_indices: (0u32..self.triangles.len() as u32).collect(),
         }
     }
@@ -115,7 +115,6 @@ impl KdTreeBuilder for SahKdTreeBuilder {
 #[cfg(test)]
 mod tests {
     use geometry::aap::Axis;
-    use nalgebra::vector;
 
     use crate::kdtree::{build::build_kdtree, KdNode};
 
@@ -124,9 +123,9 @@ mod tests {
     #[test]
     fn test() {
         let triangles = vec![Triangle {
-            v0: vector![0.0, 0.0, 0.0],
-            v1: vector![1.0, 0.0, 0.0],
-            v2: vector![1.0, 1.0, 0.0],
+            v0: Vector3::new(0.0, 0.0, 0.0),
+            v1: Vector3::new(1.0, 0.0, 0.0),
+            v2: Vector3::new(1.0, 1.0, 0.0),
         }];
         let builder = SahKdTreeBuilder {
             traverse_cost: 0.1,

@@ -4,11 +4,11 @@ use crate::raylogger::RayLoggerWithMeta;
 use crate::sampling::*;
 use crate::scene::*;
 use geometry::ray::Ray;
-use nalgebra::{vector, Vector2, Vector3};
+use nalgebra::{Vector2, Vector3};
 use rand::rngs::SmallRng;
 
 fn environment_contribution(_: &Ray) -> Vector3<f32> {
-    vector![0.8, 0.8, 0.8]
+    Vector3::new(0.8, 0.8, 0.8)
 }
 
 fn trace_ray(
@@ -110,7 +110,7 @@ pub fn render(
     buffer: &mut ImageBuffer,
     rng: &mut SmallRng,
 ) {
-    let buffer_size = vector![buffer.ncols() as f32, buffer.nrows() as f32];
+    let buffer_size = Vector2::new(buffer.ncols() as f32, buffer.nrows() as f32);
     for y in 0..buffer.nrows() {
         for x in 0..buffer.ncols() {
             let pixel_center = Vector2::new(x as f32, y as f32) + uniform_sample_unit_square(rng);

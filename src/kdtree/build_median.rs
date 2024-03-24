@@ -1,4 +1,4 @@
-use nalgebra::vector;
+use nalgebra::Vector3;
 use rayon::prelude::*;
 
 use geometry::{
@@ -31,7 +31,7 @@ fn median(splits: &[Aap]) -> Aap {
 impl KdTreeBuilder for MedianKdTreeBuilder {
     fn starting_box(&self) -> KdBox {
         KdBox {
-            boundary: triangles_bounding_box(&self.triangles).enlarge(&vector![0.5, 0.5, 0.5]),
+            boundary: triangles_bounding_box(&self.triangles).enlarge(&Vector3::new(0.5, 0.5, 0.5)),
             triangle_indices: (0u32..self.triangles.len() as u32).collect(),
         }
     }

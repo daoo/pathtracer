@@ -1,9 +1,9 @@
-use nalgebra::{vector, UnitVector3, Vector2, Vector3};
+use nalgebra::{UnitVector3, Vector2, Vector3};
 use rand::rngs::SmallRng;
 use rand::Rng;
 
 pub fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vector2<f32> {
-    vector![rng.gen(), rng.gen()]
+    Vector2::new(rng.gen(), rng.gen())
 }
 
 pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> UnitVector3<f32> {
@@ -12,19 +12,15 @@ pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> UnitVector3<f32> {
     let r = (1.0f32 - z * z).sqrt();
     let x = r * a.cos();
     let y = r * a.sin();
-    UnitVector3::new_unchecked(vector![x, y, z])
+    UnitVector3::new_unchecked(Vector3::new(x, y, z))
 }
 
 // fn uniform_sample_hemisphere(rng: &mut SmallRng) -> Vector3<f32> {
-//   let r = uniform_sample_unit_square(rng);
+//     let r = uniform_sample_unit_square(rng);
 
-//   let a = 2.0 * (r.y * (1.0 - r.y)).sqrt();
-//   let b = std::f32::consts::TAU * r.x;
-//   vector![
-//       a * b.cos(),
-//       a * b.sin(),
-//       (1.0 - 2.0 * r.y).abs()
-//   ]
+//     let a = 2.0 * (r.y * (1.0 - r.y)).sqrt();
+//     let b = std::f32::consts::TAU * r.x;
+//     Vector3::new(a * b.cos(), a * b.sin(), (1.0 - 2.0 * r.y).abs())
 // }
 
 fn concentric_sample_unit_disk(rng: &mut SmallRng) -> Vector2<f32> {
@@ -42,13 +38,13 @@ fn concentric_sample_unit_disk(rng: &mut SmallRng) -> Vector2<f32> {
     };
 
     let theta = theta * std::f32::consts::FRAC_PI_4;
-    vector![r * theta.cos(), r * theta.sin()]
+    Vector2::new(r * theta.cos(), r * theta.sin())
 }
 
 pub fn cosine_sample_hemisphere(rng: &mut SmallRng) -> Vector3<f32> {
     let ret = concentric_sample_unit_disk(rng);
     let z = (0.0f32.max(1.0 - ret.x * ret.x - ret.y * ret.y)).sqrt();
-    vector![ret.x, ret.y, z]
+    Vector3::new(ret.x, ret.y, z)
 }
 
 #[cfg(test)]
@@ -61,8 +57,8 @@ mod tests {
         let mut rng = SmallRng::from_entropy();
         for _ in 0..1000 {
             let point = uniform_sample_unit_square(&mut rng);
-            assert!(point >= vector![0.0, 0.0]);
-            assert!(point <= vector![1.0, 1.0]);
+            assert!(point >= Vector2::new(0.0, 0.0));
+            assert!(point <= Vector2::new(1.0, 1.0));
         }
     }
 

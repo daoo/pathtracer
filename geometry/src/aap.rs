@@ -1,4 +1,4 @@
-use nalgebra::{vector, Vector3};
+use nalgebra::Vector3;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Axis {
@@ -19,9 +19,9 @@ impl Axis {
 
     pub fn as_vector3(&self, v: f32) -> Vector3<f32> {
         match self {
-            Axis::X => vector![v, 0.0, 0.0],
-            Axis::Y => vector![0.0, v, 0.0],
-            Axis::Z => vector![0.0, 0.0, v],
+            Axis::X => Vector3::new(v, 0.0, 0.0),
+            Axis::Y => Vector3::new(0.0, v, 0.0),
+            Axis::Z => Vector3::new(0.0, 0.0, v),
         }
     }
 }

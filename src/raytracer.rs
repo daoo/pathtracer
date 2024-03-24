@@ -4,7 +4,7 @@ use crate::light::*;
 use crate::material::*;
 use crate::scene::*;
 use geometry::ray::Ray;
-use nalgebra::{vector, UnitVector3, Vector2, Vector3};
+use nalgebra::{UnitVector3, Vector2, Vector3};
 
 fn light_contribution(
     scene: &Scene,
@@ -30,7 +30,7 @@ fn light_contribution(
 }
 
 fn environment_contribution(_: &Ray) -> Vector3<f32> {
-    vector![0.8, 0.8, 0.8]
+    Vector3::new(0.8, 0.8, 0.8)
 }
 
 fn trace_ray(scene: &Scene, ray: &Ray) -> Vector3<f32> {
@@ -58,7 +58,7 @@ fn trace_ray(scene: &Scene, ray: &Ray) -> Vector3<f32> {
 }
 
 pub fn render(scene: &Scene, camera: &Pinhole, buffer: &mut ImageBuffer) {
-    let buffer_size = vector![buffer.ncols() as f32, buffer.nrows() as f32];
+    let buffer_size = Vector2::new(buffer.ncols() as f32, buffer.nrows() as f32);
     for y in 0..buffer.nrows() {
         for x in 0..buffer.ncols() {
             let pixel_center = Vector2::new(x as f32, y as f32) + Vector2::new(0.5, 0.5);
