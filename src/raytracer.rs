@@ -64,7 +64,8 @@ pub fn render(scene: &Scene, camera: &Pinhole, buffer: &mut ImageBuffer) {
             let pixel_center = Vector2::new(x as f32, y as f32) + Vector2::new(0.5, 0.5);
             let scene_direction = pixel_center.component_div(&buffer_size);
             let ray = camera.ray(scene_direction.x, scene_direction.y);
-            buffer[(x, y)] += trace_ray(scene, &ray);
+            let value = trace_ray(scene, &ray);
+            buffer.add_mut(x, y, value.into());
         }
     }
 }

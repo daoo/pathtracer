@@ -1,52 +1,60 @@
-use nalgebra::{DMatrix, Vector3};
-use std::{
-    ops::{Add, Index, IndexMut},
-    path::Path,
-};
+use std::{ops::Add, path::Path};
 
-pub struct ImageBuffer(DMatrix<Vector3<f32>>);
+pub struct ImageBuffer(image::ImageBuffer<image::Rgb<f32>, Vec<f32>>);
 
-fn gamma_correct(x: f32) -> f32 {
+fn gamma_correct(x: &f32) -> f32 {
     const GAMMA_POWER: f32 = 1.0 / 2.2;
     1.0f32.min(x.powf(GAMMA_POWER))
 }
 
-fn to_rgb_u8(vector: &Vector3<f32>) -> image::Rgb<u8> {
-    image::Rgb([
-        (gamma_correct(vector.x) * 255.0) as u8,
-        (gamma_correct(vector.y) * 255.0) as u8,
-        (gamma_correct(vector.z) * 255.0) as u8,
-    ])
-}
-
 impl ImageBuffer {
-    pub fn new(width: usize, height: usize) -> Self {
-        ImageBuffer(DMatrix::zeros(height, width))
+    pub fn new(width: u32, height: u32) -> Self {
+        ImageBuffer(image::ImageBuffer::new(height, width))
     }
 
-    pub fn ncols(&self) -> usize {
-        self.0.ncols()
+    pub fn ncols(&self) -> u32 {
+        self.0.width()
     }
-    pub fn nrows(&self) -> usize {
-        self.0.nrows()
+    pub fn nrows(&self) -> u32 {
+        self.0.height()
     }
 
     pub fn div(&self, value: f32) -> Self {
-        ImageBuffer(self.0.map(|e| e / value))
+        ImageBuffer(
+            image::ImageBuffer::from_vec(
+                self.0.width(),
+                self.0.height(),
+                self.0.iter().map(|e| e / value).collect(),
+            )
+            .unwrap(),
+        )
+    }
+
+    pub fn gamma_correct(&self) -> Self {
+        ImageBuffer(
+            image::ImageBuffer::from_vec(
+                self.0.width(),
+                self.0.height(),
+                self.0.iter().map(gamma_correct).collect(),
+            )
+            .unwrap(),
+        )
     }
 
     pub fn save_with_format(
-        &self,
+        self,
         path: &Path,
         format: image::ImageFormat,
     ) -> Result<(), image::ImageError> {
-        let mut image = image::RgbImage::new(self.0.ncols() as u32, self.0.nrows() as u32);
-        for y in 0..self.0.nrows() {
-            for x in 0..self.0.ncols() {
-                image[(x as u32, y as u32)] = to_rgb_u8(&self.0[(y, x)]);
-            }
-        }
-        image.save_with_format(path, format)
+        image::DynamicImage::ImageRgb32F(self.0)
+            .into_rgb8()
+            .save_with_format(path, format)
+    }
+
+    pub fn add_mut(&mut self, x: u32, y: u32, value: [f32; 3]) {
+        self.0[(x, y)][0] += value[0];
+        self.0[(x, y)][1] += value[1];
+        self.0[(x, y)][2] += value[2];
     }
 }
 
@@ -54,20 +62,17 @@ impl Add for ImageBuffer {
     type Output = ImageBuffer;
 
     fn add(self, rhs: Self) -> Self::Output {
-        ImageBuffer(self.0 + rhs.0)
-    }
-}
-
-impl Index<(usize, usize)> for ImageBuffer {
-    type Output = Vector3<f32>;
-
-    fn index(&self, index: (usize, usize)) -> &Self::Output {
-        &self.0[(index.1, index.0)]
-    }
-}
-
-impl IndexMut<(usize, usize)> for ImageBuffer {
-    fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
-        &mut self.0[(index.1, index.0)]
+        ImageBuffer(
+            image::ImageBuffer::from_vec(
+                self.0.width(),
+                self.0.height(),
+                self.0
+                    .iter()
+                    .zip(rhs.0.iter())
+                    .map(|(a, b)| a + b)
+                    .collect(),
+            )
+            .unwrap(),
+        )
     }
 }

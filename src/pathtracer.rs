@@ -117,7 +117,7 @@ pub fn render(
             let scene_direction = pixel_center.component_div(&buffer_size);
             let ray = camera.ray(scene_direction.x, scene_direction.y);
             let mut logger = ray_logger.with_meta(&[x as u16, y as u16]);
-            buffer[(x, y)] += trace_ray(
+            let value = trace_ray(
                 &mut logger,
                 max_bounces,
                 scene,
@@ -127,6 +127,7 @@ pub fn render(
                 0,
                 rng,
             );
+            buffer.add_mut(x, y, value.into());
         }
     }
 }

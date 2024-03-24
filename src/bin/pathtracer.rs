@@ -21,9 +21,9 @@ struct Args {
     #[arg(short, long, required = true)]
     output: std::path::PathBuf,
     #[arg(short, long, default_value_t = 512)]
-    width: usize,
+    width: u32,
     #[arg(short, long, default_value_t = 512)]
-    height: usize,
+    height: u32,
     #[arg(short, long, default_value_t = 10)]
     max_bounces: u32,
     #[arg(short = 'n', long, default_value_t = 16)]
@@ -33,8 +33,8 @@ struct Args {
 }
 
 struct Work<'a> {
-    width: usize,
-    height: usize,
+    width: u32,
+    height: u32,
     max_bounces: u32,
     scene: &'a Scene,
     pinhole: &'a Pinhole,
@@ -145,6 +145,7 @@ fn main() {
     println!("Writing {}...", args.output.display());
     buffer
         .div(args.iterations as f32)
+        .gamma_correct()
         .save_with_format(&args.output, image::ImageFormat::Png)
         .unwrap();
 }

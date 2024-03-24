@@ -14,9 +14,9 @@ struct Args {
     #[arg(short, long, required = true)]
     output: std::path::PathBuf,
     #[arg(short, long, default_value_t = 512)]
-    width: usize,
+    width: u32,
     #[arg(short, long, default_value_t = 512)]
-    height: usize,
+    height: u32,
 }
 
 fn main() {
@@ -39,6 +39,7 @@ fn main() {
 
     println!("Writing {}...", args.output.display());
     buffer
+        .gamma_correct()
         .save_with_format(&args.output, image::ImageFormat::Png)
         .unwrap();
 }
