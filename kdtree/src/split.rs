@@ -7,8 +7,6 @@ use geometry::{
     triangle::Triangle,
 };
 
-use super::build::{KdBox, KdSplit};
-
 #[derive(Debug, PartialEq)]
 pub struct PerfectSplit {
     pub axis: Axis,
@@ -105,23 +103,26 @@ mod tests {
 pub fn partition_triangles(
     clipped_triangles: &[ClippedTriangle],
     plane: &Aap,
-) -> (Vec<u32>, Vec<u32>) {
+) -> (Vec<u32>, Vec<u32>, Vec<u32>) {
     let mut left_triangles: Vec<u32> = Vec::new();
+    let mut middle_triangles: Vec<u32> = Vec::new();
     let mut right_triangles: Vec<u32> = Vec::new();
     for clipped in clipped_triangles {
         let planar =
             clipped.min[plane.axis] == plane.distance && clipped.max[plane.axis] == plane.distance;
         let left = clipped.min[plane.axis] < plane.distance;
         let right = clipped.max[plane.axis] > plane.distance;
-        // TODO: What to do with planar triangles?
-        if left || planar {
+        if left {
             left_triangles.push(clipped.index);
         }
-        if right || planar {
+        if planar {
+            middle_triangles.push(clipped.index);
+        }
+        if right {
             right_triangles.push(clipped.index);
         }
     }
-    (left_triangles, right_triangles)
+    (left_triangles, middle_triangles, right_triangles)
 }
 
 #[cfg(test)]
@@ -153,22 +154,31 @@ mod partition_triangles_tests {
 
         let actual = partition_triangles(clipped.as_slice(), &plane);
 
-        assert_eq!(actual, (vec![0, 1], vec![1, 2]));
+        assert_eq!(actual, (vec![0], vec![1], vec![2]));
     }
 }
 
-pub fn split_and_partition(clipped: &[ClippedTriangle], aabb: &Aabb, plane: Aap) -> KdSplit {
+pub struct SplitPartitioning {
+    pub left_aabb: Aabb,
+    pub right_aabb: Aabb,
+    pub left_triangle_indices: Vec<u32>,
+    pub middle_triangle_indices: Vec<u32>,
+    pub right_triangle_indices: Vec<u32>,
+}
+
+pub fn split_and_partition(
+    clipped: &[ClippedTriangle],
+    aabb: &Aabb,
+    plane: Aap,
+) -> SplitPartitioning {
     let (left_aabb, right_aabb) = aabb.split(&plane);
-    let (left_triangles, right_triangles) = partition_triangles(clipped, &plane);
-    KdSplit {
-        plane,
-        left: KdBox {
-            boundary: left_aabb,
-            triangle_indices: left_triangles,
-        },
-        right: KdBox {
-            boundary: right_aabb,
-            triangle_indices: right_triangles,
-        },
+    let (left_triangle_indices, middle_triangle_indices, right_triangle_indices) =
+        partition_triangles(clipped, &plane);
+    SplitPartitioning {
+        left_aabb,
+        right_aabb,
+        left_triangle_indices,
+        middle_triangle_indices,
+        right_triangle_indices,
     }
 }

@@ -58,12 +58,17 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
         if planes.is_empty() {
             return None;
         }
-        let best = median(&planes);
-        Some(split_and_partition(
-            &clipped_triangles,
-            &parent.boundary,
-            best,
-        ))
+        let plane = median(&planes);
+        let split = split_and_partition(&clipped_triangles, &parent.boundary, plane);
+        let left = KdBox {
+            boundary: split.left_aabb,
+            triangle_indices: [split.left_triangle_indices, split.middle_triangle_indices].concat(),
+        };
+        let right = KdBox {
+            boundary: split.right_aabb,
+            triangle_indices: split.right_triangle_indices,
+        };
+        Some(KdSplit { plane, left, right })
     }
 
     fn terminate(&self, _: &KdBox, _: &super::build::KdSplit) -> bool {

@@ -1,7 +1,7 @@
 use nalgebra::Vector3;
 use rayon::prelude::*;
 
-use geometry::{aabb::Aabb, aap::Aap, algorithms::triangles_bounding_box, triangle::Triangle};
+use geometry::{aap::Aap, algorithms::triangles_bounding_box, triangle::Triangle};
 
 use crate::split::{clip_triangle, PerfectSplit};
 
@@ -19,7 +19,7 @@ pub struct SahKdTreeBuilder {
 }
 
 impl SahKdTreeBuilder {
-    fn calculate_sah_cost_helper(&self, probability: (f32, f32), counts: (usize, usize)) -> f32 {
+    fn calculate_sah_cost(&self, probability: (f32, f32), counts: (usize, usize)) -> f32 {
         debug_assert!(probability.0 >= 0.0 && probability.1 >= 0.0);
         debug_assert!(probability.0 > 0.0 || probability.1 > 0.0);
         let empty_factor = if counts.0 == 0 || counts.1 == 0 {
@@ -32,17 +32,6 @@ impl SahKdTreeBuilder {
         empty_factor * (self.traverse_cost + intersect_cost)
     }
 
-    fn calculate_sah_cost(&self, parent: &Aabb, split: &KdSplit) -> f32 {
-        let probability_left = split.left.boundary.surface_area() / parent.surface_area();
-        let probability_right = split.right.boundary.surface_area() / parent.surface_area();
-        let probability = (probability_left, probability_right);
-        let counts = (
-            split.left.triangle_indices.len(),
-            split.right.triangle_indices.len(),
-        );
-        self.calculate_sah_cost_helper(probability, counts)
-    }
-
     fn split_and_calculate_cost(
         &self,
         parent: &KdBox,
@@ -50,15 +39,36 @@ impl SahKdTreeBuilder {
         clipped: &[ClippedTriangle],
     ) -> (KdSplit, f32) {
         let split = split_and_partition(clipped, &parent.boundary, plane);
-        let cost = self.calculate_sah_cost(&parent.boundary, &split);
-        (split, cost)
+        // TODO: Place planes to the left or to the right depending on what gives best cost.
+        let probability_left = split.left_aabb.surface_area() / parent.boundary.surface_area();
+        let probability_right = split.right_aabb.surface_area() / parent.boundary.surface_area();
+        let probability = (probability_left, probability_right);
+        let counts = (
+            split.left_triangle_indices.len() + split.middle_triangle_indices.len(),
+            split.right_triangle_indices.len() + split.middle_triangle_indices.len(),
+        );
+        let cost = self.calculate_sah_cost(probability, counts);
+        let left = KdBox {
+            boundary: split.left_aabb,
+            triangle_indices: [
+                split.left_triangle_indices,
+                split.middle_triangle_indices.clone(),
+            ]
+            .concat(),
+        };
+        let right = KdBox {
+            boundary: split.right_aabb,
+            triangle_indices: [split.right_triangle_indices, split.middle_triangle_indices]
+                .concat(),
+        };
+        (KdSplit { plane, left, right }, cost)
     }
 }
 
 impl KdTreeBuilder for SahKdTreeBuilder {
     fn starting_box(&self) -> KdBox {
         KdBox {
-            boundary: triangles_bounding_box(&self.triangles).enlarge(&Vector3::new(0.5, 0.5, 0.5)),
+            boundary: triangles_bounding_box(&self.triangles).enlarge(&Vector3::new(1.0, 1.0, 1.0)),
             triangle_indices: (0u32..self.triangles.len() as u32).collect(),
         }
     }
@@ -101,8 +111,17 @@ impl KdTreeBuilder for SahKdTreeBuilder {
     }
 
     fn terminate(&self, parent: &KdBox, split: &KdSplit) -> bool {
-        let split_cost = self.calculate_sah_cost(&parent.boundary, split);
-        split_cost >= self.intersect_cost * parent.triangle_indices.len() as f32
+        let probability_left = split.left.boundary.surface_area() / parent.boundary.surface_area();
+        let probability_right =
+            split.right.boundary.surface_area() / parent.boundary.surface_area();
+        let probability = (probability_left, probability_right);
+        let counts = (
+            split.left.triangle_indices.len(),
+            split.right.triangle_indices.len(),
+        );
+        let split_cost = self.calculate_sah_cost(probability, counts);
+        let intersect_cost = self.intersect_cost * parent.triangle_indices.len() as f32;
+        split_cost >= intersect_cost
     }
 
     fn make_tree(self, root: Box<KdNode>) -> KdTree {
@@ -132,7 +151,7 @@ mod tests {
             empty_factor: 0.8,
             triangles,
         };
-        let tree = build_kdtree(builder, 6);
+        let tree = build_kdtree(builder, 10);
 
         let expected = KdNode::new_node(
             Aap::new_x(0.0),
@@ -147,7 +166,10 @@ mod tests {
                 KdNode::empty(),
             ),
         );
-        dbg!(&tree.root);
-        assert_eq!(tree.root, expected);
+        assert_eq!(
+            tree.root, expected,
+            "\n   actual: {}\n expected: {}",
+            tree.root, expected
+        );
     }
 }
