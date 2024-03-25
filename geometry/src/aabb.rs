@@ -68,10 +68,6 @@ impl Aabb {
         }
     }
 
-    pub fn clamp(&self, v: Vector3<f32>) -> Vector3<f32> {
-        nalgebra::clamp(v, self.min(), self.max())
-    }
-
     pub fn split(&self, plane: &Aap) -> (Aabb, Aabb) {
         let fst_half_axis = (plane.distance - self.min()[plane.axis]) / 2.;
         let snd_half_axis = (self.max()[plane.axis] - plane.distance) / 2.;
