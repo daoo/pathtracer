@@ -1,6 +1,6 @@
 use geometry::{
     aabb::Aabb,
-    aap::{Aap, Axis},
+    aap::Aap,
     algorithms::{intersect_triangle_ray, triangles_bounding_box, TriangleRayIntersection},
     ray::Ray,
     triangle::Triangle,
@@ -22,27 +22,22 @@ pub enum KdNode {
 }
 
 impl KdNode {
-    pub fn new_leaf(triangle_indices: Vec<u32>) -> Box<KdNode> {
-        Box::new(KdNode::Leaf(triangle_indices))
+    pub fn empty() -> Box<Self> {
+        Box::new(Self::Leaf(vec![]))
     }
 
-    pub fn new_node(
-        axis: Axis,
-        distance: f32,
-        left: Box<KdNode>,
-        right: Box<KdNode>,
-    ) -> Box<KdNode> {
-        Box::new(KdNode::Node {
-            plane: Aap { axis, distance },
-            left,
-            right,
-        })
+    pub fn new_leaf(triangle_indices: Vec<u32>) -> Box<Self> {
+        Box::new(Self::Leaf(triangle_indices))
+    }
+
+    pub fn new_node(plane: Aap, left: Box<Self>, right: Box<Self>) -> Box<Self> {
+        Box::new(Self::Node { plane, left, right })
     }
 
     pub fn is_empty(&self) -> bool {
         match self {
-            KdNode::Leaf(triangle_indices) => triangle_indices.is_empty(),
-            KdNode::Node { .. } => false,
+            Self::Leaf(triangle_indices) => triangle_indices.is_empty(),
+            Self::Node { .. } => false,
         }
     }
 }
@@ -195,6 +190,7 @@ impl KdTree {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use geometry::aap::Axis;
     use nalgebra::Vector3;
 
     #[test]

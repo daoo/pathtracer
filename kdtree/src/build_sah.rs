@@ -115,8 +115,6 @@ impl KdTreeBuilder for SahKdTreeBuilder {
 
 #[cfg(test)]
 mod tests {
-    use geometry::aap::Axis;
-
     use crate::build::build_kdtree;
 
     use super::*;
@@ -137,26 +135,19 @@ mod tests {
         let tree = build_kdtree(builder, 6);
 
         let expected = KdNode::new_node(
-            Axis::X,
-            0.0,
-            KdNode::new_leaf(vec![]),
+            Aap::new_x(0.0),
+            KdNode::empty(),
             KdNode::new_node(
-                Axis::X,
-                1.0,
+                Aap::new_x(1.0),
                 KdNode::new_node(
-                    Axis::Y,
-                    0.0,
-                    KdNode::new_leaf(vec![]),
-                    KdNode::new_node(
-                        Axis::Y,
-                        1.0,
-                        KdNode::new_leaf(vec![0]),
-                        KdNode::new_leaf(vec![]),
-                    ),
+                    Aap::new_y(0.0),
+                    KdNode::empty(),
+                    KdNode::new_node(Aap::new_y(1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
                 ),
-                KdNode::new_leaf(vec![]),
+                KdNode::empty(),
             ),
         );
+        dbg!(&tree.root);
         assert_eq!(tree.root, expected);
     }
 }
