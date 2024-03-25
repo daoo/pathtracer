@@ -30,22 +30,18 @@ where
     B: KdTreeBuilder,
 {
     if depth >= max_depth || parent.triangle_indices.is_empty() {
-        return Box::new(KdNode::Leaf(parent.triangle_indices));
+        return KdNode::new_leaf(parent.triangle_indices);
     }
 
     match builder.find_best_split(depth, &parent) {
-        None => Box::new(KdNode::Leaf(parent.triangle_indices)),
+        None => KdNode::new_leaf(parent.triangle_indices),
         Some(split) if builder.terminate(&parent, &split) => {
-            Box::new(KdNode::Leaf(parent.triangle_indices))
+            KdNode::new_leaf(parent.triangle_indices)
         }
         Some(split) => {
             let left = build_helper(builder, max_depth, depth + 1, split.left);
             let right = build_helper(builder, max_depth, depth + 1, split.right);
-            Box::new(KdNode::Node {
-                plane: split.plane,
-                left,
-                right,
-            })
+            KdNode::new_node(split.plane, left, right)
         }
     }
 }
