@@ -1,8 +1,9 @@
 use nalgebra::Vector3;
 use rayon::prelude::*;
 
-use crate::kdtree::split::{clip_triangle, PerfectSplit};
 use geometry::{aabb::Aabb, aap::Aap, algorithms::triangles_bounding_box, triangle::Triangle};
+
+use crate::split::{clip_triangle, PerfectSplit};
 
 use super::{
     build::{KdBox, KdSplit, KdTreeBuilder},
@@ -116,7 +117,7 @@ impl KdTreeBuilder for SahKdTreeBuilder {
 mod tests {
     use geometry::aap::Axis;
 
-    use crate::kdtree::{build::build_kdtree, KdNode};
+    use crate::build::build_kdtree;
 
     use super::*;
 

@@ -1,15 +1,8 @@
-use crate::camera::*;
-use crate::kdtree::build::build_kdtree;
-use crate::kdtree::build_sah::SahKdTreeBuilder;
-use crate::kdtree::KdTree;
-use crate::light::*;
-use crate::material::*;
-use geometry::algorithms::TriangleRayIntersection;
-use geometry::ray::Ray;
-use geometry::triangle::Triangle;
+use crate::{camera::*, light::*, material::*};
+use geometry::{algorithms::TriangleRayIntersection, ray::Ray, triangle::Triangle};
+use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, KdTree};
 use nalgebra::{UnitVector3, Vector2, Vector3};
-use std::collections::BTreeMap;
-use std::sync::Arc;
+use std::{collections::BTreeMap, sync::Arc};
 use wavefront::{mtl, obj};
 
 #[derive(Clone, Debug, PartialEq)]

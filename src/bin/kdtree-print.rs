@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use clap::{Parser, ValueEnum};
 use geometry::triangle::Triangle;
-use pathtracer::kdtree::{
+use kdtree::{
     build::build_kdtree, build_median::MedianKdTreeBuilder, build_sah::SahKdTreeBuilder, KdNode,
 };
 use wavefront::obj;

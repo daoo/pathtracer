@@ -1,0 +1,9 @@
+[package]
+name = "kdtree"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+geometry = { version = "1.0.0", path = "../geometry" }
+nalgebra = { version = "0.32.4", default-features = false }
+rayon = { version = "1.10.0", default-features = false }
