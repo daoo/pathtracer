@@ -49,7 +49,11 @@ impl Display for KdNode {
         match self {
             KdNode::Leaf(triangle_indices) => write!(f, "{:?}", triangle_indices),
             KdNode::Node { plane, left, right } => {
-                write!(f, "node({:?}, {}, {}, {})", plane.axis, plane.distance, left, right)
+                write!(
+                    f,
+                    "node({:?}, {}, {}, {})",
+                    plane.axis, plane.distance, left, right
+                )
             }
         }
     }
@@ -151,47 +155,33 @@ impl KdTree {
         let mut t1 = tmin;
         let mut t2 = tmax;
         loop {
-            match node {
+            (node, t1, t2) = match node {
                 KdNode::Leaf(triangle_indices) => {
-                    if let Some(result) =
-                        self.intersect_closest_triangle_ray(triangle_indices, ray, t1, t2)
-                    {
-                        return Some(result);
-                    } else if t2 == tmax {
-                        return None;
-                    } else {
-                        t1 = t2;
-                        t2 = tmax;
-                        node = &self.root;
+                    match self.intersect_closest_triangle_ray(triangle_indices, ray, t1, t2) {
+                        Some(result) => return Some(result),
+                        _ if t2 == tmax => return None,
+                        _ => (self.root.as_ref(), t2, tmax),
                     }
                 }
                 KdNode::Node { plane, left, right } => {
                     let axis = plane.axis;
                     if ray.direction[axis] == 0. {
-                        node = if ray.origin[axis] <= plane.distance {
-                            left
-                        } else {
-                            right
+                        match ray.origin[axis] <= plane.distance {
+                            true => (left.as_ref(), t1, t2),
+                            false => (right.as_ref(), t1, t2),
                         }
                     } else {
                         let t = (plane.distance - ray.origin[axis]) / ray.direction[axis];
-                        let fst = if ray.direction[axis] >= 0. {
-                            left.as_ref()
-                        } else {
-                            right.as_ref()
-                        };
-                        let snd: &KdNode = if ray.direction[axis] >= 0. {
-                            right.as_ref()
-                        } else {
-                            left.as_ref()
+                        let (fst, snd) = match ray.direction[axis] >= 0. {
+                            true => (left.as_ref(), right.as_ref()),
+                            false => (right.as_ref(), left.as_ref()),
                         };
                         if t >= t2 {
-                            node = fst;
+                            (fst, t1, t2)
                         } else if t <= t1 {
-                            node = snd;
+                            (snd, t1, t2)
                         } else {
-                            node = fst;
-                            t2 = t;
+                            (fst, t1, t)
                         }
                     }
                 }
