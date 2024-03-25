@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use geometry::{
     aabb::Aabb,
     aap::Aap,
@@ -38,6 +40,17 @@ impl KdNode {
         match self {
             Self::Leaf(triangle_indices) => triangle_indices.is_empty(),
             Self::Node { .. } => false,
+        }
+    }
+}
+
+impl Display for KdNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            KdNode::Leaf(triangle_indices) => write!(f, "{:?}", triangle_indices),
+            KdNode::Node { plane, left, right } => {
+                write!(f, "node({:?}, {}, {}, {})", plane.axis, plane.distance, left, right)
+            }
         }
     }
 }
