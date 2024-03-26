@@ -1,6 +1,7 @@
-use crate::sampling::*;
 use nalgebra::Vector3;
 use rand::rngs::SmallRng;
+
+use crate::sampling::uniform_sample_unit_sphere;
 
 #[derive(Clone, Debug)]
 pub struct SphericalLight {

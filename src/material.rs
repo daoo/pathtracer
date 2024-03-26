@@ -1,7 +1,7 @@
-use crate::sampling::*;
 use nalgebra::{RealField, UnitVector3, Vector3};
-use rand::rngs::SmallRng;
-use rand::Rng;
+use rand::{rngs::SmallRng, Rng};
+
+use crate::sampling::cosine_sample_hemisphere;
 
 fn perpendicular(v: &Vector3<f32>) -> Vector3<f32> {
     if v.x.abs() < v.y.abs() {

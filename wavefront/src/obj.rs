@@ -119,23 +119,23 @@ pub fn obj(input: &str) -> Obj {
         }
 
         if let Ok((_, x)) = tagged("mtllib", rest, line) {
-            mtl_lib = Path::new(x)
+            mtl_lib = Path::new(x);
         } else if let Ok((_, x)) = tagged("usemtl", rest, line) {
-            chunks.push(Chunk::new(x.to_string()))
+            chunks.push(Chunk::new(x.to_string()));
         } else if let Ok((_, x)) = tagged("v", vec3, line) {
-            vertices.push(x)
+            vertices.push(x);
         } else if let Ok((_, x)) = tagged("vn", vec3, line) {
-            normals.push(x)
+            normals.push(x);
         } else if let Ok((_, x)) = tagged("vt", vec2, line) {
-            texcoords.push(x)
+            texcoords.push(x);
         } else if let Ok((_, x)) = tagged("f", triangle, line) {
-            chunks.last_mut().unwrap().faces.push(x)
+            chunks.last_mut().unwrap().faces.push(x);
         } else if let Ok((_, _)) = tagged("o", rest, line) {
             // TODO: not supported
         } else if let Ok((_, _)) = tagged("s", rest, line) {
             // TODO: not supported
         } else {
-            panic!("Unexpected line: \"{}\"", line)
+            panic!("Unexpected line: \"{line}\"");
         }
     }
 

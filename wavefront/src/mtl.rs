@@ -84,45 +84,45 @@ pub fn mtl(input: &str) -> Mtl {
         }
 
         if let Ok((_, _)) = tagged("newlight", rest, line) {
-            lights.push(Default::default())
+            lights.push(Light::default());
         } else if let Ok((_, x)) = tagged("lightposition", vec3, line) {
-            lights.last_mut().unwrap().position = x
+            lights.last_mut().unwrap().position = x;
         } else if let Ok((_, x)) = tagged("lightcolor", vec3, line) {
-            lights.last_mut().unwrap().color = x
+            lights.last_mut().unwrap().color = x;
         } else if let Ok((_, x)) = tagged("lightradius", float, line) {
-            lights.last_mut().unwrap().radius = x
+            lights.last_mut().unwrap().radius = x;
         } else if let Ok((_, x)) = tagged("lightintensity", float, line) {
-            lights.last_mut().unwrap().intensity = x
+            lights.last_mut().unwrap().intensity = x;
         } else if let Ok((_, _)) = tagged("newcamera", rest, line) {
-            cameras.push(Default::default())
+            cameras.push(Camera::default());
         } else if let Ok((_, x)) = tagged("cameraposition", vec3, line) {
-            cameras.last_mut().unwrap().position = x
+            cameras.last_mut().unwrap().position = x;
         } else if let Ok((_, x)) = tagged("cameratarget", vec3, line) {
-            cameras.last_mut().unwrap().target = x
+            cameras.last_mut().unwrap().target = x;
         } else if let Ok((_, x)) = tagged("cameraup", vec3, line) {
-            cameras.last_mut().unwrap().up = x
+            cameras.last_mut().unwrap().up = x;
         } else if let Ok((_, x)) = tagged("camerafov", float, line) {
-            cameras.last_mut().unwrap().fov = x
+            cameras.last_mut().unwrap().fov = x;
         } else if let Ok((_, name)) = tagged("newmtl", rest, line) {
             materials.push(Material::new(name.to_string()));
         } else if let Ok((_, x)) = tagged("kd", vec3, line) {
-            materials.last_mut().unwrap().diffuse_reflection = x
+            materials.last_mut().unwrap().diffuse_reflection = x;
         } else if let Ok((_, x)) = tagged("ks", vec3, line) {
-            materials.last_mut().unwrap().specular_reflection = x
+            materials.last_mut().unwrap().specular_reflection = x;
         } else if let Ok((_, x)) = tagged("reflat0deg", float, line) {
-            materials.last_mut().unwrap().reflection_0_degrees = x
+            materials.last_mut().unwrap().reflection_0_degrees = x;
         } else if let Ok((_, x)) = tagged("reflat90deg", float, line) {
-            materials.last_mut().unwrap().reflection_90_degrees = x
+            materials.last_mut().unwrap().reflection_90_degrees = x;
         } else if let Ok((_, x)) = tagged("indexofrefraction", float, line) {
-            materials.last_mut().unwrap().index_of_refraction = x
+            materials.last_mut().unwrap().index_of_refraction = x;
         } else if let Ok((_, x)) = tagged("transparency", float, line) {
-            materials.last_mut().unwrap().transparency = x
+            materials.last_mut().unwrap().transparency = x;
         } else if let Ok((_, _)) = tagged("specularroughness", float, line) {
             // TODO: not supported
         } else if let Ok((_, _)) = tagged("map_kd", rest, line) {
             // TODO: not supported
         } else {
-            panic!("Unexpected line: \"{}\"", line)
+            panic!("Unexpected line: \"{line}\"");
         }
     }
 

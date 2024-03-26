@@ -1,8 +1,7 @@
-use crate::camera::*;
-use crate::image_buffer::ImageBuffer;
-use crate::raylogger::RayLoggerWithMeta;
-use crate::sampling::*;
-use crate::scene::*;
+use crate::{
+    camera::Pinhole, image_buffer::ImageBuffer, raylogger::RayLoggerWithMeta,
+    sampling::uniform_sample_unit_square, scene::Scene,
+};
 use geometry::ray::Ray;
 use nalgebra::{Vector2, Vector3};
 use rand::rngs::SmallRng;
@@ -15,7 +14,7 @@ fn trace_ray(
     _ray_logger: &mut RayLoggerWithMeta,
     max_bounces: u32,
     scene: &Scene,
-    ray: Ray,
+    ray: &Ray,
     accumulated_radiance: Vector3<f32>,
     accumulated_transport: Vector3<f32>,
     accumulated_bounces: u32,
@@ -25,11 +24,11 @@ fn trace_ray(
         return accumulated_radiance;
     }
 
-    let intersection = scene.intersect(&ray, 0.0, std::f32::MAX);
+    let intersection = scene.intersect(ray, 0.0, std::f32::MAX);
     if intersection.is_none() {
         //_ray_logger.log(&ray.extend(10.0)).unwrap();
         return accumulated_radiance
-            + accumulated_transport.component_mul(&environment_contribution(&ray));
+            + accumulated_transport.component_mul(&environment_contribution(ray));
     }
     let (triangle_index, intersection) = intersection.unwrap();
 
@@ -94,7 +93,7 @@ fn trace_ray(
         _ray_logger,
         max_bounces,
         scene,
-        next_ray,
+        &next_ray,
         accumulated_radiance,
         accumulated_transport,
         accumulated_bounces + 1,
@@ -121,7 +120,7 @@ pub fn render(
                 &mut logger,
                 max_bounces,
                 scene,
-                ray,
+                &ray,
                 Vector3::zeros(),
                 Vector3::new(1.0, 1.0, 1.0),
                 0,

@@ -2,12 +2,13 @@ use std::path::Path;
 
 pub struct ImageBuffer(image::ImageBuffer<image::Rgb<f32>, Vec<f32>>);
 
-fn gamma_correct(x: &f32) -> f32 {
+fn gamma_correct(x: f32) -> f32 {
     const GAMMA_POWER: f32 = 1.0 / 2.2;
     1.0f32.min(x.powf(GAMMA_POWER))
 }
 
 impl ImageBuffer {
+    #[must_use]
     pub fn new(width: u32, height: u32) -> Self {
         ImageBuffer(image::ImageBuffer::new(width, height))
     }
@@ -23,6 +24,7 @@ impl ImageBuffer {
         self.0.height()
     }
 
+    #[must_use]
     pub fn div(&self, value: f32) -> Self {
         ImageBuffer(
             image::ImageBuffer::from_vec(
@@ -34,7 +36,8 @@ impl ImageBuffer {
         )
     }
 
-    pub fn add(&self, rhs: Self) -> Self {
+    #[must_use]
+    pub fn add(&self, rhs: &Self) -> Self {
         ImageBuffer(
             image::ImageBuffer::from_vec(
                 self.0.width(),
@@ -49,11 +52,11 @@ impl ImageBuffer {
         )
     }
 
-    pub fn add_mut(&mut self, rhs: Self) {
+    pub fn add_mut(&mut self, rhs: &Self) {
         self.0
             .iter_mut()
             .zip(rhs.0.iter())
-            .for_each(|(a, b)| *a += *b)
+            .for_each(|(a, b)| *a += *b);
     }
 
     pub fn add_pixel_mut(&mut self, x: u32, y: u32, value: [f32; 3]) {
@@ -62,12 +65,13 @@ impl ImageBuffer {
         self.0[(x, y)][2] += value[2];
     }
 
+    #[must_use]
     pub fn gamma_correct(&self) -> Self {
         ImageBuffer(
             image::ImageBuffer::from_vec(
                 self.0.width(),
                 self.0.height(),
-                self.0.iter().map(gamma_correct).collect(),
+                self.0.iter().map(|x| gamma_correct(*x)).collect(),
             )
             .unwrap(),
         )

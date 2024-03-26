@@ -1,9 +1,17 @@
-use crate::{camera::*, light::*, material::*};
 use geometry::{algorithms::TriangleRayIntersection, ray::Ray, triangle::Triangle};
 use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, KdTree};
 use nalgebra::{UnitVector3, Vector2, Vector3};
 use std::{collections::BTreeMap, sync::Arc};
 use wavefront::{mtl, obj};
+
+use crate::{
+    camera::Camera,
+    light::SphericalLight,
+    material::{
+        BlendMaterial, DiffuseReflectiveMaterial, FresnelBlendMaterial, Material,
+        SpecularReflectiveMaterial, SpecularRefractiveMaterial,
+    },
+};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TriangleNormals {
@@ -104,11 +112,11 @@ fn triangle_materials_from_obj_and_mtl(
     obj: &obj::Obj,
     mtl: &mtl::Mtl,
 ) -> Vec<Arc<dyn Material + Send + Sync>> {
-    let materials = BTreeMap::from_iter(
-        mtl.materials
-            .iter()
-            .map(|m| (m.name.as_str(), blend_from_mtl(m))),
-    );
+    let materials = mtl
+        .materials
+        .iter()
+        .map(|m| (m.name.as_str(), blend_from_mtl(m)))
+        .collect::<BTreeMap<_, _>>();
     obj.chunks
         .iter()
         .flat_map(|chunk| {

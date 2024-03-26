@@ -1,8 +1,7 @@
-use crate::camera::*;
-use crate::image_buffer::ImageBuffer;
-use crate::light::*;
-use crate::material::*;
-use crate::scene::*;
+use crate::{
+    camera::Pinhole, image_buffer::ImageBuffer, light::SphericalLight, material::Material,
+    scene::Scene,
+};
 use geometry::ray::Ray;
 use nalgebra::{UnitVector3, Vector2, Vector3};
 

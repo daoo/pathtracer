@@ -47,7 +47,7 @@ impl KdNode {
 impl Display for KdNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            KdNode::Leaf(triangle_indices) => write!(f, "{:?}", triangle_indices),
+            KdNode::Leaf(triangle_indices) => write!(f, "{triangle_indices:?}"),
             KdNode::Node { plane, left, right } => {
                 write!(
                     f,

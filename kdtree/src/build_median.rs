@@ -7,6 +7,8 @@ use geometry::{
     triangle::Triangle,
 };
 
+use crate::split::ClippedTriangle;
+
 use super::{
     build::{KdBox, KdSplit, KdTreeBuilder},
     split::{clip_triangle, split_and_partition},
@@ -47,7 +49,7 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
             .collect::<Vec<_>>();
         let planes = clipped_triangles
             .iter()
-            .flat_map(|clipped| clipped.perfect_splits())
+            .flat_map(ClippedTriangle::perfect_splits)
             .filter_map(|s| {
                 (s.axis == axis && s.distance > min && s.distance < max).then_some(Aap {
                     axis: s.axis,

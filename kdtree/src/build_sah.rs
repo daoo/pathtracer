@@ -89,7 +89,7 @@ impl KdTreeBuilder for SahKdTreeBuilder {
             .collect::<Vec<_>>();
         let mut splits = clipped_triangles
             .iter()
-            .flat_map(|clipped| clipped.perfect_splits())
+            .flat_map(ClippedTriangle::perfect_splits)
             .collect::<Vec<_>>();
         splits.sort_unstable_by(PerfectSplit::total_cmp);
         splits.dedup();

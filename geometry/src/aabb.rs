@@ -54,6 +54,7 @@ impl Aabb {
         8. * self.half_size.x * self.half_size.y * self.half_size.z
     }
 
+    #[must_use]
     pub fn translate(&self, delta: &Vector3<f32>) -> Aabb {
         Aabb {
             center: self.center + delta,
@@ -61,6 +62,7 @@ impl Aabb {
         }
     }
 
+    #[must_use]
     pub fn enlarge(&self, delta: &Vector3<f32>) -> Aabb {
         Aabb {
             center: self.center,
@@ -73,13 +75,11 @@ impl Aabb {
         let snd_half_axis = (self.max()[plane.axis] - plane.distance) / 2.;
         debug_assert!(
             fst_half_axis >= 0.0,
-            "fst_half_axis is negative {}",
-            fst_half_axis
+            "fst_half_axis is negative {fst_half_axis}",
         );
         debug_assert!(
             snd_half_axis >= 0.0,
-            "snd_half_axis is negative {}",
-            snd_half_axis
+            "snd_half_axis is negative {snd_half_axis}",
         );
 
         let mut fst_center = self.center;

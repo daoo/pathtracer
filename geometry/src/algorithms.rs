@@ -252,6 +252,10 @@ mod tests_intersect_triangle_ray {
 }
 
 pub fn intersect_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> bool {
+    const U0: Vector3<f32> = Vector3::new(1., 0., 0.);
+    const U1: Vector3<f32> = Vector3::new(0., 1., 0.);
+    const U2: Vector3<f32> = Vector3::new(0., 0., 1.);
+
     let v0 = triangle.v0 - aabb.center;
     let v1 = triangle.v1 - aabb.center;
     let v2 = triangle.v2 - aabb.center;
@@ -259,10 +263,6 @@ pub fn intersect_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> bool {
     let f0 = v1 - v0;
     let f1 = v2 - v1;
     let f2 = v0 - v2;
-
-    const U0: Vector3<f32> = Vector3::new(1., 0., 0.);
-    const U1: Vector3<f32> = Vector3::new(0., 1., 0.);
-    const U2: Vector3<f32> = Vector3::new(0., 0., 1.);
 
     let test_axis = |axis: Vector3<f32>| {
         let p0 = v0.dot(&axis);
