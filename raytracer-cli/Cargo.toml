@@ -1,13 +1,9 @@
 [package]
-name = "pathtracer-cli"
+name = "raytracer-cli"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.4", default-features = false, features = ["derive", "std"] }
 pathtracer = { version = "1.0.0", path = ".." }
-rand = { version = "0.8.5", default-features = false, features = ["std", "small_rng"] }
-rayon = { version = "1.10.0", default-features = false }
-termion = "3.0.0"
-time = { version = "0.3.34", features = ["formatting"] }
 wavefront = { version = "1.0.0", path = "../wavefront" }

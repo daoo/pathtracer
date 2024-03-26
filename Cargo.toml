@@ -1,4 +1,4 @@
-workspace = { members = [ "geometry", "kdtree", "kdtree-print", "pathtracer-cli","wavefront"] }
+workspace = { members = [ "geometry", "kdtree", "kdtree-print", "pathtracer-cli", "raytracer-cli","wavefront"] }
 
 [package]
 name = "pathtracer"
@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 assert_approx_eq = "1.1.0"
-clap = { version = "4.5.1", default-features = false, features = ["std", "derive"] }
 geometry = { version = "1.0.0", path = "geometry" }
 image = { version = "0.24.9", default-features = false, features = ["png"] }
 kdtree = { version = "0.1.0", path = "kdtree" }
