@@ -24,6 +24,10 @@ impl ImageBuffer {
         self.0.height()
     }
 
+    pub fn aspect_ratio(&self) -> f32 {
+        self.0.width() as f32 / self.0.height() as f32
+    }
+
     pub fn div(&self, value: f32) -> Self {
         ImageBuffer(
             image::ImageBuffer::from_vec(

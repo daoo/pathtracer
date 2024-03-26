@@ -1,5 +1,5 @@
 [workspace]
-members = ["geometry", "kdtree", "kdtree-cli", "kdtree-reducer-cli", "kdtree-tester-cli", "pathtracer-cli", "raytracer-cli", "scene", "tracing", "wavefront"]
+members = ["geometry", "kdtree", "kdtree-cli", "kdtree-reducer-cli", "kdtree-tester-cli", "pathtracer-cli", "pathtracer-gui", "raytracer-cli", "scene", "tracing", "wavefront"]
 resolver = "2"
 
 [profile.release]
