@@ -38,8 +38,5 @@ fn main() {
     raytracer::render(&scene, &pinhole, &mut buffer);
 
     println!("Writing {}...", args.output.display());
-    buffer
-        .gamma_correct()
-        .save_with_format(&args.output, image::ImageFormat::Png)
-        .unwrap();
+    buffer.gamma_correct().save_png(&args.output).unwrap();
 }

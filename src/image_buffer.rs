@@ -41,14 +41,10 @@ impl ImageBuffer {
         )
     }
 
-    pub fn save_with_format(
-        self,
-        path: &Path,
-        format: image::ImageFormat,
-    ) -> Result<(), image::ImageError> {
+    pub fn save_png(self, path: &Path) -> Result<(), image::ImageError> {
         image::DynamicImage::ImageRgb32F(self.0)
             .into_rgb8()
-            .save_with_format(path, format)
+            .save_with_format(path, image::ImageFormat::Png)
     }
 
     pub fn add_mut(&mut self, x: u32, y: u32, value: [f32; 3]) {

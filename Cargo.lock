@@ -373,7 +373,17 @@ dependencies = [
  "rand",
  "rayon",
  "simba",
- "smallvec",
+ "wavefront",
+]
+
+[[package]]
+name = "pathtracer-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "pathtracer",
+ "rand",
+ "rayon",
  "termion",
  "time",
  "wavefront",

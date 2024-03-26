@@ -1,4 +1,4 @@
-workspace = { members = [ "geometry", "kdtree", "kdtree-print","wavefront"] }
+workspace = { members = [ "geometry", "kdtree", "kdtree-print", "pathtracer-cli","wavefront"] }
 
 [package]
 name = "pathtracer"
@@ -15,9 +15,6 @@ nalgebra = { version = "0.32.4", default-features = false }
 rand = { version = "0.8.5", default-features = false, features = ["small_rng", "std"] }
 rayon = "1.9.0"
 simba = { version = "0.8.1", default-features = false, features = ["std"] }
-smallvec = "1.13.1"
-termion = "3.0.0"
-time = { version = "0.3.34", features = ["formatting"] }
 wavefront = { version = "1.0.0", path = "wavefront" }
 
 [profile.release]

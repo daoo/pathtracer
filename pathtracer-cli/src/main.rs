@@ -146,6 +146,6 @@ fn main() {
     buffer
         .div(args.iterations as f32)
         .gamma_correct()
-        .save_with_format(&args.output, image::ImageFormat::Png)
+        .save_png(&args.output)
         .unwrap();
 }
