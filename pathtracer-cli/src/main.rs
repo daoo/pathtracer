@@ -1,17 +1,8 @@
-use ::pathtracer::camera::*;
-use ::pathtracer::image_buffer::ImageBuffer;
-use ::pathtracer::pathtracer;
-use ::pathtracer::raylogger::RayLogger;
-use ::pathtracer::scene::*;
 use clap::Parser;
-use rand::rngs::SmallRng;
-use rand::SeedableRng;
+use pathtracer::{camera::Pinhole, image_buffer::ImageBuffer, raylogger::RayLogger, scene::Scene};
+use rand::{rngs::SmallRng, SeedableRng};
 use rayon::prelude::*;
-use std::fs;
-use std::io::prelude::*;
-use std::path::Path;
-use std::str;
-use std::sync::mpsc;
+use std::{fs, io::prelude::*, path::Path, str, sync::mpsc};
 use wavefront::{mtl, obj};
 
 #[derive(Parser, Debug)]
@@ -54,7 +45,7 @@ fn worker_thread(
     for iteration in 0..iterations {
         let t1 = time::Instant::now();
         let ray_logger_ = ray_logger.with_meta(&[iteration as u16]);
-        pathtracer::render(
+        pathtracer::pathtracer::render(
             &ray_logger_,
             work.max_bounces,
             work.scene,

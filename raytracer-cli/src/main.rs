@@ -1,10 +1,6 @@
-use ::pathtracer::camera::*;
-use ::pathtracer::image_buffer::*;
-use ::pathtracer::raytracer;
-use ::pathtracer::scene::*;
 use clap::Parser;
-use std::fs;
-use std::str;
+use pathtracer::{camera::Pinhole, image_buffer::ImageBuffer, scene::Scene};
+use std::{fs, str};
 use wavefront::{mtl, obj};
 
 #[derive(Parser, Debug)]
@@ -35,7 +31,7 @@ fn main() {
     let mut buffer = ImageBuffer::new(args.width, args.height);
 
     println!("Rendering...");
-    raytracer::render(&scene, &pinhole, &mut buffer);
+    pathtracer::raytracer::render(&scene, &pinhole, &mut buffer);
 
     println!("Writing {}...", args.output.display());
     buffer.gamma_correct().save_png(&args.output).unwrap();
