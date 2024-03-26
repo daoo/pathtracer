@@ -49,6 +49,13 @@ impl ImageBuffer {
         )
     }
 
+    pub fn add_mut(&mut self, rhs: Self) {
+        self.0
+            .iter_mut()
+            .zip(rhs.0.iter())
+            .for_each(|(a, b)| *a += *b)
+    }
+
     pub fn add_pixel_mut(&mut self, x: u32, y: u32, value: [f32; 3]) {
         self.0[(x, y)][0] += value[0];
         self.0[(x, y)][1] += value[1];
