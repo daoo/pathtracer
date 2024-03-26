@@ -139,7 +139,54 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test() {
+    fn test_non_axially_aligned_triangle() {
+        let triangles = vec![Triangle {
+            v0: Vector3::new(0.0, 0.0, 0.0),
+            v1: Vector3::new(1.0, 0.0, 0.0),
+            v2: Vector3::new(1.0, 1.0, 1.0),
+        }];
+        let builder = SahKdTreeBuilder {
+            traverse_cost: 0.1,
+            intersect_cost: 1.0,
+            empty_factor: 0.8,
+            triangles,
+        };
+        let tree = build_kdtree(builder, 10);
+
+        let expected = KdNode::new_node(
+            Aap::new_x(0.0),
+            KdNode::empty(),
+            KdNode::new_node(
+                Aap::new_x(1.0),
+                KdNode::new_node(
+                    Aap::new_y(0.0),
+                    KdNode::empty(),
+                    KdNode::new_node(
+                        Aap::new_y(1.0),
+                        KdNode::new_node(
+                            Aap::new_z(0.0),
+                            KdNode::empty(),
+                            KdNode::new_node(
+                                Aap::new_z(1.0),
+                                KdNode::new_leaf(vec![0]),
+                                KdNode::empty(),
+                            ),
+                        ),
+                        KdNode::empty(),
+                    ),
+                ),
+                KdNode::empty(),
+            ),
+        );
+        assert_eq!(
+            tree.root, expected,
+            "\n   actual: {}\n expected: {}",
+            tree.root, expected
+        );
+    }
+
+    #[test]
+    fn test_axially_aligned_triangle() {
         let triangles = vec![Triangle {
             v0: Vector3::new(0.0, 0.0, 0.0),
             v1: Vector3::new(1.0, 0.0, 0.0),
