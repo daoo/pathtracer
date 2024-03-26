@@ -58,14 +58,14 @@ fn trace_ray(scene: &Scene, ray: &Ray) -> Vector3<f32> {
 }
 
 pub fn render(scene: &Scene, camera: &Pinhole, buffer: &mut ImageBuffer) {
-    let buffer_size = Vector2::new(buffer.ncols() as f32, buffer.nrows() as f32);
-    for y in 0..buffer.nrows() {
-        for x in 0..buffer.ncols() {
+    let buffer_size = Vector2::new(buffer.width() as f32, buffer.height() as f32);
+    for y in 0..buffer.height() {
+        for x in 0..buffer.width() {
             let pixel_center = Vector2::new(x as f32, y as f32) + Vector2::new(0.5, 0.5);
             let scene_direction = pixel_center.component_div(&buffer_size);
             let ray = camera.ray(scene_direction.x, scene_direction.y);
             let value = trace_ray(scene, &ray);
-            buffer.add_mut(x, y, value.into());
+            buffer.add_pixel_mut(x, y, value.into());
         }
     }
 }

@@ -1,4 +1,4 @@
-use std::{ops::Add, path::Path};
+use std::path::Path;
 
 pub struct ImageBuffer(image::ImageBuffer<image::Rgb<f32>, Vec<f32>>);
 
@@ -9,13 +9,17 @@ fn gamma_correct(x: &f32) -> f32 {
 
 impl ImageBuffer {
     pub fn new(width: u32, height: u32) -> Self {
-        ImageBuffer(image::ImageBuffer::new(height, width))
+        ImageBuffer(image::ImageBuffer::new(width, height))
     }
 
-    pub fn ncols(&self) -> u32 {
+    pub fn size(&self) -> [u32; 2] {
+        [self.0.width(), self.0.height()]
+    }
+
+    pub fn width(&self) -> u32 {
         self.0.width()
     }
-    pub fn nrows(&self) -> u32 {
+    pub fn height(&self) -> u32 {
         self.0.height()
     }
 
@@ -30,34 +34,7 @@ impl ImageBuffer {
         )
     }
 
-    pub fn gamma_correct(&self) -> Self {
-        ImageBuffer(
-            image::ImageBuffer::from_vec(
-                self.0.width(),
-                self.0.height(),
-                self.0.iter().map(gamma_correct).collect(),
-            )
-            .unwrap(),
-        )
-    }
-
-    pub fn save_png(self, path: &Path) -> Result<(), image::ImageError> {
-        image::DynamicImage::ImageRgb32F(self.0)
-            .into_rgb8()
-            .save_with_format(path, image::ImageFormat::Png)
-    }
-
-    pub fn add_mut(&mut self, x: u32, y: u32, value: [f32; 3]) {
-        self.0[(x, y)][0] += value[0];
-        self.0[(x, y)][1] += value[1];
-        self.0[(x, y)][2] += value[2];
-    }
-}
-
-impl Add for ImageBuffer {
-    type Output = ImageBuffer;
-
-    fn add(self, rhs: Self) -> Self::Output {
+    pub fn add(&self, rhs: Self) -> Self {
         ImageBuffer(
             image::ImageBuffer::from_vec(
                 self.0.width(),
@@ -70,5 +47,32 @@ impl Add for ImageBuffer {
             )
             .unwrap(),
         )
+    }
+
+    pub fn add_pixel_mut(&mut self, x: u32, y: u32, value: [f32; 3]) {
+        self.0[(x, y)][0] += value[0];
+        self.0[(x, y)][1] += value[1];
+        self.0[(x, y)][2] += value[2];
+    }
+
+    pub fn gamma_correct(&self) -> Self {
+        ImageBuffer(
+            image::ImageBuffer::from_vec(
+                self.0.width(),
+                self.0.height(),
+                self.0.iter().map(gamma_correct).collect(),
+            )
+            .unwrap(),
+        )
+    }
+
+    pub fn to_rgba8(self) -> Vec<u8> {
+        image::DynamicImage::ImageRgb32F(self.0).to_rgba8().to_vec()
+    }
+
+    pub fn save_png(self, path: &Path) -> Result<(), image::ImageError> {
+        image::DynamicImage::ImageRgb32F(self.0)
+            .into_rgb8()
+            .save_with_format(path, image::ImageFormat::Png)
     }
 }

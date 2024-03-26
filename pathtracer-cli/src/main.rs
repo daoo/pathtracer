@@ -129,7 +129,7 @@ fn main() {
         .into_par_iter()
         .map(|i| worker_thread(i, &work, iterations_per_thread, &tx));
     let printer = std::thread::spawn(move || printer_thread(args.threads, args.iterations, rx));
-    let buffer = buffers.reduce_with(|a, b| a + b).unwrap();
+    let buffer = buffers.reduce_with(|a, b| a.add(b)).unwrap();
     tx.send(time::Duration::ZERO).unwrap();
     printer.join().unwrap();
 

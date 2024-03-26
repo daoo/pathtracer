@@ -110,9 +110,9 @@ pub fn render(
     buffer: &mut ImageBuffer,
     rng: &mut SmallRng,
 ) {
-    let buffer_size = Vector2::new(buffer.ncols() as f32, buffer.nrows() as f32);
-    for y in 0..buffer.nrows() {
-        for x in 0..buffer.ncols() {
+    let buffer_size = Vector2::new(buffer.width() as f32, buffer.height() as f32);
+    for y in 0..buffer.height() {
+        for x in 0..buffer.width() {
             let pixel_center = Vector2::new(x as f32, y as f32) + uniform_sample_unit_square(rng);
             let scene_direction = pixel_center.component_div(&buffer_size);
             let ray = camera.ray(scene_direction.x, scene_direction.y);
@@ -127,7 +127,7 @@ pub fn render(
                 0,
                 rng,
             );
-            buffer.add_mut(x, y, value.into());
+            buffer.add_pixel_mut(x, y, value.into());
         }
     }
 }
