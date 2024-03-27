@@ -63,7 +63,32 @@ fn print_pretty(depth: usize, kdtree: &KdNode) {
     }
 }
 
-fn print_json(kdtree: &KdNode) {
+fn print_triangles_json(triangles: &[Triangle]) {
+    print!("[");
+    let mut skip_first_separator = true;
+    for triangle in triangles {
+        if skip_first_separator {
+            skip_first_separator = false;
+        } else {
+            print!(", ");
+        }
+        print!(
+            "[[{}, {}, {}], [{}, {}, {}], [{}, {}, {}]]",
+            triangle.v0.x,
+            triangle.v0.y,
+            triangle.v0.z,
+            triangle.v1.x,
+            triangle.v1.y,
+            triangle.v1.z,
+            triangle.v2.x,
+            triangle.v2.y,
+            triangle.v2.z,
+        );
+    }
+    print!("]");
+}
+
+fn print_node_json(kdtree: &KdNode) {
     match kdtree {
         KdNode::Leaf(triangle_indices) => print!("{:?}", triangle_indices),
         KdNode::Node { plane, left, right } => {
@@ -71,9 +96,9 @@ fn print_json(kdtree: &KdNode) {
                 "{{\"axis\": \"{:?}\", \"distance\": {}, \"left\": ",
                 plane.axis, plane.distance
             );
-            print_json(left);
+            print_node_json(left);
             print!(", \"right\": ");
-            print_json(right);
+            print_node_json(right);
             print!("}}");
         }
     }
@@ -126,8 +151,11 @@ fn main() {
     eprintln!("Done in {:.3} with cost {:.3}.", duration, cost);
 
     if args.json {
-        print_json(&kdtree.root);
-        println!();
+        print!("{{\"triangles\": ");
+        print_triangles_json(&kdtree.triangles);
+        print!(", \"root\": ");
+        print_node_json(&kdtree.root);
+        println!("}}");
     } else {
         print_pretty(0, &kdtree.root);
     }
