@@ -57,6 +57,12 @@ impl Aap {
     pub fn vector(&self) -> Vector3<f32> {
         self.axis.as_vector3(self.distance)
     }
+
+    pub fn total_cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.axis
+            .cmp(&other.axis)
+            .then(f32::total_cmp(&self.distance, &other.distance))
+    }
 }
 
 impl std::ops::Index<Axis> for Vector3<f32> {

@@ -1,46 +1,6 @@
 use nalgebra::Vector3;
 
-use geometry::{
-    aabb::Aabb,
-    aap::{Aap, Axis},
-    algorithms::clip_triangle_aabb,
-    triangle::Triangle,
-};
-
-#[derive(Debug, PartialEq)]
-pub struct PerfectSplit {
-    pub axis: Axis,
-    pub distance: f32,
-}
-
-impl PerfectSplit {
-    fn new_x(distance: f32) -> Self {
-        PerfectSplit {
-            axis: Axis::X,
-            distance,
-        }
-    }
-
-    fn new_y(distance: f32) -> Self {
-        PerfectSplit {
-            axis: Axis::Y,
-            distance,
-        }
-    }
-
-    fn new_z(distance: f32) -> Self {
-        PerfectSplit {
-            axis: Axis::Z,
-            distance,
-        }
-    }
-
-    pub fn total_cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.axis
-            .cmp(&other.axis)
-            .then(f32::total_cmp(&self.distance, &other.distance))
-    }
-}
+use geometry::{aabb::Aabb, aap::Aap, algorithms::clip_triangle_aabb, triangle::Triangle};
 
 #[derive(Debug, PartialEq)]
 pub struct ClippedTriangle {
@@ -50,14 +10,14 @@ pub struct ClippedTriangle {
 }
 
 impl ClippedTriangle {
-    pub fn perfect_splits(&self) -> [PerfectSplit; 6] {
+    pub fn perfect_splits(&self) -> [Aap; 6] {
         [
-            PerfectSplit::new_x(self.min.x),
-            PerfectSplit::new_x(self.max.x),
-            PerfectSplit::new_y(self.min.y),
-            PerfectSplit::new_y(self.max.y),
-            PerfectSplit::new_z(self.min.z),
-            PerfectSplit::new_z(self.max.z),
+            Aap::new_x(self.min.x),
+            Aap::new_x(self.max.x),
+            Aap::new_y(self.min.y),
+            Aap::new_y(self.max.y),
+            Aap::new_z(self.min.z),
+            Aap::new_z(self.max.z),
         ]
     }
 }
@@ -127,6 +87,8 @@ pub fn partition_triangles(
 
 #[cfg(test)]
 mod partition_triangles_tests {
+    use geometry::aap::Axis;
+
     use super::*;
 
     #[test]

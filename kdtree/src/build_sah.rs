@@ -3,7 +3,7 @@ use rayon::prelude::*;
 
 use geometry::{aap::Aap, algorithms::triangles_bounding_box, triangle::Triangle};
 
-use crate::split::{clip_triangle, PerfectSplit};
+use crate::split::clip_triangle;
 
 use super::{
     build::{KdBox, KdSplit, KdTreeBuilder},
@@ -88,17 +88,11 @@ impl KdTreeBuilder for SahKdTreeBuilder {
             .iter()
             .flat_map(ClippedTriangle::perfect_splits)
             .collect::<Vec<_>>();
-        splits.sort_unstable_by(PerfectSplit::total_cmp);
+        splits.sort_unstable_by(Aap::total_cmp);
         splits.dedup();
         splits
-            .par_iter()
-            .map(|s| {
-                let plane = Aap {
-                    axis: s.axis,
-                    distance: s.distance,
-                };
-                self.split_and_calculate_cost(parent, plane, &clipped_triangles)
-            })
+            .into_par_iter()
+            .map(|plane| self.split_and_calculate_cost(parent, plane, &clipped_triangles))
             .reduce_with(min_by_snd)
             .map(|a| a.0)
     }
