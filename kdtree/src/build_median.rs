@@ -32,20 +32,20 @@ fn median(splits: &[Aap]) -> Aap {
 
 impl KdTreeBuilder for MedianKdTreeBuilder {
     fn starting_box(&self) -> KdBox {
-        KdBox {
-            boundary: triangles_bounding_box(&self.triangles).enlarge(&Vector3::new(0.5, 0.5, 0.5)),
-            triangle_indices: (0u32..self.triangles.len() as u32).collect(),
-        }
+        KdBox::new(
+            triangles_bounding_box(&self.triangles).enlarge(&Vector3::new(0.5, 0.5, 0.5)),
+            (0u32..self.triangles.len() as u32).collect(),
+        )
     }
 
     fn find_best_split(&self, depth: u32, parent: &KdBox) -> Option<KdSplit> {
         let axis = Axis::from_u32(depth % 3);
-        let min = parent.boundary.min()[axis];
-        let max = parent.boundary.max()[axis];
+        let min = parent.boundary().min()[axis];
+        let max = parent.boundary().max()[axis];
         let clipped_triangles = parent
-            .triangle_indices
+            .triangle_indices()
             .par_iter()
-            .filter_map(|i| clip_triangle(&self.triangles, &parent.boundary, *i))
+            .filter_map(|i| clip_triangle(&self.triangles, &parent.boundary(), *i))
             .collect::<Vec<_>>();
         let planes = clipped_triangles
             .iter()
@@ -61,15 +61,12 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
             return None;
         }
         let plane = median(&planes);
-        let split = split_and_partition(&clipped_triangles, &parent.boundary, plane);
-        let left = KdBox {
-            boundary: split.left_aabb,
-            triangle_indices: [split.left_triangle_indices, split.middle_triangle_indices].concat(),
-        };
-        let right = KdBox {
-            boundary: split.right_aabb,
-            triangle_indices: split.right_triangle_indices,
-        };
+        let mut split = split_and_partition(&clipped_triangles, &parent.boundary(), plane);
+        split
+            .left_triangle_indices
+            .extend(split.middle_triangle_indices);
+        let left = KdBox::new(split.left_aabb, split.left_triangle_indices);
+        let right = KdBox::new(split.right_aabb, split.right_triangle_indices);
         Some(KdSplit { plane, left, right })
     }
 

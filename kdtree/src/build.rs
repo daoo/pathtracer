@@ -4,8 +4,26 @@ use super::{KdNode, KdTree};
 
 #[derive(Debug)]
 pub struct KdBox {
-    pub boundary: Aabb,
-    pub triangle_indices: Vec<u32>,
+    boundary: Aabb,
+    triangle_indices: Vec<u32>,
+}
+
+impl KdBox {
+    pub fn new(boundary: Aabb, triangle_indices: Vec<u32>) -> Self {
+        debug_assert!(!(boundary.volume() == 0.0 && triangle_indices.is_empty()));
+        KdBox {
+            boundary,
+            triangle_indices,
+        }
+    }
+
+    pub fn boundary(&self) -> &Aabb {
+        &self.boundary
+    }
+
+    pub fn triangle_indices(&self) -> &[u32] {
+        &self.triangle_indices
+    }
 }
 
 #[derive(Debug)]
