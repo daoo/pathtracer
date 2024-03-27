@@ -562,11 +562,11 @@ pub fn clip_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> SmallVec<[Vector3
             let intersecting = intersect_ray_aap(&ray, &plane).map(|t| ray.param(t));
             if is_inside(&clip_plane, b) {
                 if !is_inside(&clip_plane, &a) {
-                    output.push(intersecting.unwrap());
+                    output.push(aabb.clamp(intersecting.unwrap()));
                 }
                 output.push(*b);
             } else if is_inside(&clip_plane, &a) {
-                output.push(intersecting.unwrap());
+                output.push(aabb.clamp(intersecting.unwrap()));
             }
         }
     }
@@ -644,5 +644,49 @@ mod tests_clip_triangle_aabb {
             Vector3::new(2.0, 2.0, 0.0),
         ];
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    pub fn rounding_error_in_ray_param_calculation_example_1() {
+        let triangle = Triangle {
+            v0: Vector3::new(-1.0, -1.0, -1.0),
+            v1: Vector3::new(-1.0, -1.0, 1.0),
+            v2: Vector3::new(1.0, -1.0, -1.0),
+        };
+        let aabb = Aabb::from_extents(
+            Vector3::new(-1.5, -1.5012, -1.5),
+            Vector3::new(-0.076, 1.5, 1.0),
+        );
+
+        let actual = clip_triangle_aabb(&triangle, &aabb);
+
+        let expected: SmallVec<[Vector3<f32>; 0]> = smallvec![];
+        let outside = actual
+            .into_iter()
+            .filter(|p| !aabb.contains(p))
+            .collect::<SmallVec<[Vector3<f32>; 1]>>();
+        assert_eq!(outside, expected);
+    }
+
+    #[test]
+    pub fn rounding_error_in_ray_param_calculation_example_2() {
+        let triangle = Triangle {
+            v0: Vector3::new(-1.0, -1.0, -1.0),
+            v1: Vector3::new(-1.0, -1.0, 1.0),
+            v2: Vector3::new(1.0, -1.0, -1.0),
+        };
+        let aabb = Aabb::from_extents(
+            Vector3::new(-1.5, -1.5012, -1.5),
+            Vector3::new(-0.076, 0.075999975, 0.075999975),
+        );
+
+        let actual = clip_triangle_aabb(&triangle, &aabb);
+
+        let expected: SmallVec<[Vector3<f32>; 0]> = smallvec![];
+        let outside = actual
+            .into_iter()
+            .filter(|p| !aabb.contains(p))
+            .collect::<SmallVec<[Vector3<f32>; 1]>>();
+        assert_eq!(outside, expected);
     }
 }

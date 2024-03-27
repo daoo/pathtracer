@@ -82,6 +82,18 @@ impl Aabb {
         let snd = Aabb::from_extents(new_min, self.max);
         (fst, snd)
     }
+
+    pub fn clamp(&self, point: Vector3<f32>) -> Vector3<f32> {
+        Vector3::new(
+            point.x.clamp(self.min.x, self.max.x),
+            point.y.clamp(self.min.y, self.max.y),
+            point.z.clamp(self.min.z, self.max.z),
+        )
+    }
+
+    pub fn contains(&self, point: &Vector3<f32>) -> bool {
+        *point >= self.min && *point <= self.max
+    }
 }
 
 #[cfg(test)]
