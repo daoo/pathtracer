@@ -4,110 +4,98 @@ use super::aap::Aap;
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Aabb {
-    center: Vector3<f32>,
-    half_size: Vector3<f32>,
+    min: Vector3<f32>,
+    max: Vector3<f32>,
 }
 
 impl Aabb {
-    pub fn from_extents(min: &Vector3<f32>, max: &Vector3<f32>) -> Aabb {
-        let size = max - min;
-        let half_size = size / 2.;
-        Aabb {
-            center: min + half_size,
-            half_size,
-        }
+    pub fn from_extents(min: Vector3<f32>, max: Vector3<f32>) -> Aabb {
+        debug_assert!(min <= max);
+        Aabb { min, max }
     }
 
     pub fn empty() -> Aabb {
         Aabb {
-            center: Vector3::zeros(),
-            half_size: Vector3::zeros(),
+            min: Vector3::zeros(),
+            max: Vector3::zeros(),
         }
     }
 
     pub fn unit() -> Aabb {
         Aabb {
-            center: Vector3::new(0., 0., 0.),
-            half_size: Vector3::new(0.5, 0.5, 0.5),
+            min: Vector3::new(0., 0., 0.),
+            max: Vector3::new(1., 1., 1.),
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.min == self.max
     }
 
     pub fn center(&self) -> Vector3<f32> {
-        self.center
+        self.min + self.half_size()
     }
 
     pub fn half_size(&self) -> Vector3<f32> {
-        self.half_size
+        self.size() / 2.0
     }
 
     pub fn size(&self) -> Vector3<f32> {
-        2.0 * self.half_size
+        self.max - self.min
     }
 
     pub fn min(&self) -> Vector3<f32> {
-        self.center - self.half_size
+        self.min
     }
 
     pub fn max(&self) -> Vector3<f32> {
-        self.center + self.half_size
+        self.max
     }
 
     pub fn surface_area(&self) -> f32 {
-        8. * (self.half_size.x * self.half_size.y
-            + self.half_size.x * self.half_size.z
-            + self.half_size.y * self.half_size.z)
+        let size = self.size();
+        2. * (size.x * size.y + size.x * size.z + size.y * size.z)
     }
 
     pub fn volume(&self) -> f32 {
-        8. * self.half_size.x * self.half_size.y * self.half_size.z
-    }
-
-    #[must_use]
-    pub fn translate(&self, delta: &Vector3<f32>) -> Aabb {
-        Aabb {
-            center: self.center + delta,
-            half_size: self.half_size,
-        }
+        let size = self.size();
+        size.x * size.y * size.z
     }
 
     #[must_use]
     pub fn enlarge(&self, delta: &Vector3<f32>) -> Aabb {
+        let half_delta = delta / 2.0;
         Aabb {
-            center: self.center,
-            half_size: self.half_size + delta,
+            min: self.min - half_delta,
+            max: self.max + half_delta,
         }
     }
 
     pub fn split(&self, plane: &Aap) -> (Aabb, Aabb) {
-        let fst_half_axis = (plane.distance - self.min()[plane.axis]) / 2.;
-        let snd_half_axis = (self.max()[plane.axis] - plane.distance) / 2.;
-        debug_assert!(
-            fst_half_axis >= 0.0,
-            "fst_half_axis is negative {fst_half_axis}",
-        );
-        debug_assert!(
-            snd_half_axis >= 0.0,
-            "snd_half_axis is negative {snd_half_axis}",
-        );
+        let mut new_max = self.max;
+        new_max[plane.axis] = plane.distance;
 
-        let mut fst_center = self.center;
-        let mut fst_half_size = self.half_size;
-        fst_center[plane.axis] = plane.distance - fst_half_axis;
-        fst_half_size[plane.axis] = fst_half_axis;
+        let mut new_min = self.min;
+        new_min[plane.axis] = plane.distance;
 
-        let mut snd_center = self.center;
-        let mut snd_half_size = self.half_size;
-        snd_center[plane.axis] = plane.distance + snd_half_axis;
-        snd_half_size[plane.axis] = snd_half_axis;
-
-        let fst = Aabb {
-            center: fst_center,
-            half_size: fst_half_size,
-        };
-        let snd = Aabb {
-            center: snd_center,
-            half_size: snd_half_size,
-        };
+        let fst = Aabb::from_extents(self.min, new_max);
+        let snd = Aabb::from_extents(new_min, self.max);
         (fst, snd)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn split_in_half_halves_the_volume() {
+        let aabb = Aabb::unit();
+
+        let actual = aabb.split(&Aap::new_x(0.5));
+
+        assert_eq!(aabb.volume(), 1.0);
+        assert_eq!(actual.0.volume(), 0.5);
+        assert_eq!(actual.1.volume(), 0.5);
     }
 }

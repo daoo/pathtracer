@@ -340,7 +340,7 @@ mod tests_intersect_triangle_aabb {
             v1: Vector3::new(2., 1., 1.),
             v2: Vector3::new(1., 2., 1.),
         };
-        let aabb = Aabb::from_extents(&Vector3::new(0., 0., 0.), &Vector3::new(2., 2., 2.));
+        let aabb = Aabb::from_extents(Vector3::new(0., 0., 0.), Vector3::new(2., 2., 2.));
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
     }
@@ -352,7 +352,7 @@ mod tests_intersect_triangle_aabb {
             v1: Vector3::new(2., 1., 2.),
             v2: Vector3::new(1., 2., 2.),
         };
-        let aabb = Aabb::from_extents(&Vector3::new(0., 0., 0.), &Vector3::new(2., 2., 2.));
+        let aabb = Aabb::from_extents(Vector3::new(0., 0., 0.), Vector3::new(2., 2., 2.));
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
     }
@@ -364,7 +364,7 @@ mod tests_intersect_triangle_aabb {
             v1: Vector3::new(11., 10., 10.),
             v2: Vector3::new(10., 11., 10.),
         };
-        let aabb = Aabb::from_extents(&Vector3::new(0., 0., 0.), &Vector3::new(2., 2., 2.));
+        let aabb = Aabb::from_extents(Vector3::new(0., 0., 0.), Vector3::new(2., 2., 2.));
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), false);
     }
@@ -380,7 +380,7 @@ pub fn triangles_bounding_box(triangles: &[Triangle]) -> Aabb {
         a = a.inf(&triangle.min());
         b = b.sup(&triangle.max());
     }
-    Aabb::from_extents(&a, &b)
+    Aabb::from_extents(a, b)
 }
 
 #[cfg(test)]
@@ -404,7 +404,7 @@ mod tests {
 
         let actual = triangles_bounding_box(&triangles);
 
-        let expected = Aabb::from_extents(&Vector3::new(-1., -1., -1.), &Vector3::new(1., 1., 1.));
+        let expected = Aabb::from_extents(Vector3::new(-1., -1., -1.), Vector3::new(1., 1., 1.));
         assert_eq!(actual, expected);
     }
 }
@@ -586,7 +586,7 @@ mod tests_clip_triangle_aabb {
             v1: Vector3::new(2.0, 1.0, 1.0),
             v2: Vector3::new(2.0, 2.0, 1.0),
         };
-        let aabb = Aabb::from_extents(&Vector3::new(0.0, 0.0, 0.0), &Vector3::new(3.0, 3.0, 3.0));
+        let aabb = Aabb::from_extents(Vector3::new(0.0, 0.0, 0.0), Vector3::new(3.0, 3.0, 3.0));
 
         let actual = clip_triangle_aabb(&triangle, &aabb);
 
@@ -601,7 +601,7 @@ mod tests_clip_triangle_aabb {
             v1: Vector3::new(1.0, 2.0, 0.0),
             v2: Vector3::new(1.0, 2.0, 1.0),
         };
-        let aabb = Aabb::from_extents(&Vector3::new(0.0, 0.0, 0.0), &Vector3::new(1.0, 1.0, 1.0));
+        let aabb = Aabb::from_extents(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 1.0, 1.0));
 
         let actual = clip_triangle_aabb(&triangle, &aabb);
 
@@ -616,7 +616,7 @@ mod tests_clip_triangle_aabb {
             v1: Vector3::new(1.0, -1.0, 0.0),
             v2: Vector3::new(1.0, -1.0, 1.0),
         };
-        let aabb = Aabb::from_extents(&Vector3::new(0.0, 0.0, 0.0), &Vector3::new(1.0, 1.0, 1.0));
+        let aabb = Aabb::from_extents(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 1.0, 1.0));
 
         let actual = clip_triangle_aabb(&triangle, &aabb);
 
@@ -631,7 +631,7 @@ mod tests_clip_triangle_aabb {
             v1: Vector3::new(12.0, 0.0, 0.0),
             v2: Vector3::new(6.0, 6.0, 0.0),
         };
-        let aabb = Aabb::from_extents(&Vector3::new(2.0, -1.0, 0.0), &Vector3::new(10.0, 4.0, 0.0));
+        let aabb = Aabb::from_extents(Vector3::new(2.0, -1.0, 0.0), Vector3::new(10.0, 4.0, 0.0));
 
         let actual = clip_triangle_aabb(&triangle, &aabb);
 

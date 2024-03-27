@@ -74,11 +74,8 @@ impl KdTreeBuilder for SahKdTreeBuilder {
     }
 
     fn find_best_split(&self, _: u32, parent: &KdBox) -> Option<KdSplit> {
-        debug_assert!(parent.boundary.volume() > 0.0);
+        debug_assert!(!parent.boundary.is_empty());
         debug_assert!(!parent.triangle_indices.is_empty());
-
-        let min = parent.boundary.min();
-        let max = parent.boundary.max();
 
         let min_by_snd = |a: (_, f32), b: (_, f32)| if a.1 <= b.1 { a } else { b };
 
@@ -95,16 +92,12 @@ impl KdTreeBuilder for SahKdTreeBuilder {
         splits.dedup();
         splits
             .par_iter()
-            .filter_map(|s| {
-                if s.distance > min[s.axis] && s.distance < max[s.axis] {
-                    let plane = Aap {
-                        axis: s.axis,
-                        distance: s.distance,
-                    };
-                    Some(self.split_and_calculate_cost(parent, plane, &clipped_triangles))
-                } else {
-                    None
-                }
+            .map(|s| {
+                let plane = Aap {
+                    axis: s.axis,
+                    distance: s.distance,
+                };
+                self.split_and_calculate_cost(parent, plane, &clipped_triangles)
             })
             .reduce_with(min_by_snd)
             .map(|a| a.0)
@@ -151,7 +144,7 @@ mod tests {
             empty_factor: 0.8,
             triangles,
         };
-        let tree = build_kdtree(builder, 10);
+        let tree = build_kdtree(builder, 6);
 
         let expected = KdNode::new_node(
             Aap::new_x(0.0),
@@ -198,7 +191,7 @@ mod tests {
             empty_factor: 0.8,
             triangles,
         };
-        let tree = build_kdtree(builder, 10);
+        let tree = build_kdtree(builder, 4);
 
         let expected = KdNode::new_node(
             Aap::new_x(0.0),
