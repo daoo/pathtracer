@@ -235,25 +235,11 @@ mod tests {
 
         assert_eq!(
             tree.intersect(&ray1, 0., 1.),
-            Some((
-                0,
-                TriangleRayIntersection {
-                    t: 0.25,
-                    u: 0.,
-                    v: 0.5
-                }
-            ))
+            Some((0, TriangleRayIntersection::new(0.25, 0., 0.5)))
         );
         assert_eq!(
             tree.intersect(&ray2, 0., 1.),
-            Some((
-                1,
-                TriangleRayIntersection {
-                    t: 0.25,
-                    u: 0.,
-                    v: 0.5
-                }
-            ))
+            Some((1, TriangleRayIntersection::new(0.25, 0., 0.5)))
         );
     }
 
@@ -270,14 +256,11 @@ mod tests {
             v2: Vector3::new(2., 1., 0.),
         };
         let tree = KdTree {
-            root: Box::new(KdNode::Node {
-                plane: Aap {
-                    axis: Axis::X,
-                    distance: 1.,
-                },
-                left: Box::new(KdNode::Leaf(vec![0])),
-                right: Box::new(KdNode::Leaf(vec![1])),
-            }),
+            root: KdNode::new_node(
+                Aap::new_x(1.0),
+                KdNode::new_leaf(vec![0]),
+                KdNode::new_leaf(vec![1]),
+            ),
             triangles: vec![triangle0, triangle1],
         };
         let ray_triangle0_v0 = Ray::between(&Vector3::new(0., 0., -1.), &Vector3::new(0., 0., 1.));
@@ -285,25 +268,11 @@ mod tests {
 
         assert_eq!(
             tree.intersect(&ray_triangle0_v0, 0., 1.),
-            Some((
-                0,
-                TriangleRayIntersection {
-                    t: 0.5,
-                    u: 0.,
-                    v: 0.
-                }
-            ))
+            Some((0, TriangleRayIntersection::new(0.5, 0., 0.)))
         );
         assert_eq!(
             tree.intersect(&ray_triangle1_v1, 0., 1.),
-            Some((
-                1,
-                TriangleRayIntersection {
-                    t: 0.5,
-                    u: 1.,
-                    v: 0.
-                }
-            ))
+            Some((1, TriangleRayIntersection::new(0.5, 1., 0.)))
         );
     }
 
@@ -320,14 +289,11 @@ mod tests {
             v2: Vector3::new(2., 1., 1.),
         };
         let tree = KdTree {
-            root: Box::new(KdNode::Node {
-                plane: Aap {
-                    axis: Axis::X,
-                    distance: 1.,
-                },
-                left: Box::new(KdNode::Leaf(vec![0])),
-                right: Box::new(KdNode::Leaf(vec![1])),
-            }),
+            root: KdNode::new_node(
+                Aap::new_x(1.0),
+                KdNode::new_leaf(vec![0]),
+                KdNode::new_leaf(vec![1]),
+            ),
             triangles: vec![triangle0, triangle1],
         };
         let ray1 = Ray::between(&Vector3::new(-1., 0., 0.), &Vector3::new(3., 0., 0.));
@@ -335,25 +301,74 @@ mod tests {
 
         assert_eq!(
             tree.intersect(&ray1, 0., 1.),
-            Some((
-                0,
-                TriangleRayIntersection {
-                    t: 0.25,
-                    u: 0.,
-                    v: 0.5
-                }
-            ))
+            Some((0, TriangleRayIntersection::new(0.25, 0., 0.5)))
         );
         assert_eq!(
             tree.intersect(&ray2, 0., 1.),
-            Some((
-                1,
-                TriangleRayIntersection {
-                    t: 0.25,
-                    u: 0.,
-                    v: 0.5
-                }
-            ))
+            Some((1, TriangleRayIntersection::new(0.25, 0., 0.5)))
+        );
+    }
+
+    #[test]
+    fn intersect_split_at_axially_aligned_triangle() {
+        let triangle = Triangle {
+            v0: Vector3::new(0., 0., 0.),
+            v1: Vector3::new(1., 0., 0.),
+            v2: Vector3::new(0., 1., 0.),
+        };
+        let tree_left = KdTree {
+            root: KdNode::new_node(
+                Aap::new_z(0.0),
+                KdNode::new_leaf(vec![0]),
+                KdNode::new_leaf(vec![]),
+            ),
+            triangles: vec![triangle.clone()],
+        };
+        let tree_right = KdTree {
+            root: KdNode::new_node(
+                Aap::new_z(0.0),
+                KdNode::new_leaf(vec![]),
+                KdNode::new_leaf(vec![0]),
+            ),
+            triangles: vec![triangle],
+        };
+        let ray = Ray::between(&Vector3::new(0., 0., -1.), &Vector3::new(0., 0., 1.));
+
+        assert_eq!(
+            tree_left.intersect(&ray, 0., 1.),
+            Some((0, TriangleRayIntersection::new(0.5, 0., 0.)))
+        );
+        assert_eq!(
+            tree_right.intersect(&ray, 0., 1.),
+            Some((0, TriangleRayIntersection::new(0.5, 0., 0.)))
+        );
+    }
+
+    #[test]
+    fn intersect_flat_cell() {
+        let triangle = Triangle {
+            v0: Vector3::new(0., 0., 0.),
+            v1: Vector3::new(1., 0., 0.),
+            v2: Vector3::new(0., 1., 0.),
+        };
+        let tree = KdTree {
+            root: KdNode::new_node(
+                Aap::new_z(0.0),
+                KdNode::new_node(Aap::new_z(0.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
+                KdNode::empty(),
+            ),
+            triangles: vec![triangle.clone()],
+        };
+        let ray0 = Ray::between(&Vector3::new(0., 0., -1.), &Vector3::new(0., 0., 1.));
+        let ray1 = ray0.reverse();
+
+        assert_eq!(
+            tree.intersect(&ray0, 0., 1.),
+            Some((0, TriangleRayIntersection::new(0.5, 0., 0.)))
+        );
+        assert_eq!(
+            tree.intersect(&ray1, 0., 1.),
+            Some((0, TriangleRayIntersection::new(0.5, 0., 0.)))
         );
     }
 }

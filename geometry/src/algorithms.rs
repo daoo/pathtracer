@@ -10,6 +10,12 @@ pub struct TriangleRayIntersection {
     pub v: f32,
 }
 
+impl TriangleRayIntersection {
+    pub fn new(t: f32, u: f32, v: f32) -> Self {
+        TriangleRayIntersection { t, u, v }
+    }
+}
+
 pub fn intersect_triangle_ray(triangle: &Triangle, ray: &Ray) -> Option<TriangleRayIntersection> {
     let b0 = triangle.base0();
     let b1 = triangle.base1();
