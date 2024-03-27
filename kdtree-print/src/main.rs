@@ -23,10 +23,12 @@ impl Display for KdTreeMethod {
 }
 
 #[derive(Clone, Debug, Parser)]
-#[command(about = "test", long_about = None)]
 struct Args {
-    #[arg(short = 'i', long, required = true, help = "test")]
+    #[arg(short = 'i', long, required = true)]
     input: std::path::PathBuf,
+
+    #[arg(short = 'j', long, default_value_t = false)]
+    json: bool,
 
     #[arg(short = 'm', long, default_value_t = KdTreeMethod::Median)]
     method: KdTreeMethod,
@@ -34,17 +36,17 @@ struct Args {
     #[arg(short = 'd', long, default_value_t = 20)]
     max_depth: u32,
 
-    #[arg(short = 't', long, default_value_t = 2.0)]
+    #[arg(long, default_value_t = 2.0)]
     traverse_cost: f32,
 
-    #[arg(short = 'c', long, default_value_t = 1.0)]
+    #[arg(long, default_value_t = 1.0)]
     intersect_cost: f32,
 
-    #[arg(short = 'e', long, default_value_t = 0.8)]
+    #[arg(long, default_value_t = 0.8)]
     empty_factor: f32,
 }
 
-fn print(depth: usize, kdtree: &KdNode) {
+fn print_pretty(depth: usize, kdtree: &KdNode) {
     let indent = "  ".repeat(depth);
     match kdtree {
         KdNode::Leaf(triangle_indices) => println!("{}Leaf {:?}", indent, triangle_indices),
@@ -55,8 +57,24 @@ fn print(depth: usize, kdtree: &KdNode) {
                 plane.axis,
                 plane.distance
             );
-            print(depth + 1, left);
-            print(depth + 1, right);
+            print_pretty(depth + 1, left);
+            print_pretty(depth + 1, right);
+        }
+    }
+}
+
+fn print_json(kdtree: &KdNode) {
+    match kdtree {
+        KdNode::Leaf(triangle_indices) => print!("{:?}", triangle_indices),
+        KdNode::Node { plane, left, right } => {
+            print!(
+                "{{\"axis\": \"{:?}\", \"distance\": {}, \"left\": ",
+                plane.axis, plane.distance
+            );
+            print_json(left);
+            print!(", \"right\": ");
+            print_json(right);
+            print!("}}");
         }
     }
 }
@@ -107,5 +125,10 @@ fn main() {
 
     eprintln!("Done in {:.3} with cost {:.3}.", duration, cost);
 
-    print(0, &kdtree.root);
+    if args.json {
+        print_json(&kdtree.root);
+        println!();
+    } else {
+        print_pretty(0, &kdtree.root);
+    }
 }
