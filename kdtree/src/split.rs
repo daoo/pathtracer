@@ -77,7 +77,7 @@ pub fn clip_triangle(triangles: &[Triangle], aabb: &Aabb, index: u32) -> Option<
 }
 
 #[cfg(test)]
-mod tests {
+mod clip_triangle_tests {
     use super::*;
 
     #[test]
