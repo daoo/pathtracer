@@ -262,9 +262,12 @@ pub fn intersect_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> bool {
     const U1: Vector3<f32> = Vector3::new(0., 1., 0.);
     const U2: Vector3<f32> = Vector3::new(0., 0., 1.);
 
-    let v0 = triangle.v0 - aabb.center;
-    let v1 = triangle.v1 - aabb.center;
-    let v2 = triangle.v2 - aabb.center;
+    let center = aabb.center();
+    let half_size = aabb.half_size();
+
+    let v0 = triangle.v0 - center;
+    let v1 = triangle.v1 - center;
+    let v2 = triangle.v2 - center;
 
     let f0 = v1 - v0;
     let f1 = v2 - v1;
@@ -274,9 +277,9 @@ pub fn intersect_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> bool {
         let p0 = v0.dot(&axis);
         let p1 = v1.dot(&axis);
         let p2 = v2.dot(&axis);
-        let r = aabb.half_size.x * U0.dot(&axis).abs()
-            + aabb.half_size.y * U1.dot(&axis).abs()
-            + aabb.half_size.z * U2.dot(&axis).abs();
+        let r = half_size.x * U0.dot(&axis).abs()
+            + half_size.y * U1.dot(&axis).abs()
+            + half_size.z * U2.dot(&axis).abs();
         (-p0.max(p1.max(p2))).max(p0.min(p1.min(p2))) > r
     };
 
@@ -337,10 +340,7 @@ mod tests_intersect_triangle_aabb {
             v1: Vector3::new(2., 1., 1.),
             v2: Vector3::new(1., 2., 1.),
         };
-        let aabb = Aabb {
-            center: Vector3::new(1., 1., 1.),
-            half_size: Vector3::new(1., 1., 1.),
-        };
+        let aabb = Aabb::from_extents(&Vector3::new(0., 0., 0.), &Vector3::new(2., 2., 2.));
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
     }
@@ -352,10 +352,7 @@ mod tests_intersect_triangle_aabb {
             v1: Vector3::new(2., 1., 2.),
             v2: Vector3::new(1., 2., 2.),
         };
-        let aabb = Aabb {
-            center: Vector3::new(1., 1., 1.),
-            half_size: Vector3::new(1., 1., 1.),
-        };
+        let aabb = Aabb::from_extents(&Vector3::new(0., 0., 0.), &Vector3::new(2., 2., 2.));
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), true);
     }
@@ -367,10 +364,7 @@ mod tests_intersect_triangle_aabb {
             v1: Vector3::new(11., 10., 10.),
             v2: Vector3::new(10., 11., 10.),
         };
-        let aabb = Aabb {
-            center: Vector3::new(1., 1., 1.),
-            half_size: Vector3::new(1., 1., 1.),
-        };
+        let aabb = Aabb::from_extents(&Vector3::new(0., 0., 0.), &Vector3::new(2., 2., 2.));
 
         assert_eq!(intersect_triangle_aabb(&triangle, &aabb), false);
     }
@@ -410,10 +404,7 @@ mod tests {
 
         let actual = triangles_bounding_box(&triangles);
 
-        let expected = Aabb {
-            center: Vector3::new(0., 0., 0.),
-            half_size: Vector3::new(1., 1., 1.),
-        };
+        let expected = Aabb::from_extents(&Vector3::new(-1., -1., -1.), &Vector3::new(1., 1., 1.));
         assert_eq!(actual, expected);
     }
 }

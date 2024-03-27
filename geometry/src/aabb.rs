@@ -4,8 +4,8 @@ use super::aap::Aap;
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Aabb {
-    pub center: Vector3<f32>,
-    pub half_size: Vector3<f32>,
+    center: Vector3<f32>,
+    half_size: Vector3<f32>,
 }
 
 impl Aabb {
@@ -30,6 +30,14 @@ impl Aabb {
             center: Vector3::new(0., 0., 0.),
             half_size: Vector3::new(0.5, 0.5, 0.5),
         }
+    }
+
+    pub fn center(&self) -> Vector3<f32> {
+        self.center
+    }
+
+    pub fn half_size(&self) -> Vector3<f32> {
+        self.half_size
     }
 
     pub fn size(&self) -> Vector3<f32> {
