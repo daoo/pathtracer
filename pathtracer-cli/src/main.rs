@@ -31,6 +31,15 @@ struct Work<'a> {
     pinhole: &'a Pinhole,
 }
 
+fn create_ray_logger<'a>(thread: u32) -> RayLogger<'a> {
+    if cfg!(feature = "ray_logging") {
+        let path = format!("/tmp/raylog{}.bin", thread);
+        RayLogger::create(path).unwrap()
+    } else {
+        RayLogger::None()
+    }
+}
+
 fn worker_thread(
     thread: u32,
     work: &Work,
@@ -39,14 +48,12 @@ fn worker_thread(
 ) -> ImageBuffer {
     let mut rng = SmallRng::from_entropy();
     let mut buffer = ImageBuffer::new(work.width, work.height);
-    let path = format!("/tmp/raylog{}.bin", thread);
-    let ray_logger = RayLogger::create(Path::new(&path)).unwrap();
-    let ray_logger = ray_logger.to_meta();
+    let mut ray_logger = create_ray_logger(thread);
     for iteration in 0..iterations {
         let t1 = time::Instant::now();
-        let ray_logger_ = ray_logger.with_meta(&[iteration as u16]);
+        let mut ray_logger = ray_logger.with_meta(&[iteration as u16]);
         pathtracer::pathtracer::render(
-            &ray_logger_,
+            &mut ray_logger,
             work.max_bounces,
             work.scene,
             work.pinhole,

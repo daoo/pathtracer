@@ -5,6 +5,9 @@ name = "pathtracer"
 version = "1.0.0"
 edition = "2021"
 
+[features]
+ray_logging = []
+
 [dependencies]
 assert_approx_eq = "1.1.0"
 geometry = { version = "1.0.0", path = "geometry" }

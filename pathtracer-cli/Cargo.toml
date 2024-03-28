@@ -3,6 +3,9 @@ name = "pathtracer-cli"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+ray_logging = ["pathtracer/ray_logging"]
+
 [dependencies]
 clap = { version = "4.5.4", default-features = false, features = ["derive", "std"] }
 pathtracer = { version = "1.0.0", path = ".." }
