@@ -26,7 +26,7 @@ def read_rays(path):
 def visualize(rays):
     rerun.init('raytracing')
     rerun.connect()
-    rerun.log('rays', rerun.ViewCoordinates.LEFT_HAND_Y_UP, timeless=True)
+    rerun.log('rays', rerun.ViewCoordinates.RIGHT_HAND_Y_UP, timeless=True)
 
     for (_, ray) in rays.groupby(['i', 'px', 'py']):
         segments = ray[['ax', 'ay', 'az', 'bx', 'by', 'bz']].to_numpy()
@@ -37,7 +37,6 @@ def visualize(rays):
 
 
 def program(path, min_x, min_y, max_x, max_y):
-    path = sys.argv[1]
     print(f'Reading "{path}"...')
     rays = read_rays(path)
     print(f'Read {len(rays)} rays.')
