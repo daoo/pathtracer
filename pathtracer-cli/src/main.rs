@@ -2,7 +2,7 @@ use clap::Parser;
 use pathtracer::{camera::Pinhole, image_buffer::ImageBuffer, raylogger::RayLogger, scene::Scene};
 use rand::{rngs::SmallRng, SeedableRng};
 use rayon::prelude::*;
-use std::{fs, io::prelude::*, path::Path, str, sync::mpsc};
+use std::{fs, io::Write, str, sync::mpsc};
 use wavefront::{mtl, obj};
 
 #[derive(Parser, Debug)]
