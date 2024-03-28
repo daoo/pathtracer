@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import rerun
+import sys
 
 dt = np.dtype([
     ('i', np.uint16),
@@ -15,13 +16,17 @@ dt = np.dtype([
     ('by', np.float32),
     ('bz', np.float32),
 ])
-rays = pd.DataFrame(np.fromfile('/tmp/raylog0.bin', dt))
-print(f'Read {len(rays)} rays...')
+path = sys.argv[1]
+print(f'Reading "{path}"...')
+rays = pd.DataFrame(np.fromfile(path, dt))
+print(f'Read {len(rays)} rays.')
 
 pixels = np.array([[100, 150], [350, 450]])
 
 rays = rays[(rays.px >= pixels[0][0]) & (rays.px <= pixels[0][1])
             & (rays.py >= pixels[1][0]) & (rays.py <= pixels[1][1])]
+
+print(f'Filtered out {len(rays)} rays.')
 
 rerun.init('raytracing')
 rerun.connect()
