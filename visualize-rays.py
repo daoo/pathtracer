@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
+import argparse
 import numpy as np
 import pandas as pd
 import rerun
 import sys
 
-dt = np.dtype([
+RAY_DTYPE = np.dtype([
     ('i', np.uint16),
     ('px', np.uint16),
     ('py', np.uint16),
@@ -16,25 +17,49 @@ dt = np.dtype([
     ('by', np.float32),
     ('bz', np.float32),
 ])
-path = sys.argv[1]
-print(f'Reading "{path}"...')
-rays = pd.DataFrame(np.fromfile(path, dt))
-print(f'Read {len(rays)} rays.')
 
-pixels = np.array([[100, 150], [350, 450]])
 
-rays = rays[(rays.px >= pixels[0][0]) & (rays.px <= pixels[0][1])
-            & (rays.py >= pixels[1][0]) & (rays.py <= pixels[1][1])]
+def read_rays(path):
+    return pd.DataFrame(np.fromfile(path, RAY_DTYPE))
 
-print(f'Filtered out {len(rays)} rays.')
 
-rerun.init('raytracing')
-rerun.connect()
-rerun.log('rays', rerun.ViewCoordinates.RIGHT_HAND_Y_UP, timeless=True)
+def visualize(rays):
+    rerun.init('raytracing')
+    rerun.connect()
+    rerun.log('rays', rerun.ViewCoordinates.LEFT_HAND_Y_UP, timeless=True)
 
-for (_, ray) in rays.groupby(['i', 'px', 'py']):
-    segments = ray[['ax', 'ay', 'az', 'bx', 'by', 'bz']].to_numpy()
-    segments = segments.reshape((len(ray), 2, 3))
-    path = f'rays/iter{ray.i.iloc[0]}/{ray.px.iloc[0]}x{ray.py.iloc[0]}'
-    print(path)
-    rerun.log(path, rerun.LineStrips3D(segments, radii=0.001), timeless=True)
+    for (_, ray) in rays.groupby(['i', 'px', 'py']):
+        segments = ray[['ax', 'ay', 'az', 'bx', 'by', 'bz']].to_numpy()
+        segments = segments.reshape((len(ray), 2, 3))
+        path = f'rays/iter{ray.i.iloc[0]}/{ray.px.iloc[0]}x{ray.py.iloc[0]}'
+        rerun.log(path, rerun.LineStrips3D(
+            segments, radii=0.001), timeless=True)
+
+
+def program(path, min_x, min_y, max_x, max_y):
+    path = sys.argv[1]
+    print(f'Reading "{path}"...')
+    rays = read_rays(path)
+    print(f'Read {len(rays)} rays.')
+
+    rays = rays[(rays.px >= min_x) & (rays.px <= max_x)
+                & (rays.py >= min_y) & (rays.py <= max_y)]
+
+    print(f'Filtered out {len(rays)} rays.')
+    visualize(rays)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Visualize rays with rerun.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("path", help="raylog.bin file path")
+    parser.add_argument("--min", default="0x0")
+    parser.add_argument("--max", default="10x10")
+    args = parser.parse_args()
+    [min_x, min_y] = [int(s) for s in args.min.split('x')]
+    [max_x, max_y] = [int(s) for s in args.max.split('x')]
+    sys.exit(program(args.path, min_x, min_y, max_x, max_y))
+
+
+main()
