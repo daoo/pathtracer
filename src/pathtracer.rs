@@ -47,12 +47,12 @@ impl<'a> Pathtracer<'a> {
         let point_above = point + offset;
         let point_below = point - offset;
 
-        // _ray_logger
-        //     .log(&Ray {
-        //         origin: ray.origin,
-        //         direction: point,
-        //     })
-        //     .unwrap();
+        self.ray_logger
+            .log(&Ray {
+                origin: ray.origin,
+                direction: point,
+            })
+            .unwrap();
 
         let incoming_radiance: Vector3<f32> = self
             .scene
