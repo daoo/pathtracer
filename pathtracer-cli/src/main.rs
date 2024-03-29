@@ -16,7 +16,7 @@ struct Args {
     #[arg(short, long, default_value_t = 512)]
     height: u32,
     #[arg(short, long, default_value_t = 10)]
-    max_bounces: u32,
+    max_bounces: u16,
     #[arg(short = 'n', long, default_value_t = 16)]
     iterations: u32,
     #[arg(short, long, default_value_t = 1)]
@@ -26,12 +26,12 @@ struct Args {
 struct Work<'a> {
     width: u32,
     height: u32,
-    max_bounces: u32,
+    max_bounces: u16,
     scene: &'a Scene,
     pinhole: &'a Pinhole,
 }
 
-fn create_ray_logger<'a>(thread: u32) -> RayLogger<'a> {
+fn create_ray_logger(thread: u32) -> RayLogger {
     if cfg!(feature = "ray_logging") {
         let path = format!("/tmp/raylog{}.bin", thread);
         RayLogger::create(path).unwrap()
@@ -51,8 +51,8 @@ fn worker_thread(
     let mut ray_logger = create_ray_logger(thread);
     for iteration in 0..iterations {
         let t1 = time::Instant::now();
-        let mut ray_logger = ray_logger.with_meta(&[iteration as u16]);
         pathtracer::pathtracer::render(
+            iteration as u16,
             &mut ray_logger,
             work.max_bounces,
             work.scene,

@@ -9,6 +9,7 @@ RAY_DTYPE = np.dtype([
     ('i', np.uint16),
     ('px', np.uint16),
     ('py', np.uint16),
+    ('inf', np.uint8),
     ('ax', np.float32),
     ('ay', np.float32),
     ('az', np.float32),
@@ -37,6 +38,8 @@ def visualize(rays, color_segment):
     for (n, (_, path)) in zip(grouped.ngroup(), grouped):
         segments = path[['ax', 'ay', 'az', 'bx', 'by', 'bz']].to_numpy()
         segments = segments.reshape((len(path), 2, 3))
+        if path.inf.iloc[-1] == 1:
+            segments[-1][1] = 10.0 * (segments[-1][1] - segments[-1][0])
         iter = f'iter{path.i.iloc[0]}'
         pixel = f'{path.px.iloc[0]}x{path.py.iloc[0]}'
         path = f'world/rays/{iter}/{pixel}'
