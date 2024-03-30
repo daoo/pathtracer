@@ -74,8 +74,10 @@ impl KdTreeBuilder for SahKdTreeBuilder {
     }
 
     fn find_best_split(&self, _: u32, parent: &KdBox) -> Option<KdSplit> {
-        debug_assert!(!parent.boundary().is_empty());
-        debug_assert!(!parent.triangle_indices().is_empty());
+        debug_assert!(
+            !parent.triangle_indices().is_empty(),
+            "splitting a kd-cell with no triangles only worsens performance"
+        );
 
         let min_by_snd = |a: (_, f32), b: (_, f32)| if a.1 <= b.1 { a } else { b };
 

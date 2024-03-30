@@ -20,7 +20,6 @@ pub struct MedianKdTreeBuilder {
 }
 
 fn median(splits: &[Aap]) -> Aap {
-    debug_assert!(!splits.is_empty());
     if splits.len() == 1 {
         return splits[0];
     }

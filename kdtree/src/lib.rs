@@ -33,7 +33,10 @@ impl KdNode {
     }
 
     pub fn new_node(plane: Aap, left: Box<Self>, right: Box<Self>) -> Box<Self> {
-        debug_assert!(!(left.is_empty() && right.is_empty()));
+        debug_assert!(
+            !(left.is_empty() && right.is_empty()),
+            "kd-node with both children empty worsens performance"
+        );
         Box::new(Self::Node { plane, left, right })
     }
 

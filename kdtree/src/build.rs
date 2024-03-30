@@ -10,7 +10,14 @@ pub struct KdBox {
 
 impl KdBox {
     pub fn new(boundary: Aabb, triangle_indices: Vec<u32>) -> Self {
-        debug_assert!(!(boundary.volume() == 0.0 && triangle_indices.is_empty()));
+        debug_assert!(
+            boundary.surface_area() != 0.0,
+            "empty kd-cell cannot intersect a ray"
+        );
+        debug_assert!(
+            !(boundary.volume() == 0.0 && triangle_indices.is_empty()),
+            "flat kd-cell without any triangles likely worsens performance"
+        );
         KdBox {
             boundary,
             triangle_indices,
