@@ -34,14 +34,15 @@ def visualize_kdnode(color, depth, path, aabb, node):
         right_aabb = aabb.copy()
         right_aabb[0, axis] = distance
 
-        # rerun.log(f'world/{path}/{node['axis']}={distance}', rerun.Boxes3D(
-        #     mins=[plane[0]],
-        #     sizes=[plane[1] - plane[0]]), timeless=True)
-        rerun.log(f'world/{path}/aabb', rerun.Boxes3D(
-            mins=[aabb[0]],
-            sizes=[aabb[1] - aabb[0]],
-            radii=0.001,
+        rerun.log(f'world/{path}/{node["axis"]}={distance}', rerun.Boxes3D(
+            mins=[plane[0]],
+            sizes=[plane[1] - plane[0]],
             colors=color(depth)), timeless=True)
+        # rerun.log(f'world/{path}/aabb', rerun.Boxes3D(
+        #     mins=[aabb[0]],
+        #     sizes=[aabb[1] - aabb[0]],
+        #     radii=0.001,
+        #     colors=color(depth)), timeless=True)
 
         visualize_kdnode(
             color, depth + 1, f'{path}/l', left_aabb, node['left'])
