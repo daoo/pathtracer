@@ -372,4 +372,35 @@ mod tests {
             ))
         );
     }
+
+    #[test]
+    fn intersect_rounding_error_example() {
+        let triangle = Triangle {
+            v0: Vector3::new(-1.0, -1.0, 1.0),
+            v1: Vector3::new(-1.0, -1.0, -1.0),
+            v2: Vector3::new(-1.0, 1.0, 1.0),
+        };
+        let tree = KdTree {
+            root: KdNode::new_node(Aap::new_x(-1.0), KdNode::empty(), KdNode::new_leaf(vec![0])),
+            geometries: vec![triangle.into()],
+        };
+        let ray = Ray {
+            origin: Vector3::new(-0.5170438, -0.4394186, -0.045965273),
+            direction: Vector3::new(-0.8491798, -0.1408107, -0.5089852),
+        };
+
+        let actual = tree.intersect(&ray, 0.0..=f32::MAX);
+
+        assert_eq!(
+            actual,
+            Some((
+                0,
+                RayIntersection {
+                    t: 0.5687325,
+                    u: 0.66772085,
+                    v: 0.24024889
+                }
+            ))
+        );
+    }
 }
