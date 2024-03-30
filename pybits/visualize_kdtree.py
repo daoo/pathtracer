@@ -20,26 +20,26 @@ def axis_number(axis):
         return 2
 
 
-def visualize_kdnode(color, depth, path, parent, node):
+def visualize_kdnode(color, depth, path, aabb, node):
     if type(node) is list:
         return
     else:
         axis = axis_number(node['axis'])
         distance = node['distance']
 
-        plane = parent.copy()
+        plane = aabb.copy()
         plane[:, axis] = distance
-        left_aabb = parent.copy()
+        left_aabb = aabb.copy()
         left_aabb[1, axis] = distance
-        right_aabb = parent.copy()
+        right_aabb = aabb.copy()
         right_aabb[0, axis] = distance
 
         # rerun.log(f'world/{path}/{node['axis']}={distance}', rerun.Boxes3D(
         #     mins=[plane[0]],
         #     sizes=[plane[1] - plane[0]]), timeless=True)
         rerun.log(f'world/{path}/aabb', rerun.Boxes3D(
-            mins=[parent[0]],
-            sizes=[parent[1] - parent[0]],
+            mins=[aabb[0]],
+            sizes=[aabb[1] - aabb[0]],
             radii=0.001,
             colors=color(depth)), timeless=True)
 
@@ -71,7 +71,7 @@ def visualize(kdtree):
     def color(depth):
         return colormap(depth / float(n))
 
-    parent_min = triangles.min(axis=0).min(axis=1)
-    parent_max = triangles.max(axis=0).max(axis=1)
-    parent = np.array([parent_min, parent_max])
-    visualize_kdnode(color, 0, 'root', parent, kdtree['root'])
+    aabb_min = triangles.min(axis=0).min(axis=1)
+    aabb_max = triangles.max(axis=0).max(axis=1)
+    aabb = np.array([aabb_min, aabb_max])
+    visualize_kdnode(color, 0, 'root', aabb, kdtree['root'])

@@ -10,7 +10,7 @@ use geometry::{
 use crate::split::ClippedTriangle;
 
 use super::{
-    build::{KdBox, KdSplit, KdTreeBuilder},
+    build::{KdCell, KdSplit, KdTreeBuilder},
     split::{clip_triangle, split_and_partition},
     KdNode, KdTree,
 };
@@ -30,21 +30,21 @@ fn median(splits: &[Aap]) -> Aap {
 }
 
 impl KdTreeBuilder for MedianKdTreeBuilder {
-    fn starting_box(&self) -> KdBox {
-        KdBox::new(
+    fn starting_box(&self) -> KdCell {
+        KdCell::new(
             triangles_bounding_box(&self.triangles).enlarge(&Vector3::new(0.5, 0.5, 0.5)),
             (0u32..self.triangles.len() as u32).collect(),
         )
     }
 
-    fn find_best_split(&self, depth: u32, parent: &KdBox) -> Option<KdSplit> {
+    fn find_best_split(&self, depth: u32, cell: &KdCell) -> Option<KdSplit> {
         let axis = Axis::from_u32(depth % 3);
-        let min = parent.boundary().min()[axis];
-        let max = parent.boundary().max()[axis];
-        let clipped_triangles = parent
+        let min = cell.boundary().min()[axis];
+        let max = cell.boundary().max()[axis];
+        let clipped_triangles = cell
             .triangle_indices()
             .par_iter()
-            .filter_map(|i| clip_triangle(&self.triangles, parent.boundary(), *i))
+            .filter_map(|i| clip_triangle(&self.triangles, cell.boundary(), *i))
             .collect::<Vec<_>>();
         let planes = clipped_triangles
             .iter()
@@ -60,16 +60,16 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
             return None;
         }
         let plane = median(&planes);
-        let mut split = split_and_partition(&clipped_triangles, parent.boundary(), plane);
+        let mut split = split_and_partition(&clipped_triangles, cell.boundary(), plane);
         split
             .left_triangle_indices
             .extend(split.middle_triangle_indices);
-        let left = KdBox::new(split.left_aabb, split.left_triangle_indices);
-        let right = KdBox::new(split.right_aabb, split.right_triangle_indices);
+        let left = KdCell::new(split.left_aabb, split.left_triangle_indices);
+        let right = KdCell::new(split.right_aabb, split.right_triangle_indices);
         Some(KdSplit { plane, left, right })
     }
 
-    fn terminate(&self, _: &KdBox, _: &super::build::KdSplit) -> bool {
+    fn terminate(&self, _: &KdCell, _: &super::build::KdSplit) -> bool {
         false
     }
 

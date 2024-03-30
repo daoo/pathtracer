@@ -3,12 +3,12 @@ use geometry::{aabb::Aabb, aap::Aap};
 use super::{KdNode, KdTree};
 
 #[derive(Debug)]
-pub struct KdBox {
+pub struct KdCell {
     boundary: Aabb,
     triangle_indices: Vec<u32>,
 }
 
-impl KdBox {
+impl KdCell {
     pub fn new(boundary: Aabb, triangle_indices: Vec<u32>) -> Self {
         debug_assert!(
             boundary.surface_area() != 0.0,
@@ -18,7 +18,7 @@ impl KdBox {
             !(boundary.volume() == 0.0 && triangle_indices.is_empty()),
             "flat kd-cell without any triangles likely worsens performance"
         );
-        KdBox {
+        KdCell {
             boundary,
             triangle_indices,
         }
@@ -36,37 +36,38 @@ impl KdBox {
 #[derive(Debug)]
 pub struct KdSplit {
     pub plane: Aap,
-    pub left: KdBox,
-    pub right: KdBox,
+    pub left: KdCell,
+    pub right: KdCell,
 }
 
 pub trait KdTreeBuilder {
-    fn starting_box(&self) -> KdBox;
+    fn starting_box(&self) -> KdCell;
 
-    fn find_best_split(&self, depth: u32, parent: &KdBox) -> Option<KdSplit>;
+    fn find_best_split(&self, depth: u32, cell: &KdCell) -> Option<KdSplit>;
 
-    fn terminate(&self, parent: &KdBox, split: &KdSplit) -> bool;
+    fn terminate(&self, cell: &KdCell, split: &KdSplit) -> bool;
 
     fn make_tree(self, root: Box<KdNode>) -> KdTree;
 }
 
-fn build_helper<B>(builder: &B, max_depth: u32, depth: u32, parent: KdBox) -> Box<KdNode>
+fn build_helper<B>(builder: &B, max_depth: u32, depth: u32, cell: KdCell) -> Box<KdNode>
 where
     B: KdTreeBuilder,
 {
-    if depth >= max_depth || parent.triangle_indices.is_empty() {
-        return KdNode::new_leaf(parent.triangle_indices);
+    if depth >= max_depth || cell.triangle_indices.is_empty() {
+        return KdNode::new_leaf(cell.triangle_indices);
     }
 
-    match builder.find_best_split(depth, &parent) {
-        None => KdNode::new_leaf(parent.triangle_indices),
-        Some(split) if builder.terminate(&parent, &split) => {
-            KdNode::new_leaf(parent.triangle_indices)
-        }
+    match builder.find_best_split(depth, &cell) {
+        None => KdNode::new_leaf(cell.triangle_indices),
         Some(split) => {
-            let left = build_helper(builder, max_depth, depth + 1, split.left);
-            let right = build_helper(builder, max_depth, depth + 1, split.right);
-            KdNode::new_node(split.plane, left, right)
+            if builder.terminate(&cell, &split) {
+                KdNode::new_leaf(cell.triangle_indices)
+            } else {
+                let left = build_helper(builder, max_depth, depth + 1, split.left);
+                let right = build_helper(builder, max_depth, depth + 1, split.right);
+                KdNode::new_node(split.plane, left, right)
+            }
         }
     }
 }

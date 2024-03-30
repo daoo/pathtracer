@@ -6,7 +6,7 @@ use geometry::{aap::Aap, algorithms::triangles_bounding_box, triangle::Triangle}
 use crate::split::clip_triangle;
 
 use super::{
-    build::{KdBox, KdSplit, KdTreeBuilder},
+    build::{KdCell, KdSplit, KdTreeBuilder},
     split::{split_and_partition, ClippedTriangle},
     KdNode, KdTree,
 };
@@ -34,19 +34,19 @@ impl SahKdTreeBuilder {
 
     fn split_and_calculate_cost(
         &self,
-        parent: &KdBox,
+        cell: &KdCell,
         plane: Aap,
         clipped: &[ClippedTriangle],
     ) -> Option<(KdSplit, f32)> {
-        let mut split = split_and_partition(clipped, parent.boundary(), plane);
+        let mut split = split_and_partition(clipped, cell.boundary(), plane);
         // TODO: Place planes to the left or to the right depending on what gives best cost.
         if (split.left_aabb.volume() == 0.0 || split.right_aabb.volume() == 0.0)
             && split.middle_triangle_indices.is_empty()
         {
             return None;
         }
-        let probability_left = split.left_aabb.surface_area() / parent.boundary().surface_area();
-        let probability_right = split.right_aabb.surface_area() / parent.boundary().surface_area();
+        let probability_left = split.left_aabb.surface_area() / cell.boundary().surface_area();
+        let probability_right = split.right_aabb.surface_area() / cell.boundary().surface_area();
         let probability = (probability_left, probability_right);
         let counts = (
             split.left_triangle_indices.len() + split.middle_triangle_indices.len(),
@@ -59,32 +59,32 @@ impl SahKdTreeBuilder {
         split
             .right_triangle_indices
             .extend(split.middle_triangle_indices);
-        let left = KdBox::new(split.left_aabb, split.left_triangle_indices);
-        let right = KdBox::new(split.right_aabb, split.right_triangle_indices);
+        let left = KdCell::new(split.left_aabb, split.left_triangle_indices);
+        let right = KdCell::new(split.right_aabb, split.right_triangle_indices);
         Some((KdSplit { plane, left, right }, cost))
     }
 }
 
 impl KdTreeBuilder for SahKdTreeBuilder {
-    fn starting_box(&self) -> KdBox {
-        KdBox::new(
+    fn starting_box(&self) -> KdCell {
+        KdCell::new(
             triangles_bounding_box(&self.triangles).enlarge(&Vector3::new(1.0, 1.0, 1.0)),
             (0u32..self.triangles.len() as u32).collect(),
         )
     }
 
-    fn find_best_split(&self, _: u32, parent: &KdBox) -> Option<KdSplit> {
+    fn find_best_split(&self, _: u32, cell: &KdCell) -> Option<KdSplit> {
         debug_assert!(
-            !parent.triangle_indices().is_empty(),
+            !cell.triangle_indices().is_empty(),
             "splitting a kd-cell with no triangles only worsens performance"
         );
 
         let min_by_snd = |a: (_, f32), b: (_, f32)| if a.1 <= b.1 { a } else { b };
 
-        let clipped_triangles = parent
+        let clipped_triangles = cell
             .triangle_indices()
             .iter()
-            .filter_map(|i| clip_triangle(&self.triangles, parent.boundary(), *i))
+            .filter_map(|i| clip_triangle(&self.triangles, cell.boundary(), *i))
             .collect::<Vec<_>>();
         let mut splits = clipped_triangles
             .iter()
@@ -94,23 +94,23 @@ impl KdTreeBuilder for SahKdTreeBuilder {
         splits.dedup();
         splits
             .into_par_iter()
-            .filter_map(|plane| self.split_and_calculate_cost(parent, plane, &clipped_triangles))
+            .filter_map(|plane| self.split_and_calculate_cost(cell, plane, &clipped_triangles))
             .reduce_with(min_by_snd)
             .map(|a| a.0)
     }
 
-    fn terminate(&self, parent: &KdBox, split: &KdSplit) -> bool {
+    fn terminate(&self, cell: &KdCell, split: &KdSplit) -> bool {
         let probability_left =
-            split.left.boundary().surface_area() / parent.boundary().surface_area();
+            split.left.boundary().surface_area() / cell.boundary().surface_area();
         let probability_right =
-            split.right.boundary().surface_area() / parent.boundary().surface_area();
+            split.right.boundary().surface_area() / cell.boundary().surface_area();
         let probability = (probability_left, probability_right);
         let counts = (
             split.left.triangle_indices().len(),
             split.right.triangle_indices().len(),
         );
         let split_cost = self.calculate_sah_cost(probability, counts);
-        let intersect_cost = self.intersect_cost * parent.triangle_indices().len() as f32;
+        let intersect_cost = self.intersect_cost * cell.triangle_indices().len() as f32;
         split_cost >= intersect_cost
     }
 

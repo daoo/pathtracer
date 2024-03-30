@@ -74,17 +74,17 @@ fn tree_cost(
     cost_intersect: f32,
     empty_factor: f32,
     scene_surface_area: f32,
-    parent: Aabb,
+    boundary: Aabb,
     node: &KdNode,
 ) -> f32 {
     match node {
         KdNode::Leaf(triangle_indices) => {
-            cost_intersect * triangle_indices.len() as f32 * parent.surface_area()
+            cost_intersect * triangle_indices.len() as f32 * boundary.surface_area()
                 / scene_surface_area
         }
         KdNode::Node { plane, left, right } => {
-            let split_cost = parent.surface_area() / scene_surface_area;
-            let (left_aabb, right_aabb) = parent.split(plane);
+            let split_cost = boundary.surface_area() / scene_surface_area;
+            let (left_aabb, right_aabb) = boundary.split(plane);
             let left_cost = tree_cost(
                 cost_traverse,
                 cost_intersect,
