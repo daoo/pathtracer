@@ -223,7 +223,7 @@ checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
 
 [[package]]
 name = "kdtree"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "geometry",
  "nalgebra",
@@ -232,7 +232,7 @@ dependencies = [
 
 [[package]]
 name = "kdtree-print"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "clap",
  "geometry",
@@ -377,7 +377,7 @@ dependencies = [
 
 [[package]]
 name = "pathtracer-cli"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "clap",
  "pathtracer",
@@ -483,7 +483,7 @@ dependencies = [
 
 [[package]]
 name = "raytracer-cli"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "clap",
  "pathtracer",
