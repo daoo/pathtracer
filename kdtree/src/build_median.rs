@@ -45,7 +45,7 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
         let clipped_triangles = parent
             .triangle_indices()
             .par_iter()
-            .filter_map(|i| clip_triangle(&self.triangles, &parent.boundary(), *i))
+            .filter_map(|i| clip_triangle(&self.triangles, parent.boundary(), *i))
             .collect::<Vec<_>>();
         let planes = clipped_triangles
             .iter()
@@ -61,7 +61,7 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
             return None;
         }
         let plane = median(&planes);
-        let mut split = split_and_partition(&clipped_triangles, &parent.boundary(), plane);
+        let mut split = split_and_partition(&clipped_triangles, parent.boundary(), plane);
         split
             .left_triangle_indices
             .extend(split.middle_triangle_indices);
