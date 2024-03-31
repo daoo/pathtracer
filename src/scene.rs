@@ -170,14 +170,21 @@ impl Scene {
         self.intersect(ray, tmin, tmax).is_some()
     }
 
-    pub fn from_wavefront(obj: &obj::Obj, mtl: &mtl::Mtl) -> Scene {
+    pub fn from_wavefront(
+        obj: &obj::Obj,
+        mtl: &mtl::Mtl,
+        max_depth: u32,
+        traverse_cost: f32,
+        intersect_cost: f32,
+        empty_factor: f32,
+    ) -> Scene {
         let builder = SahKdTreeBuilder {
-            traverse_cost: 2.0,
-            intersect_cost: 1.0,
-            empty_factor: 0.8,
+            traverse_cost,
+            intersect_cost,
+            empty_factor,
             triangles: triangles_from_obj(obj),
         };
-        let kdtree = build_kdtree(builder, 20);
+        let kdtree = build_kdtree(builder, max_depth);
         Scene {
             kdtree,
             triangle_normals: triangle_normals_from_obj(obj),

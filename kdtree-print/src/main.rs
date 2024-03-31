@@ -33,15 +33,12 @@ struct Args {
     #[arg(short = 'm', long, default_value_t = KdTreeMethod::Median)]
     method: KdTreeMethod,
 
-    #[arg(short = 'd', long, default_value_t = 20)]
+    #[arg(long, default_value_t = 20)]
     max_depth: u32,
-
     #[arg(long, default_value_t = 2.0)]
     traverse_cost: f32,
-
     #[arg(long, default_value_t = 1.0)]
     intersect_cost: f32,
-
     #[arg(long, default_value_t = 0.8)]
     empty_factor: f32,
 }
