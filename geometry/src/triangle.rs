@@ -63,6 +63,15 @@ impl Triangle {
         }
     }
 
+    pub fn from_arrays(arrays: [[f32; 3]; 3]) -> Triangle {
+        let [v0, v1, v2] = arrays;
+        Triangle {
+            v0: v0.into(),
+            v1: v1.into(),
+            v2: v2.into(),
+        }
+    }
+
     pub fn as_arrays(&self) -> [[f32; 3]; 3] {
         [self.v0.into(), self.v1.into(), self.v2.into()]
     }

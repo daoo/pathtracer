@@ -29,6 +29,8 @@ struct Args {
 
     #[arg(short = 'j', long, default_value_t = false)]
     json: bool,
+    #[arg(short = 'r', long, default_value_t = false)]
+    rust: bool,
 
     #[arg(short = 'm', long, default_value_t = KdTreeMethod::Median)]
     method: KdTreeMethod,
@@ -101,6 +103,25 @@ fn print_node_json(kdtree: &KdNode) {
     }
 }
 
+fn print_node_rust(kdtree: &KdNode) {
+    match kdtree {
+        KdNode::Leaf(triangle_indices) => print!("KdNode::new_leaf(vec!{:?})", triangle_indices),
+        KdNode::Node { plane, left, right } => {
+            let aap_new = match plane.axis {
+                geometry::aap::Axis::X => "Aap::new_x",
+                geometry::aap::Axis::Y => "Aap::new_y",
+                geometry::aap::Axis::Z => "Aap::new_z",
+            };
+
+            print!("KdNode::new_node({}({:?}), ", aap_new, plane.distance);
+            print_node_rust(left);
+            print!(", ");
+            print_node_rust(right);
+            print!(")");
+        }
+    }
+}
+
 fn main() {
     let args = Args::parse();
     eprintln!("Reading {:?}...", &args.input);
@@ -153,6 +174,19 @@ fn main() {
         print!(", \"root\": ");
         print_node_json(&kdtree.root);
         println!("}}");
+    } else if args.rust {
+        println!(
+            "let triangles = {:?};",
+            kdtree
+                .triangles
+                .iter()
+                .map(Triangle::as_arrays)
+                .collect::<Vec<_>>()
+        );
+        print!("let root = ");
+        print_node_rust(&kdtree.root);
+        println!(";");
+        println!("let tree = KdTree {{ triangles, root }};");
     } else {
         print_pretty(0, &kdtree.root);
     }
