@@ -32,7 +32,7 @@ def program(args):
             & (rays.py >= min_y)
             & (rays.py <= max_y)
         ]
-        print(f"Filtered out {len(rays)} rays.")
+        print(f"Filtered out {len(rays)} rays from {[min_x, min_y]} to {[max_x, max_y]} (inclusive).")
         visualize_rays.visualize(rays, args.color_segment)
 
     if args.kdtree:
