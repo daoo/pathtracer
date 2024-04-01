@@ -231,7 +231,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "kdtree-print"
+name = "kdtree-cli"
 version = "1.0.0"
 dependencies = [
  "clap",
