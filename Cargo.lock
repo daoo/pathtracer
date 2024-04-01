@@ -382,7 +382,6 @@ dependencies = [
  "clap",
  "pathtracer",
  "rand",
- "rayon",
  "termion",
  "time",
  "wavefront",
