@@ -32,7 +32,7 @@ struct Args {
     #[arg(short = 'r', long, default_value_t = false)]
     rust: bool,
 
-    #[arg(short = 'm', long, default_value_t = KdTreeMethod::Median)]
+    #[arg(short = 'm', long, default_value_t = KdTreeMethod::Sah)]
     method: KdTreeMethod,
 
     #[arg(long, default_value_t = 20)]
