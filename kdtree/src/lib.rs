@@ -176,16 +176,16 @@ impl KdTree {
                         }
                     } else {
                         let t = (plane.distance - ray.origin[axis]) / ray.direction[axis];
-                        let (fst, snd) = match ray.direction[axis] >= 0. {
+                        let (near, far) = match ray.direction[axis] >= 0. {
                             true => (left.as_ref(), right.as_ref()),
                             false => (right.as_ref(), left.as_ref()),
                         };
                         if t >= t2 {
-                            (fst, t1, t2)
+                            (near, t1, t2)
                         } else if t <= t1 {
-                            (snd, t1, t2)
+                            (far, t1, t2)
                         } else {
-                            (fst, t1, t)
+                            (near, t1, t)
                         }
                     }
                 }
