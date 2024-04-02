@@ -105,6 +105,7 @@ fn print_node_json(kdtree: &KdNode) {
 
 fn print_node_rust(kdtree: &KdNode) {
     match kdtree {
+        KdNode::Leaf(triangle_indices) if triangle_indices.is_empty() => print!("KdNode::empty()"),
         KdNode::Leaf(triangle_indices) => print!("KdNode::new_leaf(vec!{:?})", triangle_indices),
         KdNode::Node { plane, left, right } => {
             let aap_new = match plane.axis {
