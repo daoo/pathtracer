@@ -1,6 +1,6 @@
 use nalgebra::Vector3;
 
-use geometry::{aabb::Aabb, aap::Aap, algorithms::clip_triangle_aabb, triangle::Triangle};
+use geometry::{aabb::Aabb, aap::Aap, clip::clip_triangle_aabb, triangle::Triangle};
 
 #[derive(Debug, PartialEq)]
 pub struct ClippedTriangle {
