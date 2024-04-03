@@ -8,6 +8,14 @@ pub enum Axis {
 }
 
 impl Axis {
+    pub fn next(&self) -> Axis {
+        match self {
+            Axis::X => Axis::Y,
+            Axis::Y => Axis::Z,
+            Axis::Z => Axis::X,
+        }
+    }
+
     pub fn from_u32(n: u32) -> Axis {
         match n % 3 {
             0 => Axis::X,
@@ -25,7 +33,6 @@ impl Axis {
         }
     }
 }
-
 
 impl std::ops::Index<Axis> for Vector3<f32> {
     type Output = f32;

@@ -1,6 +1,93 @@
-use nalgebra::Vector3;
+use nalgebra::{Vector2, Vector3};
 
-use super::{aabb::Aabb, aap::Aap, ray::Ray, triangle::Triangle};
+use super::{
+    aabb::Aabb,
+    aap::Aap,
+    ray::Ray,
+    triangle::{AxiallyAlignedTriangle, Triangle},
+};
+
+#[derive(Debug, PartialEq)]
+pub struct TrianglePointIntersection {
+    pub u: f32,
+    pub v: f32,
+}
+
+pub fn intersect_triangle_point(
+    triangle: &AxiallyAlignedTriangle,
+    point: Vector2<f32>,
+) -> Option<TrianglePointIntersection> {
+    let base1 = triangle.v1 - triangle.v0;
+    let base2 = triangle.v2 - triangle.v0;
+    let s = point - triangle.v0;
+
+    let det = base1.x * base2.y - base2.x * base1.y;
+    if det == 0.0 {
+        return None;
+    }
+
+    let inv_det = 1.0 / det;
+    let u = inv_det * (s.x * base2.y - base2.x * s.y);
+    if u < 0.0 || u > 1.0 {
+        return None;
+    }
+
+    let v = inv_det * (base1.x * s.y - s.x * base1.y);
+    if v < 0.0 || v + u > 1.0 {
+        return None;
+    }
+
+    Some(TrianglePointIntersection { u, v })
+}
+
+#[cfg(test)]
+mod tests_intersect_triangle_point {
+    use crate::axis::Axis;
+
+    use super::*;
+
+    const TEST_TRIANGLE: AxiallyAlignedTriangle = AxiallyAlignedTriangle {
+        plane: Aap {
+            axis: Axis::X,
+            distance: 0.0,
+        },
+        v0: Vector2::new(0.0, 0.0),
+        v1: Vector2::new(1.0, 0.0),
+        v2: Vector2::new(0.0, 1.0),
+    };
+
+    #[test]
+    fn test_outside() {
+        assert_eq!(
+            intersect_triangle_point(&TEST_TRIANGLE, Vector2::new(2.0, 2.0)),
+            None
+        );
+    }
+
+    #[test]
+    fn test_v1() {
+        assert_eq!(
+            intersect_triangle_point(&TEST_TRIANGLE, Vector2::new(1.0, 0.0)),
+            Some(TrianglePointIntersection { u: 1.0, v: 0.0 })
+        );
+    }
+
+    #[test]
+    fn test_v2() {
+        assert_eq!(
+            intersect_triangle_point(&TEST_TRIANGLE, Vector2::new(0.0, 1.0)),
+            Some(TrianglePointIntersection { u: 0.0, v: 1.0 })
+        );
+    }
+
+    #[test]
+    fn test_middle_edge3() {
+        assert_eq!(
+            intersect_triangle_point(&TEST_TRIANGLE, Vector2::new(0.5, 0.5)),
+            Some(TrianglePointIntersection { u: 0.5, v: 0.5 })
+        );
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TriangleRayIntersection {

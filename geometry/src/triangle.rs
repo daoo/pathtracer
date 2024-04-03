@@ -1,6 +1,29 @@
-use nalgebra::Vector3;
+use nalgebra::{Vector2, Vector3};
 
-use super::ray::Ray;
+use crate::{aap::Aap, axis::Axis};
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct AxiallyAlignedTriangle {
+    pub plane: Aap,
+    pub v0: Vector2<f32>,
+    pub v1: Vector2<f32>,
+    pub v2: Vector2<f32>,
+}
+
+impl AxiallyAlignedTriangle {
+    pub fn base0(&self) -> Vector2<f32> {
+        self.v1 - self.v0
+    }
+
+    pub fn base1(&self) -> Vector2<f32> {
+        self.v2 - self.v0
+    }
+
+    pub fn param(&self, u: f32, v: f32) -> Vector2<f32> {
+        debug_assert!(u >= 0.0 && v >= 0.0 && u + v <= 1.0);
+        self.v0 + u * self.base0() + v * self.base1()
+    }
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Triangle {
@@ -42,25 +65,9 @@ impl Triangle {
         self.v0 - self.v2
     }
 
-    pub fn edge0_ray(&self) -> Ray {
-        Ray {
-            origin: self.v0,
-            direction: self.edge0(),
-        }
-    }
-
-    pub fn edge1_ray(&self) -> Ray {
-        Ray {
-            origin: self.v1,
-            direction: self.edge1(),
-        }
-    }
-
-    pub fn edge2_ray(&self) -> Ray {
-        Ray {
-            origin: self.v2,
-            direction: self.edge2(),
-        }
+    pub fn param(&self, u: f32, v: f32) -> Vector3<f32> {
+        assert!(u >= 0.0 && v >= 0.0 && u + v <= 1.0);
+        self.v0 + u * self.base0() + v * self.base1()
     }
 
     pub fn from_arrays(arrays: [[f32; 3]; 3]) -> Triangle {
@@ -74,6 +81,26 @@ impl Triangle {
 
     pub fn as_arrays(&self) -> [[f32; 3]; 3] {
         [self.v0.into(), self.v1.into(), self.v2.into()]
+    }
+
+    pub fn as_axially_aligned(&self) -> Option<AxiallyAlignedTriangle> {
+        let check_axis = |axis| {
+            (self.v0[axis] == self.v1[axis] && self.v0[axis] == self.v2[axis]).then_some(
+                AxiallyAlignedTriangle {
+                    plane: Aap {
+                        axis,
+                        distance: self.v0[axis],
+                    },
+                    v0: Vector2::new(self.v0[axis.next()], self.v0[axis.next().next()]),
+                    v1: Vector2::new(self.v1[axis.next()], self.v1[axis.next().next()]),
+                    v2: Vector2::new(self.v2[axis.next()], self.v2[axis.next().next()]),
+                },
+            )
+        };
+
+        check_axis(Axis::X)
+            .or(check_axis(Axis::Y))
+            .or(check_axis(Axis::Z))
     }
 }
 
