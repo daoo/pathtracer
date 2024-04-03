@@ -1,7 +1,7 @@
 use nalgebra::Vector3;
 use smallvec::SmallVec;
 
-use super::{aabb::Aabb, aap::Aap, algorithms::intersect_ray_aap, ray::Ray, triangle::Triangle};
+use super::{aabb::Aabb, aap::Aap, intersect::intersect_ray_aap, ray::Ray, triangle::Triangle};
 
 /// Clip Triangle against AABB.
 ///

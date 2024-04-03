@@ -3,8 +3,8 @@ use std::fmt::Display;
 use geometry::{
     aabb::Aabb,
     aap::Aap,
-    algorithms::{intersect_triangle_ray, TriangleRayIntersection},
     bound::triangles_bounding_box,
+    intersect::{intersect_triangle_ray, TriangleRayIntersection},
     ray::Ray,
     triangle::Triangle,
 };

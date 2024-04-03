@@ -1,4 +1,4 @@
-use geometry::{algorithms::TriangleRayIntersection, ray::Ray, triangle::Triangle};
+use geometry::{intersect::TriangleRayIntersection, ray::Ray, triangle::Triangle};
 use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, KdTree};
 use nalgebra::{UnitVector3, Vector2, Vector3};
 use std::{collections::BTreeMap, sync::Arc};
