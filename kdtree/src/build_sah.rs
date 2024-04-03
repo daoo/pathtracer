@@ -1,7 +1,7 @@
 use nalgebra::Vector3;
 use rayon::prelude::*;
 
-use geometry::{aap::Aap, algorithms::triangles_bounding_box, triangle::Triangle};
+use geometry::{aap::Aap, bound::triangles_bounding_box, triangle::Triangle};
 
 use crate::split::clip_triangle;
 

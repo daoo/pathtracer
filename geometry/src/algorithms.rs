@@ -369,45 +369,6 @@ mod tests_intersect_triangle_aabb {
     }
 }
 
-pub fn triangles_bounding_box(triangles: &[Triangle]) -> Aabb {
-    if triangles.is_empty() {
-        return Aabb::empty();
-    }
-    let mut a = triangles[0].min();
-    let mut b = triangles[0].max();
-    for triangle in triangles {
-        a = a.inf(&triangle.min());
-        b = b.sup(&triangle.max());
-    }
-    Aabb::from_extents(a, b)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_bounding() {
-        let triangles = [
-            Triangle {
-                v0: Vector3::new(1., 1., 0.),
-                v1: Vector3::new(1., 1., 1.),
-                v2: Vector3::new(0., 0., 0.),
-            },
-            Triangle {
-                v0: Vector3::new(-1., -1., 0.),
-                v1: Vector3::new(-1., -1., -1.),
-                v2: Vector3::new(0., 0., 0.),
-            },
-        ];
-
-        let actual = triangles_bounding_box(&triangles);
-
-        let expected = Aabb::from_extents(Vector3::new(-1., -1., -1.), Vector3::new(1., 1., 1.));
-        assert_eq!(actual, expected);
-    }
-}
-
 pub fn intersect_ray_aap(ray: &Ray, plane: &Aap) -> Option<f32> {
     let normal = plane.axis.as_vector3(1.0);
     let denom = normal.dot(&ray.direction);
