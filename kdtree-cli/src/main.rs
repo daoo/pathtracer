@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use clap::{Parser, ValueEnum};
-use geometry::triangle::Triangle;
+use geometry::{axis::Axis, triangle::Triangle};
 use kdtree::{
     build::build_kdtree, build_median::MedianKdTreeBuilder, build_sah::SahKdTreeBuilder, KdNode,
 };
@@ -109,9 +109,9 @@ fn print_node_rust(kdtree: &KdNode) {
         KdNode::Leaf(triangle_indices) => print!("KdNode::new_leaf(vec!{:?})", triangle_indices),
         KdNode::Node { plane, left, right } => {
             let aap_new = match plane.axis {
-                geometry::aap::Axis::X => "Aap::new_x",
-                geometry::aap::Axis::Y => "Aap::new_y",
-                geometry::aap::Axis::Z => "Aap::new_z",
+                Axis::X => "Aap::new_x",
+                Axis::Y => "Aap::new_y",
+                Axis::Z => "Aap::new_z",
             };
 
             print!("KdNode::new_node({}({:?}), ", aap_new, plane.distance);

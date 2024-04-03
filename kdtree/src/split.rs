@@ -87,7 +87,7 @@ pub fn partition_triangles(
 
 #[cfg(test)]
 mod partition_triangles_tests {
-    use geometry::aap::Axis;
+    use geometry::axis::Axis;
 
     use super::*;
 

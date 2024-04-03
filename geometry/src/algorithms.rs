@@ -422,7 +422,8 @@ pub fn intersect_ray_aap(ray: &Ray, plane: &Aap) -> Option<f32> {
 
 #[cfg(test)]
 mod tests_intersect_ray_aap {
-    use super::super::aap::Axis;
+    use crate::axis::Axis;
+
     use super::*;
 
     #[test]

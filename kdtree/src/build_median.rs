@@ -2,9 +2,7 @@ use nalgebra::Vector3;
 use rayon::prelude::*;
 
 use geometry::{
-    aap::{Aap, Axis},
-    algorithms::triangles_bounding_box,
-    triangle::Triangle,
+    aap::Aap, algorithms::triangles_bounding_box, axis::Axis, triangle::Triangle
 };
 
 use crate::split::ClippedTriangle;

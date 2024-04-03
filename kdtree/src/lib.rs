@@ -196,9 +196,10 @@ impl KdTree {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use geometry::aap::Axis;
+    use geometry::axis::Axis;
     use nalgebra::Vector3;
+
+    use super::*;
 
     #[test]
     fn intersect_empty_tree() {
