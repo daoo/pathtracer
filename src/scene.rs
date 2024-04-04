@@ -40,6 +40,7 @@ pub struct Scene {
     pub triangle_materials: Vec<Arc<dyn Material + Send + Sync>>,
     pub cameras: Vec<Camera>,
     pub lights: Vec<SphericalLight>,
+    pub environment: Vector3<f32>,
 }
 
 fn triangles_from_obj(obj: &obj::Obj) -> Vec<Triangle> {
@@ -192,6 +193,7 @@ impl Scene {
             triangle_materials: triangle_materials_from_obj_and_mtl(obj, mtl),
             cameras: cameras_from_mtl(mtl),
             lights: lights_from_mtl(mtl),
+            environment: Vector3::new(0.8, 0.8, 0.8),
         }
     }
 }

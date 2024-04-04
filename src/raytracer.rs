@@ -28,14 +28,10 @@ fn light_contribution(
     material.brdf(&wi, &wr, &n).component_mul(&radiance) * wr.dot(&n).abs()
 }
 
-fn environment_contribution(_: &Ray) -> Vector3<f32> {
-    Vector3::new(0.8, 0.8, 0.8)
-}
-
 fn trace_ray(scene: &Scene, ray: &Ray) -> Vector3<f32> {
     let intersection = scene.intersect(ray, 0.0, std::f32::MAX);
     if intersection.is_none() {
-        return environment_contribution(ray);
+        return scene.environment;
     }
     let (triangle_index, intersection) = intersection.unwrap();
 

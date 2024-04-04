@@ -6,10 +6,6 @@ use geometry::ray::Ray;
 use nalgebra::{Vector2, Vector3};
 use rand::rngs::SmallRng;
 
-fn environment_contribution(_: &Ray) -> Vector3<f32> {
-    Vector3::new(0.8, 0.8, 0.8)
-}
-
 struct Pathtracer<'a> {
     iteration: u16,
     x: u16,
@@ -38,7 +34,7 @@ impl<'a> Pathtracer<'a> {
                 .log_infinite(ray, self.iteration, (self.x, self.y))
                 .unwrap();
             return accumulated_radiance
-                + accumulated_transport.component_mul(&environment_contribution(ray));
+                + accumulated_transport.component_mul(&self.scene.environment);
         }
         let (triangle_index, intersection) = intersection.unwrap();
 
