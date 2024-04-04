@@ -242,6 +242,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "kdtree-tester-cli"
+version = "1.0.0"
+dependencies = [
+ "clap",
+ "geometry",
+ "nalgebra",
+ "pathtracer",
+ "rand",
+ "rayon",
+ "wavefront",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.153"
 source = "registry+https://github.com/rust-lang/crates.io-index"

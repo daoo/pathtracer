@@ -1,0 +1,13 @@
+[package]
+name = "kdtree-tester-cli"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.4", default-features = false, features = ["std", "derive"] }
+geometry = { version = "1.0.0", path = "../geometry" }
+nalgebra = { version = "0.32.5", default-features = false }
+pathtracer = { version = "1.0.0", path = ".." }
+rand = { version = "0.8.5", default-features = false, features = ["std"] }
+rayon = "1.10.0"
+wavefront = { version = "1.0.0", path = "../wavefront" }
