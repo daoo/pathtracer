@@ -44,7 +44,7 @@ impl RayBouncer<'_> {
             .triangles
             .iter()
             .enumerate()
-            .flat_map(|(i, t)| {
+            .filter_map(|(i, t)| {
                 if let Some(isect) = intersect_triangle_ray(t, ray) {
                     if isect.t >= tmin && isect.t <= tmax {
                         return Some((i, isect));
@@ -97,7 +97,7 @@ impl RayBouncer<'_> {
             .scene
             .lights
             .iter()
-            .flat_map(|light| {
+            .filter_map(|light| {
                 let shadow_ray = Ray::between(&point_above, &light.sample(rng));
                 let shadow = self.checked_ray_intersect(&shadow_ray, 0.0, 1.0);
                 (!shadow.is_valid()).then_some(shadow)

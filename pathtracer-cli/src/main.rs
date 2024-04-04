@@ -52,7 +52,7 @@ struct Work {
 
 fn create_ray_logger(thread: u32) -> RayLogger {
     if cfg!(feature = "ray_logging") {
-        let path = format!("/tmp/raylog{}.bin", thread);
+        let path = format!("/tmp/raylog{thread}.bin");
         RayLogger::create(path).unwrap()
     } else {
         RayLogger::None()
@@ -61,9 +61,9 @@ fn create_ray_logger(thread: u32) -> RayLogger {
 
 fn worker_thread(
     thread: u32,
-    work: Arc<Work>,
+    work: &Arc<Work>,
     iterations: u32,
-    tx: Sender<Duration>,
+    tx: &Sender<Duration>,
 ) -> ImageBuffer {
     let mut rng = SmallRng::from_entropy();
     let mut buffer = ImageBuffer::new(work.width, work.height);
@@ -92,40 +92,37 @@ fn new_worker(
     iterations: u32,
     tx: Sender<Duration>,
 ) -> JoinHandle<ImageBuffer> {
-    thread::spawn(move || worker_thread(thread, work, iterations, tx))
+    thread::spawn(move || worker_thread(thread, &work, iterations, &tx))
 }
 
-fn printer_thread(threads: u32, iterations: u32, rx: Receiver<Duration>) {
+fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
     let mut total = 0.0;
     let mut total_squared = 0.0;
     let mut completed = 0;
     loop {
-        match rx.recv() {
-            Ok(duration) => {
-                let seconds = duration.as_seconds_f64();
-                total += seconds;
-                total_squared += seconds * seconds;
-                completed += 1;
+        if let Ok(duration) = rx.recv() {
+            let seconds = duration.as_seconds_f64();
+            total += seconds;
+            total_squared += seconds * seconds;
+            completed += 1;
 
-                let mean = total / completed as f64;
-                let sdev = ((total_squared / completed as f64) - mean * mean).sqrt();
-                let eta = ((iterations - completed) as f64 * mean) / threads as f64;
-                print!(
-                    "{}{}[{}/{}] mean: {:.2}, sdev: {:.2}, eta: {:.2}",
-                    termion::clear::CurrentLine,
-                    termion::cursor::Left(u16::MAX),
-                    completed,
-                    iterations,
-                    Duration::seconds_f64(mean),
-                    Duration::seconds_f64(sdev),
-                    Duration::seconds_f64(eta)
-                );
-                std::io::stdout().flush().unwrap();
-            }
-            Err(_) => {
-                println!();
-                return;
-            }
+            let mean = total / completed as f64;
+            let sdev = ((total_squared / completed as f64) - mean * mean).sqrt();
+            let eta = ((iterations - completed) as f64 * mean) / threads as f64;
+            print!(
+                "{}{}[{}/{}] mean: {:.2}, sdev: {:.2}, eta: {:.2}",
+                termion::clear::CurrentLine,
+                termion::cursor::Left(u16::MAX),
+                completed,
+                iterations,
+                Duration::seconds_f64(mean),
+                Duration::seconds_f64(sdev),
+                Duration::seconds_f64(eta)
+            );
+            std::io::stdout().flush().unwrap();
+        } else {
+            println!();
+            return;
         }
     }
 }
@@ -170,7 +167,7 @@ fn main() {
     let threads = (0..args.threads)
         .map(|i| new_worker(i, work.clone(), args.iterations_per_thread, tx.clone()))
         .collect::<Vec<_>>();
-    let printer = thread::spawn(move || printer_thread(args.threads, total_iterations, rx));
+    let printer = thread::spawn(move || printer_thread(args.threads, total_iterations, &rx));
     let buffer = threads
         .into_iter()
         .map(|t| t.join().unwrap())

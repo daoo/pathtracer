@@ -8,7 +8,6 @@ fn gamma_correct(x: f32) -> f32 {
 }
 
 impl ImageBuffer {
-    #[must_use]
     pub fn new(width: u32, height: u32) -> Self {
         ImageBuffer(image::ImageBuffer::new(width, height))
     }
@@ -20,11 +19,11 @@ impl ImageBuffer {
     pub fn width(&self) -> u32 {
         self.0.width()
     }
+
     pub fn height(&self) -> u32 {
         self.0.height()
     }
 
-    #[must_use]
     pub fn div(&self, value: f32) -> Self {
         ImageBuffer(
             image::ImageBuffer::from_vec(
@@ -36,7 +35,6 @@ impl ImageBuffer {
         )
     }
 
-    #[must_use]
     pub fn add(&self, rhs: &Self) -> Self {
         ImageBuffer(
             image::ImageBuffer::from_vec(
@@ -65,7 +63,6 @@ impl ImageBuffer {
         self.0[(x, y)][2] += value[2];
     }
 
-    #[must_use]
     pub fn gamma_correct(&self) -> Self {
         ImageBuffer(
             image::ImageBuffer::from_vec(

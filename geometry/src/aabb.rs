@@ -62,7 +62,6 @@ impl Aabb {
         size.x * size.y * size.z
     }
 
-    #[must_use]
     pub fn enlarge(&self, delta: &Vector3<f32>) -> Aabb {
         let half_delta = delta / 2.0;
         Aabb {

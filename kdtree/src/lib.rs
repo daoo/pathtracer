@@ -103,9 +103,10 @@ fn tree_cost(
                 right,
             );
             let node_cost = cost_traverse + split_cost + left_cost + right_cost;
-            let factor = match left.is_empty() || right.is_empty() {
-                true => empty_factor,
-                _ => 1.0,
+            let factor = if left.is_empty() || right.is_empty() {
+                empty_factor
+            } else {
+                1.0
             };
             factor * node_cost
         }
@@ -171,15 +172,17 @@ impl KdTree {
                 KdNode::Node { plane, left, right } => {
                     let axis = plane.axis;
                     if ray.direction[axis] == 0. {
-                        match ray.origin[axis] <= plane.distance {
-                            true => (left.as_ref(), t1, t2),
-                            false => (right.as_ref(), t1, t2),
+                        if ray.origin[axis] <= plane.distance {
+                            (left.as_ref(), t1, t2)
+                        } else {
+                            (right.as_ref(), t1, t2)
                         }
                     } else {
                         let t = (plane.distance - ray.origin[axis]) / ray.direction[axis];
-                        let (near, far) = match ray.direction[axis] >= 0. {
-                            true => (left.as_ref(), right.as_ref()),
-                            false => (right.as_ref(), left.as_ref()),
+                        let (near, far) = if ray.direction[axis] >= 0. {
+                            (left.as_ref(), right.as_ref())
+                        } else {
+                            (right.as_ref(), left.as_ref())
                         };
                         if t >= t2 {
                             (near, t1, t2)

@@ -12,7 +12,7 @@ fn main() {
         match path.extension().and_then(|s| s.to_str()) {
             Some("obj") => println!("{:#?}", obj::obj(input)),
             Some("mtl") => println!("{:#?}", mtl::mtl(input)),
-            _ => panic!("Unexpected file extension for {:?}", path),
+            _ => panic!("Unexpected file extension for {path:?}"),
         }
     }
 }

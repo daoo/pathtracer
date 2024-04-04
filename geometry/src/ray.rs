@@ -14,7 +14,6 @@ impl Ray {
         }
     }
 
-    #[must_use]
     pub fn extend(&self, t: f32) -> Ray {
         Ray {
             origin: self.origin,
@@ -26,7 +25,6 @@ impl Ray {
         self.origin + t * self.direction
     }
 
-    #[must_use]
     pub fn reverse(&self) -> Ray {
         Ray {
             origin: self.origin + self.direction,
