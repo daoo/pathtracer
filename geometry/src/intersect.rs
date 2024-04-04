@@ -2,7 +2,7 @@ use nalgebra::Vector3;
 
 use super::{aabb::Aabb, aap::Aap, ray::Ray, triangle::Triangle};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TriangleRayIntersection {
     pub t: f32,
     pub u: f32,
