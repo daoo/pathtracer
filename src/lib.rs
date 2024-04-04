@@ -5,5 +5,5 @@ pub mod material;
 pub mod pathtracer;
 pub mod raylogger;
 pub mod raytracer;
-mod sampling;
+pub mod sampling;
 pub mod scene;
