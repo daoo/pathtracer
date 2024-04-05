@@ -8,6 +8,7 @@ use geometry::{
     ray::Ray,
     triangle::Triangle,
 };
+use smallvec::SmallVec;
 
 pub mod build;
 pub mod build_median;
@@ -160,13 +161,20 @@ impl KdTree {
         let mut node = self.root.as_ref();
         let mut t1 = tmin;
         let mut t2 = tmax;
+        let mut stack: SmallVec<[(&KdNode, f32, f32); 5]> = SmallVec::new();
         loop {
             (node, t1, t2) = match node {
                 KdNode::Leaf(triangle_indices) => {
                     match self.intersect_closest_triangle_ray(triangle_indices, ray, t1, t2) {
                         Some(result) => return Some(result),
                         _ if t2 == tmax => return None,
-                        _ => (self.root.as_ref(), t2, tmax),
+                        _ => {
+                            if let Some(s) = stack.pop() {
+                                s
+                            } else {
+                                return None;
+                            }
+                        }
                     }
                 }
                 KdNode::Node { plane, left, right } => {
@@ -189,6 +197,7 @@ impl KdTree {
                         } else if t <= t1 {
                             (far, t1, t2)
                         } else {
+                            stack.push((far, t, t2));
                             (near, t1, t)
                         }
                     }
