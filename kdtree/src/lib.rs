@@ -134,7 +134,7 @@ impl KdTree {
         tmin: f32,
         tmax: f32,
     ) -> Option<(usize, TriangleRayIntersection)> {
-        debug_assert!(tmin < tmax);
+        debug_assert!(tmin <= tmax);
         let mut closest: Option<(usize, TriangleRayIntersection)> = None;
         let t1 = tmin;
         let mut t2 = tmax;
@@ -192,9 +192,9 @@ impl KdTree {
                         } else {
                             (right.as_ref(), left.as_ref())
                         };
-                        if t >= t2 {
+                        if t > t2 {
                             (near, t1, t2)
-                        } else if t <= t1 {
+                        } else if t < t1 {
                             (far, t1, t2)
                         } else {
                             stack.push((far, t, t2));
@@ -353,7 +353,7 @@ mod tests {
     }
 
     #[test]
-    fn intersect_flat_cell() {
+    fn intersect_flat_cell_left_left() {
         let triangle = Triangle {
             v0: Vector3::new(0., 0., 1.),
             v1: Vector3::new(1., 0., 1.),
@@ -376,6 +376,67 @@ mod tests {
         assert_eq!(
             tree.intersect(&ray.reverse(), 0., 1.),
             Some((0, TriangleRayIntersection::new(0.5, 0., 0.)))
+        );
+    }
+
+    #[test]
+    fn intersect_flat_cell_right_left() {
+        let triangle = Triangle {
+            v0: Vector3::new(0., 0., 1.),
+            v1: Vector3::new(1., 0., 1.),
+            v2: Vector3::new(0., 1., 1.),
+        };
+        let tree = KdTree {
+            root: KdNode::new_node(
+                Aap::new_z(1.0),
+                KdNode::empty(),
+                KdNode::new_node(Aap::new_z(1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
+            ),
+            triangles: vec![triangle],
+        };
+        let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
+
+        assert_eq!(
+            tree.intersect(&ray, 0., 1.),
+            Some((0, TriangleRayIntersection::new(0.5, 0., 0.)))
+        );
+        assert_eq!(
+            tree.intersect(&ray.reverse(), 0., 1.),
+            Some((0, TriangleRayIntersection::new(0.5, 0., 0.)))
+        );
+    }
+
+    #[test]
+    fn intersect_flat_cell_minimized_example() {
+        let triangle = Triangle {
+            v0: Vector3::new(1.0, 1.0, -1.0),
+            v1: Vector3::new(-1.0, 1.0, -1.0),
+            v2: Vector3::new(1.0, -1.0, -1.0),
+        };
+        let triangles = vec![triangle];
+        let root = KdNode::new_node(
+            Aap::new_z(-1.0),
+            KdNode::empty(),
+            KdNode::new_node(Aap::new_z(-1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
+        );
+        let tree = KdTree { triangles, root };
+        let ray = Ray {
+            origin: Vector3::new(0.0, 0.0, 3.0),
+            direction: Vector3::new(0.06646079, 0.08247295, -0.9238795),
+        };
+
+        let actual = tree.intersect(&ray, 0.0, f32::MAX);
+
+        assert_eq!(
+            actual,
+            Some((
+                0,
+                TriangleRayIntersection {
+                    t: 4.329569,
+                    u: 0.35612673,
+                    v: 0.32146382
+                }
+            ))
         );
     }
 }
