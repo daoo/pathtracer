@@ -15,30 +15,31 @@ impl TriangleRayIntersection {
     }
 }
 
+/// Compute triangle-ray intersection using the Möller–Trumbore algorithm.
 pub fn intersect_triangle_ray(triangle: &Triangle, ray: &Ray) -> Option<TriangleRayIntersection> {
-    let b0 = triangle.base0();
-    let b1 = triangle.base1();
-    let q = ray.direction.cross(&b1);
+    let base1 = triangle.base0();
+    let base2 = triangle.base1();
+    let ray_cross_base2 = ray.direction.cross(&base2);
 
-    let a = b0.dot(&q);
-    if a == 0. {
+    let det = base1.dot(&ray_cross_base2);
+    if det == 0.0 {
         return None;
     }
 
+    let inv_det = 1.0 / det;
     let s = ray.origin - triangle.v0;
-    let f = 1. / a;
-    let u = f * s.dot(&q);
-    if !(0. ..=1.).contains(&u) {
+    let u = inv_det * s.dot(&ray_cross_base2);
+    if !(0.0..=1.0).contains(&u) {
         return None;
     }
 
-    let r = s.cross(&b0);
-    let v = f * ray.direction.dot(&r);
-    if v < 0. || (u + v) > 1. {
+    let s_cross_base1 = s.cross(&base1);
+    let v = inv_det * ray.direction.dot(&s_cross_base1);
+    if v < 0.0 || (u + v) > 1.0 {
         return None;
     }
 
-    let t = f * b1.dot(&r);
+    let t = inv_det * base2.dot(&s_cross_base1);
     Some(TriangleRayIntersection { t, u, v })
 }
 
