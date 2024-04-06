@@ -135,20 +135,18 @@ impl KdTree {
         tmax: f32,
     ) -> Option<(usize, TriangleRayIntersection)> {
         debug_assert!(tmin <= tmax);
-        let mut closest: Option<(usize, TriangleRayIntersection)> = None;
-        let t1 = tmin;
-        let mut t2 = tmax;
-        for index in triangles {
-            let index = *index as usize;
-            closest = match intersect_triangle_ray(&self.triangles[index], ray) {
-                Some(intersection) if intersection.t >= t1 && intersection.t <= t2 => {
-                    t2 = intersection.t;
-                    Some((index, intersection))
-                }
-                _ => closest,
-            };
-        }
-        closest
+        let t_range = tmin..=tmax;
+        triangles
+            .iter()
+            .filter_map(|index| {
+                let index = *index as usize;
+                intersect_triangle_ray(&self.triangles[index], ray).and_then(|intersection| {
+                    t_range
+                        .contains(&intersection.t)
+                        .then_some((index, intersection))
+                })
+            })
+            .min_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t))
     }
 
     pub fn intersect(
