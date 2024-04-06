@@ -87,6 +87,38 @@ mod tests_intersect_triangle_point {
             Some(TrianglePointIntersection { u: 0.5, v: 0.5 })
         );
     }
+
+    #[test]
+    fn positive_vs_negative_orientation() {
+        let positive = AxiallyAlignedTriangle {
+            plane: Aap {
+                axis: Axis::X,
+                distance: 0.0,
+            },
+            v0: Vector2::new(0.0, 0.0),
+            v1: Vector2::new(1.0, 0.0),
+            v2: Vector2::new(0.0, 1.0),
+        };
+        let negative = AxiallyAlignedTriangle {
+            plane: Aap {
+                axis: Axis::X,
+                distance: 0.0,
+            },
+            v0: Vector2::new(0.0, 0.0),
+            v1: Vector2::new(0.0, 1.0),
+            v2: Vector2::new(1.0, 0.0),
+        };
+        let point = Vector2::new(0.5, 0.0);
+
+        assert_eq!(
+            intersect_triangle_point(&positive, point),
+            Some(TrianglePointIntersection { u: 0.5, v: 0.0 })
+        );
+        assert_eq!(
+            intersect_triangle_point(&negative, point),
+            Some(TrianglePointIntersection { u: 0.0, v: 0.5 })
+        );
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -339,6 +371,38 @@ mod tests_intersect_triangle_ray {
                 t: 0.5,
                 u: 0.5,
                 v: 0.
+            })
+        );
+    }
+
+    #[test]
+    fn positive_vs_negative_orientation() {
+        let positive = Triangle {
+            v0: Vector3::new(0.0, 0.0, 0.0),
+            v1: Vector3::new(1.0, 0.0, 0.0),
+            v2: Vector3::new(0.0, 1.0, 0.0),
+        };
+        let negative = Triangle {
+            v0: Vector3::new(0.0, 0.0, 0.0),
+            v1: Vector3::new(0.0, 1.0, 0.0),
+            v2: Vector3::new(1.0, 0.0, 0.0),
+        };
+        let ray = Ray::between(&Vector3::new(0.5, 0.0, -1.0), &Vector3::new(0.5, 0.0, 1.0));
+
+        assert_eq!(
+            intersect_triangle_ray(&positive, &ray),
+            Some(TriangleRayIntersection {
+                t: 0.5,
+                u: 0.5,
+                v: 0.0
+            })
+        );
+        assert_eq!(
+            intersect_triangle_ray(&negative, &ray),
+            Some(TriangleRayIntersection {
+                t: 0.5,
+                u: 0.0,
+                v: 0.5
             })
         );
     }
