@@ -57,7 +57,7 @@ mod tests_intersect_triangle_point {
     };
 
     #[test]
-    fn test_outside() {
+    fn point_outside_triangle() {
         assert_eq!(
             intersect_triangle_point(&TEST_TRIANGLE, Vector2::new(2.0, 2.0)),
             None
@@ -65,7 +65,7 @@ mod tests_intersect_triangle_point {
     }
 
     #[test]
-    fn test_v1() {
+    fn point_at_v1() {
         assert_eq!(
             intersect_triangle_point(&TEST_TRIANGLE, Vector2::new(1.0, 0.0)),
             Some(TrianglePointIntersection { u: 1.0, v: 0.0 })
@@ -73,7 +73,7 @@ mod tests_intersect_triangle_point {
     }
 
     #[test]
-    fn test_v2() {
+    fn point_at_v2() {
         assert_eq!(
             intersect_triangle_point(&TEST_TRIANGLE, Vector2::new(0.0, 1.0)),
             Some(TrianglePointIntersection { u: 0.0, v: 1.0 })
@@ -81,7 +81,7 @@ mod tests_intersect_triangle_point {
     }
 
     #[test]
-    fn test_middle_edge3() {
+    fn point_at_middle_of_edge3() {
         assert_eq!(
             intersect_triangle_point(&TEST_TRIANGLE, Vector2::new(0.5, 0.5)),
             Some(TrianglePointIntersection { u: 0.5, v: 0.5 })
@@ -89,7 +89,7 @@ mod tests_intersect_triangle_point {
     }
 
     #[test]
-    fn positive_vs_negative_orientation() {
+    fn positive_vs_negative_triangle_orientation() {
         let positive = AxiallyAlignedTriangle {
             plane: Aap {
                 axis: Axis::X,
@@ -539,7 +539,7 @@ mod tests_intersect_ray_aap {
     use super::*;
 
     #[test]
-    fn test_ray_from_origo_to_plane() {
+    fn ray_from_origo_to_plane() {
         let plane = Aap {
             axis: Axis::X,
             distance: 5.0,
@@ -550,7 +550,7 @@ mod tests_intersect_ray_aap {
     }
 
     #[test]
-    fn test_ray_from_origo_to_beyond_plane() {
+    fn ray_from_origo_to_beyond_plane() {
         let plane = Aap {
             axis: Axis::X,
             distance: 5.0,
@@ -561,7 +561,7 @@ mod tests_intersect_ray_aap {
     }
 
     #[test]
-    fn test_ray_from_origo_to_short_of_plane() {
+    fn ray_from_origo_to_short_of_plane() {
         let plane = Aap {
             axis: Axis::X,
             distance: 5.0,
@@ -572,7 +572,7 @@ mod tests_intersect_ray_aap {
     }
 
     #[test]
-    fn test_ray_from_just_before_plane_to_beyond_plane() {
+    fn ray_from_just_before_plane_to_beyond_plane() {
         let plane = Aap {
             axis: Axis::X,
             distance: 5.0,
@@ -583,7 +583,7 @@ mod tests_intersect_ray_aap {
     }
 
     #[test]
-    fn test_ray_from_just_after_plane_to_before_plane() {
+    fn ray_from_just_after_plane_to_before_plane() {
         let plane = Aap {
             axis: Axis::X,
             distance: 5.0,
@@ -594,7 +594,7 @@ mod tests_intersect_ray_aap {
     }
 
     #[test]
-    fn test_non_axis_aligned_ray_through_plane() {
+    fn non_axis_aligned_ray_through_plane() {
         let plane = Aap {
             axis: Axis::X,
             distance: 2.0,
@@ -605,7 +605,7 @@ mod tests_intersect_ray_aap {
     }
 
     #[test]
-    fn test_non_axis_aligned_ray_with_positive_direction_through_plane() {
+    fn non_axis_aligned_ray_with_positive_direction_through_plane() {
         let plane = Aap {
             axis: Axis::Y,
             distance: 2.0,
@@ -616,7 +616,7 @@ mod tests_intersect_ray_aap {
     }
 
     #[test]
-    fn test_non_axis_aligned_ray_with_negative_direction_through_plane() {
+    fn non_axis_aligned_ray_with_negative_direction_through_plane() {
         let plane = Aap {
             axis: Axis::Y,
             distance: 2.0,
@@ -627,7 +627,7 @@ mod tests_intersect_ray_aap {
     }
 
     #[test]
-    fn test_ray_parallel_to_plane() {
+    fn ray_parallel_to_plane() {
         let plane = Aap {
             axis: Axis::X,
             distance: 2.0,

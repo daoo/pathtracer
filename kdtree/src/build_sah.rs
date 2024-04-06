@@ -129,7 +129,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_non_axially_aligned_triangle() {
+    fn non_axially_aligned_triangle() {
         let triangles = vec![Triangle {
             v0: Vector3::new(0.0, 0.0, 0.0),
             v1: Vector3::new(1.0, 0.0, 0.0),
@@ -176,7 +176,7 @@ mod tests {
     }
 
     #[test]
-    fn test_axially_aligned_triangle() {
+    fn axially_aligned_triangle() {
         let triangles = vec![Triangle {
             v0: Vector3::new(0.0, 0.0, 0.0),
             v1: Vector3::new(1.0, 0.0, 0.0),

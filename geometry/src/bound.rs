@@ -20,7 +20,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_bounding() {
+    fn two_triangles_give_expected_min_max() {
         let triangles = [
             Triangle {
                 v0: Vector3::new(1., 1., 0.),
