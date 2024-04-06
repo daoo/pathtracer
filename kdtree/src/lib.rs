@@ -1,9 +1,7 @@
 use std::fmt::Display;
 
 use geometry::{
-    aabb::Aabb,
     aap::Aap,
-    bound::triangles_bounding_box,
     intersect::{intersect_triangle_ray, TriangleRayIntersection},
     ray::Ray,
     triangle::Triangle,
@@ -71,62 +69,7 @@ pub struct KdTree {
     pub triangles: Vec<Triangle>,
 }
 
-fn tree_cost(
-    cost_traverse: f32,
-    cost_intersect: f32,
-    empty_factor: f32,
-    scene_surface_area: f32,
-    boundary: Aabb,
-    node: &KdNode,
-) -> f32 {
-    match node {
-        KdNode::Leaf(triangle_indices) => {
-            cost_intersect * triangle_indices.len() as f32 * boundary.surface_area()
-                / scene_surface_area
-        }
-        KdNode::Node { plane, left, right } => {
-            let split_cost = boundary.surface_area() / scene_surface_area;
-            let (left_aabb, right_aabb) = boundary.split(plane);
-            let left_cost = tree_cost(
-                cost_traverse,
-                cost_intersect,
-                empty_factor,
-                scene_surface_area,
-                left_aabb,
-                left,
-            );
-            let right_cost = tree_cost(
-                cost_traverse,
-                cost_intersect,
-                empty_factor,
-                scene_surface_area,
-                right_aabb,
-                right,
-            );
-            let node_cost = cost_traverse + split_cost + left_cost + right_cost;
-            let factor = if left.is_empty() || right.is_empty() {
-                empty_factor
-            } else {
-                1.0
-            };
-            factor * node_cost
-        }
-    }
-}
-
 impl KdTree {
-    pub fn cost(&self, cost_traverse: f32, cost_intersect: f32, empty_factor: f32) -> f32 {
-        let bounding_box = triangles_bounding_box(&self.triangles);
-        tree_cost(
-            cost_traverse,
-            cost_intersect,
-            empty_factor,
-            bounding_box.surface_area(),
-            bounding_box,
-            self.root.as_ref(),
-        )
-    }
-
     fn intersect_closest_triangle_ray(
         &self,
         triangles: &[u32],
