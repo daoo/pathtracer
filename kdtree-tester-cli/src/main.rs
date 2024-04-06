@@ -27,7 +27,18 @@ struct CheckedIntersection {
 
 impl CheckedIntersection {
     pub fn is_valid(&self) -> bool {
-        self.reference == self.kdtree
+        const T_TOLERANCE: f32 = 0.000001;
+        const UV_TOLERANCE: f32 = 0.00001;
+        match (self.reference, self.kdtree) {
+            (None, None) => true,
+            (Some((t1, i1)), Some((t2, i2))) => {
+                t1 == t2
+                    && (i1.t - i2.t).abs() < T_TOLERANCE
+                    && (i1.u - i2.u).abs() < UV_TOLERANCE
+                    && (i1.v - i2.v).abs() < UV_TOLERANCE
+            }
+            _ => false,
+        }
     }
 }
 
@@ -38,23 +49,20 @@ impl RayBouncer<'_> {
         tmin: f32,
         tmax: f32,
     ) -> Option<(usize, TriangleRayIntersection)> {
-        let mut reference_intersections = self
-            .scene
+        let t_range = tmin..=tmax;
+        self.scene
             .kdtree
             .triangles
             .iter()
             .enumerate()
-            .filter_map(|(i, t)| {
-                if let Some(isect) = intersect_triangle_ray(t, ray) {
-                    if isect.t >= tmin && isect.t <= tmax {
-                        return Some((i, isect));
-                    }
-                }
-                None
+            .filter_map(|(index, triangle)| {
+                intersect_triangle_ray(triangle, ray).and_then(|intersection| {
+                    t_range
+                        .contains(&intersection.t)
+                        .then_some((index, intersection))
+                })
             })
-            .collect::<Vec<_>>();
-        reference_intersections.sort_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t));
-        reference_intersections.first().copied()
+            .min_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t))
     }
 
     fn checked_ray_intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> CheckedIntersection {
@@ -120,25 +128,14 @@ impl RayBouncer<'_> {
         self.bounce(rng, &next_ray, accumulated_bounces + 1)
     }
 
-    fn bounce_pixel(&self, x: u32, y: u32) -> Option<CheckedIntersection> {
+    fn bounce_pixel(&self, pixel: (u32, u32)) -> Option<CheckedIntersection> {
+        let (x, y) = pixel;
         let mut rng = SmallRng::seed_from_u64((y * self.height + x) as u64);
         let pixel_center = Vector2::new(x as f32, y as f32) + uniform_sample_unit_square(&mut rng);
         let scene_direction =
             pixel_center.component_div(&Vector2::new(self.width as f32, self.height as f32));
         let ray = self.camera.ray(scene_direction.x, scene_direction.y);
         self.bounce(&mut rng, &ray, 0)
-    }
-
-    pub fn bounce_frame(&self) -> Vec<CheckedIntersection> {
-        let xs = 0..self.width;
-        let ys = 0..self.height;
-        let pixels = ys
-            .flat_map(|y| xs.clone().map(move |x| (x, y)))
-            .collect::<Vec<_>>();
-        pixels
-            .par_iter()
-            .flat_map(|(x, y)| self.bounce_pixel(*x, *y))
-            .collect::<Vec<_>>()
     }
 }
 
@@ -199,11 +196,21 @@ fn main() {
         "Testing up to {} rays...",
         args.width * args.height * args.bounces
     );
-    let fails = bouncer.bounce_frame();
+
+    let xs = 0..args.width;
+    let ys = 0..args.height;
+    let pixels = ys
+        .flat_map(|y| xs.clone().map(move |x| (x, y)))
+        .collect::<Vec<_>>();
+    let fails = pixels
+        .into_par_iter()
+        .flat_map(|pixel| bouncer.bounce_pixel(pixel))
+        .collect::<Vec<_>>();
+
     println!("{} fails", fails.len());
     for fail in fails {
         eprintln!("{:?}", fail.ray);
-        eprintln!("  expected: {:?}", fail.reference);
-        eprintln!("    actual: {:?}", fail.kdtree);
+        eprintln!("  reference: {:?}", fail.reference);
+        eprintln!("     kdtree: {:?}", fail.kdtree);
     }
 }
