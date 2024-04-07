@@ -2,7 +2,7 @@ use nalgebra::Vector3;
 
 use crate::{
     aabb::Aabb, aap::Aap, axial_triangle::AxiallyAlignedTriangle, axis::Axis,
-    intersect::RayIntersection, ray::Ray,
+    intersection::RayIntersection, ray::Ray,
 };
 
 #[derive(Clone, Debug, PartialEq)]

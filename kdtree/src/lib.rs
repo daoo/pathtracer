@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use geometry::{aap::Aap, intersect::RayIntersection, ray::Ray, triangle::Triangle};
+use geometry::{aap::Aap, intersection::RayIntersection, ray::Ray, triangle::Triangle};
 use smallvec::SmallVec;
 
 pub mod build;

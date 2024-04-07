@@ -1,6 +1,6 @@
 use nalgebra::Vector2;
 
-use crate::{aap::Aap, intersect::Intersection};
+use crate::{aap::Aap, intersection::Intersection};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct AxiallyAlignedTriangle {

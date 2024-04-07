@@ -1,5 +1,5 @@
 use clap::Parser;
-use geometry::{intersect::RayIntersection, ray::Ray};
+use geometry::{intersection::RayIntersection, ray::Ray};
 use nalgebra::Vector2;
 use pathtracer::{camera::Pinhole, sampling::uniform_sample_unit_square, scene::Scene};
 use rand::{rngs::SmallRng, SeedableRng};
