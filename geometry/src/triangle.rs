@@ -188,7 +188,7 @@ impl Triangle {
     /// Clip Triangle against AABB.
     ///
     /// Implements the Sutherland-Hodgman algorithm.
-    pub fn clip_aabb(&self, aabb: &Aabb) -> ArrayVec<Vector3<f32>, 18> {
+    pub fn clip_aabb(&self, aabb: &Aabb) -> ArrayVec<Vector3<f32>, 6> {
         let aabb_min = aabb.min();
         let aabb_max = aabb.max();
         let clip_planes = [
@@ -208,7 +208,7 @@ impl Triangle {
             }
         };
 
-        let mut output = ArrayVec::<Vector3<f32>, 18>::new();
+        let mut output = ArrayVec::<Vector3<f32>, 6>::new();
         output.push(self.v1);
         output.push(self.v2);
         output.push(self.v0);
