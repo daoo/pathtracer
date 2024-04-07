@@ -1,11 +1,8 @@
 use nalgebra::{Vector2, Vector3};
 
-use super::{
-    aabb::Aabb,
-    aap::Aap,
-    ray::Ray,
-    triangle::{AxiallyAlignedTriangle, Triangle},
-};
+use crate::axial_triangle::AxiallyAlignedTriangle;
+
+use super::{aabb::Aabb, aap::Aap, ray::Ray, triangle::Triangle};
 
 #[derive(Debug, PartialEq)]
 pub struct TrianglePointIntersection {
