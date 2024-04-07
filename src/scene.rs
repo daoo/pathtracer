@@ -1,4 +1,4 @@
-use geometry::{intersect::TriangleRayIntersection, ray::Ray, triangle::Triangle};
+use geometry::{intersect::RayIntersection, ray::Ray, triangle::Triangle};
 use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, KdTree};
 use nalgebra::{UnitVector3, Vector2, Vector3};
 use std::{collections::BTreeMap, sync::Arc};
@@ -158,12 +158,7 @@ fn lights_from_mtl(mtl: &mtl::Mtl) -> Vec<SphericalLight> {
 }
 
 impl Scene {
-    pub fn intersect(
-        &self,
-        ray: &Ray,
-        tmin: f32,
-        tmax: f32,
-    ) -> Option<(usize, TriangleRayIntersection)> {
+    pub fn intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(usize, RayIntersection)> {
         self.kdtree.intersect(ray, tmin, tmax)
     }
 

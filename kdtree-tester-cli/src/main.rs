@@ -1,8 +1,5 @@
 use clap::Parser;
-use geometry::{
-    intersect::{intersect_triangle_ray, TriangleRayIntersection},
-    ray::Ray,
-};
+use geometry::{intersect::RayIntersection, ray::Ray};
 use nalgebra::Vector2;
 use pathtracer::{camera::Pinhole, sampling::uniform_sample_unit_square, scene::Scene};
 use rand::{rngs::SmallRng, SeedableRng};
@@ -21,8 +18,8 @@ struct RayBouncer<'a> {
 #[derive(Debug, Clone, Copy)]
 struct CheckedIntersection {
     pub ray: Ray,
-    pub reference: Option<(usize, TriangleRayIntersection)>,
-    pub kdtree: Option<(usize, TriangleRayIntersection)>,
+    pub reference: Option<(usize, RayIntersection)>,
+    pub kdtree: Option<(usize, RayIntersection)>,
 }
 
 impl CheckedIntersection {
@@ -48,7 +45,7 @@ impl RayBouncer<'_> {
         ray: &Ray,
         tmin: f32,
         tmax: f32,
-    ) -> Option<(usize, TriangleRayIntersection)> {
+    ) -> Option<(usize, RayIntersection)> {
         let t_range = tmin..=tmax;
         self.scene
             .kdtree
@@ -56,7 +53,7 @@ impl RayBouncer<'_> {
             .iter()
             .enumerate()
             .filter_map(|(index, triangle)| {
-                intersect_triangle_ray(triangle, ray).and_then(|intersection| {
+                triangle.intersect_ray(ray).and_then(|intersection| {
                     t_range
                         .contains(&intersection.t)
                         .then_some((index, intersection))
