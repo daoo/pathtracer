@@ -91,9 +91,9 @@ impl Triangle {
                         axis,
                         distance: self.v0[axis],
                     },
-                    v0: Vector2::new(self.v0[axis.next()], self.v0[axis.next().next()]),
-                    v1: Vector2::new(self.v1[axis.next()], self.v1[axis.next().next()]),
-                    v2: Vector2::new(self.v2[axis.next()], self.v2[axis.next().next()]),
+                    v0: axis.remove_from(self.v0),
+                    v1: axis.remove_from(self.v1),
+                    v2: axis.remove_from(self.v2),
                 },
             )
         };

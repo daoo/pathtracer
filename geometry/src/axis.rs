@@ -1,4 +1,4 @@
-use nalgebra::Vector3;
+use nalgebra::{Vector2, Vector3};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Axis {
@@ -8,14 +8,6 @@ pub enum Axis {
 }
 
 impl Axis {
-    pub fn next(&self) -> Axis {
-        match self {
-            Axis::X => Axis::Y,
-            Axis::Y => Axis::Z,
-            Axis::Z => Axis::X,
-        }
-    }
-
     pub fn from_u32(n: u32) -> Axis {
         match n % 3 {
             0 => Axis::X,
@@ -30,6 +22,14 @@ impl Axis {
             Axis::X => Vector3::new(v, 0.0, 0.0),
             Axis::Y => Vector3::new(0.0, v, 0.0),
             Axis::Z => Vector3::new(0.0, 0.0, v),
+        }
+    }
+
+    pub fn remove_from(&self, v: Vector3<f32>) -> Vector2<f32> {
+        match self {
+            Axis::X => v.yz(),
+            Axis::Y => v.xz(),
+            Axis::Z => v.xy(),
         }
     }
 }
