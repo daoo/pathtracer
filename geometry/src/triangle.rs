@@ -1,5 +1,5 @@
+use arrayvec::ArrayVec;
 use nalgebra::Vector3;
-use smallvec::SmallVec;
 
 use crate::{
     aabb::Aabb, aap::Aap, axial_triangle::AxiallyAlignedTriangle, axis::Axis,
@@ -188,7 +188,7 @@ impl Triangle {
     /// Clip Triangle against AABB.
     ///
     /// Implements the Sutherland-Hodgman algorithm.
-    pub fn clip_aabb(&self, aabb: &Aabb) -> SmallVec<[Vector3<f32>; 18]> {
+    pub fn clip_aabb(&self, aabb: &Aabb) -> ArrayVec<Vector3<f32>, 18> {
         let aabb_min = aabb.min();
         let aabb_max = aabb.max();
         let clip_planes = [
@@ -208,7 +208,7 @@ impl Triangle {
             }
         };
 
-        let mut output = SmallVec::<[Vector3<f32>; 18]>::new();
+        let mut output = ArrayVec::<Vector3<f32>, 18>::new();
         output.push(self.v1);
         output.push(self.v2);
         output.push(self.v0);
@@ -238,7 +238,6 @@ impl Triangle {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use smallvec::smallvec;
 
     #[test]
     fn min_max() {
@@ -549,8 +548,8 @@ mod tests {
 
         let actual = triangle.clip_aabb(&aabb);
 
-        let expected: SmallVec<[_; 3]> = smallvec![triangle.v1, triangle.v2, triangle.v0];
-        assert_eq!(actual, expected);
+        let expected = [triangle.v1, triangle.v2, triangle.v0];
+        assert_eq!(actual.as_slice(), expected);
     }
 
     #[test]
@@ -564,8 +563,8 @@ mod tests {
 
         let actual = triangle.clip_aabb(&aabb);
 
-        let expected: SmallVec<[Vector3<f32>; 3]> = smallvec![];
-        assert_eq!(actual, expected);
+        let expected: &[Vector3<f32>] = &[];
+        assert_eq!(actual.as_slice(), expected);
     }
 
     #[test]
@@ -579,8 +578,8 @@ mod tests {
 
         let actual = triangle.clip_aabb(&aabb);
 
-        let expected: SmallVec<[Vector3<f32>; 3]> = smallvec![];
-        assert_eq!(actual, expected);
+        let expected: &[Vector3<f32>] = &[];
+        assert_eq!(actual.as_slice(), expected);
     }
 
     #[test]
@@ -594,7 +593,7 @@ mod tests {
 
         let actual = triangle.clip_aabb(&aabb);
 
-        let expected: SmallVec<[Vector3<f32>; 3]> = smallvec![
+        let expected = [
             Vector3::new(2.0, 0.0, 0.0),
             Vector3::new(10.0, 0.0, 0.0),
             Vector3::new(10.0, 2.0, 0.0),
@@ -602,7 +601,7 @@ mod tests {
             Vector3::new(4.0, 4.0, 0.0),
             Vector3::new(2.0, 2.0, 0.0),
         ];
-        assert_eq!(actual, expected);
+        assert_eq!(actual.as_slice(), expected);
     }
 
     #[test]
@@ -619,12 +618,12 @@ mod tests {
 
         let actual = triangle.clip_aabb(&aabb);
 
-        let expected: SmallVec<[Vector3<f32>; 0]> = smallvec![];
+        let expected: &[Vector3<f32>] = &[];
         let outside = actual
             .into_iter()
             .filter(|p| !aabb.contains(p))
-            .collect::<SmallVec<[Vector3<f32>; 1]>>();
-        assert_eq!(outside, expected);
+            .collect::<ArrayVec<Vector3<f32>, 1>>();
+        assert_eq!(outside.as_slice(), expected);
     }
 
     #[test]
@@ -641,11 +640,11 @@ mod tests {
 
         let actual = triangle.clip_aabb(&aabb);
 
-        let expected: SmallVec<[Vector3<f32>; 0]> = smallvec![];
+        let expected: &[Vector3<f32>] = &[];
         let outside = actual
             .into_iter()
             .filter(|p| !aabb.contains(p))
-            .collect::<SmallVec<[Vector3<f32>; 1]>>();
-        assert_eq!(outside, expected);
+            .collect::<ArrayVec<Vector3<f32>, 1>>();
+        assert_eq!(outside.as_slice(), expected);
     }
 }
