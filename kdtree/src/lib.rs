@@ -104,14 +104,14 @@ impl KdTree {
         let mut t2 = tmax;
         let mut stack: SmallVec<[(&KdNode, f32, f32); 5]> = SmallVec::new();
         loop {
-            (node, t1, t2) = match node {
+            match node {
                 KdNode::Leaf(triangle_indices) => {
                     match self.intersect_closest_triangle_ray(triangle_indices, ray, t1, t2) {
                         Some(result) => return Some(result),
                         _ if t2 == tmax => return None,
                         _ => {
                             if let Some(s) = stack.pop() {
-                                s
+                                (node, t1, t2) = s;
                             } else {
                                 return None;
                             }
@@ -122,9 +122,9 @@ impl KdTree {
                     let axis = plane.axis;
                     if ray.direction[axis] == 0. {
                         if ray.origin[axis] <= plane.distance {
-                            (left.as_ref(), t1, t2)
+                            node = left;
                         } else {
-                            (right.as_ref(), t1, t2)
+                            node = right;
                         }
                     } else {
                         let t = (plane.distance - ray.origin[axis]) / ray.direction[axis];
@@ -134,12 +134,13 @@ impl KdTree {
                             (right.as_ref(), left.as_ref())
                         };
                         if t > t2 {
-                            (near, t1, t2)
+                            node = near;
                         } else if t < t1 {
-                            (far, t1, t2)
+                            node = far;
                         } else {
                             stack.push((far, t, t2));
-                            (near, t1, t)
+                            node = near;
+                            t2 = t;
                         }
                     }
                 }
