@@ -2,7 +2,7 @@
 
 rm -rf ./venv/
 
-python -m venv venv
-./venv/bin/python -m pip install --upgrade pip setuptools wheel
+uv venv venv
 
-./venv/bin/pip install numpy pandas rerun-sdk
+source ./venv/bin/activate
+uv pip install numpy pandas rerun-sdk
