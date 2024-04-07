@@ -1,7 +1,7 @@
 use nalgebra::Vector3;
 use smallvec::SmallVec;
 
-use super::{aabb::Aabb, aap::Aap, intersect::intersect_ray_aap, ray::Ray, triangle::Triangle};
+use super::{aabb::Aabb, aap::Aap, ray::Ray, triangle::Triangle};
 
 /// Clip Triangle against AABB.
 ///
@@ -37,7 +37,7 @@ pub fn clip_triangle_aabb(triangle: &Triangle, aabb: &Aabb) -> SmallVec<[Vector3
         for (i, b) in input.iter().enumerate() {
             let a = input[(i as isize - 1).rem_euclid(input.len() as isize) as usize];
             let ray = Ray::between(&a, b);
-            let intersecting = intersect_ray_aap(&ray, &plane).map(|t| ray.param(t));
+            let intersecting = plane.intersect_ray(&ray).map(|t| ray.param(t));
             if is_inside(&clip_plane, b) {
                 if !is_inside(&clip_plane, &a) {
                     output.push(aabb.clamp(intersecting.unwrap()));
