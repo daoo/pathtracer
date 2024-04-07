@@ -1,6 +1,6 @@
 use nalgebra::Vector3;
 
-use geometry::{aabb::Aabb, aap::Aap, clip::clip_triangle_aabb, triangle::Triangle};
+use geometry::{aabb::Aabb, aap::Aap, triangle::Triangle};
 
 #[derive(Debug, PartialEq)]
 pub struct ClippedTriangle {
@@ -24,7 +24,7 @@ impl ClippedTriangle {
 
 pub fn clip_triangle(triangles: &[Triangle], aabb: &Aabb, index: u32) -> Option<ClippedTriangle> {
     let triangle = &triangles[index as usize];
-    let clipped = clip_triangle_aabb(triangle, aabb);
+    let clipped = triangle.clip_aabb(aabb);
     if clipped.is_empty() {
         return None;
     }
