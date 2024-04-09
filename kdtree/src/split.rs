@@ -67,6 +67,8 @@ pub fn partition_triangles(
     let mut left_triangles: Vec<u32> = Vec::new();
     let mut middle_triangles: Vec<u32> = Vec::new();
     let mut right_triangles: Vec<u32> = Vec::new();
+    left_triangles.reserve(clipped_triangles.len());
+    right_triangles.reserve(clipped_triangles.len());
     for clipped in clipped_triangles {
         let planar =
             clipped.min[plane.axis] == plane.distance && clipped.max[plane.axis] == plane.distance;
