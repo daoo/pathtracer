@@ -70,6 +70,17 @@ impl Aabb {
         }
     }
 
+    pub fn sides(&self) -> [Aap; 6] {
+        [
+            Aap::new_x(self.min.x),
+            Aap::new_x(self.max.x),
+            Aap::new_y(self.min.y),
+            Aap::new_y(self.max.y),
+            Aap::new_z(self.min.z),
+            Aap::new_z(self.max.z),
+        ]
+    }
+
     pub fn split(&self, plane: &Aap) -> (Aabb, Aabb) {
         debug_assert!(plane.distance >= self.min[plane.axis]);
         debug_assert!(plane.distance <= self.max[plane.axis]);
