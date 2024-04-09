@@ -246,7 +246,7 @@ fn main() {
             "let triangles = {:?};",
             kdtree
                 .triangles
-                .iter()
+                .into_iter()
                 .map(Triangle::as_arrays)
                 .collect::<Vec<_>>()
         );
