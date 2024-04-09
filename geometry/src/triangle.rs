@@ -6,7 +6,7 @@ use crate::{
     clip::clip_triangle_aabb, intersection::RayIntersection, ray::Ray,
 };
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Triangle {
     pub v0: Vector3<f32>,
     pub v1: Vector3<f32>,
