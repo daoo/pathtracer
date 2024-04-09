@@ -25,6 +25,14 @@ impl Axis {
         }
     }
 
+    pub fn add_to(&self, v: Vector2<f32>, s: f32) -> Vector3<f32> {
+        match self {
+            Axis::X => Vector3::new(s, v.x, v.y),
+            Axis::Y => Vector3::new(v.x, s, v.y),
+            Axis::Z => Vector3::new(v.x, v.y, s),
+        }
+    }
+
     pub fn remove_from(&self, v: Vector3<f32>) -> Vector2<f32> {
         match self {
             Axis::X => v.yz(),

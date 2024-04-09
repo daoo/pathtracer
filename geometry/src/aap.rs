@@ -1,4 +1,4 @@
-use nalgebra::Vector3;
+use nalgebra::{Vector2, Vector3};
 
 use crate::ray::Ray;
 
@@ -30,6 +30,10 @@ impl Aap {
             axis: Axis::Z,
             distance,
         }
+    }
+
+    pub fn add_to(&self, point: Vector2<f32>) -> Vector3<f32> {
+        self.axis.add_to(point, self.distance)
     }
 
     pub fn vector(&self) -> Vector3<f32> {
