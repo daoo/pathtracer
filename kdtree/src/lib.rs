@@ -71,14 +71,14 @@ impl KdTree {
         ray: &Ray,
         tmin: f32,
         tmax: f32,
-    ) -> Option<(usize, RayIntersection)> {
+    ) -> Option<(u32, RayIntersection)> {
         debug_assert!(tmin <= tmax);
         let t_range = tmin..=tmax;
         triangles
             .iter()
             .filter_map(|index| {
-                let index = *index as usize;
-                self.triangles[index]
+                let index = *index;
+                self.triangles[index as usize]
                     .intersect_ray(ray)
                     .and_then(|intersection| {
                         t_range
@@ -89,7 +89,7 @@ impl KdTree {
             .min_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t))
     }
 
-    pub fn intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(usize, RayIntersection)> {
+    pub fn intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(u32, RayIntersection)> {
         debug_assert!(tmin < tmax);
         let mut node = self.root.as_ref();
         let mut t1 = tmin;

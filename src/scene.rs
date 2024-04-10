@@ -165,7 +165,7 @@ fn repartition_triangle_data(
 }
 
 impl Scene {
-    pub fn intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(usize, RayIntersection)> {
+    pub fn intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(u32, RayIntersection)> {
         self.kdtree.intersect(ray, tmin, tmax)
     }
 

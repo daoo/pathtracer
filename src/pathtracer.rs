@@ -39,8 +39,9 @@ impl<'a> Pathtracer<'a> {
         let (triangle_index, intersection) = intersection.unwrap();
 
         let wi = -ray.direction;
-        let n = self.scene.triangle_normals[triangle_index].lerp(intersection.u, intersection.v);
-        let material = &self.scene.triangle_materials[triangle_index];
+        let n = self.scene.triangle_normals[triangle_index as usize]
+            .lerp(intersection.u, intersection.v);
+        let material = &self.scene.triangle_materials[triangle_index as usize];
 
         // TODO: How to chose offset?
         let offset = 0.00001 * n.into_inner();

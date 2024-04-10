@@ -18,8 +18,8 @@ struct RayBouncer<'a> {
 #[derive(Debug, Clone, Copy)]
 struct CheckedIntersection {
     pub ray: Ray,
-    pub reference: Option<(usize, RayIntersection)>,
-    pub kdtree: Option<(usize, RayIntersection)>,
+    pub reference: Option<(u32, RayIntersection)>,
+    pub kdtree: Option<(u32, RayIntersection)>,
 }
 
 impl CheckedIntersection {
@@ -45,7 +45,7 @@ impl RayBouncer<'_> {
         ray: &Ray,
         tmin: f32,
         tmax: f32,
-    ) -> Option<(usize, RayIntersection)> {
+    ) -> Option<(u32, RayIntersection)> {
         let t_range = tmin..=tmax;
         self.scene
             .kdtree
@@ -56,7 +56,7 @@ impl RayBouncer<'_> {
                 triangle.intersect_ray(ray).and_then(|intersection| {
                     t_range
                         .contains(&intersection.t)
-                        .then_some((index, intersection))
+                        .then_some((index as u32, intersection))
                 })
             })
             .min_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t))
@@ -89,8 +89,9 @@ impl RayBouncer<'_> {
         let (triangle_index, intersection) = intersection.reference?;
 
         let wi = -ray.direction;
-        let n = self.scene.triangle_normals[triangle_index].lerp(intersection.u, intersection.v);
-        let material = &self.scene.triangle_materials[triangle_index];
+        let n = self.scene.triangle_normals[triangle_index as usize]
+            .lerp(intersection.u, intersection.v);
+        let material = &self.scene.triangle_materials[triangle_index as usize];
 
         // TODO: How to chose offset?
         let offset = 0.00001 * n.into_inner();

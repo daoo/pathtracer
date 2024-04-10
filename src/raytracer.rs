@@ -37,12 +37,12 @@ fn trace_ray(scene: &Scene, ray: &Ray) -> Vector3<f32> {
 
     let wi = -ray.direction;
     let point = ray.param(intersection.t);
-    let n = scene.triangle_normals[triangle_index].lerp(intersection.u, intersection.v);
+    let n = scene.triangle_normals[triangle_index as usize].lerp(intersection.u, intersection.v);
 
     // TODO: How to chose offset?
     let offset_point = point + 0.0001 * n.into_inner();
 
-    let material = &scene.triangle_materials[triangle_index];
+    let material = &scene.triangle_materials[triangle_index as usize];
     scene
         .lights
         .iter()
