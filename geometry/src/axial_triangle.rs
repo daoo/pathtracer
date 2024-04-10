@@ -24,6 +24,14 @@ impl AxiallyAlignedTriangle {
         self.v0 + u * self.base0() + v * self.base1()
     }
 
+    pub fn as_arrays(&self) -> [[f32; 3]; 3] {
+        [
+            self.plane.add_to(self.v0).into(),
+            self.plane.add_to(self.v1).into(),
+            self.plane.add_to(self.v2).into(),
+        ]
+    }
+
     pub fn intersect_point(&self, point: Vector2<f32>) -> Option<Intersection> {
         let base1 = self.v1 - self.v0;
         let base2 = self.v2 - self.v0;
