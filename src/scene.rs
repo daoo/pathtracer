@@ -13,7 +13,7 @@ use crate::{
     },
 };
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct TriangleNormals {
     pub n0: Vector3<f32>,
     pub n1: Vector3<f32>,
@@ -26,11 +26,18 @@ impl TriangleNormals {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct TriangleTexcoords {
     pub uv0: Vector2<f32>,
     pub uv1: Vector2<f32>,
     pub uv2: Vector2<f32>,
+}
+
+pub struct TriangleData<'a> {
+    pub triangle: Triangle,
+    pub normals: TriangleNormals,
+    pub texcoords: TriangleTexcoords,
+    pub material: &'a str,
 }
 
 pub struct Scene {
@@ -43,43 +50,35 @@ pub struct Scene {
     pub environment: Vector3<f32>,
 }
 
-fn triangles_from_obj(obj: &obj::Obj) -> Vec<Triangle> {
+fn collect_triangle_data(obj: &obj::Obj) -> Vec<TriangleData> {
     obj.chunks
         .iter()
         .flat_map(|chunk| {
-            chunk.faces.iter().map(|face| Triangle {
-                v0: obj.index_vertex(&face.p0).into(),
-                v1: obj.index_vertex(&face.p1).into(),
-                v2: obj.index_vertex(&face.p2).into(),
+            chunk.faces.iter().map(|face| {
+                let triangle = Triangle {
+                    v0: obj.index_vertex(&face.p0).into(),
+                    v1: obj.index_vertex(&face.p1).into(),
+                    v2: obj.index_vertex(&face.p2).into(),
+                };
+                let normals = TriangleNormals {
+                    n0: obj.index_normal(&face.p0).into(),
+                    n1: obj.index_normal(&face.p1).into(),
+                    n2: obj.index_normal(&face.p2).into(),
+                };
+                let texcoords = TriangleTexcoords {
+                    uv0: obj.index_texcoord(&face.p0).into(),
+                    uv1: obj.index_texcoord(&face.p1).into(),
+                    uv2: obj.index_texcoord(&face.p2).into(),
+                };
+                TriangleData {
+                    triangle,
+                    normals,
+                    texcoords,
+                    material: chunk.material.as_str(),
+                }
             })
         })
-        .collect()
-}
-
-fn triangle_normals_from_obj(obj: &obj::Obj) -> Vec<TriangleNormals> {
-    obj.chunks
-        .iter()
-        .flat_map(|chunk| {
-            chunk.faces.iter().map(|face| TriangleNormals {
-                n0: obj.index_normal(&face.p0).into(),
-                n1: obj.index_normal(&face.p1).into(),
-                n2: obj.index_normal(&face.p2).into(),
-            })
-        })
-        .collect()
-}
-
-fn triangle_texcoords_from_obj(obj: &obj::Obj) -> Vec<TriangleTexcoords> {
-    obj.chunks
-        .iter()
-        .flat_map(|chunk| {
-            chunk.faces.iter().map(|face| TriangleTexcoords {
-                uv0: obj.index_texcoord(&face.p0).into(),
-                uv1: obj.index_texcoord(&face.p1).into(),
-                uv2: obj.index_texcoord(&face.p2).into(),
-            })
-        })
-        .collect()
+        .collect::<Vec<_>>()
 }
 
 fn blend_from_mtl(material: &mtl::Material) -> Arc<dyn Material + Send + Sync> {
@@ -109,24 +108,11 @@ fn blend_from_mtl(material: &mtl::Material) -> Arc<dyn Material + Send + Sync> {
     })
 }
 
-fn triangle_materials_from_obj_and_mtl(
-    obj: &obj::Obj,
-    mtl: &mtl::Mtl,
-) -> Vec<Arc<dyn Material + Send + Sync>> {
-    let materials = mtl
-        .materials
+fn materials_from_mtl(mtl: &mtl::Mtl) -> BTreeMap<&str, Arc<dyn Material + Send + Sync>> {
+    mtl.materials
         .iter()
         .map(|m| (m.name.as_str(), blend_from_mtl(m)))
-        .collect::<BTreeMap<_, _>>();
-    obj.chunks
-        .iter()
-        .flat_map(|chunk| {
-            chunk
-                .faces
-                .iter()
-                .map(|_| materials[chunk.material.as_str()].clone())
-        })
-        .collect()
+        .collect::<BTreeMap<_, _>>()
 }
 
 fn cameras_from_mtl(mtl: &mtl::Mtl) -> Vec<Camera> {
@@ -157,6 +143,27 @@ fn lights_from_mtl(mtl: &mtl::Mtl) -> Vec<SphericalLight> {
         .collect()
 }
 
+fn repartition_triangle_data(
+    materials: BTreeMap<&str, Arc<dyn Material + Sync + Send>>,
+    triangle_data: Vec<TriangleData<'_>>,
+) -> (
+    Vec<Triangle>,
+    Vec<TriangleNormals>,
+    Vec<TriangleTexcoords>,
+    Vec<Arc<dyn Material + Sync + Send>>,
+) {
+    let triangles = triangle_data.iter().map(|t| t.triangle);
+    let normals = triangle_data.iter().map(|t| t.normals);
+    let texcoords = triangle_data.iter().map(|t| t.texcoords);
+    let materials = triangle_data.iter().map(|t| materials[t.material].clone());
+    (
+        triangles.collect(),
+        normals.collect(),
+        texcoords.collect(),
+        materials.collect(),
+    )
+}
+
 impl Scene {
     pub fn intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(usize, RayIntersection)> {
         self.kdtree.intersect(ray, tmin, tmax)
@@ -174,18 +181,22 @@ impl Scene {
         intersect_cost: f32,
         empty_factor: f32,
     ) -> Scene {
+        let triangle_data = collect_triangle_data(obj);
+        let materials = materials_from_mtl(mtl);
+        let (triangles, triangle_normals, triangle_texcoords, triangle_materials) =
+            repartition_triangle_data(materials, triangle_data);
         let builder = SahKdTreeBuilder {
             traverse_cost,
             intersect_cost,
             empty_factor,
-            triangles: triangles_from_obj(obj),
+            triangles,
         };
         let kdtree = build_kdtree(builder, max_depth);
         Scene {
             kdtree,
-            triangle_normals: triangle_normals_from_obj(obj),
-            triangle_texcoords: triangle_texcoords_from_obj(obj),
-            triangle_materials: triangle_materials_from_obj_and_mtl(obj, mtl),
+            triangle_normals,
+            triangle_texcoords,
+            triangle_materials,
             cameras: cameras_from_mtl(mtl),
             lights: lights_from_mtl(mtl),
             environment: Vector3::new(0.8, 0.8, 0.8),
