@@ -1,63 +1,7 @@
-use nalgebra::Vector3;
-
-use geometry::{aabb::Aabb, aap::Aap, triangle::Triangle, Geometry};
-
-#[derive(Debug, PartialEq)]
-pub struct ClippedTriangle {
-    index: u32,
-    min: Vector3<f32>,
-    max: Vector3<f32>,
-}
-
-impl ClippedTriangle {
-    pub fn perfect_splits(&self) -> [Aap; 6] {
-        [
-            Aap::new_x(self.min.x),
-            Aap::new_x(self.max.x),
-            Aap::new_y(self.min.y),
-            Aap::new_y(self.max.y),
-            Aap::new_z(self.min.z),
-            Aap::new_z(self.max.z),
-        ]
-    }
-}
-
-pub fn clip_triangle(triangles: &[Triangle], aabb: &Aabb, index: u32) -> Option<ClippedTriangle> {
-    let triangle = &triangles[index as usize];
-    let clipped = triangle.clip_aabb(aabb);
-    clipped.map(|clipped| ClippedTriangle {
-        index,
-        min: clipped.min(),
-        max: clipped.max(),
-    })
-}
-
-#[cfg(test)]
-mod clip_triangle_tests {
-    use super::*;
-
-    #[test]
-    fn test() {
-        let triangle = Triangle {
-            v0: Vector3::new(0.0, 0.0, 0.0),
-            v1: Vector3::new(1.0, 0.0, 0.0),
-            v2: Vector3::new(1.0, 1.0, 0.0),
-        };
-        let aabb = Aabb::from_extents(Vector3::new(0.0, 0.0, 0.0), Vector3::new(2.0, 1.0, 1.0));
-
-        let actual = clip_triangle(&[triangle], &aabb, 0);
-
-        let expected = ClippedTriangle {
-            index: 0,
-            min: Vector3::new(0.0, 0.0, 0.0),
-            max: Vector3::new(1.0, 1.0, 0.0),
-        };
-        assert_eq!(actual, Some(expected));
-    }
-}
+use geometry::{aabb::Aabb, aap::Aap};
 
 pub fn partition_triangles(
-    clipped_triangles: &[ClippedTriangle],
+    clipped_triangles: &[(u32, Aabb)],
     plane: &Aap,
 ) -> (Vec<u32>, Vec<u32>, Vec<u32>) {
     let mut left_triangles: Vec<u32> = Vec::new();
@@ -66,18 +10,18 @@ pub fn partition_triangles(
     left_triangles.reserve(clipped_triangles.len());
     right_triangles.reserve(clipped_triangles.len());
     for clipped in clipped_triangles {
-        let planar =
-            clipped.min[plane.axis] == plane.distance && clipped.max[plane.axis] == plane.distance;
-        let left = clipped.min[plane.axis] < plane.distance;
-        let right = clipped.max[plane.axis] > plane.distance;
+        let planar = clipped.1.min()[plane.axis] == plane.distance
+            && clipped.1.max()[plane.axis] == plane.distance;
+        let left = clipped.1.min()[plane.axis] < plane.distance;
+        let right = clipped.1.max()[plane.axis] > plane.distance;
         if left {
-            left_triangles.push(clipped.index);
+            left_triangles.push(clipped.0);
         }
         if planar {
-            middle_triangles.push(clipped.index);
+            middle_triangles.push(clipped.0);
         }
         if right {
-            right_triangles.push(clipped.index);
+            right_triangles.push(clipped.0);
         }
     }
     (left_triangles, middle_triangles, right_triangles)
@@ -86,27 +30,19 @@ pub fn partition_triangles(
 #[cfg(test)]
 mod partition_triangles_tests {
     use geometry::axis::Axis;
+    use nalgebra::Vector3;
 
     use super::*;
 
     #[test]
     fn test() {
-        let triangle0 = ClippedTriangle {
-            index: 0,
-            min: Vector3::new(0.0, 0.0, 0.0),
-            max: Vector3::new(1.0, 1.0, 0.0),
-        };
-        let triangle1 = ClippedTriangle {
-            index: 1,
-            min: Vector3::new(1.0, 0.0, 0.0),
-            max: Vector3::new(1.0, 1.0, 1.0),
-        };
-        let triangle2 = ClippedTriangle {
-            index: 2,
-            min: Vector3::new(1.0, 0.0, 0.0),
-            max: Vector3::new(2.0, 1.0, 0.0),
-        };
-        let clipped = [triangle0, triangle1, triangle2];
+        let triangle0 =
+            Aabb::from_extents(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 1.0, 0.0));
+        let triangle1 =
+            Aabb::from_extents(Vector3::new(1.0, 0.0, 0.0), Vector3::new(1.0, 1.0, 1.0));
+        let triangle2 =
+            Aabb::from_extents(Vector3::new(1.0, 0.0, 0.0), Vector3::new(2.0, 1.0, 0.0));
+        let clipped = [(0, triangle0), (1, triangle1), (2, triangle2)];
         let plane = Aap {
             axis: Axis::X,
             distance: 1.0,
@@ -126,11 +62,7 @@ pub struct SplitPartitioning {
     pub right_indices: Vec<u32>,
 }
 
-pub fn split_and_partition(
-    clipped: &[ClippedTriangle],
-    aabb: &Aabb,
-    plane: Aap,
-) -> SplitPartitioning {
+pub fn split_and_partition(clipped: &[(u32, Aabb)], aabb: &Aabb, plane: Aap) -> SplitPartitioning {
     let (left_aabb, right_aabb) = aabb.split(&plane);
     let (left_indices, middle_indices, right_indices) = partition_triangles(clipped, &plane);
     SplitPartitioning {

@@ -1,13 +1,13 @@
 use nalgebra::Vector3;
 use rayon::prelude::*;
 
-use geometry::{aap::Aap, bound::geometries_bounding_box, triangle::Triangle};
-
-use crate::split::clip_triangle;
+use geometry::{
+    aabb::Aabb, aap::Aap, bound::geometries_bounding_box, triangle::Triangle, Geometry,
+};
 
 use super::{
     build::{KdCell, KdSplit, KdTreeBuilder},
-    split::{split_and_partition, ClippedTriangle},
+    split::split_and_partition,
     KdNode, KdTree,
 };
 
@@ -36,7 +36,7 @@ impl SahKdTreeBuilder {
         &self,
         cell: &KdCell,
         plane: Aap,
-        clipped: &[ClippedTriangle],
+        clipped: &[(u32, Aabb)],
     ) -> Option<(KdSplit, f32)> {
         let mut split = split_and_partition(clipped, cell.boundary(), plane);
         // TODO: Place planes to the left or to the right depending on what gives best cost.
@@ -80,11 +80,15 @@ impl KdTreeBuilder for SahKdTreeBuilder {
         let clipped_triangles = cell
             .indices()
             .iter()
-            .filter_map(|i| clip_triangle(&self.triangles, cell.boundary(), *i))
+            .filter_map(|i| {
+                self.triangles[*i as usize]
+                    .clip_aabb(cell.boundary())
+                    .map(|aabb| (*i, aabb))
+            })
             .collect::<Vec<_>>();
         let mut splits = clipped_triangles
             .iter()
-            .flat_map(ClippedTriangle::perfect_splits)
+            .flat_map(|(_, aabb)| aabb.sides())
             .collect::<Vec<_>>();
         splits.sort_unstable_by(Aap::total_cmp);
         splits.dedup();

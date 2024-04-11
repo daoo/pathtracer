@@ -1,13 +1,13 @@
 use nalgebra::Vector3;
 use rayon::prelude::*;
 
-use geometry::{aap::Aap, axis::Axis, bound::geometries_bounding_box, triangle::Triangle};
-
-use crate::split::ClippedTriangle;
+use geometry::{
+    aap::Aap, axis::Axis, bound::geometries_bounding_box, triangle::Triangle, Geometry,
+};
 
 use super::{
     build::{KdCell, KdSplit, KdTreeBuilder},
-    split::{clip_triangle, split_and_partition},
+    split::split_and_partition,
     KdNode, KdTree,
 };
 
@@ -40,11 +40,15 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
         let clipped_triangles = cell
             .indices()
             .par_iter()
-            .filter_map(|i| clip_triangle(&self.triangles, cell.boundary(), *i))
+            .filter_map(|i| {
+                self.triangles[*i as usize]
+                    .clip_aabb(cell.boundary())
+                    .map(|aabb| (*i, aabb))
+            })
             .collect::<Vec<_>>();
         let planes = clipped_triangles
             .iter()
-            .flat_map(ClippedTriangle::perfect_splits)
+            .flat_map(|(_, aabb)| aabb.sides())
             .filter_map(|s| {
                 (s.axis == axis && s.distance > min && s.distance < max).then_some(Aap {
                     axis: s.axis,
