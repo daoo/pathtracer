@@ -19,7 +19,7 @@ fn light_contribution(
         origin: offset_point,
         direction,
     };
-    if scene.intersect_any(&shadow_ray, 0.0, 1.0) {
+    if scene.intersect_any(&shadow_ray, 0.0..=1.0) {
         return Vector3::zeros();
     }
 
@@ -29,7 +29,7 @@ fn light_contribution(
 }
 
 fn trace_ray(scene: &Scene, ray: &Ray) -> Vector3<f32> {
-    let intersection = scene.intersect(ray, 0.0, std::f32::MAX);
+    let intersection = scene.intersect(ray, 0.0..=f32::MAX);
     if intersection.is_none() {
         return scene.environment;
     }

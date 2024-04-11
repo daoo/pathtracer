@@ -1,7 +1,7 @@
 use geometry::{intersection::RayIntersection, ray::Ray, triangle::Triangle};
 use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, KdTree};
 use nalgebra::{UnitVector3, Vector2, Vector3};
-use std::{collections::BTreeMap, sync::Arc};
+use std::{collections::BTreeMap, ops::RangeInclusive, sync::Arc};
 use wavefront::{mtl, obj};
 
 use crate::{
@@ -165,12 +165,16 @@ fn repartition_triangle_data(
 }
 
 impl Scene {
-    pub fn intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(u32, RayIntersection)> {
-        self.kdtree.intersect(ray, tmin, tmax)
+    pub fn intersect(
+        &self,
+        ray: &Ray,
+        t_range: RangeInclusive<f32>,
+    ) -> Option<(u32, RayIntersection)> {
+        self.kdtree.intersect(ray, t_range)
     }
 
-    pub fn intersect_any(&self, ray: &Ray, tmin: f32, tmax: f32) -> bool {
-        self.intersect(ray, tmin, tmax).is_some()
+    pub fn intersect_any(&self, ray: &Ray, t_range: RangeInclusive<f32>) -> bool {
+        self.intersect(ray, t_range).is_some()
     }
 
     pub fn from_wavefront(

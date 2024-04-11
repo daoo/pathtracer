@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::RangeInclusive};
 
 use geometry::{aap::Aap, intersection::RayIntersection, ray::Ray, triangle::Triangle};
 use smallvec::SmallVec;
@@ -69,11 +69,8 @@ impl KdTree {
         &self,
         triangles: &[u32],
         ray: &Ray,
-        tmin: f32,
-        tmax: f32,
+        t_range: RangeInclusive<f32>,
     ) -> Option<(u32, RayIntersection)> {
-        debug_assert!(tmin <= tmax);
-        let t_range = tmin..=tmax;
         triangles
             .iter()
             .filter_map(|index| {
@@ -89,18 +86,21 @@ impl KdTree {
             .min_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t))
     }
 
-    pub fn intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<(u32, RayIntersection)> {
-        debug_assert!(tmin < tmax);
+    pub fn intersect(
+        &self,
+        ray: &Ray,
+        t_range: RangeInclusive<f32>,
+    ) -> Option<(u32, RayIntersection)> {
         let mut node = self.root.as_ref();
-        let mut t1 = tmin;
-        let mut t2 = tmax;
+        let mut t1 = *t_range.start();
+        let mut t2 = *t_range.end();
         let mut stack: SmallVec<[(&KdNode, f32, f32); 5]> = SmallVec::new();
         loop {
             match node {
                 KdNode::Leaf(indices) => {
-                    match self.intersect_closest_triangle_ray(indices, ray, t1, t2) {
+                    match self.intersect_closest_triangle_ray(indices, ray, t1..=t2) {
                         Some(result) => return Some(result),
-                        _ if t2 == tmax => return None,
+                        _ if t2 == *t_range.end() => return None,
                         _ => {
                             if let Some(s) = stack.pop() {
                                 (node, t1, t2) = s;
@@ -156,7 +156,7 @@ mod tests {
         };
         let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(1., 1., 1.));
 
-        assert_eq!(tree.intersect(&ray, 0., 1.), None);
+        assert_eq!(tree.intersect(&ray, 0.0..=1.0), None);
     }
 
     #[test]
@@ -185,11 +185,11 @@ mod tests {
         let ray = Ray::between(&Vector3::new(1., 1., -2.), &Vector3::new(1., 1., 2.));
 
         assert_eq!(
-            tree.intersect(&ray, 0., 1.),
+            tree.intersect(&ray, 0.0..=1.0),
             Some((0, RayIntersection::new(0.25, 0., 0.5)))
         );
         assert_eq!(
-            tree.intersect(&ray.reverse(), 0., 1.),
+            tree.intersect(&ray.reverse(), 0.0..=1.0),
             Some((1, RayIntersection::new(0.25, 0., 0.5)))
         );
     }
@@ -218,11 +218,11 @@ mod tests {
         let ray_triangle1_v1 = Ray::between(&Vector3::new(2., 0., -1.), &Vector3::new(2., 0., 1.));
 
         assert_eq!(
-            tree.intersect(&ray_triangle0_v0, 0., 1.),
+            tree.intersect(&ray_triangle0_v0, 0.0..=1.0),
             Some((0, RayIntersection::new(0.5, 0., 0.)))
         );
         assert_eq!(
-            tree.intersect(&ray_triangle1_v1, 0., 1.),
+            tree.intersect(&ray_triangle1_v1, 0.0..=1.0),
             Some((1, RayIntersection::new(0.5, 1., 0.)))
         );
     }
@@ -250,11 +250,11 @@ mod tests {
         let ray = Ray::between(&Vector3::new(-1., 0., 0.), &Vector3::new(3., 0., 0.));
 
         assert_eq!(
-            tree.intersect(&ray, 0., 1.),
+            tree.intersect(&ray, 0.0..=1.0),
             Some((0, RayIntersection::new(0.25, 0., 0.5)))
         );
         assert_eq!(
-            tree.intersect(&ray.reverse(), 0., 1.),
+            tree.intersect(&ray.reverse(), 0.0..=1.0),
             Some((1, RayIntersection::new(0.25, 0., 0.5)))
         );
     }
@@ -277,11 +277,11 @@ mod tests {
         let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
 
         assert_eq!(
-            tree_left.intersect(&ray, 0., 1.),
+            tree_left.intersect(&ray, 0.0..=1.0),
             Some((0, RayIntersection::new(0.5, 0., 0.)))
         );
         assert_eq!(
-            tree_right.intersect(&ray, 0., 1.),
+            tree_right.intersect(&ray, 0.0..=1.0),
             Some((0, RayIntersection::new(0.5, 0., 0.)))
         );
     }
@@ -304,11 +304,11 @@ mod tests {
         let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
 
         assert_eq!(
-            tree.intersect(&ray, 0., 1.),
+            tree.intersect(&ray, 0.0..=1.0),
             Some((0, RayIntersection::new(0.5, 0., 0.)))
         );
         assert_eq!(
-            tree.intersect(&ray.reverse(), 0., 1.),
+            tree.intersect(&ray.reverse(), 0.0..=1.0),
             Some((0, RayIntersection::new(0.5, 0., 0.)))
         );
     }
@@ -331,11 +331,11 @@ mod tests {
         let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
 
         assert_eq!(
-            tree.intersect(&ray, 0., 1.),
+            tree.intersect(&ray, 0.0..=1.0),
             Some((0, RayIntersection::new(0.5, 0., 0.)))
         );
         assert_eq!(
-            tree.intersect(&ray.reverse(), 0., 1.),
+            tree.intersect(&ray.reverse(), 0.0..=1.0),
             Some((0, RayIntersection::new(0.5, 0., 0.)))
         );
     }
@@ -359,7 +359,7 @@ mod tests {
             direction: Vector3::new(0.06646079, 0.08247295, -0.9238795),
         };
 
-        let actual = tree.intersect(&ray, 0.0, f32::MAX);
+        let actual = tree.intersect(&ray, 0.0..=f32::MAX);
 
         assert_eq!(
             actual,

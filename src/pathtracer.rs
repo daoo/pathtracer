@@ -28,7 +28,7 @@ impl<'a> Pathtracer<'a> {
             return accumulated_radiance;
         }
 
-        let intersection = self.scene.intersect(ray, 0.0, std::f32::MAX);
+        let intersection = self.scene.intersect(ray, 0.0..=std::f32::MAX);
         if intersection.is_none() {
             self.ray_logger
                 .log_infinite(ray, self.iteration, (self.x, self.y))
@@ -55,7 +55,7 @@ impl<'a> Pathtracer<'a> {
             .iter()
             .map(|light| {
                 let shadow_ray = Ray::between(&point_above, &light.sample(self.rng));
-                if self.scene.intersect_any(&shadow_ray, 0.0, 1.0) {
+                if self.scene.intersect_any(&shadow_ray, 0.0..=1.0) {
                     return Vector3::zeros();
                 }
 

@@ -4,7 +4,7 @@ use nalgebra::Vector2;
 use pathtracer::{camera::Pinhole, sampling::uniform_sample_unit_square, scene::Scene};
 use rand::{rngs::SmallRng, SeedableRng};
 use rayon::prelude::*;
-use std::{fs, str};
+use std::{fs, ops::RangeInclusive, str};
 use wavefront::{mtl, obj};
 
 struct RayBouncer<'a> {
@@ -43,10 +43,8 @@ impl RayBouncer<'_> {
     fn reference_ray_intersect(
         &self,
         ray: &Ray,
-        tmin: f32,
-        tmax: f32,
+        t_range: RangeInclusive<f32>,
     ) -> Option<(u32, RayIntersection)> {
-        let t_range = tmin..=tmax;
         self.scene
             .kdtree
             .triangles
@@ -62,9 +60,13 @@ impl RayBouncer<'_> {
             .min_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t))
     }
 
-    fn checked_ray_intersect(&self, ray: &Ray, tmin: f32, tmax: f32) -> CheckedIntersection {
-        let kdtree = self.scene.intersect(ray, tmin, tmax);
-        let reference = self.reference_ray_intersect(ray, tmin, tmax);
+    fn checked_ray_intersect(
+        &self,
+        ray: &Ray,
+        t_range: RangeInclusive<f32>,
+    ) -> CheckedIntersection {
+        let kdtree = self.scene.intersect(ray, t_range.clone());
+        let reference = self.reference_ray_intersect(ray, t_range);
         CheckedIntersection {
             ray: *ray,
             reference,
@@ -82,7 +84,7 @@ impl RayBouncer<'_> {
             return None;
         }
 
-        let intersection = self.checked_ray_intersect(ray, 0.0, f32::MAX);
+        let intersection = self.checked_ray_intersect(ray, 0.0..=f32::MAX);
         if !intersection.is_valid() {
             return Some(intersection);
         };
@@ -105,7 +107,7 @@ impl RayBouncer<'_> {
             .iter()
             .filter_map(|light| {
                 let shadow_ray = Ray::between(&point_above, &light.sample(rng));
-                let shadow = self.checked_ray_intersect(&shadow_ray, 0.0, 1.0);
+                let shadow = self.checked_ray_intersect(&shadow_ray, 0.0..=1.0);
                 (!shadow.is_valid()).then_some(shadow)
             })
             .collect::<Vec<_>>();
