@@ -1,7 +1,7 @@
 use nalgebra::Vector3;
 use rayon::prelude::*;
 
-use geometry::{aap::Aap, axis::Axis, bound::triangles_bounding_box, triangle::Triangle};
+use geometry::{aap::Aap, axis::Axis, bound::geometries_bounding_box, triangle::Triangle};
 
 use crate::split::ClippedTriangle;
 
@@ -28,7 +28,7 @@ fn median(splits: &[Aap]) -> Aap {
 impl KdTreeBuilder for MedianKdTreeBuilder {
     fn starting_box(&self) -> KdCell {
         KdCell::new(
-            triangles_bounding_box(&self.triangles).enlarge(&Vector3::new(0.5, 0.5, 0.5)),
+            geometries_bounding_box(&self.triangles).enlarge(&Vector3::new(0.5, 0.5, 0.5)),
             (0u32..self.triangles.len() as u32).collect(),
         )
     }

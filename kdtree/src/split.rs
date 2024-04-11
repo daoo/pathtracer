@@ -1,6 +1,6 @@
 use nalgebra::Vector3;
 
-use geometry::{aabb::Aabb, aap::Aap, triangle::Triangle};
+use geometry::{aabb::Aabb, aap::Aap, triangle::Triangle, Geometry};
 
 #[derive(Debug, PartialEq)]
 pub struct ClippedTriangle {
@@ -25,15 +25,11 @@ impl ClippedTriangle {
 pub fn clip_triangle(triangles: &[Triangle], aabb: &Aabb, index: u32) -> Option<ClippedTriangle> {
     let triangle = &triangles[index as usize];
     let clipped = triangle.clip_aabb(aabb);
-    if clipped.is_empty() {
-        return None;
-    }
-    let start = (clipped[0], clipped[0]);
-    let (min, max) = clipped[1..]
-        .iter()
-        .fold(start, |(min, max), b| (min.inf(b), max.sup(b)));
-
-    Some(ClippedTriangle { index, min, max })
+    clipped.map(|clipped| ClippedTriangle {
+        index,
+        min: clipped.min(),
+        max: clipped.max(),
+    })
 }
 
 #[cfg(test)]

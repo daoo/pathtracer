@@ -1,7 +1,7 @@
 use nalgebra::Vector3;
 use rayon::prelude::*;
 
-use geometry::{aap::Aap, bound::triangles_bounding_box, triangle::Triangle};
+use geometry::{aap::Aap, bound::geometries_bounding_box, triangle::Triangle};
 
 use crate::split::clip_triangle;
 
@@ -68,7 +68,7 @@ impl SahKdTreeBuilder {
 impl KdTreeBuilder for SahKdTreeBuilder {
     fn starting_box(&self) -> KdCell {
         KdCell::new(
-            triangles_bounding_box(&self.triangles).enlarge(&Vector3::new(1.0, 1.0, 1.0)),
+            geometries_bounding_box(&self.triangles).enlarge(&Vector3::new(1.0, 1.0, 1.0)),
             (0u32..self.triangles.len() as u32).collect(),
         )
     }

@@ -1,9 +1,8 @@
-use arrayvec::ArrayVec;
 use nalgebra::Vector3;
 
 use crate::{
     aabb::Aabb, aap::Aap, axial_triangle::AxiallyAlignedTriangle, axis::Axis,
-    clip::clip_triangle_aabb, intersection::RayIntersection, ray::Ray,
+    clip::clip_triangle_aabb, intersection::RayIntersection, ray::Ray, Geometry,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -14,14 +13,6 @@ pub struct Triangle {
 }
 
 impl Triangle {
-    pub fn min(&self) -> Vector3<f32> {
-        self.v0.inf(&self.v1.inf(&self.v2))
-    }
-
-    pub fn max(&self) -> Vector3<f32> {
-        self.v0.sup(&self.v1.sup(&self.v2))
-    }
-
     pub fn base0(&self) -> Vector3<f32> {
         self.v1 - self.v0
     }
@@ -184,9 +175,32 @@ impl Triangle {
 
         true
     }
+}
 
-    pub fn clip_aabb(&self, aabb: &Aabb) -> ArrayVec<Vector3<f32>, 6> {
-        clip_triangle_aabb(&self.v0, &self.v1, &self.v2, aabb)
+impl Geometry for Triangle {
+    fn min(&self) -> Vector3<f32> {
+        self.v0.inf(&self.v1.inf(&self.v2))
+    }
+
+    fn max(&self) -> Vector3<f32> {
+        self.v0.sup(&self.v1.sup(&self.v2))
+    }
+
+    fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
+        self.intersect_ray(ray)
+    }
+
+    fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
+        let clipped = clip_triangle_aabb(&self.v0, &self.v1, &self.v2, aabb);
+        if clipped.is_empty() {
+            return None;
+        }
+        let start = (clipped[0], clipped[0]);
+        let (min, max) = clipped[1..]
+            .iter()
+            .fold(start, |(min, max), b| (min.inf(b), max.sup(b)));
+
+        Some(Aabb::from_extents(min, max))
     }
 }
 

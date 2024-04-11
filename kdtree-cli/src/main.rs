@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use clap::{Parser, ValueEnum};
-use geometry::{aabb::Aabb, axis::Axis, bound::triangles_bounding_box, triangle::Triangle};
+use geometry::{aabb::Aabb, axis::Axis, bound::geometries_bounding_box, triangle::Triangle};
 use kdtree::{
     build::build_kdtree, build_median::MedianKdTreeBuilder, build_sah::SahKdTreeBuilder, KdNode,
     KdTree,
@@ -95,7 +95,7 @@ pub fn tree_cost(
     cost_intersect: f32,
     empty_factor: f32,
 ) -> f32 {
-    let bounding_box = triangles_bounding_box(&kdtree.triangles);
+    let bounding_box = geometries_bounding_box(&kdtree.triangles);
     node_cost(
         cost_traverse,
         cost_intersect,
