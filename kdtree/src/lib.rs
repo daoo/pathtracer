@@ -23,8 +23,8 @@ impl KdNode {
         Box::new(Self::Leaf(vec![]))
     }
 
-    pub fn new_leaf(triangle_indices: Vec<u32>) -> Box<Self> {
-        Box::new(Self::Leaf(triangle_indices))
+    pub fn new_leaf(indices: Vec<u32>) -> Box<Self> {
+        Box::new(Self::Leaf(indices))
     }
 
     pub fn new_node(plane: Aap, left: Box<Self>, right: Box<Self>) -> Box<Self> {
@@ -37,7 +37,7 @@ impl KdNode {
 
     pub fn is_empty(&self) -> bool {
         match self {
-            Self::Leaf(triangle_indices) => triangle_indices.is_empty(),
+            Self::Leaf(indices) => indices.is_empty(),
             Self::Node { .. } => false,
         }
     }
@@ -46,7 +46,7 @@ impl KdNode {
 impl Display for KdNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            KdNode::Leaf(triangle_indices) => write!(f, "{triangle_indices:?}"),
+            KdNode::Leaf(indices) => write!(f, "{indices:?}"),
             KdNode::Node { plane, left, right } => {
                 write!(
                     f,
@@ -97,8 +97,8 @@ impl KdTree {
         let mut stack: SmallVec<[(&KdNode, f32, f32); 5]> = SmallVec::new();
         loop {
             match node {
-                KdNode::Leaf(triangle_indices) => {
-                    match self.intersect_closest_triangle_ray(triangle_indices, ray, t1, t2) {
+                KdNode::Leaf(indices) => {
+                    match self.intersect_closest_triangle_ray(indices, ray, t1, t2) {
                         Some(result) => return Some(result),
                         _ if t2 == tmax => return None,
                         _ => {

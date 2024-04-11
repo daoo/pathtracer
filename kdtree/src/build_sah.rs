@@ -41,7 +41,7 @@ impl SahKdTreeBuilder {
         let mut split = split_and_partition(clipped, cell.boundary(), plane);
         // TODO: Place planes to the left or to the right depending on what gives best cost.
         if (split.left_aabb.volume() == 0.0 || split.right_aabb.volume() == 0.0)
-            && split.middle_triangle_indices.is_empty()
+            && split.middle_indices.is_empty()
         {
             return None;
         }
@@ -49,18 +49,14 @@ impl SahKdTreeBuilder {
         let probability_right = split.right_aabb.surface_area() / cell.boundary().surface_area();
         let probability = (probability_left, probability_right);
         let counts = (
-            split.left_triangle_indices.len() + split.middle_triangle_indices.len(),
-            split.right_triangle_indices.len() + split.middle_triangle_indices.len(),
+            split.left_indices.len() + split.middle_indices.len(),
+            split.right_indices.len() + split.middle_indices.len(),
         );
         let cost = self.calculate_sah_cost(probability, counts);
-        split
-            .left_triangle_indices
-            .extend(&split.middle_triangle_indices);
-        split
-            .right_triangle_indices
-            .extend(split.middle_triangle_indices);
-        let left = KdCell::new(split.left_aabb, split.left_triangle_indices);
-        let right = KdCell::new(split.right_aabb, split.right_triangle_indices);
+        split.left_indices.extend(&split.middle_indices);
+        split.right_indices.extend(split.middle_indices);
+        let left = KdCell::new(split.left_aabb, split.left_indices);
+        let right = KdCell::new(split.right_aabb, split.right_indices);
         Some((KdSplit { plane, left, right }, cost))
     }
 }
@@ -75,14 +71,14 @@ impl KdTreeBuilder for SahKdTreeBuilder {
 
     fn find_best_split(&self, _: u32, cell: &KdCell) -> Option<KdSplit> {
         debug_assert!(
-            !cell.triangle_indices().is_empty(),
+            !cell.indices().is_empty(),
             "splitting a kd-cell with no triangles only worsens performance"
         );
 
         let min_by_snd = |a: (_, f32), b: (_, f32)| if a.1 <= b.1 { a } else { b };
 
         let clipped_triangles = cell
-            .triangle_indices()
+            .indices()
             .iter()
             .filter_map(|i| clip_triangle(&self.triangles, cell.boundary(), *i))
             .collect::<Vec<_>>();
@@ -105,12 +101,9 @@ impl KdTreeBuilder for SahKdTreeBuilder {
         let probability_right =
             split.right.boundary().surface_area() / cell.boundary().surface_area();
         let probability = (probability_left, probability_right);
-        let counts = (
-            split.left.triangle_indices().len(),
-            split.right.triangle_indices().len(),
-        );
+        let counts = (split.left.indices().len(), split.right.indices().len());
         let split_cost = self.calculate_sah_cost(probability, counts);
-        let intersect_cost = self.intersect_cost * cell.triangle_indices().len() as f32;
+        let intersect_cost = self.intersect_cost * cell.indices().len() as f32;
         split_cost >= intersect_cost
     }
 

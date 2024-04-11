@@ -5,31 +5,28 @@ use super::{KdNode, KdTree};
 #[derive(Debug)]
 pub struct KdCell {
     boundary: Aabb,
-    triangle_indices: Vec<u32>,
+    indices: Vec<u32>,
 }
 
 impl KdCell {
-    pub fn new(boundary: Aabb, triangle_indices: Vec<u32>) -> Self {
+    pub fn new(boundary: Aabb, indices: Vec<u32>) -> Self {
         debug_assert!(
             boundary.surface_area() != 0.0,
             "empty kd-cell cannot intersect a ray"
         );
         debug_assert!(
-            !(boundary.volume() == 0.0 && triangle_indices.is_empty()),
+            !(boundary.volume() == 0.0 && indices.is_empty()),
             "flat kd-cell without any triangles likely worsens performance"
         );
-        KdCell {
-            boundary,
-            triangle_indices,
-        }
+        KdCell { boundary, indices }
     }
 
     pub fn boundary(&self) -> &Aabb {
         &self.boundary
     }
 
-    pub fn triangle_indices(&self) -> &[u32] {
-        &self.triangle_indices
+    pub fn indices(&self) -> &[u32] {
+        &self.indices
     }
 }
 
@@ -54,15 +51,15 @@ fn build_helper<B>(builder: &B, max_depth: u32, depth: u32, cell: KdCell) -> Box
 where
     B: KdTreeBuilder,
 {
-    if depth >= max_depth || cell.triangle_indices.is_empty() {
-        return KdNode::new_leaf(cell.triangle_indices);
+    if depth >= max_depth || cell.indices.is_empty() {
+        return KdNode::new_leaf(cell.indices);
     }
 
     match builder.find_best_split(depth, &cell) {
-        None => KdNode::new_leaf(cell.triangle_indices),
+        None => KdNode::new_leaf(cell.indices),
         Some(split) => {
             if builder.terminate(&cell, &split) {
-                KdNode::new_leaf(cell.triangle_indices)
+                KdNode::new_leaf(cell.indices)
             } else {
                 let left = build_helper(builder, max_depth, depth + 1, split.left);
                 let right = build_helper(builder, max_depth, depth + 1, split.right);

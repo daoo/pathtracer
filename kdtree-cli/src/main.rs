@@ -55,9 +55,8 @@ fn node_cost(
     node: &KdNode,
 ) -> f32 {
     match node {
-        KdNode::Leaf(triangle_indices) => {
-            cost_intersect * triangle_indices.len() as f32 * boundary.surface_area()
-                / scene_surface_area
+        KdNode::Leaf(indices) => {
+            cost_intersect * indices.len() as f32 * boundary.surface_area() / scene_surface_area
         }
         KdNode::Node { plane, left, right } => {
             let split_cost = boundary.surface_area() / scene_surface_area;
@@ -109,7 +108,7 @@ pub fn tree_cost(
 fn print_pretty(depth: usize, kdtree: &KdNode) {
     let indent = "  ".repeat(depth);
     match kdtree {
-        KdNode::Leaf(triangle_indices) => println!("{indent}Leaf {triangle_indices:?}"),
+        KdNode::Leaf(indices) => println!("{indent}Leaf {indices:?}"),
         KdNode::Node { plane, left, right } => {
             println!(
                 "{}Split {:?} {}",
@@ -150,7 +149,7 @@ fn print_triangles_json(triangles: &[Triangle]) {
 
 fn print_node_json(kdtree: &KdNode) {
     match kdtree {
-        KdNode::Leaf(triangle_indices) => print!("{triangle_indices:?}"),
+        KdNode::Leaf(indices) => print!("{indices:?}"),
         KdNode::Node { plane, left, right } => {
             print!(
                 "{{\"axis\": \"{:?}\", \"distance\": {}, \"left\": ",
@@ -166,8 +165,8 @@ fn print_node_json(kdtree: &KdNode) {
 
 fn print_node_rust(kdtree: &KdNode) {
     match kdtree {
-        KdNode::Leaf(triangle_indices) if triangle_indices.is_empty() => print!("KdNode::empty()"),
-        KdNode::Leaf(triangle_indices) => print!("KdNode::new_leaf(vec!{triangle_indices:?})"),
+        KdNode::Leaf(indices) if indices.is_empty() => print!("KdNode::empty()"),
+        KdNode::Leaf(indices) => print!("KdNode::new_leaf(vec!{indices:?})"),
         KdNode::Node { plane, left, right } => {
             let aap_new = match plane.axis {
                 Axis::X => "Aap::new_x",

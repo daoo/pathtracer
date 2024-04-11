@@ -121,9 +121,9 @@ mod partition_triangles_tests {
 pub struct SplitPartitioning {
     pub left_aabb: Aabb,
     pub right_aabb: Aabb,
-    pub left_triangle_indices: Vec<u32>,
-    pub middle_triangle_indices: Vec<u32>,
-    pub right_triangle_indices: Vec<u32>,
+    pub left_indices: Vec<u32>,
+    pub middle_indices: Vec<u32>,
+    pub right_indices: Vec<u32>,
 }
 
 pub fn split_and_partition(
@@ -132,13 +132,12 @@ pub fn split_and_partition(
     plane: Aap,
 ) -> SplitPartitioning {
     let (left_aabb, right_aabb) = aabb.split(&plane);
-    let (left_triangle_indices, middle_triangle_indices, right_triangle_indices) =
-        partition_triangles(clipped, &plane);
+    let (left_indices, middle_indices, right_indices) = partition_triangles(clipped, &plane);
     SplitPartitioning {
         left_aabb,
         right_aabb,
-        left_triangle_indices,
-        middle_triangle_indices,
-        right_triangle_indices,
+        left_indices,
+        middle_indices,
+        right_indices,
     }
 }

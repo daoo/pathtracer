@@ -38,7 +38,7 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
         let min = cell.boundary().min()[axis];
         let max = cell.boundary().max()[axis];
         let clipped_triangles = cell
-            .triangle_indices()
+            .indices()
             .par_iter()
             .filter_map(|i| clip_triangle(&self.triangles, cell.boundary(), *i))
             .collect::<Vec<_>>();
@@ -57,11 +57,9 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
         }
         let plane = median(&planes);
         let mut split = split_and_partition(&clipped_triangles, cell.boundary(), plane);
-        split
-            .left_triangle_indices
-            .extend(split.middle_triangle_indices);
-        let left = KdCell::new(split.left_aabb, split.left_triangle_indices);
-        let right = KdCell::new(split.right_aabb, split.right_triangle_indices);
+        split.left_indices.extend(split.middle_indices);
+        let left = KdCell::new(split.left_aabb, split.left_indices);
+        let right = KdCell::new(split.right_aabb, split.right_indices);
         Some(KdSplit { plane, left, right })
     }
 
