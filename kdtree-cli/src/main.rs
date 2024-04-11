@@ -123,28 +123,10 @@ fn print_pretty(depth: usize, kdtree: &KdNode) {
 }
 
 fn print_triangles_json(triangles: &[Triangle]) {
-    print!("[");
-    let mut skip_first_separator = true;
-    for triangle in triangles {
-        if skip_first_separator {
-            skip_first_separator = false;
-        } else {
-            print!(", ");
-        }
-        print!(
-            "[[{}, {}, {}], [{}, {}, {}], [{}, {}, {}]]",
-            triangle.v0.x,
-            triangle.v0.y,
-            triangle.v0.z,
-            triangle.v1.x,
-            triangle.v1.y,
-            triangle.v1.z,
-            triangle.v2.x,
-            triangle.v2.y,
-            triangle.v2.z,
-        );
-    }
-    print!("]");
+    print!(
+        "{:?}",
+        triangles.iter().map(|t| t.as_arrays()).collect::<Vec<_>>()
+    );
 }
 
 fn print_node_json(kdtree: &KdNode) {
