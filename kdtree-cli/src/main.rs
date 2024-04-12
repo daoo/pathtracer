@@ -182,13 +182,14 @@ fn main() {
             })
         })
         .collect::<Vec<_>>();
+    eprintln!("  Triangles: {}", triangles.len());
 
-    eprintln!(
-        "Building {} kdtree for {} triangle(s) with max depth {}...",
-        args.method,
-        triangles.len(),
-        args.max_depth
-    );
+    eprintln!("Building {} kdtree...", args.method,);
+    eprintln!("  Max depth: {:?}", args.max_depth);
+    eprintln!("  Traverse cost: {:?}", args.traverse_cost);
+    eprintln!("  Intersect cost: {:?}", args.intersect_cost);
+    eprintln!("  Empty factor: {:?}", args.empty_factor);
+
     let t1 = time::Instant::now();
     let kdtree = match args.method {
         KdTreeMethod::Median => {
