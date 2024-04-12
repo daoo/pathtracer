@@ -171,16 +171,17 @@ fn main() {
     let bytes = std::fs::read(args.input).unwrap();
     let input = std::str::from_utf8(&bytes).unwrap();
     let obj = obj::obj(input);
-    let mut triangles: Vec<Triangle> = Vec::new();
-    for chunk in &obj.chunks {
-        for face in &chunk.faces {
-            triangles.push(Triangle {
+    let triangles = obj
+        .chunks
+        .iter()
+        .flat_map(|chunk| {
+            chunk.faces.iter().map(|face| Triangle {
                 v0: obj.index_vertex(&face.p0).into(),
                 v1: obj.index_vertex(&face.p1).into(),
                 v2: obj.index_vertex(&face.p2).into(),
-            });
-        }
-    }
+            })
+        })
+        .collect::<Vec<_>>();
 
     eprintln!(
         "Building {} kdtree for {} triangle(s) with max depth {}...",
