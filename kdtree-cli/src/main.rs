@@ -122,7 +122,7 @@ fn print_pretty(depth: usize, kdtree: &KdNode) {
     }
 }
 
-fn print_triangles_json(triangles: &[Triangle]) {
+fn print_triangle_array(triangles: &[Triangle]) {
     print!(
         "{:?}",
         triangles.iter().map(|t| t.as_arrays()).collect::<Vec<_>>()
@@ -220,20 +220,14 @@ fn main() {
 
     if args.json {
         print!("{{\"triangles\": ");
-        print_triangles_json(&kdtree.triangles);
+        print_triangle_array(&kdtree.triangles);
         print!(", \"root\": ");
         print_node_json(&kdtree.root);
         println!("}}");
     } else if args.rust {
-        println!(
-            "let triangles = {:?};",
-            kdtree
-                .triangles
-                .into_iter()
-                .map(Triangle::as_arrays)
-                .collect::<Vec<_>>()
-        );
-        print!("let root = ");
+        print!("let triangles = ");
+        print_triangle_array(&kdtree.triangles);
+        print!(";\nlet root = ");
         print_node_rust(&kdtree.root);
         println!(";");
         println!("let tree = KdTree {{ triangles, root }};");
