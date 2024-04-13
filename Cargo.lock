@@ -254,6 +254,7 @@ version = "1.0.0"
 dependencies = [
  "clap",
  "geometry",
+ "kdtree",
  "nalgebra",
  "pathtracer",
  "rand",
@@ -400,6 +401,7 @@ name = "pathtracer-cli"
 version = "1.0.0"
 dependencies = [
  "clap",
+ "kdtree",
  "pathtracer",
  "rand",
  "termion",
@@ -505,6 +507,7 @@ name = "raytracer-cli"
 version = "1.0.0"
 dependencies = [
  "clap",
+ "kdtree",
  "pathtracer",
  "wavefront",
 ]

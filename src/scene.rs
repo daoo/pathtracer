@@ -1,7 +1,6 @@
-use geometry::{intersection::RayIntersection, ray::Ray, triangle::Triangle};
-use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, KdTree};
+use geometry::triangle::Triangle;
 use nalgebra::{UnitVector3, Vector2, Vector3};
-use std::{collections::BTreeMap, ops::RangeInclusive, sync::Arc};
+use std::{collections::BTreeMap, sync::Arc};
 use wavefront::{mtl, obj};
 
 use crate::{
@@ -41,7 +40,6 @@ pub struct TriangleData {
 }
 
 pub struct Scene {
-    pub kdtree: KdTree,
     pub triangle_data: Vec<TriangleData>,
     pub cameras: Vec<Camera>,
     pub lights: Vec<SphericalLight>,
@@ -114,7 +112,7 @@ fn materials_from_mtl(mtl: &mtl::Mtl) -> BTreeMap<&str, Arc<dyn Material + Send 
         .collect::<BTreeMap<_, _>>()
 }
 
-fn cameras_from_mtl(mtl: &mtl::Mtl) -> Vec<Camera> {
+fn collect_cameras(mtl: &mtl::Mtl) -> Vec<Camera> {
     mtl.cameras
         .iter()
         .map(|camera| {
@@ -128,7 +126,7 @@ fn cameras_from_mtl(mtl: &mtl::Mtl) -> Vec<Camera> {
         .collect()
 }
 
-fn lights_from_mtl(mtl: &mtl::Mtl) -> Vec<SphericalLight> {
+fn collect_lights(mtl: &mtl::Mtl) -> Vec<SphericalLight> {
     mtl.lights
         .iter()
         .map(|light| {
@@ -143,40 +141,11 @@ fn lights_from_mtl(mtl: &mtl::Mtl) -> Vec<SphericalLight> {
 }
 
 impl Scene {
-    pub fn intersect(
-        &self,
-        ray: &Ray,
-        t_range: RangeInclusive<f32>,
-    ) -> Option<(u32, RayIntersection)> {
-        self.kdtree.intersect(ray, t_range)
-    }
-
-    pub fn intersect_any(&self, ray: &Ray, t_range: RangeInclusive<f32>) -> bool {
-        self.intersect(ray, t_range).is_some()
-    }
-
-    pub fn from_wavefront(
-        obj: &obj::Obj,
-        mtl: &mtl::Mtl,
-        max_depth: u32,
-        traverse_cost: f32,
-        intersect_cost: f32,
-        empty_factor: f32,
-    ) -> Scene {
-        let triangle_data = collect_triangle_data(obj, mtl);
-        let triangles = triangle_data.iter().map(|t| t.triangle).collect::<Vec<_>>();
-        let builder = SahKdTreeBuilder {
-            traverse_cost,
-            intersect_cost,
-            empty_factor,
-            triangles,
-        };
-        let kdtree = build_kdtree(builder, max_depth);
+    pub fn from_wavefront(obj: &obj::Obj, mtl: &mtl::Mtl) -> Scene {
         Scene {
-            kdtree,
-            triangle_data,
-            cameras: cameras_from_mtl(mtl),
-            lights: lights_from_mtl(mtl),
+            triangle_data: collect_triangle_data(obj, mtl),
+            cameras: collect_cameras(mtl),
+            lights: collect_lights(mtl),
             environment: Vector3::new(0.8, 0.8, 0.8),
         }
     }

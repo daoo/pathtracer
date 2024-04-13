@@ -1,5 +1,9 @@
 use clap::Parser;
-use pathtracer::{camera::Pinhole, image_buffer::ImageBuffer, raylogger::RayLogger, scene::Scene};
+use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder};
+use pathtracer::{
+    camera::Pinhole, image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLogger,
+    scene::Scene,
+};
 use rand::{rngs::SmallRng, SeedableRng};
 use std::{
     fs,
@@ -42,14 +46,6 @@ struct Args {
     empty_factor: f32,
 }
 
-struct Work {
-    max_bounces: u16,
-    width: u32,
-    height: u32,
-    pinhole: Pinhole,
-    scene: Arc<Scene>,
-}
-
 fn create_ray_logger(thread: u32) -> RayLogger {
     if cfg!(feature = "ray_logging") {
         let path = format!("/tmp/raylog{thread}.bin");
@@ -61,24 +57,18 @@ fn create_ray_logger(thread: u32) -> RayLogger {
 
 fn worker_thread(
     thread: u32,
-    work: &Arc<Work>,
+    pathtracer: &Pathtracer,
+    width: u32,
+    height: u32,
     iterations: u32,
     tx: &Sender<Duration>,
 ) -> ImageBuffer {
     let mut rng = SmallRng::from_entropy();
-    let mut buffer = ImageBuffer::new(work.width, work.height);
+    let mut buffer = ImageBuffer::new(width, height);
     let mut ray_logger = create_ray_logger(thread);
     for iteration in 0..iterations {
         let t1 = Instant::now();
-        pathtracer::pathtracer::render(
-            iteration as u16,
-            &mut ray_logger,
-            work.max_bounces,
-            &work.scene,
-            &work.pinhole,
-            &mut buffer,
-            &mut rng,
-        );
+        pathtracer.render(iteration as u16, &mut ray_logger, &mut buffer, &mut rng);
         let t2 = Instant::now();
         let duration = t2 - t1;
         tx.send(duration).unwrap();
@@ -88,11 +78,15 @@ fn worker_thread(
 
 fn new_worker(
     thread: u32,
-    work: Arc<Work>,
+    pathtracer: Arc<Pathtracer>,
+    width: u32,
+    height: u32,
     iterations: u32,
     tx: Sender<Duration>,
 ) -> JoinHandle<ImageBuffer> {
-    thread::spawn(move || worker_thread(thread, &work, iterations, &tx))
+    thread::spawn(move || {
+        worker_thread(thread, pathtracer.as_ref(), width, height, iterations, &tx)
+    })
 }
 
 fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
@@ -132,40 +126,60 @@ fn main() {
 
     println!("Loading {}...", args.input.display());
     let obj = obj::obj(str::from_utf8(&fs::read(&args.input).unwrap()).unwrap());
+    println!("  Chunks: {}", obj.chunks.len());
+    println!("  Vertices: {}", obj.vertices.len());
+    println!("  Normals: {}", obj.normals.len());
+    println!("  Texcoords: {}", obj.texcoords.len());
+
     let mtl_path = args.input.parent().unwrap().join(&obj.mtl_lib);
     println!("Loading {}...", mtl_path.display());
     let mtl = mtl::mtl(str::from_utf8(&fs::read(mtl_path).unwrap()).unwrap());
-    println!("Building scene...");
-    let scene = Scene::from_wavefront(
-        &obj,
-        &mtl,
-        args.max_depth,
-        args.traverse_cost,
-        args.intersect_cost,
-        args.empty_factor,
-    );
-    println!("Triangles: {}", scene.triangle_data.len());
+    println!("  Materials: {}", mtl.materials.len());
+    println!("  Lights: {}", mtl.lights.len());
+    println!("  Cameras: {}", mtl.cameras.len());
 
-    let pinhole = Pinhole::new(&scene.cameras[0], args.width as f32 / args.height as f32);
+    println!("Collecting scene...");
+    let scene = Scene::from_wavefront(&obj, &mtl);
+    println!("  Triangles: {}", scene.triangle_data.len());
+
+    println!("Building kdtree...");
+    let kdtree = build_kdtree(
+        SahKdTreeBuilder {
+            traverse_cost: args.traverse_cost,
+            intersect_cost: args.intersect_cost,
+            empty_factor: args.empty_factor,
+            triangles: scene.triangle_data.iter().map(|t| t.triangle).collect(),
+        },
+        args.max_depth,
+    );
 
     let total_iterations = args.threads * args.iterations_per_thread;
     println!(
         "Rendering {} px x {} px image with {} thread(s) and {} total iteration(s)...",
         args.width, args.height, args.threads, total_iterations,
     );
+    let camera = Pinhole::new(&scene.cameras[0], args.width as f32 / args.height as f32);
+    let pathtracer = Arc::new(Pathtracer {
+        max_bounces: args.max_bounces,
+        scene,
+        kdtree,
+        camera,
+    });
 
     let start_time = Instant::now();
 
-    let work = Arc::new(Work {
-        max_bounces: args.max_bounces,
-        width: args.width,
-        height: args.height,
-        pinhole,
-        scene: Arc::new(scene),
-    });
     let (tx, rx) = mpsc::channel();
     let threads = (0..args.threads)
-        .map(|i| new_worker(i, work.clone(), args.iterations_per_thread, tx.clone()))
+        .map(|i| {
+            new_worker(
+                i,
+                pathtracer.clone(),
+                args.width,
+                args.height,
+                args.iterations_per_thread,
+                tx.clone(),
+            )
+        })
         .collect::<Vec<_>>();
     let printer = thread::spawn(move || printer_thread(args.threads, total_iterations, &rx));
     let buffer = threads

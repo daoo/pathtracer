@@ -1,5 +1,6 @@
 use clap::Parser;
 use geometry::{intersection::RayIntersection, ray::Ray};
+use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, KdTree};
 use nalgebra::Vector2;
 use pathtracer::{camera::Pinhole, sampling::uniform_sample_unit_square, scene::Scene};
 use rand::{rngs::SmallRng, SeedableRng};
@@ -7,12 +8,13 @@ use rayon::prelude::*;
 use std::{fs, ops::RangeInclusive, str};
 use wavefront::{mtl, obj};
 
-struct RayBouncer<'a> {
+struct RayBouncer {
+    scene: Scene,
+    kdtree: KdTree,
+    camera: Pinhole,
     bounces: u32,
-    scene: &'a Scene,
     width: u32,
     height: u32,
-    camera: &'a Pinhole,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -39,14 +41,13 @@ impl CheckedIntersection {
     }
 }
 
-impl RayBouncer<'_> {
+impl RayBouncer {
     fn reference_ray_intersect(
         &self,
         ray: &Ray,
         t_range: RangeInclusive<f32>,
     ) -> Option<(u32, RayIntersection)> {
-        self.scene
-            .kdtree
+        self.kdtree
             .triangles
             .iter()
             .enumerate()
@@ -65,7 +66,7 @@ impl RayBouncer<'_> {
         ray: &Ray,
         t_range: RangeInclusive<f32>,
     ) -> CheckedIntersection {
-        let kdtree = self.scene.intersect(ray, t_range.clone());
+        let kdtree = self.kdtree.intersect(ray, t_range.clone());
         let reference = self.reference_ray_intersect(ray, t_range);
         CheckedIntersection {
             ray: *ray,
@@ -168,34 +169,46 @@ fn main() {
 
     println!("Loading {}...", args.input.display());
     let obj = obj::obj(str::from_utf8(&fs::read(&args.input).unwrap()).unwrap());
+    println!("  Chunks: {}", obj.chunks.len());
+    println!("  Vertices: {}", obj.vertices.len());
+    println!("  Normals: {}", obj.normals.len());
+    println!("  Texcoords: {}", obj.texcoords.len());
+
     let mtl_path = args.input.parent().unwrap().join(&obj.mtl_lib);
     println!("Loading {}...", mtl_path.display());
     let mtl = mtl::mtl(str::from_utf8(&fs::read(mtl_path).unwrap()).unwrap());
-    println!("Building scene...");
-    let scene = Scene::from_wavefront(
-        &obj,
-        &mtl,
+    println!("  Materials: {}", mtl.materials.len());
+    println!("  Lights: {}", mtl.lights.len());
+    println!("  Cameras: {}", mtl.cameras.len());
+
+    println!("Collecting scene...");
+    let scene = Scene::from_wavefront(&obj, &mtl);
+    println!("  Triangles: {}", scene.triangle_data.len());
+
+    println!("Building kdtree...");
+    let kdtree = build_kdtree(
+        SahKdTreeBuilder {
+            traverse_cost: args.traverse_cost,
+            intersect_cost: args.intersect_cost,
+            empty_factor: args.empty_factor,
+            triangles: scene.triangle_data.iter().map(|t| t.triangle).collect(),
+        },
         args.max_depth,
-        args.traverse_cost,
-        args.intersect_cost,
-        args.empty_factor,
     );
-    println!("Triangles: {}", scene.triangle_data.len());
-
-    let pinhole = Pinhole::new(&scene.cameras[0], args.width as f32 / args.height as f32);
-
-    let bouncer = RayBouncer {
-        bounces: args.bounces,
-        scene: &scene,
-        width: args.width,
-        height: args.height,
-        camera: &pinhole,
-    };
 
     println!(
         "Testing up to {} rays...",
         args.width * args.height * args.bounces
     );
+    let camera = Pinhole::new(&scene.cameras[0], args.width as f32 / args.height as f32);
+    let bouncer = RayBouncer {
+        scene,
+        kdtree,
+        camera,
+        width: args.width,
+        height: args.height,
+        bounces: args.bounces,
+    };
 
     let xs = 0..args.width;
     let ys = 0..args.height;
