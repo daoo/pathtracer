@@ -10,8 +10,8 @@ use std::{
         Arc,
     },
     thread::{self, JoinHandle},
+    time::{Duration, Instant},
 };
-use time::{Duration, Instant};
 use wavefront::{mtl, obj};
 
 #[derive(Parser, Debug)]
@@ -101,7 +101,7 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
     let mut completed = 0;
     loop {
         if let Ok(duration) = rx.recv() {
-            let seconds = duration.as_seconds_f64();
+            let seconds = duration.as_secs_f64();
             total += seconds;
             total_squared += seconds * seconds;
             completed += 1;
@@ -115,9 +115,9 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
                 termion::cursor::Left(u16::MAX),
                 completed,
                 iterations,
-                Duration::seconds_f64(mean),
-                Duration::seconds_f64(sdev),
-                Duration::seconds_f64(eta)
+                time::Duration::seconds_f64(mean),
+                time::Duration::seconds_f64(sdev),
+                time::Duration::seconds_f64(eta)
             );
             std::io::stdout().flush().unwrap();
         } else {
@@ -154,7 +154,7 @@ fn main() {
         args.width, args.height, args.threads, total_iterations,
     );
 
-    let t1 = Instant::now();
+    let start_time = Instant::now();
 
     let work = Arc::new(Work {
         max_bounces: args.max_bounces,
@@ -176,8 +176,11 @@ fn main() {
     drop(tx);
     printer.join().unwrap();
 
-    let t2 = Instant::now();
-    println!("Total time: {:.2}", t2 - t1);
+    let duration = Instant::now().duration_since(start_time);
+    println!(
+        "Total time: {:.2}",
+        time::Duration::new(duration.as_secs() as i64, duration.subsec_nanos() as i32)
+    );
 
     println!("Writing {}...", args.output.display());
     buffer

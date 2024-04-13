@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, time::Instant};
 
 use clap::{Parser, ValueEnum};
 use geometry::{aabb::Aabb, axis::Axis, bound::geometries_bounding_box, triangle::Triangle};
@@ -6,6 +6,7 @@ use kdtree::{
     build::build_kdtree, build_median::MedianKdTreeBuilder, build_sah::SahKdTreeBuilder, KdNode,
     KdTree,
 };
+use time::Duration;
 use wavefront::obj;
 
 #[derive(Clone, Debug, ValueEnum)]
@@ -190,7 +191,7 @@ fn main() {
     eprintln!("  Intersect cost: {:?}", args.intersect_cost);
     eprintln!("  Empty factor: {:?}", args.empty_factor);
 
-    let t1 = time::Instant::now();
+    let start_time = Instant::now();
     let kdtree = match args.method {
         KdTreeMethod::Median => {
             let builder = MedianKdTreeBuilder { triangles };
@@ -206,8 +207,7 @@ fn main() {
             build_kdtree(builder, args.max_depth)
         }
     };
-    let t2 = time::Instant::now();
-    let duration = t2 - t1;
+    let duration = Instant::now().duration_since(start_time);
 
     let cost = tree_cost(
         &kdtree,
@@ -216,7 +216,10 @@ fn main() {
         args.empty_factor,
     );
 
-    eprintln!("Done in {duration:.3} with cost {cost:.3}.");
+    eprintln!(
+        "Done in {:.3} with cost {cost:.3}.",
+        Duration::new(duration.as_secs() as i64, duration.as_nanos() as i32)
+    );
 
     if args.json {
         print!("{{\"triangles\": ");
