@@ -42,7 +42,7 @@ fn main() {
         args.intersect_cost,
         args.empty_factor,
     );
-    println!("Triangles: {}", scene.triangle_normals.len());
+    println!("Triangles: {}", scene.triangle_data.len());
 
     let pinhole = Pinhole::new(&scene.cameras[0], args.width as f32 / args.height as f32);
     let mut buffer = ImageBuffer::new(args.width, args.height);

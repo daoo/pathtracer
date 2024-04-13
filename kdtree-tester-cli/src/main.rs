@@ -89,11 +89,11 @@ impl RayBouncer<'_> {
             return Some(intersection);
         };
         let (triangle_index, intersection) = intersection.reference?;
+        let triangle = &self.scene.triangle_data[triangle_index as usize];
 
         let wi = -ray.direction;
-        let n = self.scene.triangle_normals[triangle_index as usize]
-            .lerp(intersection.u, intersection.v);
-        let material = &self.scene.triangle_materials[triangle_index as usize];
+        let n = triangle.normals.lerp(intersection.u, intersection.v);
+        let material = triangle.material.as_ref();
 
         // TODO: How to chose offset?
         let offset = 0.00001 * n.into_inner();
@@ -180,7 +180,7 @@ fn main() {
         args.intersect_cost,
         args.empty_factor,
     );
-    println!("Triangles: {}", scene.triangle_normals.len());
+    println!("Triangles: {}", scene.triangle_data.len());
 
     let pinhole = Pinhole::new(&scene.cameras[0], args.width as f32 / args.height as f32);
 

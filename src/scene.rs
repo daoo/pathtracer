@@ -33,24 +33,23 @@ pub struct TriangleTexcoords {
     pub uv2: Vector2<f32>,
 }
 
-pub struct TriangleData<'a> {
+pub struct TriangleData {
     pub triangle: Triangle,
     pub normals: TriangleNormals,
     pub texcoords: TriangleTexcoords,
-    pub material: &'a str,
+    pub material: Arc<dyn Material + Send + Sync>,
 }
 
 pub struct Scene {
     pub kdtree: KdTree,
-    pub triangle_normals: Vec<TriangleNormals>,
-    pub triangle_texcoords: Vec<TriangleTexcoords>,
-    pub triangle_materials: Vec<Arc<dyn Material + Send + Sync>>,
+    pub triangle_data: Vec<TriangleData>,
     pub cameras: Vec<Camera>,
     pub lights: Vec<SphericalLight>,
     pub environment: Vector3<f32>,
 }
 
-fn collect_triangle_data(obj: &obj::Obj) -> Vec<TriangleData> {
+fn collect_triangle_data(obj: &obj::Obj, mtl: &mtl::Mtl) -> Vec<TriangleData> {
+    let materials = materials_from_mtl(mtl);
     obj.chunks
         .iter()
         .flat_map(|chunk| {
@@ -74,7 +73,7 @@ fn collect_triangle_data(obj: &obj::Obj) -> Vec<TriangleData> {
                     triangle,
                     normals,
                     texcoords,
-                    material: chunk.material.as_str(),
+                    material: materials[chunk.material.as_str()].clone(),
                 }
             })
         })
@@ -143,27 +142,6 @@ fn lights_from_mtl(mtl: &mtl::Mtl) -> Vec<SphericalLight> {
         .collect()
 }
 
-fn repartition_triangle_data(
-    materials: BTreeMap<&str, Arc<dyn Material + Sync + Send>>,
-    triangle_data: Vec<TriangleData<'_>>,
-) -> (
-    Vec<Triangle>,
-    Vec<TriangleNormals>,
-    Vec<TriangleTexcoords>,
-    Vec<Arc<dyn Material + Sync + Send>>,
-) {
-    let triangles = triangle_data.iter().map(|t| t.triangle);
-    let normals = triangle_data.iter().map(|t| t.normals);
-    let texcoords = triangle_data.iter().map(|t| t.texcoords);
-    let materials = triangle_data.iter().map(|t| materials[t.material].clone());
-    (
-        triangles.collect(),
-        normals.collect(),
-        texcoords.collect(),
-        materials.collect(),
-    )
-}
-
 impl Scene {
     pub fn intersect(
         &self,
@@ -185,10 +163,8 @@ impl Scene {
         intersect_cost: f32,
         empty_factor: f32,
     ) -> Scene {
-        let triangle_data = collect_triangle_data(obj);
-        let materials = materials_from_mtl(mtl);
-        let (triangles, triangle_normals, triangle_texcoords, triangle_materials) =
-            repartition_triangle_data(materials, triangle_data);
+        let triangle_data = collect_triangle_data(obj, mtl);
+        let triangles = triangle_data.iter().map(|t| t.triangle).collect::<Vec<_>>();
         let builder = SahKdTreeBuilder {
             traverse_cost,
             intersect_cost,
@@ -198,9 +174,7 @@ impl Scene {
         let kdtree = build_kdtree(builder, max_depth);
         Scene {
             kdtree,
-            triangle_normals,
-            triangle_texcoords,
-            triangle_materials,
+            triangle_data,
             cameras: cameras_from_mtl(mtl),
             lights: lights_from_mtl(mtl),
             environment: Vector3::new(0.8, 0.8, 0.8),
