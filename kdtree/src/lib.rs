@@ -266,7 +266,7 @@ mod tests {
         };
         let tree_left = KdTree {
             root: KdNode::new_node(Aap::new_z(1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
-            geometries: vec![triangle.clone()],
+            geometries: vec![triangle],
         };
         let tree_right = KdTree {
             root: KdNode::new_node(Aap::new_z(1.0), KdNode::empty(), KdNode::new_leaf(vec![0])),
@@ -297,7 +297,7 @@ mod tests {
                 KdNode::new_node(Aap::new_z(1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
                 KdNode::empty(),
             ),
-            geometries: vec![triangle.clone()],
+            geometries: vec![triangle],
         };
         let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
 
