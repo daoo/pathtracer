@@ -1,9 +1,10 @@
 use nalgebra::Vector3;
-use rayon::prelude::*;
 
 use geometry::{
     aap::Aap, axis::Axis, bound::geometries_bounding_box, triangle::Triangle, Geometry,
 };
+
+use crate::split::perfect_splits;
 
 use super::{
     build::{KdCell, KdSplit, KdTreeBuilder},
@@ -37,30 +38,16 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
         let axis = Axis::from_u32(depth % 3);
         let min = cell.boundary().min()[axis];
         let max = cell.boundary().max()[axis];
-        let clipped_triangles = cell
-            .indices()
-            .par_iter()
-            .filter_map(|i| {
-                self.geometries[*i as usize]
-                    .clip_aabb(cell.boundary())
-                    .map(|aabb| (*i, aabb))
-            })
+        let (clipped, splits) = perfect_splits(&self.geometries, cell);
+        let splits = splits
+            .into_iter()
+            .filter(|s| s.axis == axis && s.distance > min && s.distance < max)
             .collect::<Vec<_>>();
-        let planes = clipped_triangles
-            .iter()
-            .flat_map(|(_, aabb)| aabb.sides())
-            .filter_map(|s| {
-                (s.axis == axis && s.distance > min && s.distance < max).then_some(Aap {
-                    axis: s.axis,
-                    distance: s.distance,
-                })
-            })
-            .collect::<Vec<_>>();
-        if planes.is_empty() {
+        if splits.is_empty() {
             return None;
         }
-        let plane = median(&planes);
-        let mut split = split_and_partition(&clipped_triangles, cell.boundary(), plane);
+        let plane = median(&splits);
+        let mut split = split_and_partition(&clipped, cell.boundary(), plane);
         split.left_indices.extend(split.middle_indices);
         let left = KdCell::new(split.left_aabb, split.left_indices);
         let right = KdCell::new(split.right_aabb, split.right_indices);

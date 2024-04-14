@@ -5,6 +5,8 @@ use geometry::{
     aabb::Aabb, aap::Aap, bound::geometries_bounding_box, triangle::Triangle, Geometry,
 };
 
+use crate::split::perfect_splits;
+
 use super::{
     build::{KdCell, KdSplit, KdTreeBuilder},
     split::split_and_partition,
@@ -77,24 +79,12 @@ impl KdTreeBuilder for SahKdTreeBuilder {
 
         let min_by_snd = |a: (_, f32), b: (_, f32)| if a.1 <= b.1 { a } else { b };
 
-        let clipped_triangles = cell
-            .indices()
-            .iter()
-            .filter_map(|i| {
-                self.geometries[*i as usize]
-                    .clip_aabb(cell.boundary())
-                    .map(|aabb| (*i, aabb))
-            })
-            .collect::<Vec<_>>();
-        let mut splits = clipped_triangles
-            .iter()
-            .flat_map(|(_, aabb)| aabb.sides())
-            .collect::<Vec<_>>();
+        let (clipped, mut splits) = perfect_splits(&self.geometries, cell);
         splits.sort_unstable_by(Aap::total_cmp);
         splits.dedup();
         splits
             .into_par_iter()
-            .filter_map(|plane| self.split_and_calculate_cost(cell, plane, &clipped_triangles))
+            .filter_map(|plane| self.split_and_calculate_cost(cell, plane, &clipped))
             .reduce_with(min_by_snd)
             .map(|a| a.0)
     }

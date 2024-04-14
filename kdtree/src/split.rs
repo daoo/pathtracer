@@ -1,4 +1,25 @@
-use geometry::{aabb::Aabb, aap::Aap};
+use geometry::{aabb::Aabb, aap::Aap, triangle::Triangle, Geometry};
+
+use crate::build::KdCell;
+
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+
+pub fn perfect_splits(geometries: &[Triangle], cell: &KdCell) -> (Vec<(u32, Aabb)>, Vec<Aap>) {
+    let clipped = cell
+        .indices()
+        .par_iter()
+        .filter_map(|i| {
+            geometries[*i as usize]
+                .clip_aabb(cell.boundary())
+                .map(|aabb| (*i, aabb))
+        })
+        .collect::<Vec<_>>();
+    let splits = clipped
+        .iter()
+        .flat_map(|(_, aabb)| aabb.sides())
+        .collect::<Vec<_>>();
+    (clipped, splits)
+}
 
 pub fn partition_triangles(
     clipped_triangles: &[(u32, Aabb)],
