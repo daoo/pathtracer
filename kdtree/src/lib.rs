@@ -65,7 +65,7 @@ pub struct KdTree {
 }
 
 impl KdTree {
-    fn intersect_closest_triangle_ray(
+    fn intersect_closest(
         &self,
         indices: &[u32],
         ray: &Ray,
@@ -97,19 +97,17 @@ impl KdTree {
         let mut stack: SmallVec<[(&KdNode, f32, f32); 5]> = SmallVec::new();
         loop {
             match node {
-                KdNode::Leaf(indices) => {
-                    match self.intersect_closest_triangle_ray(indices, ray, t1..=t2) {
-                        Some(result) => return Some(result),
-                        _ if t2 == *t_range.end() => return None,
-                        _ => {
-                            if let Some(s) = stack.pop() {
-                                (node, t1, t2) = s;
-                            } else {
-                                return None;
-                            }
+                KdNode::Leaf(indices) => match self.intersect_closest(indices, ray, t1..=t2) {
+                    Some(result) => return Some(result),
+                    _ if t2 == *t_range.end() => return None,
+                    _ => {
+                        if let Some(s) = stack.pop() {
+                            (node, t1, t2) = s;
+                        } else {
+                            return None;
                         }
                     }
-                }
+                },
                 KdNode::Node { plane, left, right } => {
                     let axis = plane.axis;
                     if ray.direction[axis] == 0. {
