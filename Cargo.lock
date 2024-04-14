@@ -391,7 +391,6 @@ dependencies = [
  "kdtree",
  "nalgebra",
  "rand",
- "rayon",
  "simba",
  "wavefront",
 ]

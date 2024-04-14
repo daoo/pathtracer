@@ -9,11 +9,8 @@ use std::{
     fs,
     io::Write,
     str,
-    sync::{
-        mpsc::{self, Receiver, Sender},
-        Arc,
-    },
-    thread::{self, JoinHandle},
+    sync::mpsc::{self, Receiver, Sender},
+    thread,
     time::{Duration, Instant},
 };
 use wavefront::{mtl, obj};
@@ -74,19 +71,6 @@ fn worker_thread(
         tx.send(duration).unwrap();
     }
     buffer
-}
-
-fn new_worker(
-    thread: u32,
-    pathtracer: Arc<Pathtracer>,
-    width: u32,
-    height: u32,
-    iterations: u32,
-    tx: Sender<Duration>,
-) -> JoinHandle<ImageBuffer> {
-    thread::spawn(move || {
-        worker_thread(thread, pathtracer.as_ref(), width, height, iterations, &tx)
-    })
 }
 
 fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
@@ -159,47 +143,51 @@ fn main() {
         args.width, args.height, args.threads, total_iterations,
     );
     let camera = Pinhole::new(&scene.cameras[0], args.width as f32 / args.height as f32);
-    let pathtracer = Arc::new(Pathtracer {
+    let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,
         scene,
         kdtree,
         camera,
+    };
+
+    thread::scope(|s| {
+        let start_time = Instant::now();
+        let (tx, rx) = mpsc::channel();
+        let threads = (0..args.threads)
+            .map(|i| {
+                let tx = tx.clone();
+                let i = i.clone();
+                let pathtracer = &pathtracer;
+                s.spawn(move || {
+                    worker_thread(
+                        i,
+                        &pathtracer,
+                        args.width,
+                        args.height,
+                        args.iterations_per_thread,
+                        &tx,
+                    )
+                })
+            })
+            .collect::<Vec<_>>();
+        let printer = s.spawn(move || printer_thread(args.threads, total_iterations, &rx));
+
+        let buffers = threads.into_iter().map(|t| t.join().unwrap());
+        let buffer = buffers.reduce(|a, b| a.add(&b)).unwrap();
+        drop(tx);
+        printer.join().unwrap();
+
+        let duration = Instant::now().duration_since(start_time);
+        println!(
+            "Total time: {:.2}",
+            time::Duration::new(duration.as_secs() as i64, duration.subsec_nanos() as i32)
+        );
+
+        println!("Writing {}...", args.output.display());
+        buffer
+            .div(total_iterations as f32)
+            .gamma_correct()
+            .save_png(&args.output)
+            .unwrap();
     });
-
-    let start_time = Instant::now();
-
-    let (tx, rx) = mpsc::channel();
-    let threads = (0..args.threads)
-        .map(|i| {
-            new_worker(
-                i,
-                pathtracer.clone(),
-                args.width,
-                args.height,
-                args.iterations_per_thread,
-                tx.clone(),
-            )
-        })
-        .collect::<Vec<_>>();
-    let printer = thread::spawn(move || printer_thread(args.threads, total_iterations, &rx));
-    let buffer = threads
-        .into_iter()
-        .map(|t| t.join().unwrap())
-        .reduce(|a, b| a.add(&b))
-        .unwrap();
-    drop(tx);
-    printer.join().unwrap();
-
-    let duration = Instant::now().duration_since(start_time);
-    println!(
-        "Total time: {:.2}",
-        time::Duration::new(duration.as_secs() as i64, duration.subsec_nanos() as i32)
-    );
-
-    println!("Writing {}...", args.output.display());
-    buffer
-        .div(total_iterations as f32)
-        .gamma_correct()
-        .save_png(&args.output)
-        .unwrap();
 }
