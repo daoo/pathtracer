@@ -148,7 +148,7 @@ fn main() {
             traverse_cost: args.traverse_cost,
             intersect_cost: args.intersect_cost,
             empty_factor: args.empty_factor,
-            triangles: scene.triangle_data.iter().map(|t| t.triangle).collect(),
+            geometries: scene.triangle_data.iter().map(|t| t.triangle).collect(),
         },
         args.max_depth,
     );

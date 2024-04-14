@@ -12,7 +12,7 @@ use super::{
 };
 
 pub struct MedianKdTreeBuilder {
-    pub triangles: Vec<Triangle>,
+    pub geometries: Vec<Triangle>,
 }
 
 fn median(splits: &[Aap]) -> Aap {
@@ -28,8 +28,8 @@ fn median(splits: &[Aap]) -> Aap {
 impl KdTreeBuilder for MedianKdTreeBuilder {
     fn starting_box(&self) -> KdCell {
         KdCell::new(
-            geometries_bounding_box(&self.triangles).enlarge(&Vector3::new(0.5, 0.5, 0.5)),
-            (0u32..self.triangles.len() as u32).collect(),
+            geometries_bounding_box(&self.geometries).enlarge(&Vector3::new(0.5, 0.5, 0.5)),
+            (0u32..self.geometries.len() as u32).collect(),
         )
     }
 
@@ -41,7 +41,7 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
             .indices()
             .par_iter()
             .filter_map(|i| {
-                self.triangles[*i as usize]
+                self.geometries[*i as usize]
                     .clip_aabb(cell.boundary())
                     .map(|aabb| (*i, aabb))
             })
@@ -74,7 +74,7 @@ impl KdTreeBuilder for MedianKdTreeBuilder {
     fn make_tree(self, root: Box<KdNode>) -> KdTree {
         KdTree {
             root,
-            triangles: self.triangles,
+            geometries: self.geometries,
         }
     }
 }

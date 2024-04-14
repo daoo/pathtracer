@@ -48,7 +48,7 @@ impl RayBouncer {
         t_range: RangeInclusive<f32>,
     ) -> Option<(u32, RayIntersection)> {
         self.kdtree
-            .triangles
+            .geometries
             .iter()
             .enumerate()
             .filter_map(|(index, triangle)| {
@@ -191,7 +191,7 @@ fn main() {
             traverse_cost: args.traverse_cost,
             intersect_cost: args.intersect_cost,
             empty_factor: args.empty_factor,
-            triangles: scene.triangle_data.iter().map(|t| t.triangle).collect(),
+            geometries: scene.triangle_data.iter().map(|t| t.triangle).collect(),
         },
         args.max_depth,
     );

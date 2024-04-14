@@ -95,7 +95,7 @@ pub fn tree_cost(
     cost_intersect: f32,
     empty_factor: f32,
 ) -> f32 {
-    let bounding_box = geometries_bounding_box(&kdtree.triangles);
+    let bounding_box = geometries_bounding_box(&kdtree.geometries);
     node_cost(
         cost_traverse,
         cost_intersect,
@@ -194,12 +194,14 @@ fn main() {
     let start_time = Instant::now();
     let kdtree = match args.method {
         KdTreeMethod::Median => {
-            let builder = MedianKdTreeBuilder { triangles };
+            let builder = MedianKdTreeBuilder {
+                geometries: triangles,
+            };
             build_kdtree(builder, args.max_depth)
         }
         KdTreeMethod::Sah => {
             let builder = SahKdTreeBuilder {
-                triangles,
+                geometries: triangles,
                 traverse_cost: args.traverse_cost,
                 intersect_cost: args.intersect_cost,
                 empty_factor: args.empty_factor,
@@ -223,13 +225,13 @@ fn main() {
 
     if args.json {
         print!("{{\"triangles\": ");
-        print_triangle_array(&kdtree.triangles);
+        print_triangle_array(&kdtree.geometries);
         print!(", \"root\": ");
         print_node_json(&kdtree.root);
         println!("}}");
     } else if args.rust {
         print!("let triangles = ");
-        print_triangle_array(&kdtree.triangles);
+        print_triangle_array(&kdtree.geometries);
         print!(";\nlet root = ");
         print_node_rust(&kdtree.root);
         println!(";");

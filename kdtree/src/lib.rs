@@ -61,21 +61,21 @@ impl Display for KdNode {
 #[derive(Debug, PartialEq)]
 pub struct KdTree {
     pub root: Box<KdNode>,
-    pub triangles: Vec<Triangle>,
+    pub geometries: Vec<Triangle>,
 }
 
 impl KdTree {
     fn intersect_closest_triangle_ray(
         &self,
-        triangles: &[u32],
+        indices: &[u32],
         ray: &Ray,
         t_range: RangeInclusive<f32>,
     ) -> Option<(u32, RayIntersection)> {
-        triangles
+        indices
             .iter()
             .filter_map(|index| {
                 let index = *index;
-                self.triangles[index as usize]
+                self.geometries[index as usize]
                     .intersect_ray(ray)
                     .and_then(|intersection| {
                         t_range
@@ -152,7 +152,7 @@ mod tests {
     fn intersect_empty_tree() {
         let tree = KdTree {
             root: Box::new(KdNode::Leaf(vec![])),
-            triangles: vec![],
+            geometries: vec![],
         };
         let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(1., 1., 1.));
 
@@ -180,7 +180,7 @@ mod tests {
                 left: Box::new(KdNode::Leaf(vec![0, 1])),
                 right: Box::new(KdNode::Leaf(vec![0, 1])),
             }),
-            triangles: vec![triangle0, triangle1],
+            geometries: vec![triangle0, triangle1],
         };
         let ray = Ray::between(&Vector3::new(1., 1., -2.), &Vector3::new(1., 1., 2.));
 
@@ -212,7 +212,7 @@ mod tests {
                 KdNode::new_leaf(vec![0]),
                 KdNode::new_leaf(vec![1]),
             ),
-            triangles: vec![triangle0, triangle1],
+            geometries: vec![triangle0, triangle1],
         };
         let ray_triangle0_v0 = Ray::between(&Vector3::new(0., 0., -1.), &Vector3::new(0., 0., 1.));
         let ray_triangle1_v1 = Ray::between(&Vector3::new(2., 0., -1.), &Vector3::new(2., 0., 1.));
@@ -245,7 +245,7 @@ mod tests {
                 KdNode::new_leaf(vec![0]),
                 KdNode::new_leaf(vec![1]),
             ),
-            triangles: vec![triangle0, triangle1],
+            geometries: vec![triangle0, triangle1],
         };
         let ray = Ray::between(&Vector3::new(-1., 0., 0.), &Vector3::new(3., 0., 0.));
 
@@ -268,11 +268,11 @@ mod tests {
         };
         let tree_left = KdTree {
             root: KdNode::new_node(Aap::new_z(1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
-            triangles: vec![triangle.clone()],
+            geometries: vec![triangle.clone()],
         };
         let tree_right = KdTree {
             root: KdNode::new_node(Aap::new_z(1.0), KdNode::empty(), KdNode::new_leaf(vec![0])),
-            triangles: vec![triangle],
+            geometries: vec![triangle],
         };
         let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
 
@@ -299,7 +299,7 @@ mod tests {
                 KdNode::new_node(Aap::new_z(1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
                 KdNode::empty(),
             ),
-            triangles: vec![triangle.clone()],
+            geometries: vec![triangle.clone()],
         };
         let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
 
@@ -326,7 +326,7 @@ mod tests {
                 KdNode::empty(),
                 KdNode::new_node(Aap::new_z(1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
             ),
-            triangles: vec![triangle],
+            geometries: vec![triangle],
         };
         let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
 
@@ -347,13 +347,13 @@ mod tests {
             v1: Vector3::new(-1.0, 1.0, -1.0),
             v2: Vector3::new(1.0, -1.0, -1.0),
         };
-        let triangles = vec![triangle];
+        let geometries = vec![triangle];
         let root = KdNode::new_node(
             Aap::new_z(-1.0),
             KdNode::empty(),
             KdNode::new_node(Aap::new_z(-1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
         );
-        let tree = KdTree { triangles, root };
+        let tree = KdTree { geometries, root };
         let ray = Ray {
             origin: Vector3::new(0.0, 0.0, 3.0),
             direction: Vector3::new(0.06646079, 0.08247295, -0.9238795),

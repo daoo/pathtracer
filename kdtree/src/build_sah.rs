@@ -15,7 +15,7 @@ pub struct SahKdTreeBuilder {
     pub traverse_cost: f32,
     pub intersect_cost: f32,
     pub empty_factor: f32,
-    pub triangles: Vec<Triangle>,
+    pub geometries: Vec<Triangle>,
 }
 
 impl SahKdTreeBuilder {
@@ -64,15 +64,15 @@ impl SahKdTreeBuilder {
 impl KdTreeBuilder for SahKdTreeBuilder {
     fn starting_box(&self) -> KdCell {
         KdCell::new(
-            geometries_bounding_box(&self.triangles).enlarge(&Vector3::new(1.0, 1.0, 1.0)),
-            (0u32..self.triangles.len() as u32).collect(),
+            geometries_bounding_box(&self.geometries).enlarge(&Vector3::new(1.0, 1.0, 1.0)),
+            (0u32..self.geometries.len() as u32).collect(),
         )
     }
 
     fn find_best_split(&self, _: u32, cell: &KdCell) -> Option<KdSplit> {
         debug_assert!(
             !cell.indices().is_empty(),
-            "splitting a kd-cell with no triangles only worsens performance"
+            "splitting a kd-cell with no geometries only worsens performance"
         );
 
         let min_by_snd = |a: (_, f32), b: (_, f32)| if a.1 <= b.1 { a } else { b };
@@ -81,7 +81,7 @@ impl KdTreeBuilder for SahKdTreeBuilder {
             .indices()
             .iter()
             .filter_map(|i| {
-                self.triangles[*i as usize]
+                self.geometries[*i as usize]
                     .clip_aabb(cell.boundary())
                     .map(|aabb| (*i, aabb))
             })
@@ -114,7 +114,7 @@ impl KdTreeBuilder for SahKdTreeBuilder {
     fn make_tree(self, root: Box<KdNode>) -> KdTree {
         KdTree {
             root,
-            triangles: self.triangles,
+            geometries: self.geometries,
         }
     }
 }
@@ -127,7 +127,7 @@ mod tests {
 
     #[test]
     fn non_axially_aligned_triangle() {
-        let triangles = vec![Triangle {
+        let geometries = vec![Triangle {
             v0: Vector3::new(0.0, 0.0, 0.0),
             v1: Vector3::new(1.0, 0.0, 0.0),
             v2: Vector3::new(1.0, 1.0, 1.0),
@@ -136,7 +136,7 @@ mod tests {
             traverse_cost: 0.1,
             intersect_cost: 1.0,
             empty_factor: 0.8,
-            triangles,
+            geometries,
         };
         let tree = build_kdtree(builder, 6);
 
@@ -174,7 +174,7 @@ mod tests {
 
     #[test]
     fn axially_aligned_triangle() {
-        let triangles = vec![Triangle {
+        let geometries = vec![Triangle {
             v0: Vector3::new(0.0, 0.0, 0.0),
             v1: Vector3::new(1.0, 0.0, 0.0),
             v2: Vector3::new(1.0, 1.0, 0.0),
@@ -183,7 +183,7 @@ mod tests {
             traverse_cost: 1.0,
             intersect_cost: 10.0,
             empty_factor: 0.8,
-            triangles,
+            geometries,
         };
         let tree = build_kdtree(builder, 6);
 
