@@ -1,8 +1,6 @@
 use nalgebra::Vector3;
 
-use geometry::{
-    aap::Aap, axis::Axis, bound::geometries_bounding_box, triangle::Triangle, Geometry,
-};
+use geometry::{aap::Aap, axis::Axis, bound::geometries_bounding_box, triangle::Triangle};
 
 use crate::split::perfect_splits;
 

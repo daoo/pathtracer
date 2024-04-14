@@ -1,9 +1,7 @@
 use nalgebra::Vector3;
 use rayon::prelude::*;
 
-use geometry::{
-    aabb::Aabb, aap::Aap, bound::geometries_bounding_box, triangle::Triangle, Geometry,
-};
+use geometry::{aabb::Aabb, aap::Aap, bound::geometries_bounding_box, triangle::Triangle};
 
 use crate::split::perfect_splits;
 
