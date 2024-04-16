@@ -1,7 +1,10 @@
 use std::time::Instant;
 
 use clap::Parser;
-use geometry::{aabb::Aabb, axis::Axis, bound::geometries_bounding_box, triangle::Triangle};
+use geometry::{
+    aabb::Aabb, axis::Axis, bound::geometries_bounding_box, geometric::Geometric,
+    triangle::Triangle,
+};
 use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, KdNode, KdTree};
 use time::Duration;
 use wavefront::obj;
@@ -102,10 +105,16 @@ fn print_pretty(depth: usize, kdtree: &KdNode) {
     }
 }
 
-fn print_triangle_array(triangles: &[Triangle]) {
+fn print_triangle_array(geometries: &[Geometric]) {
     print!(
         "{:?}",
-        triangles.iter().map(|t| t.as_arrays()).collect::<Vec<_>>()
+        geometries
+            .iter()
+            .map(|t| match t {
+                Geometric::Triangle(t) => t.as_arrays(),
+                Geometric::AxiallyAlignedTriangle(t) => t.as_arrays(),
+            })
+            .collect::<Vec<_>>()
     );
 }
 
@@ -155,13 +164,16 @@ fn main() {
         .chunks
         .iter()
         .flat_map(|chunk| {
-            chunk.faces.iter().map(|face| Triangle {
-                v0: obj.index_vertex(&face.p0).into(),
-                v1: obj.index_vertex(&face.p1).into(),
-                v2: obj.index_vertex(&face.p2).into(),
+            chunk.faces.iter().map(|face| {
+                Triangle {
+                    v0: obj.index_vertex(&face.p0).into(),
+                    v1: obj.index_vertex(&face.p1).into(),
+                    v2: obj.index_vertex(&face.p2).into(),
+                }
+                .into()
             })
         })
-        .collect::<Vec<_>>();
+        .collect::<Vec<Geometric>>();
     eprintln!("  Triangles: {}", triangles.len());
 
     eprintln!("Building kdtree...");

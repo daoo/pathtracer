@@ -9,6 +9,7 @@ pub mod axial_triangle;
 pub mod axis;
 pub mod bound;
 pub mod clip;
+pub mod geometric;
 pub mod intersection;
 pub mod ray;
 pub mod triangle;

@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::RangeInclusive};
 
-use geometry::{aap::Aap, intersection::RayIntersection, ray::Ray, triangle::Triangle};
+use geometry::{aap::Aap, geometric::Geometric, intersection::RayIntersection, ray::Ray, Geometry};
 use smallvec::SmallVec;
 
 pub mod build;
@@ -60,7 +60,7 @@ impl Display for KdNode {
 #[derive(Debug, PartialEq)]
 pub struct KdTree {
     pub root: Box<KdNode>,
-    pub geometries: Vec<Triangle>,
+    pub geometries: Vec<Geometric>,
 }
 
 impl KdTree {
@@ -140,7 +140,7 @@ impl KdTree {
 
 #[cfg(test)]
 mod tests {
-    use geometry::axis::Axis;
+    use geometry::{axis::Axis, triangle::Triangle};
     use nalgebra::Vector3;
 
     use super::*;
@@ -177,7 +177,7 @@ mod tests {
                 left: Box::new(KdNode::Leaf(vec![0, 1])),
                 right: Box::new(KdNode::Leaf(vec![0, 1])),
             }),
-            geometries: vec![triangle0, triangle1],
+            geometries: vec![triangle0.into(), triangle1.into()],
         };
         let ray = Ray::between(&Vector3::new(1., 1., -2.), &Vector3::new(1., 1., 2.));
 
@@ -209,7 +209,7 @@ mod tests {
                 KdNode::new_leaf(vec![0]),
                 KdNode::new_leaf(vec![1]),
             ),
-            geometries: vec![triangle0, triangle1],
+            geometries: vec![triangle0.into(), triangle1.into()],
         };
         let ray_triangle0_v0 = Ray::between(&Vector3::new(0., 0., -1.), &Vector3::new(0., 0., 1.));
         let ray_triangle1_v1 = Ray::between(&Vector3::new(2., 0., -1.), &Vector3::new(2., 0., 1.));
@@ -242,7 +242,7 @@ mod tests {
                 KdNode::new_leaf(vec![0]),
                 KdNode::new_leaf(vec![1]),
             ),
-            geometries: vec![triangle0, triangle1],
+            geometries: vec![triangle0.into(), triangle1.into()],
         };
         let ray = Ray::between(&Vector3::new(-1., 0., 0.), &Vector3::new(3., 0., 0.));
 
@@ -265,11 +265,11 @@ mod tests {
         };
         let tree_left = KdTree {
             root: KdNode::new_node(Aap::new_z(1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
-            geometries: vec![triangle],
+            geometries: vec![triangle.into()],
         };
         let tree_right = KdTree {
             root: KdNode::new_node(Aap::new_z(1.0), KdNode::empty(), KdNode::new_leaf(vec![0])),
-            geometries: vec![triangle],
+            geometries: vec![triangle.into()],
         };
         let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
 
@@ -296,7 +296,7 @@ mod tests {
                 KdNode::new_node(Aap::new_z(1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
                 KdNode::empty(),
             ),
-            geometries: vec![triangle],
+            geometries: vec![triangle.into()],
         };
         let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
 
@@ -323,7 +323,7 @@ mod tests {
                 KdNode::empty(),
                 KdNode::new_node(Aap::new_z(1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
             ),
-            geometries: vec![triangle],
+            geometries: vec![triangle.into()],
         };
         let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
 
@@ -350,7 +350,7 @@ mod tests {
             KdNode::new_node(Aap::new_z(-1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
         );
         let tree = KdTree {
-            geometries: vec![triangle],
+            geometries: vec![triangle.into()],
             root,
         };
         let ray = Ray {

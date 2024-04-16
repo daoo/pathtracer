@@ -1,7 +1,7 @@
 use nalgebra::Vector3;
 use rayon::prelude::*;
 
-use geometry::{aabb::Aabb, aap::Aap, bound::geometries_bounding_box, triangle::Triangle};
+use geometry::{aabb::Aabb, aap::Aap, bound::geometries_bounding_box, geometric::Geometric};
 
 use crate::split::perfect_splits;
 
@@ -15,7 +15,7 @@ pub struct SahKdTreeBuilder {
     pub traverse_cost: f32,
     pub intersect_cost: f32,
     pub empty_factor: f32,
-    pub geometries: Vec<Triangle>,
+    pub geometries: Vec<Geometric>,
 }
 
 impl SahKdTreeBuilder {
@@ -109,6 +109,8 @@ impl KdTreeBuilder for SahKdTreeBuilder {
 
 #[cfg(test)]
 mod tests {
+    use geometry::triangle::Triangle;
+
     use crate::build::build_kdtree;
 
     use super::*;
@@ -124,7 +126,7 @@ mod tests {
             traverse_cost: 0.1,
             intersect_cost: 1.0,
             empty_factor: 0.8,
-            geometries: vec![triangle],
+            geometries: vec![triangle.into()],
         };
         let tree = build_kdtree(builder, 6);
 
@@ -171,7 +173,7 @@ mod tests {
             traverse_cost: 1.0,
             intersect_cost: 10.0,
             empty_factor: 0.8,
-            geometries: vec![triangle],
+            geometries: vec![triangle.into()],
         };
         let tree = build_kdtree(builder, 6);
 

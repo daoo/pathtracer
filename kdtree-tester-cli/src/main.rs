@@ -1,5 +1,5 @@
 use clap::Parser;
-use geometry::{intersection::RayIntersection, ray::Ray};
+use geometry::{intersection::RayIntersection, ray::Ray, Geometry};
 use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, KdTree};
 use nalgebra::Vector2;
 use pathtracer::{camera::Pinhole, sampling::uniform_sample_unit_square, scene::Scene};
@@ -51,8 +51,8 @@ impl RayBouncer {
             .geometries
             .iter()
             .enumerate()
-            .filter_map(|(index, triangle)| {
-                triangle.intersect_ray(ray).and_then(|intersection| {
+            .filter_map(|(index, geometry)| {
+                geometry.intersect_ray(ray).and_then(|intersection| {
                     t_range
                         .contains(&intersection.t)
                         .then_some((index as u32, intersection))
@@ -191,7 +191,11 @@ fn main() {
             traverse_cost: args.traverse_cost,
             intersect_cost: args.intersect_cost,
             empty_factor: args.empty_factor,
-            geometries: scene.triangle_data.iter().map(|t| t.triangle).collect(),
+            geometries: scene
+                .triangle_data
+                .iter()
+                .map(|t| t.triangle.into())
+                .collect(),
         },
         args.max_depth,
     );

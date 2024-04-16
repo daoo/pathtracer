@@ -1,10 +1,10 @@
-use geometry::{aabb::Aabb, aap::Aap, triangle::Triangle, Geometry};
+use geometry::{aabb::Aabb, aap::Aap, geometric::Geometric, Geometry};
 
 use crate::build::KdCell;
 
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
-pub fn perfect_splits(geometries: &[Triangle], cell: &KdCell) -> (Vec<(u32, Aabb)>, Vec<Aap>) {
+pub fn perfect_splits(geometries: &[Geometric], cell: &KdCell) -> (Vec<(u32, Aabb)>, Vec<Aap>) {
     let clipped = cell
         .indices()
         .par_iter()
