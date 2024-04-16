@@ -344,13 +344,15 @@ mod tests {
             v1: Vector3::new(-1.0, 1.0, -1.0),
             v2: Vector3::new(1.0, -1.0, -1.0),
         };
-        let geometries = vec![triangle];
         let root = KdNode::new_node(
             Aap::new_z(-1.0),
             KdNode::empty(),
             KdNode::new_node(Aap::new_z(-1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
         );
-        let tree = KdTree { geometries, root };
+        let tree = KdTree {
+            geometries: vec![triangle],
+            root,
+        };
         let ray = Ray {
             origin: Vector3::new(0.0, 0.0, 3.0),
             direction: Vector3::new(0.06646079, 0.08247295, -0.9238795),

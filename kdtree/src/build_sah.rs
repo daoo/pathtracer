@@ -115,16 +115,16 @@ mod tests {
 
     #[test]
     fn non_axially_aligned_triangle() {
-        let geometries = vec![Triangle {
+        let triangle = Triangle {
             v0: Vector3::new(0.0, 0.0, 0.0),
             v1: Vector3::new(1.0, 0.0, 0.0),
             v2: Vector3::new(1.0, 1.0, 1.0),
-        }];
+        };
         let builder = SahKdTreeBuilder {
             traverse_cost: 0.1,
             intersect_cost: 1.0,
             empty_factor: 0.8,
-            geometries,
+            geometries: vec![triangle],
         };
         let tree = build_kdtree(builder, 6);
 
@@ -162,16 +162,16 @@ mod tests {
 
     #[test]
     fn axially_aligned_triangle() {
-        let geometries = vec![Triangle {
+        let triangle = Triangle {
             v0: Vector3::new(0.0, 0.0, 0.0),
             v1: Vector3::new(1.0, 0.0, 0.0),
             v2: Vector3::new(1.0, 1.0, 0.0),
-        }];
+        };
         let builder = SahKdTreeBuilder {
             traverse_cost: 1.0,
             intersect_cost: 10.0,
             empty_factor: 0.8,
-            geometries,
+            geometries: vec![triangle],
         };
         let tree = build_kdtree(builder, 6);
 
