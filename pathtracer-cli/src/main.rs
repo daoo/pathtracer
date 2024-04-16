@@ -1,5 +1,8 @@
 use clap::Parser;
-use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder};
+use kdtree::{
+    build::build_kdtree,
+    build_sah::{self, SahKdTreeBuilder},
+};
 use pathtracer::{
     camera::Pinhole, image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLogger,
     scene::Scene,
@@ -33,13 +36,13 @@ struct Args {
     #[arg(short, long, default_value_t = 1)]
     threads: u32,
 
-    #[arg(long, default_value_t = 20)]
+    #[arg(long, default_value_t = build_sah::MAX_DEPTH)]
     max_depth: u32,
-    #[arg(long, default_value_t = 2.0)]
+    #[arg(long, default_value_t = build_sah::TRAVERSE_COST)]
     traverse_cost: f32,
-    #[arg(long, default_value_t = 1.0)]
+    #[arg(long, default_value_t = build_sah::INTERSECT_COST)]
     intersect_cost: f32,
-    #[arg(long, default_value_t = 0.8)]
+    #[arg(long, default_value_t = build_sah::EMPTY_FACTOR)]
     empty_factor: f32,
 }
 

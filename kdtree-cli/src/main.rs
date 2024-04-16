@@ -5,7 +5,11 @@ use geometry::{
     aabb::Aabb, axis::Axis, bound::geometries_bounding_box, geometric::Geometric,
     triangle::Triangle,
 };
-use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, KdNode, KdTree};
+use kdtree::{
+    build::build_kdtree,
+    build_sah::{self, SahKdTreeBuilder},
+    KdNode, KdTree,
+};
 use time::Duration;
 use wavefront::obj;
 
@@ -19,13 +23,13 @@ struct Args {
     #[arg(short = 'r', long, default_value_t = false)]
     rust: bool,
 
-    #[arg(long, default_value_t = 20)]
+    #[arg(long, default_value_t = build_sah::MAX_DEPTH)]
     max_depth: u32,
-    #[arg(long, default_value_t = 2.0)]
+    #[arg(long, default_value_t = build_sah::TRAVERSE_COST)]
     traverse_cost: f32,
-    #[arg(long, default_value_t = 1.0)]
+    #[arg(long, default_value_t = build_sah::INTERSECT_COST)]
     intersect_cost: f32,
-    #[arg(long, default_value_t = 0.8)]
+    #[arg(long, default_value_t = build_sah::EMPTY_FACTOR)]
     empty_factor: f32,
 }
 

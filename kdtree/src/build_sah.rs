@@ -18,6 +18,11 @@ pub struct SahKdTreeBuilder {
     pub geometries: Vec<Geometric>,
 }
 
+pub const MAX_DEPTH: u32 = 20;
+pub const TRAVERSE_COST: f32 = 2.0;
+pub const INTERSECT_COST: f32 = 1.0;
+pub const EMPTY_FACTOR: f32 = 0.8;
+
 impl SahKdTreeBuilder {
     fn calculate_sah_cost(&self, probability: (f32, f32), counts: (usize, usize)) -> f32 {
         debug_assert!((0.0..=1.0).contains(&probability.0) && (0.0..=1.0).contains(&probability.1));

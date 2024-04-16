@@ -1,6 +1,10 @@
 use clap::Parser;
 use geometry::{intersection::RayIntersection, ray::Ray, Geometry};
-use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, KdTree};
+use kdtree::{
+    build::build_kdtree,
+    build_sah::{self, SahKdTreeBuilder},
+    KdTree,
+};
 use nalgebra::Vector2;
 use pathtracer::{camera::Pinhole, sampling::uniform_sample_unit_square, scene::Scene};
 use rand::{rngs::SmallRng, SeedableRng};
@@ -154,13 +158,13 @@ struct Args {
     #[arg(short = 'n', long, default_value_t = 4)]
     iterations: u32,
 
-    #[arg(long, default_value_t = 20)]
+    #[arg(long, default_value_t = build_sah::MAX_DEPTH)]
     max_depth: u32,
-    #[arg(long, default_value_t = 2.0)]
+    #[arg(long, default_value_t = build_sah::TRAVERSE_COST)]
     traverse_cost: f32,
-    #[arg(long, default_value_t = 1.0)]
+    #[arg(long, default_value_t = build_sah::INTERSECT_COST)]
     intersect_cost: f32,
-    #[arg(long, default_value_t = 0.8)]
+    #[arg(long, default_value_t = build_sah::EMPTY_FACTOR)]
     empty_factor: f32,
 }
 
