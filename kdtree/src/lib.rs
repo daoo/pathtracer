@@ -4,7 +4,6 @@ use geometry::{aap::Aap, intersection::RayIntersection, ray::Ray, triangle::Tria
 use smallvec::SmallVec;
 
 pub mod build;
-pub mod build_median;
 pub mod build_sah;
 pub mod split;
 

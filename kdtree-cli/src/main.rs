@@ -1,28 +1,10 @@
-use std::{fmt::Display, time::Instant};
+use std::time::Instant;
 
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 use geometry::{aabb::Aabb, axis::Axis, bound::geometries_bounding_box, triangle::Triangle};
-use kdtree::{
-    build::build_kdtree, build_median::MedianKdTreeBuilder, build_sah::SahKdTreeBuilder, KdNode,
-    KdTree,
-};
+use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, KdNode, KdTree};
 use time::Duration;
 use wavefront::obj;
-
-#[derive(Clone, Debug, ValueEnum)]
-enum KdTreeMethod {
-    Median,
-    Sah,
-}
-
-impl Display for KdTreeMethod {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            KdTreeMethod::Median => write!(f, "median"),
-            KdTreeMethod::Sah => write!(f, "sah"),
-        }
-    }
-}
 
 #[derive(Clone, Debug, Parser)]
 struct Args {
@@ -33,9 +15,6 @@ struct Args {
     json: bool,
     #[arg(short = 'r', long, default_value_t = false)]
     rust: bool,
-
-    #[arg(short = 'm', long, default_value_t = KdTreeMethod::Sah)]
-    method: KdTreeMethod,
 
     #[arg(long, default_value_t = 20)]
     max_depth: u32,
@@ -185,30 +164,20 @@ fn main() {
         .collect::<Vec<_>>();
     eprintln!("  Triangles: {}", triangles.len());
 
-    eprintln!("Building {} kdtree...", args.method,);
+    eprintln!("Building kdtree...");
     eprintln!("  Max depth: {:?}", args.max_depth);
     eprintln!("  Traverse cost: {:?}", args.traverse_cost);
     eprintln!("  Intersect cost: {:?}", args.intersect_cost);
     eprintln!("  Empty factor: {:?}", args.empty_factor);
 
     let start_time = Instant::now();
-    let kdtree = match args.method {
-        KdTreeMethod::Median => {
-            let builder = MedianKdTreeBuilder {
-                geometries: triangles,
-            };
-            build_kdtree(builder, args.max_depth)
-        }
-        KdTreeMethod::Sah => {
-            let builder = SahKdTreeBuilder {
-                geometries: triangles,
-                traverse_cost: args.traverse_cost,
-                intersect_cost: args.intersect_cost,
-                empty_factor: args.empty_factor,
-            };
-            build_kdtree(builder, args.max_depth)
-        }
+    let builder = SahKdTreeBuilder {
+        geometries: triangles,
+        traverse_cost: args.traverse_cost,
+        intersect_cost: args.intersect_cost,
+        empty_factor: args.empty_factor,
     };
+    let kdtree = build_kdtree(builder, args.max_depth);
     let duration = Instant::now().duration_since(start_time);
 
     let cost = tree_cost(
