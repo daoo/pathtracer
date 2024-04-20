@@ -20,3 +20,7 @@ wavefront = { version = "1.0.0", path = "wavefront" }
 
 [profile.release]
 codegen-units = 1
+
+[profile.release-lto]
+inherits = 'release'
+lto = true
