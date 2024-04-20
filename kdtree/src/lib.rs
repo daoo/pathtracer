@@ -10,7 +10,7 @@ pub mod build;
 pub mod build_sah;
 pub mod split;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum KdNode {
     Leaf(Vec<u32>),
     Node {
@@ -43,6 +43,39 @@ impl KdNode {
             Self::Node { .. } => false,
         }
     }
+
+    pub fn count_nodes(&self) -> usize {
+        match self {
+            KdNode::Leaf(_) => 1,
+            KdNode::Node {
+                plane: _,
+                left,
+                right,
+            } => 1 + left.count_nodes() + right.count_nodes(),
+        }
+    }
+
+    pub fn count_geometries(&self) -> usize {
+        match self {
+            KdNode::Leaf(indices) => indices.len(),
+            KdNode::Node {
+                plane: _,
+                left,
+                right,
+            } => left.count_geometries() + right.count_geometries(),
+        }
+    }
+
+    pub fn all_indices(&self) -> Vec<u32> {
+        match self {
+            KdNode::Leaf(indicies) => indicies.clone(),
+            KdNode::Node {
+                plane: _,
+                left,
+                right,
+            } => [left.all_indices(), right.all_indices()].concat(),
+        }
+    }
 }
 
 impl Display for KdNode {
@@ -60,13 +93,44 @@ impl Display for KdNode {
     }
 }
 
-#[derive(Debug, PartialEq)]
+pub struct KdTreeNodeIter<'a> {
+    stack: Vec<&'a KdNode>,
+}
+
+impl<'a> Iterator for KdTreeNodeIter<'a> {
+    type Item = &'a KdNode;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(node) = self.stack.pop() {
+            match node {
+                KdNode::Leaf(_) => Some(node),
+                KdNode::Node {
+                    plane: _,
+                    left,
+                    right,
+                } => {
+                    self.stack.push(left);
+                    self.stack.push(right);
+                    Some(node)
+                }
+            }
+        } else {
+            None
+        }
+    }
+}
 pub struct KdTree {
     pub root: Box<KdNode>,
     pub geometries: Vec<Geometric>,
 }
 
 impl KdTree {
+    pub fn iter_nodes<'a>(&'a self) -> KdTreeNodeIter<'_> {
+        KdTreeNodeIter {
+            stack: vec![&self.root],
+        }
+    }
+
     fn intersect_closest(
         &self,
         indices: &[u32],

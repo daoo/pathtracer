@@ -3,7 +3,7 @@ use geometry::{intersection::RayIntersection, ray::Ray, Geometry};
 use kdtree::{
     build::build_kdtree,
     build_sah::{self, SahKdTreeBuilder},
-    KdTree,
+    pretty_format_tree, KdTree,
 };
 use nalgebra::Vector2;
 use pathtracer::{camera::Pinhole, sampling::uniform_sample_unit_square, scene::Scene};
@@ -144,6 +144,40 @@ impl RayBouncer {
     }
 }
 
+fn find_minimial_tree(
+    kdtree: &KdTree,
+    ray: &Ray,
+    reference_intersection: Option<(u32, RayIntersection)>,
+    kdtree_intersection: Option<(u32, RayIntersection)>,
+) -> Option<KdTree> {
+    kdtree
+        .iter_nodes()
+        .flat_map(|node| {
+            if node.is_empty() {
+                return None;
+            }
+            let new_tree = KdTree {
+                root: Box::new(node.clone()),
+                geometries: kdtree.geometries.clone(),
+            };
+            let new_kdtree_result = new_tree.intersect(ray, 0.0..=f32::MAX);
+            let new_reference_result = new_tree
+                .root
+                .all_indices()
+                .iter()
+                .filter_map(|i| {
+                    kdtree.geometries[*i as usize]
+                        .intersect_ray(ray)
+                        .and_then(|intersection| Some((*i, intersection)))
+                })
+                .min_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t));
+            (new_kdtree_result == kdtree_intersection
+                && new_reference_result == reference_intersection)
+                .then_some(new_tree)
+        })
+        .min_by_key(|tree| tree.root.count_nodes())
+}
+
 #[derive(Parser, Debug)]
 struct Args {
     #[arg(short = 'i', long, required = true)]
@@ -225,15 +259,46 @@ fn main() {
         .collect::<Vec<_>>();
     let fails = pixels
         .into_par_iter()
-        .flat_map(|pixel| bouncer.bounce_pixel(pixel));
-
-    let count = fails
-        .fold_with(0, |count, fail| {
+        .flat_map(|pixel| bouncer.bounce_pixel(pixel))
+        .map(|fail| {
             eprintln!("{:?}", fail.ray);
             eprintln!("  reference: {:?}", fail.reference);
             eprintln!("     kdtree: {:?}", fail.kdtree);
-            count + 1
+            fail
         })
-        .sum::<u32>();
-    println!("{} fails", count);
+        .collect::<Vec<_>>();
+    println!("Found {} fails", fails.len());
+
+    println!("Finding minimial tree for each fail...");
+    let (fail, minimial_tree) = fails
+        .par_iter()
+        .flat_map(|fail| {
+            find_minimial_tree(&bouncer.kdtree, &fail.ray, fail.reference, fail.kdtree)
+                .map(|minimal_tree| (fail, minimal_tree))
+        })
+        .min_by(|a, b| {
+            let nodes = a.1.root.count_nodes().cmp(&b.1.root.count_nodes());
+            let geometries =
+                a.1.root
+                    .count_geometries()
+                    .cmp(&b.1.root.count_geometries());
+            nodes.then(geometries)
+        })
+        .unwrap();
+
+    println!(
+        "Found tree with {} node(s) and {} geometrie(s).",
+        minimial_tree.root.count_nodes(),
+        minimial_tree.root.count_geometries()
+    );
+
+    println!("For ray {:?}", fail.ray);
+    println!("  reference: {:?}", fail.reference);
+    println!("     kdtree: {:?}", fail.kdtree);
+
+    minimial_tree.root.all_indices().iter().for_each(|i| {
+        eprintln!("{:?}", bouncer.kdtree.geometries[*i as usize]);
+    });
+
+    print!("{}", pretty_format_tree(&minimial_tree));
 }
