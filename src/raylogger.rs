@@ -1,6 +1,6 @@
 use std::{
     fs::File,
-    io::{Error, Write},
+    io::{BufWriter, Error, Write},
     path::Path,
 };
 
@@ -8,7 +8,7 @@ use geometry::ray::Ray;
 
 pub enum RayLogger {
     None(),
-    File(File),
+    File(BufWriter<File>),
 }
 
 impl RayLogger {
@@ -24,11 +24,12 @@ impl RayLogger {
             return Ok(RayLogger::None());
         }
         let file = File::create(path)?;
-        Ok(RayLogger::File(file))
+        let buf = BufWriter::new(file);
+        Ok(RayLogger::File(buf))
     }
 
     fn log_internal(
-        file: &mut File,
+        buf: &mut BufWriter<File>,
         ray: &Ray,
         infinite: bool,
         iteration: u16,
@@ -45,7 +46,7 @@ impl RayLogger {
         bytes[19..23].copy_from_slice(&ray.direction.x.to_le_bytes());
         bytes[23..27].copy_from_slice(&ray.direction.y.to_le_bytes());
         bytes[27..31].copy_from_slice(&ray.direction.z.to_le_bytes());
-        file.write_all(&bytes)
+        buf.write_all(&bytes)
     }
 
     pub fn log_infinite(
@@ -59,7 +60,7 @@ impl RayLogger {
         }
         match self {
             RayLogger::None() => Ok(()),
-            RayLogger::File(file) => RayLogger::log_internal(file, ray, true, iteration, pixel),
+            RayLogger::File(buf) => RayLogger::log_internal(buf, ray, true, iteration, pixel),
         }
     }
 
@@ -74,7 +75,7 @@ impl RayLogger {
         }
         match self {
             RayLogger::None() => Ok(()),
-            RayLogger::File(file) => RayLogger::log_internal(file, ray, false, iteration, pixel),
+            RayLogger::File(buf) => RayLogger::log_internal(buf, ray, false, iteration, pixel),
         }
     }
 }
