@@ -4,7 +4,7 @@ use crate::{
 };
 use nalgebra::Vector3;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Geometric {
     Triangle(Triangle),
     AxiallyAlignedTriangle(AxiallyAlignedTriangle),
