@@ -6,7 +6,7 @@ use geometry::{
 use kdtree::{
     build::build_kdtree,
     build_sah::{self, SahKdTreeBuilder},
-    KdNode, KdTree,
+    pretty_format_tree, KdNode, KdTree,
 };
 use std::{fs::File, io::BufReader, time::Instant};
 use time::Duration;
@@ -89,23 +89,6 @@ pub fn tree_cost(
         bounding_box,
         kdtree.root.as_ref(),
     )
-}
-
-fn print_pretty(depth: usize, kdtree: &KdNode) {
-    let indent = "  ".repeat(depth);
-    match kdtree {
-        KdNode::Leaf(indices) => println!("{indent}Leaf {indices:?}"),
-        KdNode::Node { plane, left, right } => {
-            println!(
-                "{}Split {:?} {}",
-                "  ".repeat(depth),
-                plane.axis,
-                plane.distance
-            );
-            print_pretty(depth + 1, left);
-            print_pretty(depth + 1, right);
-        }
-    }
 }
 
 fn print_triangle_array(geometries: &[Geometric]) {
@@ -219,6 +202,6 @@ fn main() {
         println!(";");
         println!("let tree = KdTree {{ triangles, root }};");
     } else {
-        print_pretty(0, &kdtree.root);
+        print!("{}", pretty_format_tree(&kdtree));
     }
 }
