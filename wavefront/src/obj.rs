@@ -1,12 +1,12 @@
-use nom::bytes::complete::tag_no_case;
-use nom::character::complete::{char, i32, multispace0};
-use nom::combinator::{opt, rest};
-use nom::number::complete::float;
-use nom::sequence::Tuple;
-use nom::IResult;
-use std::cmp::Ordering;
-use std::path::Path;
-use std::path::PathBuf;
+use nom::{
+    bytes::complete::tag_no_case,
+    character::complete::{char, i32, multispace0},
+    combinator::{opt, rest},
+    number::complete::float,
+    sequence::Tuple,
+    IResult,
+};
+use std::{cmp::Ordering, io::BufRead, path::PathBuf};
 
 #[derive(Debug, PartialEq)]
 pub struct Point {
@@ -105,42 +105,48 @@ fn triangle(input: &str) -> IResult<&str, Face> {
         .map(|(input, (p0, _, p1, _, p2))| (input, Face { p0, p1, p2 }))
 }
 
-pub fn obj(input: &str) -> Obj {
-    let mut mtl_lib = Path::new("");
+pub fn obj<R>(input: &mut R) -> Obj
+where
+    R: BufRead,
+{
+    let mut mtl_lib = PathBuf::new();
     let mut chunks: Vec<Chunk> = Vec::new();
     let mut vertices: Vec<[f32; 3]> = Vec::new();
     let mut normals: Vec<[f32; 3]> = Vec::new();
     let mut texcoords: Vec<[f32; 2]> = Vec::new();
 
-    for line in input.lines() {
-        let line = line.trim();
-        if line.is_empty() || line.starts_with('#') {
+    let mut line = String::new();
+    while input.read_line(&mut line).unwrap() > 0 {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            line.clear();
             continue;
         }
 
-        if let Ok((_, x)) = tagged("mtllib", rest, line) {
-            mtl_lib = Path::new(x);
-        } else if let Ok((_, x)) = tagged("usemtl", rest, line) {
+        if let Ok((_, x)) = tagged("mtllib", rest, trimmed) {
+            mtl_lib = PathBuf::from(x);
+        } else if let Ok((_, x)) = tagged("usemtl", rest, trimmed) {
             chunks.push(Chunk::new(x.to_string()));
-        } else if let Ok((_, x)) = tagged("v", vec3, line) {
+        } else if let Ok((_, x)) = tagged("v", vec3, trimmed) {
             vertices.push(x);
-        } else if let Ok((_, x)) = tagged("vn", vec3, line) {
+        } else if let Ok((_, x)) = tagged("vn", vec3, trimmed) {
             normals.push(x);
-        } else if let Ok((_, x)) = tagged("vt", vec2, line) {
+        } else if let Ok((_, x)) = tagged("vt", vec2, trimmed) {
             texcoords.push(x);
-        } else if let Ok((_, x)) = tagged("f", triangle, line) {
+        } else if let Ok((_, x)) = tagged("f", triangle, trimmed) {
             chunks.last_mut().unwrap().faces.push(x);
-        } else if let Ok((_, _)) = tagged("o", rest, line) {
+        } else if let Ok((_, _)) = tagged("o", rest, trimmed) {
             // TODO: not supported
-        } else if let Ok((_, _)) = tagged("s", rest, line) {
+        } else if let Ok((_, _)) = tagged("s", rest, trimmed) {
             // TODO: not supported
         } else {
             panic!("Unexpected line: \"{line}\"");
         }
+        line.clear();
     }
 
     Obj {
-        mtl_lib: mtl_lib.to_path_buf(),
+        mtl_lib,
         vertices,
         normals,
         texcoords,
@@ -151,6 +157,10 @@ pub fn obj(input: &str) -> Obj {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn obj_test(str: &str) -> Obj {
+        obj(&mut str.as_bytes())
+    }
 
     #[test]
     fn test_i32_or_zero() {
@@ -183,15 +193,15 @@ mod tests {
 
     #[test]
     fn test_data() {
-        assert_eq!(obj("v 1 2 3").vertices, [[1., 2., 3.]]);
-        assert_eq!(obj("vt 1 2").texcoords, [[1., 2.]]);
-        assert_eq!(obj("vn 1 2 3").normals, [[1., 2., 3.]]);
+        assert_eq!(obj_test("v 1 2 3").vertices, [[1., 2., 3.]]);
+        assert_eq!(obj_test("vt 1 2").texcoords, [[1., 2.]]);
+        assert_eq!(obj_test("vn 1 2 3").normals, [[1., 2., 3.]]);
     }
 
     #[test]
     fn test_faces() {
         assert_eq!(
-            obj("usemtl m1\nf 1/2/3 4/5/6 7/8/9").chunks,
+            obj_test("usemtl m1\nf 1/2/3 4/5/6 7/8/9").chunks,
             [Chunk {
                 faces: vec![Face {
                     p0: Point { v: 1, t: 2, n: 3 },
@@ -206,7 +216,7 @@ mod tests {
     #[test]
     fn test_usemtl() {
         assert_eq!(
-            obj("usemtl m1").chunks,
+            obj_test("usemtl m1").chunks,
             [Chunk {
                 faces: vec![],
                 material: "m1".to_string(),
@@ -216,12 +226,20 @@ mod tests {
 
     #[test]
     fn test_mtllib() {
-        assert_eq!(obj("mtllib test.mtl").mtl_lib, Path::new("test.mtl"));
+        assert_eq!(
+            obj_test("mtllib test.mtl").mtl_lib,
+            PathBuf::from("test.mtl")
+        );
+    }
+
+    #[test]
+    fn test_comment() {
+        assert_eq!(obj_test("# comment\nusemtl m1").chunks.len(), 1);
     }
 
     #[test]
     fn test_unsupported() {
-        assert_eq!(obj("o todo").chunks.len(), 0);
-        assert_eq!(obj("s todo").chunks.len(), 0);
+        assert_eq!(obj_test("o todo").chunks.len(), 0);
+        assert_eq!(obj_test("s todo").chunks.len(), 0);
     }
 }

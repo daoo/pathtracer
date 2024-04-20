@@ -1,5 +1,3 @@
-use std::time::Instant;
-
 use clap::Parser;
 use geometry::{
     aabb::Aabb, axis::Axis, bound::geometries_bounding_box, geometric::Geometric,
@@ -10,6 +8,7 @@ use kdtree::{
     build_sah::{self, SahKdTreeBuilder},
     KdNode, KdTree,
 };
+use std::{fs::File, io::BufReader, time::Instant};
 use time::Duration;
 use wavefront::obj;
 
@@ -161,9 +160,7 @@ fn print_node_rust(kdtree: &KdNode) {
 fn main() {
     let args = Args::parse();
     eprintln!("Reading {:?}...", &args.input);
-    let bytes = std::fs::read(args.input).unwrap();
-    let input = std::str::from_utf8(&bytes).unwrap();
-    let obj = obj::obj(input);
+    let obj = obj::obj(&mut BufReader::new(File::open(args.input).unwrap()));
     let triangles = obj
         .chunks
         .iter()

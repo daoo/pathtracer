@@ -9,7 +9,7 @@ use nalgebra::Vector2;
 use pathtracer::{camera::Pinhole, sampling::uniform_sample_unit_square, scene::Scene};
 use rand::{rngs::SmallRng, SeedableRng};
 use rayon::prelude::*;
-use std::{fs, ops::RangeInclusive, str};
+use std::{fs::File, io::BufReader, ops::RangeInclusive, str};
 use wavefront::{mtl, obj};
 
 struct RayBouncer {
@@ -172,7 +172,7 @@ fn main() {
     let args = Args::parse();
 
     println!("Loading {}...", args.input.display());
-    let obj = obj::obj(str::from_utf8(&fs::read(&args.input).unwrap()).unwrap());
+    let obj = obj::obj(&mut BufReader::new(File::open(&args.input).unwrap()));
     println!("  Chunks: {}", obj.chunks.len());
     println!("  Vertices: {}", obj.vertices.len());
     println!("  Normals: {}", obj.normals.len());
@@ -180,7 +180,7 @@ fn main() {
 
     let mtl_path = args.input.parent().unwrap().join(&obj.mtl_lib);
     println!("Loading {}...", mtl_path.display());
-    let mtl = mtl::mtl(str::from_utf8(&fs::read(mtl_path).unwrap()).unwrap());
+    let mtl = mtl::mtl(&mut BufReader::new(File::open(mtl_path).unwrap()));
     println!("  Materials: {}", mtl.materials.len());
     println!("  Lights: {}", mtl.lights.len());
     println!("  Cameras: {}", mtl.cameras.len());

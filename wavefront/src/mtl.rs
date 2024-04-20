@@ -1,9 +1,8 @@
-use nom::bytes::complete::tag_no_case;
-use nom::character::complete::multispace0;
-use nom::combinator::rest;
-use nom::number::complete::float;
-use nom::sequence::Tuple;
-use nom::IResult;
+use nom::{
+    bytes::complete::tag_no_case, character::complete::multispace0, combinator::rest,
+    number::complete::float, sequence::Tuple, IResult,
+};
+use std::io::BufRead;
 
 #[derive(Debug, PartialEq)]
 pub struct Material {
@@ -72,58 +71,64 @@ fn vec3(input: &str) -> IResult<&str, [f32; 3]> {
     Ok((input, [x, y, z]))
 }
 
-pub fn mtl(input: &str) -> Mtl {
+pub fn mtl<R>(input: &mut R) -> Mtl
+where
+    R: BufRead,
+{
     let mut materials: Vec<Material> = Vec::new();
     let mut lights: Vec<Light> = Vec::new();
     let mut cameras: Vec<Camera> = Vec::new();
 
-    for line in input.lines() {
-        let line = line.trim();
-        if line.is_empty() || line.starts_with('#') {
+    let mut line = String::new();
+    while input.read_line(&mut line).unwrap() > 0 {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            line.clear();
             continue;
         }
 
-        if let Ok((_, _)) = tagged("newlight", rest, line) {
+        if let Ok((_, _)) = tagged("newlight", rest, trimmed) {
             lights.push(Light::default());
-        } else if let Ok((_, x)) = tagged("lightposition", vec3, line) {
+        } else if let Ok((_, x)) = tagged("lightposition", vec3, trimmed) {
             lights.last_mut().unwrap().position = x;
-        } else if let Ok((_, x)) = tagged("lightcolor", vec3, line) {
+        } else if let Ok((_, x)) = tagged("lightcolor", vec3, trimmed) {
             lights.last_mut().unwrap().color = x;
-        } else if let Ok((_, x)) = tagged("lightradius", float, line) {
+        } else if let Ok((_, x)) = tagged("lightradius", float, trimmed) {
             lights.last_mut().unwrap().radius = x;
-        } else if let Ok((_, x)) = tagged("lightintensity", float, line) {
+        } else if let Ok((_, x)) = tagged("lightintensity", float, trimmed) {
             lights.last_mut().unwrap().intensity = x;
-        } else if let Ok((_, _)) = tagged("newcamera", rest, line) {
+        } else if let Ok((_, _)) = tagged("newcamera", rest, trimmed) {
             cameras.push(Camera::default());
-        } else if let Ok((_, x)) = tagged("cameraposition", vec3, line) {
+        } else if let Ok((_, x)) = tagged("cameraposition", vec3, trimmed) {
             cameras.last_mut().unwrap().position = x;
-        } else if let Ok((_, x)) = tagged("cameratarget", vec3, line) {
+        } else if let Ok((_, x)) = tagged("cameratarget", vec3, trimmed) {
             cameras.last_mut().unwrap().target = x;
-        } else if let Ok((_, x)) = tagged("cameraup", vec3, line) {
+        } else if let Ok((_, x)) = tagged("cameraup", vec3, trimmed) {
             cameras.last_mut().unwrap().up = x;
-        } else if let Ok((_, x)) = tagged("camerafov", float, line) {
+        } else if let Ok((_, x)) = tagged("camerafov", float, trimmed) {
             cameras.last_mut().unwrap().fov = x;
-        } else if let Ok((_, name)) = tagged("newmtl", rest, line) {
+        } else if let Ok((_, name)) = tagged("newmtl", rest, trimmed) {
             materials.push(Material::new(name.to_string()));
-        } else if let Ok((_, x)) = tagged("kd", vec3, line) {
+        } else if let Ok((_, x)) = tagged("kd", vec3, trimmed) {
             materials.last_mut().unwrap().diffuse_reflection = x;
-        } else if let Ok((_, x)) = tagged("ks", vec3, line) {
+        } else if let Ok((_, x)) = tagged("ks", vec3, trimmed) {
             materials.last_mut().unwrap().specular_reflection = x;
-        } else if let Ok((_, x)) = tagged("reflat0deg", float, line) {
+        } else if let Ok((_, x)) = tagged("reflat0deg", float, trimmed) {
             materials.last_mut().unwrap().reflection_0_degrees = x;
-        } else if let Ok((_, x)) = tagged("reflat90deg", float, line) {
+        } else if let Ok((_, x)) = tagged("reflat90deg", float, trimmed) {
             materials.last_mut().unwrap().reflection_90_degrees = x;
-        } else if let Ok((_, x)) = tagged("indexofrefraction", float, line) {
+        } else if let Ok((_, x)) = tagged("indexofrefraction", float, trimmed) {
             materials.last_mut().unwrap().index_of_refraction = x;
-        } else if let Ok((_, x)) = tagged("transparency", float, line) {
+        } else if let Ok((_, x)) = tagged("transparency", float, trimmed) {
             materials.last_mut().unwrap().transparency = x;
-        } else if let Ok((_, _)) = tagged("specularroughness", float, line) {
+        } else if let Ok((_, _)) = tagged("specularroughness", float, trimmed) {
             // TODO: not supported
-        } else if let Ok((_, _)) = tagged("map_kd", rest, line) {
+        } else if let Ok((_, _)) = tagged("map_kd", rest, trimmed) {
             // TODO: not supported
         } else {
             panic!("Unexpected line: \"{line}\"");
         }
+        line.clear();
     }
 
     Mtl {
@@ -145,71 +150,83 @@ mod tests {
         assert_eq!(vec3("-1. -2. -3."), Ok(("", [-1., -2., -3.])));
     }
 
+    fn mtl_test(str: &str) -> Mtl {
+        mtl(&mut str.as_bytes())
+    }
+
     #[test]
     fn test_light() {
-        assert_eq!(mtl("newlight l1").lights.len(), 1);
+        assert_eq!(mtl_test("newlight l1").lights.len(), 1);
         assert_eq!(
-            mtl("newlight l1\nlightposition 1. 2. 3.").lights[0].position,
+            mtl_test("newlight l1\nlightposition 1. 2. 3.").lights[0].position,
             [1., 2., 3.]
         );
         assert_eq!(
-            mtl("newlight l1\nlightcolor 1. 2. 3.").lights[0].color,
+            mtl_test("newlight l1\nlightcolor 1. 2. 3.").lights[0].color,
             [1., 2., 3.]
         );
-        assert_eq!(mtl("newlight l1\nlightradius 1.").lights[0].radius, 1.);
+        assert_eq!(mtl_test("newlight l1\nlightradius 1.").lights[0].radius, 1.);
         assert_eq!(
-            mtl("newlight l1\nlightintensity 1.").lights[0].intensity,
+            mtl_test("newlight l1\nlightintensity 1.").lights[0].intensity,
             1.
         );
     }
 
     #[test]
     fn test_camera() {
-        assert_eq!(mtl("newcamera c1").cameras.len(), 1);
+        assert_eq!(mtl_test("newcamera c1").cameras.len(), 1);
         assert_eq!(
-            mtl("newcamera c1\ncameraposition 1. 2. 3.").cameras[0].position,
+            mtl_test("newcamera c1\ncameraposition 1. 2. 3.").cameras[0].position,
             [1., 2., 3.]
         );
         assert_eq!(
-            mtl("newcamera c1\ncameratarget 1. 2. 3.").cameras[0].target,
+            mtl_test("newcamera c1\ncameratarget 1. 2. 3.").cameras[0].target,
             [1., 2., 3.]
         );
         assert_eq!(
-            mtl("newcamera c1\ncameraup 1. 2. 3.").cameras[0].up,
+            mtl_test("newcamera c1\ncameraup 1. 2. 3.").cameras[0].up,
             [1., 2., 3.]
         );
-        assert_eq!(mtl("newcamera c1\ncamerafov 1.").cameras[0].fov, 1.);
+        assert_eq!(mtl_test("newcamera c1\ncamerafov 1.").cameras[0].fov, 1.);
     }
 
     #[test]
     fn test_mtl() {
-        assert_eq!(mtl("newmtl m1").materials.len(), 1);
-        assert_eq!(mtl("newmtl m1").materials[0].name, "m1");
+        assert_eq!(mtl_test("newmtl m1").materials.len(), 1);
+        assert_eq!(mtl_test("newmtl m1").materials[0].name, "m1");
         assert_eq!(
-            mtl("newmtl m1\nkd 1. 2. 3.").materials[0].diffuse_reflection,
+            mtl_test("newmtl m1\nkd 1. 2. 3.").materials[0].diffuse_reflection,
             [1., 2., 3.]
         );
         assert_eq!(
-            mtl("newmtl m1\nks 1. 2. 3.").materials[0].specular_reflection,
+            mtl_test("newmtl m1\nks 1. 2. 3.").materials[0].specular_reflection,
             [1., 2., 3.]
         );
         assert_eq!(
-            mtl("newmtl m1\nreflat0deg 1.").materials[0].reflection_0_degrees,
+            mtl_test("newmtl m1\nreflat0deg 1.").materials[0].reflection_0_degrees,
             1.
         );
         assert_eq!(
-            mtl("newmtl m1\nreflat90deg 1.").materials[0].reflection_90_degrees,
+            mtl_test("newmtl m1\nreflat90deg 1.").materials[0].reflection_90_degrees,
             1.
         );
         assert_eq!(
-            mtl("newmtl m1\nindexofrefraction 1.").materials[0].index_of_refraction,
+            mtl_test("newmtl m1\nindexofrefraction 1.").materials[0].index_of_refraction,
             1.
         );
         assert_eq!(
-            mtl("newmtl m1\ntransparency 1.").materials[0].transparency,
+            mtl_test("newmtl m1\ntransparency 1.").materials[0].transparency,
             1.
         );
-        assert_eq!(mtl("newmtl m1\nspecularroughness 1.").materials.len(), 1);
-        assert_eq!(mtl("newmtl m1\nmap_kd todo").materials.len(), 1);
+        assert_eq!(
+            mtl_test("newmtl m1\nspecularroughness 1.").materials.len(),
+            1
+        );
+        assert_eq!(mtl_test("newmtl m1\nmap_kd todo").materials.len(), 1);
+    }
+
+    #[test]
+    fn test_comment() {
+        assert_eq!(mtl_test("# comment\nnewmtl m1").materials.len(), 1);
     }
 }

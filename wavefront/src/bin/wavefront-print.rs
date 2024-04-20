@@ -1,17 +1,17 @@
 use std::env;
-use std::fs;
+use std::fs::File;
+use std::io::BufReader;
 use std::path::Path;
-use std::str;
 use wavefront::{mtl, obj};
 
 fn main() {
     for arg in env::args().skip(1) {
         let path = Path::new(&arg);
-        let bytes = fs::read(path).unwrap();
-        let input = str::from_utf8(&bytes).unwrap();
+        let file = File::open(path).unwrap();
+        let mut buf = BufReader::new(file);
         match path.extension().and_then(|s| s.to_str()) {
-            Some("obj") => println!("{:#?}", obj::obj(input)),
-            Some("mtl") => println!("{:#?}", mtl::mtl(input)),
+            Some("obj") => println!("{:#?}", obj::obj(&mut buf)),
+            Some("mtl") => println!("{:#?}", mtl::mtl(&mut buf)),
             _ => panic!("Unexpected file extension for {path:?}"),
         }
     }
