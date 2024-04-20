@@ -225,13 +225,15 @@ fn main() {
         .collect::<Vec<_>>();
     let fails = pixels
         .into_par_iter()
-        .flat_map(|pixel| bouncer.bounce_pixel(pixel))
-        .collect::<Vec<_>>();
+        .flat_map(|pixel| bouncer.bounce_pixel(pixel));
 
-    println!("{} fails", fails.len());
-    for fail in fails {
-        eprintln!("{:?}", fail.ray);
-        eprintln!("  reference: {:?}", fail.reference);
-        eprintln!("     kdtree: {:?}", fail.kdtree);
-    }
+    let count = fails
+        .fold_with(0, |count, fail| {
+            eprintln!("{:?}", fail.ray);
+            eprintln!("  reference: {:?}", fail.reference);
+            eprintln!("     kdtree: {:?}", fail.kdtree);
+            count + 1
+        })
+        .sum::<u32>();
+    println!("{} fails", count);
 }
