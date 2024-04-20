@@ -54,7 +54,7 @@ impl Aap {
             return None;
         }
         let t = (self.axis.as_vector3(self.distance) - ray.origin).dot(&normal) / denom;
-        (0.0..=1.0).contains(&t).then_some(t)
+        Some(t)
     }
 }
 
@@ -94,7 +94,7 @@ mod tests {
         };
         let ray = Ray::between(&Vector3::zeros(), &Vector3::new(4.0, 0.0, 0.0));
 
-        assert_eq!(plane.intersect_ray(&ray), None);
+        assert_eq!(plane.intersect_ray(&ray), Some(1.25));
     }
 
     #[test]
