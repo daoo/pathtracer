@@ -3,7 +3,6 @@ use geometry::{intersection::RayIntersection, ray::Ray, Geometry};
 use kdtree::{
     build::build_kdtree,
     build_sah::{self, SahKdTreeBuilder},
-    format::write_tree_pretty,
     KdTree,
 };
 use nalgebra::Vector2;
@@ -12,7 +11,7 @@ use rand::{rngs::SmallRng, SeedableRng};
 use rayon::prelude::*;
 use std::{
     fs::File,
-    io::{self, BufReader},
+    io::{BufReader, BufWriter, Write},
     ops::RangeInclusive,
     str,
 };
@@ -150,40 +149,6 @@ impl RayBouncer {
     }
 }
 
-fn find_minimial_tree(
-    kdtree: &KdTree,
-    ray: &Ray,
-    reference_intersection: Option<(u32, RayIntersection)>,
-    kdtree_intersection: Option<(u32, RayIntersection)>,
-) -> Option<KdTree> {
-    kdtree
-        .iter_nodes()
-        .flat_map(|node| {
-            if node.is_empty() {
-                return None;
-            }
-            let new_tree = KdTree {
-                root: Box::new(node.clone()),
-                geometries: kdtree.geometries.clone(),
-            };
-            let new_kdtree_result = new_tree.intersect(ray, 0.0..=f32::MAX);
-            let new_reference_result = new_tree
-                .root
-                .all_indices()
-                .iter()
-                .filter_map(|i| {
-                    kdtree.geometries[*i as usize]
-                        .intersect_ray(ray)
-                        .and_then(|intersection| Some((*i, intersection)))
-                })
-                .min_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t));
-            (new_kdtree_result == kdtree_intersection
-                && new_reference_result == reference_intersection)
-                .then_some(new_tree)
-        })
-        .min_by_key(|tree| tree.root.count_nodes())
-}
-
 #[derive(Parser, Debug)]
 struct Args {
     #[arg(short = 'i', long, required = true)]
@@ -275,36 +240,36 @@ fn main() {
         .collect::<Vec<_>>();
     println!("Found {} fails", fails.len());
 
-    println!("Finding minimial tree for each fail...");
-    let (fail, minimial_tree) = fails
-        .par_iter()
-        .flat_map(|fail| {
-            find_minimial_tree(&bouncer.kdtree, &fail.ray, fail.reference, fail.kdtree)
-                .map(|minimal_tree| (fail, minimal_tree))
-        })
-        .min_by(|a, b| {
-            let nodes = a.1.root.count_nodes().cmp(&b.1.root.count_nodes());
-            let geometries =
-                a.1.root
-                    .count_geometries()
-                    .cmp(&b.1.root.count_geometries());
-            nodes.then(geometries)
-        })
-        .unwrap();
-
-    println!(
-        "Found tree with {} node(s) and {} geometrie(s).",
-        minimial_tree.root.count_nodes(),
-        minimial_tree.root.count_geometries()
-    );
-
-    println!("For ray {:?}", fail.ray);
-    println!("  reference: {:?}", fail.reference);
-    println!("     kdtree: {:?}", fail.kdtree);
-
-    minimial_tree.root.all_indices().iter().for_each(|i| {
-        eprintln!("{:?}", bouncer.kdtree.geometries[*i as usize]);
+    println!("Writing failed rays to /tmp/raysfails.bin...");
+    let mut logger = BufWriter::new(File::create("/tmp/rayfails.bin").unwrap());
+    fails.iter().enumerate().for_each(|(i, fail)| {
+        let mut bytes = [0u8; 50];
+        let ray = if let Some(kdtree) = fail.kdtree {
+            fail.ray.extended(kdtree.1.t)
+        } else if let Some(reference) = fail.reference {
+            fail.ray.extended(reference.1.t)
+        } else {
+            fail.ray
+        };
+        let correct_point = fail.ray.param(fail.reference.unwrap().1.t);
+        let actual_point = if let Some(kdtree) = fail.kdtree {
+            fail.ray.param(kdtree.1.t)
+        } else {
+            [0.0, 0.0, 0.0].into()
+        };
+        bytes[0..2].copy_from_slice(&(i as u16).to_le_bytes());
+        bytes[2..6].copy_from_slice(&ray.origin.x.to_le_bytes());
+        bytes[6..10].copy_from_slice(&ray.origin.y.to_le_bytes());
+        bytes[10..14].copy_from_slice(&ray.origin.z.to_le_bytes());
+        bytes[14..18].copy_from_slice(&ray.direction.x.to_le_bytes());
+        bytes[18..22].copy_from_slice(&ray.direction.y.to_le_bytes());
+        bytes[22..26].copy_from_slice(&ray.direction.z.to_le_bytes());
+        bytes[26..30].copy_from_slice(&correct_point.x.to_le_bytes());
+        bytes[30..34].copy_from_slice(&correct_point.y.to_le_bytes());
+        bytes[34..38].copy_from_slice(&correct_point.z.to_le_bytes());
+        bytes[38..42].copy_from_slice(&actual_point.x.to_le_bytes());
+        bytes[42..46].copy_from_slice(&actual_point.y.to_le_bytes());
+        bytes[46..50].copy_from_slice(&actual_point.z.to_le_bytes());
+        logger.write_all(&bytes).unwrap()
     });
-
-    write_tree_pretty(&mut io::stdout().lock(), &minimial_tree).unwrap();
 }

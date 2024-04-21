@@ -3,6 +3,7 @@
 import argparse
 import rerun
 import sys
+import visualize_fails
 import visualize_kdtree
 import visualize_rays
 import visualize_triangles
@@ -32,8 +33,16 @@ def program(args):
             & (rays.py >= min_y)
             & (rays.py <= max_y)
         ]
-        print(f"Filtered out {len(rays)} rays from {[min_x, min_y]} to {[max_x, max_y]} (inclusive).")
+        print(
+            f"Filtered out {len(rays)} rays from {[min_x, min_y]} to {[max_x, max_y]} (inclusive)."
+        )
         visualize_rays.visualize(rays, args.color_segment)
+
+    if args.ray_fails:
+        print(f'Reading "{args.ray_fails}"...')
+        rays = visualize_fails.read(args.ray_fails)
+        print(f"Read {len(rays)} rays.")
+        visualize_fails.visualize(rays)
 
     if args.kdtree:
         print(f'Reading "{args.kdtree}"...')
@@ -49,6 +58,7 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("-t", "--triangles", help="kdtree.json file path")
+    parser.add_argument("-f", "--ray-fails", help="rayfails.bin file path")
     parser.add_argument("-r", "--raylog", help="raylog.bin file path")
     parser.add_argument(
         "--color-segment",
