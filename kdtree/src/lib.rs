@@ -1,14 +1,12 @@
-use std::{
-    fmt::{Display, Write},
-    ops::RangeInclusive,
-};
+use std::{fmt::Display, ops::RangeInclusive};
 
 use geometry::{aap::Aap, geometric::Geometric, intersection::RayIntersection, ray::Ray, Geometry};
 use smallvec::SmallVec;
 
 pub mod build;
 pub mod build_sah;
-pub mod split;
+pub mod format;
+mod split;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum KdNode {
@@ -470,35 +468,4 @@ mod tests {
             ))
         );
     }
-}
-
-pub fn pretty_format_node(root: &KdNode) -> String {
-    let mut result = String::new();
-    let mut stack: Vec<(usize, &KdNode)> = Vec::new();
-    stack.push((0, root));
-
-    while let Some((depth, node)) = stack.pop() {
-        let indent = "  ".repeat(depth);
-        match node {
-            KdNode::Leaf(indices) => writeln!(&mut result, "{indent}Leaf {indices:?}").unwrap(),
-            KdNode::Node { plane, left, right } => {
-                writeln!(
-                    &mut result,
-                    "{}Split {:?} {}",
-                    "  ".repeat(depth),
-                    plane.axis,
-                    plane.distance
-                )
-                .unwrap();
-                stack.push((depth + 1, left));
-                stack.push((depth + 1, right));
-            }
-        }
-    }
-
-    result
-}
-
-pub fn pretty_format_tree(tree: &KdTree) -> String {
-    pretty_format_node(&tree.root)
 }

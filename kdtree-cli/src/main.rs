@@ -1,14 +1,18 @@
 use clap::Parser;
 use geometry::{
-    aabb::Aabb, axis::Axis, bound::geometries_bounding_box, geometric::Geometric,
-    triangle::Triangle,
+    aabb::Aabb, bound::geometries_bounding_box, geometric::Geometric, triangle::Triangle,
 };
 use kdtree::{
     build::build_kdtree,
     build_sah::{self, SahKdTreeBuilder},
-    pretty_format_tree, KdNode, KdTree,
+    format::{write_tree_json, write_tree_pretty, write_tree_rust},
+    KdNode, KdTree,
 };
-use std::{fs::File, io::BufReader, time::Instant};
+use std::{
+    fs::File,
+    io::{self, BufReader},
+    time::Instant,
+};
 use time::Duration;
 use wavefront::obj;
 
@@ -91,55 +95,6 @@ pub fn tree_cost(
     )
 }
 
-fn print_triangle_array(geometries: &[Geometric]) {
-    print!(
-        "{:?}",
-        geometries
-            .iter()
-            .map(|t| match t {
-                Geometric::Triangle(t) => t.as_arrays(),
-                Geometric::AxiallyAlignedTriangle(t) => t.as_arrays(),
-            })
-            .collect::<Vec<_>>()
-    );
-}
-
-fn print_node_json(kdtree: &KdNode) {
-    match kdtree {
-        KdNode::Leaf(indices) => print!("{indices:?}"),
-        KdNode::Node { plane, left, right } => {
-            print!(
-                "{{\"axis\": \"{:?}\", \"distance\": {}, \"left\": ",
-                plane.axis, plane.distance
-            );
-            print_node_json(left);
-            print!(", \"right\": ");
-            print_node_json(right);
-            print!("}}");
-        }
-    }
-}
-
-fn print_node_rust(kdtree: &KdNode) {
-    match kdtree {
-        KdNode::Leaf(indices) if indices.is_empty() => print!("KdNode::empty()"),
-        KdNode::Leaf(indices) => print!("KdNode::new_leaf(vec!{indices:?})"),
-        KdNode::Node { plane, left, right } => {
-            let aap_new = match plane.axis {
-                Axis::X => "Aap::new_x",
-                Axis::Y => "Aap::new_y",
-                Axis::Z => "Aap::new_z",
-            };
-
-            print!("KdNode::new_node({}({:?}), ", aap_new, plane.distance);
-            print_node_rust(left);
-            print!(", ");
-            print_node_rust(right);
-            print!(")");
-        }
-    }
-}
-
 fn main() {
     let args = Args::parse();
     eprintln!("Reading {:?}...", &args.input);
@@ -189,19 +144,10 @@ fn main() {
     );
 
     if args.json {
-        print!("{{\"triangles\": ");
-        print_triangle_array(&kdtree.geometries);
-        print!(", \"root\": ");
-        print_node_json(&kdtree.root);
-        println!("}}");
+        write_tree_json(&mut io::stdout().lock(), &kdtree).unwrap();
     } else if args.rust {
-        print!("let triangles = ");
-        print_triangle_array(&kdtree.geometries);
-        print!(";\nlet root = ");
-        print_node_rust(&kdtree.root);
-        println!(";");
-        println!("let tree = KdTree {{ triangles, root }};");
+        write_tree_rust(&mut io::stdout().lock(), &kdtree).unwrap();
     } else {
-        print!("{}", pretty_format_tree(&kdtree));
+        write_tree_pretty(&mut io::stdout().lock(), &kdtree).unwrap();
     }
 }

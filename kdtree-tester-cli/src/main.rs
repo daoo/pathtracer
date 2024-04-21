@@ -3,13 +3,19 @@ use geometry::{intersection::RayIntersection, ray::Ray, Geometry};
 use kdtree::{
     build::build_kdtree,
     build_sah::{self, SahKdTreeBuilder},
-    pretty_format_tree, KdTree,
+    format::write_tree_pretty,
+    KdTree,
 };
 use nalgebra::Vector2;
 use pathtracer::{camera::Pinhole, sampling::uniform_sample_unit_square, scene::Scene};
 use rand::{rngs::SmallRng, SeedableRng};
 use rayon::prelude::*;
-use std::{fs::File, io::BufReader, ops::RangeInclusive, str};
+use std::{
+    fs::File,
+    io::{self, BufReader},
+    ops::RangeInclusive,
+    str,
+};
 use wavefront::{mtl, obj};
 
 struct RayBouncer {
@@ -300,5 +306,5 @@ fn main() {
         eprintln!("{:?}", bouncer.kdtree.geometries[*i as usize]);
     });
 
-    print!("{}", pretty_format_tree(&minimial_tree));
+    write_tree_pretty(&mut io::stdout().lock(), &minimial_tree).unwrap();
 }
