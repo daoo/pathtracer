@@ -11,12 +11,12 @@ RAY_DTYPE = np.dtype(
         ("px", np.uint16),
         ("py", np.uint16),
         ("inf", np.uint8),
-        ("ax", np.float32),
-        ("ay", np.float32),
-        ("az", np.float32),
-        ("bx", np.float32),
-        ("by", np.float32),
-        ("bz", np.float32),
+        ("ox", np.float32),
+        ("oy", np.float32),
+        ("oz", np.float32),
+        ("dx", np.float32),
+        ("dy", np.float32),
+        ("dz", np.float32),
     ]
 )
 
@@ -26,6 +26,9 @@ def read(path):
 
 
 def visualize(rays, color_segment):
+    rays["tx"] = rays.ox + rays.dx + rays.inf * rays.dx * 10.0
+    rays["ty"] = rays.oy + rays.dy + rays.inf * rays.dy * 10.0
+    rays["tz"] = rays.oz + rays.dz + rays.inf * rays.dz * 10.0
     grouped = rays.groupby(["i", "px", "py"])
     color_count = grouped.cumcount().max() if color_segment else len(grouped)
     colormap = plt.colormaps["viridis"].resampled(color_count)
@@ -37,10 +40,8 @@ def visualize(rays, color_segment):
             return colormap(path_number / float(color_count))
 
     for n, (_, path) in zip(grouped.ngroup(), grouped):
-        segments = path[["ax", "ay", "az", "bx", "by", "bz"]].to_numpy()
+        segments = path[["ox", "oy", "oz", "tx", "ty", "tz"]].to_numpy()
         segments = segments.reshape((len(path), 2, 3))
-        if path.inf.iloc[-1] == 1:
-            segments[-1][1] = 10.0 * (segments[-1][1] - segments[-1][0])
         iter = f"iter{path.i.iloc[0]}"
         pixel = f"{path.px.iloc[0]}x{path.py.iloc[0]}"
         path = f"world/rays/{iter}/{pixel}"

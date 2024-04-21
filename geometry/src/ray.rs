@@ -14,10 +14,10 @@ impl Ray {
         }
     }
 
-    pub fn extend(&self, t: f32) -> Ray {
+    pub fn extended(&self, t: f32) -> Ray {
         Ray {
             origin: self.origin,
-            direction: self.direction + t * self.direction,
+            direction: t * self.direction,
         }
     }
 

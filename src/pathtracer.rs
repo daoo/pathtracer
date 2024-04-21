@@ -57,6 +57,15 @@ impl Pathtracer {
         let (triangle_index, intersection) = intersection.unwrap();
         let triangle = &self.scene.triangle_data[triangle_index as usize];
 
+        pixel
+            .ray_logger
+            .log_finite(
+                &ray.extended(intersection.t),
+                pixel.iteration,
+                (pixel.x, pixel.y),
+            )
+            .unwrap();
+
         let wi = -ray.direction;
         let n = triangle.normals.lerp(intersection.u, intersection.v);
         let material = triangle.material.as_ref();
@@ -96,17 +105,6 @@ impl Pathtracer {
             },
             direction: *sample.wo,
         };
-        pixel
-            .ray_logger
-            .log_finite(
-                &Ray {
-                    origin: ray.origin,
-                    direction: next_ray.origin,
-                },
-                pixel.iteration,
-                (pixel.x, pixel.y),
-            )
-            .unwrap();
 
         if sample.pdf <= 0.01 {
             return accumulated_radiance;
