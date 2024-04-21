@@ -51,7 +51,7 @@ impl AxiallyAlignedTriangle {
 
         let inv_det = 1.0 / det;
         let u = inv_det * (s.x * base2.y - base2.x * s.y);
-        if u < 0.0 || u > 1.0 {
+        if !(0.0..=1.0).contains(&u) {
             return None;
         }
 

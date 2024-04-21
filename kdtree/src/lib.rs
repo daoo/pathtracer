@@ -123,7 +123,7 @@ pub struct KdTree {
 }
 
 impl KdTree {
-    pub fn iter_nodes<'a>(&'a self) -> KdTreeNodeIter<'_> {
+    pub fn iter_nodes(&self) -> KdTreeNodeIter<'_> {
         KdTreeNodeIter {
             stack: vec![&self.root],
         }
