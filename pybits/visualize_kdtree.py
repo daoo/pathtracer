@@ -6,12 +6,12 @@ import numpy as np
 import rerun
 
 
-def read(path):
+def read(path: str):
     with open(path) as f:
         return json.load(f)
 
 
-def axis_number(axis):
+def axis_number(axis: str) -> int:
     if axis == "X":
         return 0
     if axis == "Y":
@@ -19,46 +19,52 @@ def axis_number(axis):
     if axis == "Z":
         return 2
 
-
-def visualize_kdnode(color, depth, path, aabb, node):
-    if isinstance(node, list):
-        return
-    else:
-        axis = axis_number(node["axis"])
-        distance = node["distance"]
-
-        plane = aabb.copy()
-        plane[:, axis] = distance
-        left_aabb = aabb.copy()
-        left_aabb[1, axis] = distance
-        right_aabb = aabb.copy()
-        right_aabb[0, axis] = distance
-
-        rerun.log(
-            f'world/{path}/{node["axis"]}={distance}',
-            rerun.Boxes3D(
-                mins=[plane[0]], sizes=[plane[1] - plane[0]], colors=color(depth)
-            ),
-            timeless=True,
-        )
-        # rerun.log(f'world/{path}/aabb', rerun.Boxes3D(
-        #     mins=[aabb[0]],
-        #     sizes=[aabb[1] - aabb[0]],
-        #     radii=0.001,
-        #     colors=color(depth)), timeless=True)
-
-        visualize_kdnode(color, depth + 1, f"{path}/l", left_aabb, node["left"])
-        visualize_kdnode(color, depth + 1, f"{path}/r", right_aabb, node["right"])
+    raise ValueError(f"Unknown axis {axis}.")
 
 
-def max_depth(node):
+def visualize_kdnode(colormap, aabb, root):
+    stack = [(0, aabb, root)]
+
+    mins = []
+    sizes = []
+    depths = []
+    while stack:
+        (depth, aabb, node) = stack.pop()
+        if isinstance(node, list):
+            continue
+        else:
+            axis = axis_number(node["axis"])
+            distance = node["distance"]
+
+            plane = aabb.copy()
+            plane[:, axis] = distance
+            left_aabb = aabb.copy()
+            left_aabb[1, axis] = distance
+            right_aabb = aabb.copy()
+            right_aabb[0, axis] = distance
+
+            mins.append(plane[0])
+            sizes.append(plane[1] - plane[0])
+            depths.append(depth)
+
+            stack.append((depth + 1, left_aabb, node["left"]))
+            stack.append((depth + 1, right_aabb, node["right"]))
+
+    rerun.log(
+        "world/kdtree",
+        rerun.Boxes3D(mins=mins, sizes=sizes, colors=colormap[depths]),
+        timeless=True,
+    )
+
+
+def max_depth(node) -> int:
     if isinstance(node, list):
         return 0
     else:
         return 1 + max(max_depth(node["left"]), max_depth(node["right"]))
 
 
-def node_count(node):
+def node_count(node) -> int:
     if isinstance(node, list):
         return 1
     else:
@@ -68,12 +74,9 @@ def node_count(node):
 def visualize(kdtree):
     triangles = np.array(kdtree["triangles"])
     n = max_depth(kdtree["root"])
-    colormap = plt.colormaps["plasma"].resampled(n)
-
-    def color(depth):
-        return colormap(depth / float(n))
+    colormap = plt.colormaps["plasma"].resampled(n)(np.linspace(0, 1, n))
 
     aabb_min = triangles.min(axis=0).min(axis=1)
     aabb_max = triangles.max(axis=0).max(axis=1)
     aabb = np.array([aabb_min, aabb_max])
-    visualize_kdnode(color, 0, "root", aabb, kdtree["root"])
+    visualize_kdnode(colormap, aabb, kdtree["root"])
