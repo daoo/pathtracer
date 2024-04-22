@@ -89,10 +89,13 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
             let mean = total / completed as f64;
             let sdev = ((total_squared / completed as f64) - mean * mean).sqrt();
             let eta = ((iterations - completed) as f64 * mean) / threads as f64;
+            // ANSI escape codes
+            const CSI_ERASE_IN_LINE: &str = "\x1B[1K";
+            const CSI_CURSOR_HORIZONTAL_ABSOLUTE: &str = "\x1B[1G";
             print!(
                 "{}{}[{}/{}] mean: {:.2}, sdev: {:.2}, eta: {:.2}",
-                termion::clear::CurrentLine,
-                termion::cursor::Left(u16::MAX),
+                CSI_ERASE_IN_LINE,
+                CSI_CURSOR_HORIZONTAL_ABSOLUTE,
                 completed,
                 iterations,
                 time::Duration::seconds_f64(mean),

@@ -11,6 +11,5 @@ clap = { version = "4.5.4", default-features = false, features = ["derive", "std
 kdtree = { version = "1.0.0", path = "../kdtree" }
 pathtracer = { version = "1.0.0", path = ".." }
 rand = { version = "0.8.5", default-features = false, features = ["std", "small_rng"] }
-termion = "3.0.0"
 time = { version = "0.3.34", features = ["formatting"] }
 wavefront = { version = "1.0.0", path = "../wavefront" }
