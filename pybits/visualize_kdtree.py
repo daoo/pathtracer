@@ -76,7 +76,7 @@ def visualize(kdtree):
     n = max_depth(kdtree["root"])
     colormap = plt.colormaps["plasma"].resampled(n)(np.linspace(0, 1, n))
 
-    aabb_min = triangles.min(axis=0).min(axis=1)
-    aabb_max = triangles.max(axis=0).max(axis=1)
+    aabb_min = triangles.min(axis=0).min(axis=0)
+    aabb_max = triangles.max(axis=0).max(axis=0)
     aabb = np.array([aabb_min, aabb_max])
     visualize_kdnode(colormap, aabb, kdtree["root"])
