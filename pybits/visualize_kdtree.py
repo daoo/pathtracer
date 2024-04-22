@@ -68,7 +68,7 @@ def node_count(node) -> int:
     if isinstance(node, list):
         return 1
     else:
-        return 1 + max_depth(node["left"]) + max_depth(node["right"])
+        return 1 + node_count(node["left"]) + node_count(node["right"])
 
 
 def visualize(kdtree):
