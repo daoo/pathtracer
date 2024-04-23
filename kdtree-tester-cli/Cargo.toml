@@ -1,10 +1,11 @@
 [package]
 name = "kdtree-tester-cli"
+description = "Utility verifying kd-tree ray intersections."
 version = "1.0.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.5.4", default-features = false, features = ["std", "derive"] }
+clap = { version = "4.5.4", features = ["derive"] }
 geometry = { version = "1.0.0", path = "../geometry" }
 kdtree = { version = "1.0.0", path = "../kdtree" }
 nalgebra = { version = "0.32.5", default-features = false }

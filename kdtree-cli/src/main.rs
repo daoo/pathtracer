@@ -17,21 +17,29 @@ use time::Duration;
 use wavefront::obj;
 
 #[derive(Clone, Debug, Parser)]
+#[command(version, about, long_about = None)]
 struct Args {
+    /// Wavefront OBJ input path
     #[arg(short = 'i', long, required = true)]
     input: std::path::PathBuf,
 
+    /// Output JSON to standard output
     #[arg(short = 'j', long, default_value_t = false)]
     json: bool,
+    /// Output Rust to standard output
     #[arg(short = 'r', long, default_value_t = false)]
     rust: bool,
 
+    /// Maximum kd-tree depth
     #[arg(long, default_value_t = build_sah::MAX_DEPTH)]
     max_depth: u32,
+    /// SAH kd-tree traverse cost
     #[arg(long, default_value_t = build_sah::TRAVERSE_COST)]
     traverse_cost: f32,
+    /// SAH kd-tree intersect cost
     #[arg(long, default_value_t = build_sah::INTERSECT_COST)]
     intersect_cost: f32,
+    /// SAH kd-tree empty factor
     #[arg(long, default_value_t = build_sah::EMPTY_FACTOR)]
     empty_factor: f32,
 }

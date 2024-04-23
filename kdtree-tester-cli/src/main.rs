@@ -10,10 +10,11 @@ use pathtracer::{camera::Pinhole, sampling::uniform_sample_unit_square, scene::S
 use rand::{rngs::SmallRng, SeedableRng};
 use rayon::prelude::*;
 use std::{
+    fmt::Display,
     fs::File,
     io::{BufReader, BufWriter, Write},
     ops::RangeInclusive,
-    str,
+    str::{self, FromStr},
 };
 use wavefront::{mtl, obj};
 
@@ -22,8 +23,7 @@ struct RayBouncer {
     kdtree: KdTree,
     camera: Pinhole,
     bounces: u32,
-    width: u32,
-    height: u32,
+    size: Size,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -140,35 +140,76 @@ impl RayBouncer {
 
     fn bounce_pixel(&self, pixel: (u32, u32)) -> Option<CheckedIntersection> {
         let (x, y) = pixel;
-        let mut rng = SmallRng::seed_from_u64((y * self.height + x) as u64);
+        let mut rng = SmallRng::seed_from_u64((y * self.size.height + x) as u64);
         let pixel_center = Vector2::new(x as f32, y as f32) + uniform_sample_unit_square(&mut rng);
-        let scene_direction =
-            pixel_center.component_div(&Vector2::new(self.width as f32, self.height as f32));
+        let scene_direction = pixel_center.component_div(&self.size.as_vec2());
         let ray = self.camera.ray(scene_direction.x, scene_direction.y);
         self.bounce(&mut rng, &ray, 0)
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+struct Size {
+    width: u32,
+    height: u32,
+}
+
+impl Size {
+    fn new(width: u32, height: u32) -> Self {
+        Size { width, height }
+    }
+
+    fn aspect_ratio(self) -> f32 {
+        self.width as f32 / self.height as f32
+    }
+
+    fn as_vec2(self) -> Vector2<f32> {
+        Vector2::new(self.width as f32, self.height as f32)
+    }
+}
+
+impl FromStr for Size {
+    type Err = <u32 as FromStr>::Err;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let pos = s.find('x').expect("Could not parse");
+        Ok(Size {
+            width: s[0..pos].parse()?,
+            height: s[pos + 1..].parse()?,
+        })
+    }
+}
+
+impl Display for Size {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}x{}", self.width, self.height)
+    }
+}
+
 #[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
 struct Args {
+    /// Wavefront OBJ input path
     #[arg(short = 'i', long, required = true)]
     input: std::path::PathBuf,
 
-    #[arg(short, long, default_value_t = 512)]
-    width: u32,
-    #[arg(short, long, default_value_t = 512)]
-    height: u32,
+    /// Image size in pixels
+    #[arg(short, long, default_value_t = Size::new(512, 512))]
+    size: Size,
+    /// Max number of bounces to test
     #[arg(short, long, default_value_t = 10)]
     bounces: u32,
-    #[arg(short = 'n', long, default_value_t = 4)]
-    iterations: u32,
 
+    /// Maximum kd-tree depth
     #[arg(long, default_value_t = build_sah::MAX_DEPTH)]
     max_depth: u32,
+    /// SAH kd-tree traverse cost
     #[arg(long, default_value_t = build_sah::TRAVERSE_COST)]
     traverse_cost: f32,
+    /// SAH kd-tree intersect cost
     #[arg(long, default_value_t = build_sah::INTERSECT_COST)]
     intersect_cost: f32,
+    /// SAH kd-tree empty factor
     #[arg(long, default_value_t = build_sah::EMPTY_FACTOR)]
     empty_factor: f32,
 }
@@ -211,20 +252,19 @@ fn main() {
 
     println!(
         "Testing up to {} rays...",
-        args.width * args.height * args.bounces
+        args.size.width * args.size.height * args.bounces
     );
-    let camera = Pinhole::new(&scene.cameras[0], args.width as f32 / args.height as f32);
+    let camera = Pinhole::new(&scene.cameras[0], args.size.aspect_ratio());
     let bouncer = RayBouncer {
         scene,
         kdtree,
         camera,
-        width: args.width,
-        height: args.height,
+        size: args.size,
         bounces: args.bounces,
     };
 
-    let xs = 0..args.width;
-    let ys = 0..args.height;
+    let xs = 0..args.size.width;
+    let ys = 0..args.size.height;
     let pixels = ys
         .flat_map(|y| xs.clone().map(move |x| (x, y)))
         .collect::<Vec<_>>();

@@ -1,10 +1,11 @@
 [package]
 name = "kdtree-cli"
+description = "CLI for constructing kd-trees."
 version = "1.0.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.5.4", default-features = false, features = ["derive", "std"] }
+clap = { version = "4.5.4", features = ["derive"] }
 geometry = { version = "1.0.0", path = "../geometry" }
 kdtree = { version = "1.0.0", path = "../kdtree" }
 time = { version = "0.3.34", features = ["formatting"] }

@@ -9,38 +9,83 @@ use pathtracer::{
 };
 use rand::{rngs::SmallRng, SeedableRng};
 use std::{
+    fmt::Display,
     fs::File,
     io::{BufReader, Write},
+    str::FromStr,
     sync::mpsc::{self, Receiver, Sender},
     thread,
     time::{Duration, Instant},
 };
 use wavefront::{mtl, obj};
 
+#[derive(Clone, Copy, Debug)]
+struct Size {
+    width: u32,
+    height: u32,
+}
+
+impl Size {
+    fn new(width: u32, height: u32) -> Self {
+        Size { width, height }
+    }
+
+    fn aspect_ratio(self) -> f32 {
+        self.width as f32 / self.height as f32
+    }
+}
+
+impl FromStr for Size {
+    type Err = <u32 as FromStr>::Err;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let pos = s.find('x').expect("Could not parse");
+        Ok(Size {
+            width: s[0..pos].parse()?,
+            height: s[pos + 1..].parse()?,
+        })
+    }
+}
+
+impl Display for Size {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}x{}", self.width, self.height)
+    }
+}
+
 #[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
 struct Args {
+    /// Wavefront OBJ input path
     #[arg(short = 'i', long, required = true)]
     input: std::path::PathBuf,
 
+    /// PNG output path
     #[arg(short, long, required = true)]
     output: std::path::PathBuf,
-    #[arg(short, long, default_value_t = 512)]
-    width: u32,
-    #[arg(short, long, default_value_t = 512)]
-    height: u32,
+    /// Image size in pixels
+    #[arg(short, long, default_value_t = Size::new(512, 512))]
+    size: Size,
+    /// Max number of bounces
     #[arg(short, long, default_value_t = 10)]
     max_bounces: u16,
+    /// Iterations to execute per thread
     #[arg(short = 'n', long, default_value_t = 4)]
     iterations_per_thread: u32,
+    /// Number of threads
     #[arg(short, long, default_value_t = 1)]
     threads: u32,
 
+    /// Maximum kd-tree depth
     #[arg(long, default_value_t = build_sah::MAX_DEPTH)]
     max_depth: u32,
+    /// SAH kd-tree traverse cost
     #[arg(long, default_value_t = build_sah::TRAVERSE_COST)]
     traverse_cost: f32,
+    /// SAH kd-tree intersect cost
     #[arg(long, default_value_t = build_sah::INTERSECT_COST)]
     intersect_cost: f32,
+    /// SAH kd-tree empty factor
     #[arg(long, default_value_t = build_sah::EMPTY_FACTOR)]
     empty_factor: f32,
 }
@@ -57,13 +102,12 @@ fn create_ray_logger(thread: u32) -> RayLogger {
 fn worker_thread(
     thread: u32,
     pathtracer: &Pathtracer,
-    width: u32,
-    height: u32,
+    size: Size,
     iterations: u32,
     tx: &Sender<Duration>,
 ) -> ImageBuffer {
     let mut rng = SmallRng::from_entropy();
-    let mut buffer = ImageBuffer::new(width, height);
+    let mut buffer = ImageBuffer::new(size.width, size.height);
     let mut ray_logger = create_ray_logger(thread);
     for iteration in 0..iterations {
         let t1 = Instant::now();
@@ -148,10 +192,10 @@ fn main() {
 
     let total_iterations = args.threads * args.iterations_per_thread;
     println!(
-        "Rendering {} px x {} px image with {} thread(s) and {} total iteration(s)...",
-        args.width, args.height, args.threads, total_iterations,
+        "Rendering {} px image with {} thread(s) and {} total iteration(s)...",
+        args.size, args.threads, total_iterations,
     );
-    let camera = Pinhole::new(&scene.cameras[0], args.width as f32 / args.height as f32);
+    let camera = Pinhole::new(&scene.cameras[0], args.size.aspect_ratio());
     let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,
         scene,
@@ -165,17 +209,9 @@ fn main() {
         let threads = (0..args.threads)
             .map(|i| {
                 let tx = tx.clone();
-                let i = i.clone();
                 let pathtracer = &pathtracer;
                 s.spawn(move || {
-                    worker_thread(
-                        i,
-                        &pathtracer,
-                        args.width,
-                        args.height,
-                        args.iterations_per_thread,
-                        &tx,
-                    )
+                    worker_thread(i, pathtracer, args.size, args.iterations_per_thread, &tx)
                 })
             })
             .collect::<Vec<_>>();
