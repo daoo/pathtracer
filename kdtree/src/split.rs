@@ -30,19 +30,19 @@ pub fn partition_triangles(
     let mut right_triangles: Vec<u32> = Vec::new();
     left_triangles.reserve(clipped_triangles.len());
     right_triangles.reserve(clipped_triangles.len());
-    for clipped in clipped_triangles {
-        let planar = clipped.1.min()[plane.axis] == plane.distance
-            && clipped.1.max()[plane.axis] == plane.distance;
-        let left = clipped.1.min()[plane.axis] < plane.distance;
-        let right = clipped.1.max()[plane.axis] > plane.distance;
+    for (index, boundary) in clipped_triangles {
+        let planar = boundary.min()[plane.axis] == plane.distance
+            && boundary.max()[plane.axis] == plane.distance;
+        let left = boundary.min()[plane.axis] < plane.distance;
+        let right = boundary.max()[plane.axis] > plane.distance;
         if left {
-            left_triangles.push(clipped.0);
+            left_triangles.push(*index);
         }
         if planar {
-            middle_triangles.push(clipped.0);
+            middle_triangles.push(*index);
         }
         if right {
-            right_triangles.push(clipped.0);
+            right_triangles.push(*index);
         }
     }
     (left_triangles, middle_triangles, right_triangles)
