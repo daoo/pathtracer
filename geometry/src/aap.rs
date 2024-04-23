@@ -54,6 +54,26 @@ impl Aap {
         }
         Some((self.distance - ray.origin[self.axis]) / denom)
     }
+
+    pub fn intersect_ray_point(&self, ray: &Ray) -> Option<Vector3<f32>> {
+        self.intersect_ray(ray).map(|t| match self.axis {
+            Axis::X => Vector3::new(
+                self.distance,
+                ray.origin.y + t * ray.direction.y,
+                ray.origin.z + t * ray.direction.z,
+            ),
+            Axis::Y => Vector3::new(
+                ray.origin.x + t * ray.direction.x,
+                self.distance,
+                ray.origin.z + t * ray.direction.z,
+            ),
+            Axis::Z => Vector3::new(
+                ray.origin.x + t * ray.direction.x,
+                ray.origin.y + t * ray.direction.y,
+                self.distance,
+            ),
+        })
+    }
 }
 
 #[cfg(test)]
@@ -159,5 +179,19 @@ mod tests {
         let ray = Ray::between(&Vector3::new(0.0, 0.0, 0.0), &(Vector3::new(0.0, 1.0, 0.0)));
 
         assert_eq!(plane.intersect_ray(&ray), None);
+    }
+
+    #[test]
+    fn intersect_ray_point_through_plane_where_result_differs_in_xyz() {
+        let plane = Aap {
+            axis: Axis::Y,
+            distance: 2.0,
+        };
+        let ray = Ray::between(&Vector3::new(0.0, 0.0, 0.0), &Vector3::new(2.0, 4.0, 6.0));
+
+        assert_eq!(
+            plane.intersect_ray_point(&ray),
+            Some(Vector3::new(1.0, 2.0, 3.0))
+        );
     }
 }

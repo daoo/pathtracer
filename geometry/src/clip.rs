@@ -42,7 +42,7 @@ pub fn clip_triangle_aabb(
         for (i, b) in input.iter().enumerate() {
             let a = input[(i as isize - 1).rem_euclid(input.len() as isize) as usize];
             let ray = Ray::between(&a, b);
-            let intersecting = plane.intersect_ray(&ray).map(|t| ray.param(t));
+            let intersecting = plane.intersect_ray_point(&ray);
             if is_inside(&clip_plane, b) {
                 if !is_inside(&clip_plane, &a) {
                     output.push(aabb.clamp(intersecting.unwrap()));
