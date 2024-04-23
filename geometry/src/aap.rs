@@ -47,14 +47,12 @@ impl Aap {
     }
 
     pub fn intersect_ray(&self, ray: &Ray) -> Option<f32> {
-        let normal = self.axis.as_vector3(1.0);
-        let denom = normal.dot(&ray.direction);
+        let denom = ray.direction[self.axis];
         if denom == 0.0 {
             // Ray parallel to plane (ray direction vector orthogonal to plane vector).
             return None;
         }
-        let t = (self.axis.as_vector3(self.distance) - ray.origin).dot(&normal) / denom;
-        Some(t)
+        Some((self.distance - ray.origin[self.axis]) / denom)
     }
 }
 
