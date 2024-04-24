@@ -9,6 +9,16 @@ import visualize_rays
 import visualize_triangles
 
 
+def parse_rectangle(s):
+    try:
+        [min_str, max_str] = s.split("+")
+        [x1, y1] = [int(s) for s in min_str.split("x")]
+        [x2, y2] = [int(s) for s in max_str.split("x")]
+        return [x1, y1, x2, y2]
+    except ValueError:
+        return None
+
+
 def program(args):
     rerun.init("pathtracer")
     rerun.connect()
@@ -20,23 +30,23 @@ def program(args):
         print(f"Read {len(triangles)} triangles.")
         visualize_triangles.visualize(triangles)
 
-    if args.raylog:
-        [min_str, max_str] = args.ray_window.split("+")
-        [min_x, min_y] = [int(s) for s in min_str.split("x")]
-        [max_x, max_y] = [int(s) for s in max_str.split("x")]
-        print(f'Reading "{args.raylog}"...')
-        rays = visualize_rays.read(args.raylog)
+    if args.ray_log:
+        print(f'Reading "{args.ray_log}"...')
+        rays = visualize_rays.read(args.ray_log)
         print(f"Read {len(rays)} rays.")
-        rays = rays[
-            (rays.px >= min_x)
-            & (rays.px <= max_x)
-            & (rays.py >= min_y)
-            & (rays.py <= max_y)
-        ]
-        print(
-            f"Filtered out {len(rays)} rays from {[min_x, min_y]} to {[max_x, max_y]} (inclusive)."
-        )
-        visualize_rays.visualize(rays)
+        ray_window = parse_rectangle(args.ray_window) if args.ray_window else None
+        if ray_window:
+            [x1, y1, x2, y2] = ray_window
+            rays = rays[
+                (rays.px >= x1) & (rays.px <= x2) & (rays.py >= y1) & (rays.py <= y2)
+            ]
+            print(
+                f"Filtered out {len(rays)} rays from {[x1, y1]} to {[x2, y2]} (inclusive)."
+            )
+        if args.ray_mode == "single":
+            visualize_rays.visualize_as_one_entity(rays)
+        elif args.ray_mode == "path":
+            visualize_rays.visualize_grouped_per_path(rays)
 
     if args.ray_fails:
         print(f'Reading "{args.ray_fails}"...')
@@ -59,9 +69,16 @@ def main():
     )
     parser.add_argument("-t", "--triangles", help="kdtree.json file path")
     parser.add_argument("-f", "--ray-fails", help="rayfails.bin file path")
-    parser.add_argument("-r", "--raylog", help="raylog.bin file path")
     parser.add_argument("-k", "--kdtree", help="kdtree.json file path")
-    parser.add_argument("-w", "--ray-window", default="0x0+10x10")
+
+    parser.add_argument("-r", "--ray-log", help="raylog.bin file path")
+    parser.add_argument(
+        "-m",
+        "--ray-mode",
+        default="single",
+        help="entity grouping mode [path | single]",
+    )
+    parser.add_argument("-w", "--ray-window")
     args = parser.parse_args()
     sys.exit(program(args))
 
