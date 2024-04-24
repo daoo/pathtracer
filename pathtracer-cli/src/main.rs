@@ -92,7 +92,7 @@ struct Args {
 
 fn create_ray_logger(thread: u32) -> RayLogger {
     if cfg!(feature = "ray_logging") {
-        let path = format!("/tmp/raylog{thread}.bin");
+        let path = format!("./tmp/raylog{thread}.bin");
         RayLogger::create(path).unwrap()
     } else {
         RayLogger::None()
