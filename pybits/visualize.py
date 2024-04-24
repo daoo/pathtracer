@@ -36,7 +36,7 @@ def program(args):
         print(
             f"Filtered out {len(rays)} rays from {[min_x, min_y]} to {[max_x, max_y]} (inclusive)."
         )
-        visualize_rays.visualize(rays, args.color_segment)
+        visualize_rays.visualize(rays)
 
     if args.ray_fails:
         print(f'Reading "{args.ray_fails}"...')
@@ -60,11 +60,6 @@ def main():
     parser.add_argument("-t", "--triangles", help="kdtree.json file path")
     parser.add_argument("-f", "--ray-fails", help="rayfails.bin file path")
     parser.add_argument("-r", "--raylog", help="raylog.bin file path")
-    parser.add_argument(
-        "--color-segment",
-        action="store_true",
-        help="color rays by segment number instead of path number",
-    )
     parser.add_argument("-k", "--kdtree", help="kdtree.json file path")
     parser.add_argument("-w", "--ray-window", default="0x0+10x10")
     args = parser.parse_args()
