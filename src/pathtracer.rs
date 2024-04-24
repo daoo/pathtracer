@@ -10,7 +10,7 @@ use nalgebra::{Vector2, Vector3};
 use rand::rngs::SmallRng;
 
 pub struct Pathtracer {
-    pub max_bounces: u16,
+    pub max_bounces: u8,
     pub scene: Scene,
     pub kdtree: KdTree,
     pub camera: Pinhole,
@@ -39,7 +39,7 @@ impl Pathtracer {
         ray: &Ray,
         accumulated_radiance: Vector3<f32>,
         accumulated_transport: Vector3<f32>,
-        accumulated_bounces: u16,
+        accumulated_bounces: u8,
     ) -> Vector3<f32> {
         if accumulated_bounces >= self.max_bounces {
             return accumulated_radiance;
@@ -49,7 +49,12 @@ impl Pathtracer {
         if intersection.is_none() {
             pixel
                 .ray_logger
-                .log_infinite(ray, pixel.iteration, (pixel.x, pixel.y))
+                .log_infinite(
+                    ray,
+                    pixel.iteration,
+                    (pixel.x, pixel.y),
+                    accumulated_bounces,
+                )
                 .unwrap();
             return accumulated_radiance
                 + accumulated_transport.component_mul(&self.scene.environment);
@@ -63,6 +68,7 @@ impl Pathtracer {
                 &ray.extended(intersection.t),
                 pixel.iteration,
                 (pixel.x, pixel.y),
+                accumulated_bounces,
             )
             .unwrap();
 

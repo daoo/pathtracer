@@ -68,7 +68,7 @@ struct Args {
     size: Size,
     /// Max number of bounces
     #[arg(short, long, default_value_t = 10)]
-    max_bounces: u16,
+    max_bounces: u8,
     /// Iterations to execute per thread
     #[arg(short = 'n', long, default_value_t = 4)]
     iterations_per_thread: u32,
