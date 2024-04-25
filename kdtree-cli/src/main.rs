@@ -5,7 +5,7 @@ use geometry::{
 use kdtree::{
     build::build_kdtree,
     build_sah::{self, SahKdTreeBuilder},
-    format::{write_tree_json, write_tree_pretty, write_tree_rust},
+    format::{write_tree_dot, write_tree_json, write_tree_pretty, write_tree_rust},
     KdNode, KdTree,
 };
 use std::{
@@ -29,6 +29,9 @@ struct Args {
     /// Output Rust to standard output
     #[arg(short = 'r', long, default_value_t = false)]
     rust: bool,
+    /// Output Graphviz dot to standard output
+    #[arg(short = 'd', long, default_value_t = false)]
+    dot: bool,
 
     /// Maximum kd-tree depth
     #[arg(long, default_value_t = build_sah::MAX_DEPTH)]
@@ -150,11 +153,15 @@ fn main() {
         "Done in {:.3} with cost {cost:.3}.",
         Duration::new(duration.as_secs() as i64, duration.as_nanos() as i32)
     );
+    eprintln!("  Leaf geometry indicies: {}", kdtree.root.count_geometries());
+    eprintln!("  Node count: {}", kdtree.root.count_nodes());
 
     if args.json {
         write_tree_json(&mut io::stdout().lock(), &kdtree).unwrap();
     } else if args.rust {
         write_tree_rust(&mut io::stdout().lock(), &kdtree).unwrap();
+    } else if args.dot {
+        write_tree_dot(&mut io::stdout().lock(), &kdtree).unwrap();
     } else {
         write_tree_pretty(&mut io::stdout().lock(), &kdtree).unwrap();
     }
