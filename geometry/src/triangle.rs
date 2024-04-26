@@ -42,15 +42,6 @@ impl Triangle {
         self.v0 + u * self.base0() + v * self.base1()
     }
 
-    pub fn from_arrays(arrays: [[f32; 3]; 3]) -> Triangle {
-        let [v0, v1, v2] = arrays;
-        Triangle {
-            v0: v0.into(),
-            v1: v1.into(),
-            v2: v2.into(),
-        }
-    }
-
     pub fn as_arrays(self) -> [[f32; 3]; 3] {
         [self.v0.into(), self.v1.into(), self.v2.into()]
     }
@@ -174,6 +165,19 @@ impl Triangle {
         }
 
         true
+    }
+}
+
+impl<T> From<[T; 3]> for Triangle
+where
+    T: Into<Vector3<f32>> + Copy,
+{
+    fn from(value: [T; 3]) -> Self {
+        Triangle {
+            v0: value[0].into(),
+            v1: value[1].into(),
+            v2: value[2].into(),
+        }
     }
 }
 
