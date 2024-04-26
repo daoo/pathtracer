@@ -153,7 +153,10 @@ fn main() {
         "Done in {:.3} with cost {cost:.3}.",
         Duration::new(duration.as_secs() as i64, duration.as_nanos() as i32)
     );
-    eprintln!("  Leaf geometry indicies: {}", kdtree.root.count_geometries());
+    eprintln!(
+        "  Leaf geometry indicies: {}",
+        kdtree.root.count_geometries()
+    );
     eprintln!("  Node count: {}", kdtree.root.count_nodes());
 
     if args.json {
