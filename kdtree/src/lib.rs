@@ -174,14 +174,7 @@ impl KdTree {
                 },
                 KdNode::Node { plane, left, right } => {
                     let axis = plane.axis;
-                    if ray.direction[axis] == 0. {
-                        if ray.origin[axis] <= plane.distance {
-                            node = left;
-                        } else {
-                            node = right;
-                        }
-                    } else {
-                        let t = (plane.distance - ray.origin[axis]) / ray.direction[axis];
+                    if let Some(t) = plane.intersect_ray(ray) {
                         let (near, far) = if ray.direction[axis] >= 0. {
                             (left.as_ref(), right.as_ref())
                         } else {
@@ -196,6 +189,10 @@ impl KdTree {
                             node = near;
                             t2 = t;
                         }
+                    } else if ray.origin[axis] <= plane.distance {
+                        node = left;
+                    } else {
+                        node = right;
                     }
                 }
             }
