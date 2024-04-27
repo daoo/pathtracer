@@ -8,6 +8,27 @@ pub mod build_sah;
 pub mod format;
 mod split;
 
+fn intersect_closest(
+    geometries: &[Geometric],
+    indices: &[u32],
+    ray: &Ray,
+    t_range: RangeInclusive<f32>,
+) -> Option<(u32, RayIntersection)> {
+    indices
+        .iter()
+        .filter_map(|index| {
+            let index = *index;
+            geometries[index as usize]
+                .intersect_ray(ray)
+                .and_then(|intersection| {
+                    t_range
+                        .contains(&intersection.t)
+                        .then_some((index, intersection))
+                })
+        })
+        .min_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t))
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum KdNode {
     Leaf(Vec<u32>),
@@ -74,6 +95,58 @@ impl KdNode {
             } => [left.all_indices(), right.all_indices()].concat(),
         }
     }
+
+    pub fn intersect(
+        &self,
+        geometries: &[Geometric],
+        ray: &Ray,
+        t_range: RangeInclusive<f32>,
+    ) -> Option<(u32, RayIntersection)> {
+        let mut node = self;
+        let mut t1 = *t_range.start();
+        let mut t2 = *t_range.end();
+        let mut stack: SmallVec<[(&KdNode, f32, f32); 5]> = SmallVec::new();
+        loop {
+            match node {
+                KdNode::Leaf(indices) => {
+                    match intersect_closest(geometries, indices, ray, t1..=t2) {
+                        Some(result) => return Some(result),
+                        _ if t2 == *t_range.end() => return None,
+                        _ => {
+                            if let Some(s) = stack.pop() {
+                                (node, t1, t2) = s;
+                            } else {
+                                return None;
+                            }
+                        }
+                    }
+                }
+                KdNode::Node { plane, left, right } => {
+                    let axis = plane.axis;
+                    if let Some(t) = plane.intersect_ray(ray) {
+                        let (near, far) = if ray.direction[axis] >= 0. {
+                            (left.as_ref(), right.as_ref())
+                        } else {
+                            (right.as_ref(), left.as_ref())
+                        };
+                        if t > t2 {
+                            node = near;
+                        } else if t < t1 {
+                            node = far;
+                        } else {
+                            stack.push((far, t, t2));
+                            node = near;
+                            t2 = t;
+                        }
+                    } else if ray.origin[axis] <= plane.distance {
+                        node = left;
+                    } else {
+                        node = right;
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl Display for KdNode {
@@ -129,74 +202,12 @@ impl KdTree {
         }
     }
 
-    fn intersect_closest(
-        &self,
-        indices: &[u32],
-        ray: &Ray,
-        t_range: RangeInclusive<f32>,
-    ) -> Option<(u32, RayIntersection)> {
-        indices
-            .iter()
-            .filter_map(|index| {
-                let index = *index;
-                self.geometries[index as usize]
-                    .intersect_ray(ray)
-                    .and_then(|intersection| {
-                        t_range
-                            .contains(&intersection.t)
-                            .then_some((index, intersection))
-                    })
-            })
-            .min_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t))
-    }
-
     pub fn intersect(
         &self,
         ray: &Ray,
         t_range: RangeInclusive<f32>,
     ) -> Option<(u32, RayIntersection)> {
-        let mut node = self.root.as_ref();
-        let mut t1 = *t_range.start();
-        let mut t2 = *t_range.end();
-        let mut stack: SmallVec<[(&KdNode, f32, f32); 5]> = SmallVec::new();
-        loop {
-            match node {
-                KdNode::Leaf(indices) => match self.intersect_closest(indices, ray, t1..=t2) {
-                    Some(result) => return Some(result),
-                    _ if t2 == *t_range.end() => return None,
-                    _ => {
-                        if let Some(s) = stack.pop() {
-                            (node, t1, t2) = s;
-                        } else {
-                            return None;
-                        }
-                    }
-                },
-                KdNode::Node { plane, left, right } => {
-                    let axis = plane.axis;
-                    if let Some(t) = plane.intersect_ray(ray) {
-                        let (near, far) = if ray.direction[axis] >= 0. {
-                            (left.as_ref(), right.as_ref())
-                        } else {
-                            (right.as_ref(), left.as_ref())
-                        };
-                        if t > t2 {
-                            node = near;
-                        } else if t < t1 {
-                            node = far;
-                        } else {
-                            stack.push((far, t, t2));
-                            node = near;
-                            t2 = t;
-                        }
-                    } else if ray.origin[axis] <= plane.distance {
-                        node = left;
-                    } else {
-                        node = right;
-                    }
-                }
-            }
-        }
+        self.root.intersect(&self.geometries, ray, t_range)
     }
 }
 
