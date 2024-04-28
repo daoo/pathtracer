@@ -6,10 +6,6 @@ use kdtree::{
     KdTree,
 };
 use nalgebra::Vector2;
-use pathtracer::{
-    material::Material,
-    sampling::{sample_light, uniform_sample_unit_square},
-};
 use rand::{rngs::SmallRng, SeedableRng};
 use rayon::prelude::*;
 use scene::{camera::Pinhole, Scene};
@@ -19,6 +15,10 @@ use std::{
     io::{BufReader, BufWriter, Write},
     ops::RangeInclusive,
     str::{self, FromStr},
+};
+use tracing::{
+    material::Material,
+    sampling::{sample_light, uniform_sample_unit_square},
 };
 use wavefront::{mtl, obj};
 

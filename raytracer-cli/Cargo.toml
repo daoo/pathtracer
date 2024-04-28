@@ -6,6 +6,6 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.5.4", features = ["derive"] }
 kdtree = { version = "1.0.0", path = "../kdtree" }
-pathtracer = { version = "1.0.0", path = ".." }
 scene = { version = "1.0.0", path = "../scene" }
+tracing = { version = "1.0.0", path = "../tracing" }
 wavefront = { version = "1.0.0", path = "../wavefront" }

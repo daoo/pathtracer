@@ -314,10 +314,10 @@ dependencies = [
  "geometry",
  "kdtree",
  "nalgebra",
- "pathtracer",
  "rand",
  "rayon",
  "scene",
+ "tracing",
  "wavefront",
 ]
 
@@ -424,30 +424,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
 
 [[package]]
-name = "pathtracer"
-version = "1.0.0"
-dependencies = [
- "assert_approx_eq",
- "geometry",
- "image",
- "kdtree",
- "nalgebra",
- "rand",
- "scene",
- "simba",
- "wavefront",
-]
-
-[[package]]
 name = "pathtracer-cli"
 version = "1.0.0"
 dependencies = [
  "clap",
  "kdtree",
- "pathtracer",
  "rand",
  "scene",
  "time",
+ "tracing",
  "wavefront",
 ]
 
@@ -550,8 +535,8 @@ version = "1.0.0"
 dependencies = [
  "clap",
  "kdtree",
- "pathtracer",
  "scene",
+ "tracing",
  "wavefront",
 ]
 
@@ -682,6 +667,21 @@ checksum = "3f252a68540fde3a3877aeea552b832b40ab9a69e318efd078774a01ddee1ccf"
 dependencies = [
  "num-conv",
  "time-core",
+]
+
+[[package]]
+name = "tracing"
+version = "1.0.0"
+dependencies = [
+ "assert_approx_eq",
+ "geometry",
+ "image",
+ "kdtree",
+ "nalgebra",
+ "rand",
+ "scene",
+ "simba",
+ "wavefront",
 ]
 
 [[package]]

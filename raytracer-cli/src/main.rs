@@ -1,8 +1,8 @@
 use clap::Parser;
 use kdtree::{build::build_kdtree, build_sah, build_sah::SahKdTreeBuilder};
-use pathtracer::{image_buffer::ImageBuffer, raytracer::Raytracer};
 use scene::{camera::Pinhole, Scene};
 use std::{fmt::Display, fs::File, io::BufReader, str::FromStr};
+use tracing::{image_buffer::ImageBuffer, raytracer::Raytracer};
 use wavefront::{mtl, obj};
 
 #[derive(Clone, Copy, Debug)]

@@ -3,7 +3,6 @@ use kdtree::{
     build::build_kdtree,
     build_sah::{self, SahKdTreeBuilder},
 };
-use pathtracer::{image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLogger};
 use rand::{rngs::SmallRng, SeedableRng};
 use scene::{camera::Pinhole, Scene};
 use std::{
@@ -15,6 +14,7 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLogger};
 use wavefront::{mtl, obj};
 
 #[derive(Clone, Copy, Debug)]
