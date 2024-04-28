@@ -6,7 +6,9 @@ use kdtree::{
     KdTree,
 };
 use nalgebra::Vector2;
-use pathtracer::{camera::Pinhole, sampling::uniform_sample_unit_square, scene::Scene};
+use pathtracer::{
+    camera::Pinhole, material::Material, sampling::uniform_sample_unit_square, scene::Scene,
+};
 use rand::{rngs::SmallRng, SeedableRng};
 use rayon::prelude::*;
 use std::{

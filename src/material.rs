@@ -43,9 +43,6 @@ pub struct SpecularRefractiveMaterial {
 
 #[derive(Clone, Debug)]
 pub struct FresnelBlendMaterial<M1, M2>
-where
-    M1: Material,
-    M2: Material,
 {
     pub reflection: M1,
     pub refraction: M2,
@@ -54,14 +51,19 @@ where
 
 #[derive(Clone, Debug)]
 pub struct BlendMaterial<M1, M2>
-where
-    M1: Material,
-    M2: Material,
 {
     pub first: M1,
     pub second: M2,
     pub factor: f32,
 }
+
+pub type MaterialModel = BlendMaterial<
+    FresnelBlendMaterial<
+        SpecularReflectiveMaterial,
+        BlendMaterial<SpecularRefractiveMaterial, DiffuseReflectiveMaterial>,
+    >,
+    BlendMaterial<SpecularRefractiveMaterial, DiffuseReflectiveMaterial>,
+>;
 
 pub trait Material {
     fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &UnitVector3<f32>) -> Vector3<f32>;

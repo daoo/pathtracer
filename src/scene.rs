@@ -7,7 +7,7 @@ use crate::{
     camera::Camera,
     light::SphericalLight,
     material::{
-        BlendMaterial, DiffuseReflectiveMaterial, FresnelBlendMaterial, Material,
+        BlendMaterial, DiffuseReflectiveMaterial, FresnelBlendMaterial, MaterialModel,
         SpecularReflectiveMaterial, SpecularRefractiveMaterial,
     },
 };
@@ -36,7 +36,7 @@ pub struct TriangleData {
     pub triangle: Triangle,
     pub normals: TriangleNormals,
     pub texcoords: TriangleTexcoords,
-    pub material: Arc<dyn Material + Send + Sync>,
+    pub material: Arc<MaterialModel>,
 }
 
 pub struct Scene {
@@ -78,7 +78,7 @@ fn collect_triangle_data(obj: &obj::Obj, mtl: &mtl::Mtl) -> Vec<TriangleData> {
         .collect::<Vec<_>>()
 }
 
-fn blend_from_mtl(material: &mtl::Material) -> Arc<dyn Material + Send + Sync> {
+fn blend_from_mtl(material: &mtl::Material) -> Arc<MaterialModel> {
     let reflection = DiffuseReflectiveMaterial {
         reflectance: material.diffuse_reflection.into(),
     };
@@ -98,14 +98,15 @@ fn blend_from_mtl(material: &mtl::Material) -> Arc<dyn Material + Send + Sync> {
         refraction: transparency_blend.clone(),
         r0: material.reflection_0_degrees,
     };
-    Arc::new(BlendMaterial {
+    let material = BlendMaterial {
         first: fresnel_blend,
         second: transparency_blend,
         factor: material.reflection_90_degrees,
-    })
+    };
+    Arc::new(material)
 }
 
-fn materials_from_mtl(mtl: &mtl::Mtl) -> BTreeMap<&str, Arc<dyn Material + Send + Sync>> {
+fn materials_from_mtl(mtl: &mtl::Mtl) -> BTreeMap<&str, Arc<MaterialModel>> {
     mtl.materials
         .iter()
         .map(|m| (m.name.as_str(), blend_from_mtl(m)))

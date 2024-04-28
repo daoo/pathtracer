@@ -1,7 +1,7 @@
 use std::ops::RangeInclusive;
 
 use crate::{
-    camera::Pinhole, image_buffer::ImageBuffer, raylogger::RayLogger,
+    camera::Pinhole, image_buffer::ImageBuffer, material::Material, raylogger::RayLogger,
     sampling::uniform_sample_unit_square, scene::Scene,
 };
 use geometry::{intersection::RayIntersection, ray::Ray};
