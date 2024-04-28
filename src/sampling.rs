@@ -1,6 +1,5 @@
 use nalgebra::{UnitVector3, Vector2, Vector3};
-use rand::rngs::SmallRng;
-use rand::Rng;
+use rand::{rngs::SmallRng, Rng};
 use scene::light::SphericalLight;
 
 pub fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vector2<f32> {

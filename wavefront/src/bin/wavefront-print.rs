@@ -1,7 +1,4 @@
-use std::env;
-use std::fs::File;
-use std::io::BufReader;
-use std::path::Path;
+use std::{env, fs::File, io::BufReader, path::Path};
 use wavefront::{mtl, obj};
 
 fn main() {

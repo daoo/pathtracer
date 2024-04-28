@@ -71,7 +71,7 @@ fn reduce_tree(
             try_index, remaining, try_count
         );
         let earlier = Instant::now();
-        if let Some(reduced) = try_removing(&ray, &actual, &geometries, try_index, try_count) {
+        if let Some(reduced) = try_removing(ray, &actual, &geometries, try_index, try_count) {
             geometries = reduced;
             eprint!("Success! ");
         } else if try_count > 1 {
