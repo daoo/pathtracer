@@ -64,6 +64,52 @@ impl AxiallyAlignedTriangle {
     }
 }
 
+impl Geometry for AxiallyAlignedTriangle {
+    fn min(&self) -> Vector3<f32> {
+        let p = self.v0.inf(&self.v1.inf(&self.v2));
+        self.plane.axis.add_to(p, self.plane.distance)
+    }
+
+    fn max(&self) -> Vector3<f32> {
+        let p = self.v0.sup(&self.v1.sup(&self.v2));
+        self.plane.axis.add_to(p, self.plane.distance)
+    }
+
+    fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
+        let axis = self.plane.axis;
+        if ray.direction[axis] == 0.0 {
+            return None;
+        }
+        let t = (self.plane.distance - ray.origin[axis]) / ray.direction[axis];
+        let point = ray.param(t);
+        self.intersect_point(axis.remove_from(point))
+            .map(|intersection| RayIntersection {
+                t,
+                u: intersection.u,
+                v: intersection.v,
+            })
+    }
+
+    fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
+        let clipped = clip_triangle_aabb(
+            &self.plane.add_to(self.v0),
+            &self.plane.add_to(self.v1),
+            &self.plane.add_to(self.v2),
+            aabb,
+        );
+
+        if clipped.is_empty() {
+            return None;
+        }
+        let start = (clipped[0], clipped[0]);
+        let (min, max) = clipped[1..]
+            .iter()
+            .fold(start, |(min, max), b| (min.inf(b), max.sup(b)));
+
+        Some(Aabb::from_extents(min, max))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::axis::Axis;
@@ -139,51 +185,5 @@ mod tests {
             negative.intersect_point(point),
             Some(Intersection::new(0.0, 0.5))
         );
-    }
-}
-
-impl Geometry for AxiallyAlignedTriangle {
-    fn min(&self) -> Vector3<f32> {
-        let p = self.v0.inf(&self.v1.inf(&self.v2));
-        self.plane.axis.add_to(p, self.plane.distance)
-    }
-
-    fn max(&self) -> Vector3<f32> {
-        let p = self.v0.sup(&self.v1.sup(&self.v2));
-        self.plane.axis.add_to(p, self.plane.distance)
-    }
-
-    fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
-        let axis = self.plane.axis;
-        if ray.direction[axis] == 0.0 {
-            return None;
-        }
-        let t = (self.plane.distance - ray.origin[axis]) / ray.direction[axis];
-        let point = ray.param(t);
-        self.intersect_point(axis.remove_from(point))
-            .map(|intersection| RayIntersection {
-                t,
-                u: intersection.u,
-                v: intersection.v,
-            })
-    }
-
-    fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
-        let clipped = clip_triangle_aabb(
-            &self.plane.add_to(self.v0),
-            &self.plane.add_to(self.v1),
-            &self.plane.add_to(self.v2),
-            aabb,
-        );
-
-        if clipped.is_empty() {
-            return None;
-        }
-        let start = (clipped[0], clipped[0]);
-        let (min, max) = clipped[1..]
-            .iter()
-            .fold(start, |(min, max), b| (min.inf(b), max.sup(b)));
-
-        Some(Aabb::from_extents(min, max))
     }
 }

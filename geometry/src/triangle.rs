@@ -483,7 +483,7 @@ mod tests {
         };
         let aabb = Aabb::from_extents(Vector3::new(0., 0., 0.), Vector3::new(2., 2., 2.));
 
-        assert_eq!(triangle.overlaps_aabb(&aabb), true);
+        assert!(triangle.overlaps_aabb(&aabb));
     }
 
     #[test]
@@ -495,7 +495,7 @@ mod tests {
         };
         let aabb = Aabb::from_extents(Vector3::new(0., 0., 0.), Vector3::new(2., 2., 2.));
 
-        assert_eq!(triangle.overlaps_aabb(&aabb), true);
+        assert!(triangle.overlaps_aabb(&aabb));
     }
 
     #[test]
@@ -507,6 +507,6 @@ mod tests {
         };
         let aabb = Aabb::from_extents(Vector3::new(0., 0., 0.), Vector3::new(2., 2., 2.));
 
-        assert_eq!(triangle.overlaps_aabb(&aabb), false);
+        assert!(!triangle.overlaps_aabb(&aabb));
     }
 }

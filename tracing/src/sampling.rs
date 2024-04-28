@@ -47,6 +47,10 @@ pub fn cosine_sample_hemisphere(rng: &mut SmallRng) -> Vector3<f32> {
     Vector3::new(ret.x, ret.y, z)
 }
 
+pub fn sample_light(light: &SphericalLight, rng: &mut SmallRng) -> Vector3<f32> {
+    light.center + *uniform_sample_unit_sphere(rng) * light.radius
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -68,7 +72,7 @@ mod tests {
         for _ in 0..1000 {
             let point = uniform_sample_unit_sphere(&mut rng);
             let error = point.norm();
-            assert!(error >= 0.9999999 && error <= 1.0000001, "{}", error);
+            assert!((0.9999999..=1.0000001).contains(&error), "{}", error);
         }
     }
 
@@ -102,8 +106,4 @@ mod tests {
             assert!(error <= 1e-6, "{}", error);
         }
     }
-}
-
-pub fn sample_light(light: &SphericalLight, rng: &mut SmallRng) -> Vector3<f32> {
-    light.center + *uniform_sample_unit_sphere(rng) * light.radius
 }

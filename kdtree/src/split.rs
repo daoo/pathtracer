@@ -48,6 +48,26 @@ pub fn partition_triangles(
     (left_triangles, middle_triangles, right_triangles)
 }
 
+pub struct SplitPartitioning {
+    pub left_aabb: Aabb,
+    pub right_aabb: Aabb,
+    pub left_indices: Vec<u32>,
+    pub middle_indices: Vec<u32>,
+    pub right_indices: Vec<u32>,
+}
+
+pub fn split_and_partition(clipped: &[(u32, Aabb)], aabb: &Aabb, plane: Aap) -> SplitPartitioning {
+    let (left_aabb, right_aabb) = aabb.split(&plane);
+    let (left_indices, middle_indices, right_indices) = partition_triangles(clipped, &plane);
+    SplitPartitioning {
+        left_aabb,
+        right_aabb,
+        left_indices,
+        middle_indices,
+        right_indices,
+    }
+}
+
 #[cfg(test)]
 mod partition_triangles_tests {
     use geometry::axis::Axis;
@@ -72,25 +92,5 @@ mod partition_triangles_tests {
         let actual = partition_triangles(clipped.as_slice(), &plane);
 
         assert_eq!(actual, (vec![0], vec![1], vec![2]));
-    }
-}
-
-pub struct SplitPartitioning {
-    pub left_aabb: Aabb,
-    pub right_aabb: Aabb,
-    pub left_indices: Vec<u32>,
-    pub middle_indices: Vec<u32>,
-    pub right_indices: Vec<u32>,
-}
-
-pub fn split_and_partition(clipped: &[(u32, Aabb)], aabb: &Aabb, plane: Aap) -> SplitPartitioning {
-    let (left_aabb, right_aabb) = aabb.split(&plane);
-    let (left_indices, middle_indices, right_indices) = partition_triangles(clipped, &plane);
-    SplitPartitioning {
-        left_aabb,
-        right_aabb,
-        left_indices,
-        middle_indices,
-        right_indices,
     }
 }
