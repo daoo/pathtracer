@@ -4,10 +4,16 @@ use std::{
     time::Instant,
 };
 
+use clap::Parser;
 use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 
 use geometry::{geometric::Geometric, intersection::RayIntersection, ray::Ray, triangle::Triangle};
-use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, format::write_tree_json, KdTree};
+use kdtree::{
+    build::build_kdtree,
+    build_sah::{self, SahKdTreeBuilder},
+    format::write_tree_json,
+    KdTree,
+};
 use wavefront::obj;
 
 fn build_test_tree(geometries: Vec<Geometric>) -> kdtree::KdTree {
@@ -84,8 +90,34 @@ fn reduce_tree(
     build_test_tree(geometries)
 }
 
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Wavefront OBJ input path
+    #[arg(short = 'i', long, required = true)]
+    input: std::path::PathBuf,
+
+    /// Output reduced kd-tree JSON data path
+    #[arg(short = 'o', long, required = true)]
+    output: std::path::PathBuf,
+
+    /// Maximum kd-tree depth
+    #[arg(long, default_value_t = build_sah::MAX_DEPTH)]
+    max_depth: u32,
+    /// SAH kd-tree traverse cost
+    #[arg(long, default_value_t = build_sah::TRAVERSE_COST)]
+    traverse_cost: f32,
+    /// SAH kd-tree intersect cost
+    #[arg(long, default_value_t = build_sah::INTERSECT_COST)]
+    intersect_cost: f32,
+    /// SAH kd-tree empty factor
+    #[arg(long, default_value_t = build_sah::EMPTY_FACTOR)]
+    empty_factor: f32,
+}
+
 fn main() {
-    let input_path = "scenes/sr2.obj";
+    let args = Args::parse();
+
     let ray = Ray {
         origin: [3.897963, 0.24242611, -4.203691].into(),
         direction: [-13.897963, 9.757574, 14.2036915].into(),
@@ -107,8 +139,8 @@ fn main() {
         },
     );
 
-    eprintln!("Loading {}...", input_path);
-    let obj = obj::obj(&mut BufReader::new(File::open(&input_path).unwrap()));
+    eprintln!("Loading {}...", args.input.display());
+    let obj = obj::obj(&mut BufReader::new(File::open(&args.input).unwrap()));
     eprintln!("  Chunks: {}", obj.chunks.len());
     eprintln!("  Vertices: {}", obj.vertices.len());
     eprintln!("  Normals: {}", obj.normals.len());
@@ -143,7 +175,7 @@ fn main() {
     );
 
     write_tree_json(
-        &mut BufWriter::new(File::create("tmp/reduce-test.json").unwrap()),
+        &mut BufWriter::new(File::create(args.output).unwrap()),
         &tree,
     )
     .unwrap();

@@ -2,12 +2,12 @@ use geometry::{aabb::Aabb, aap::Aap, geometric::Geometric, Geometry};
 
 use crate::build::KdCell;
 
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 pub fn perfect_splits(geometries: &[Geometric], cell: &KdCell) -> (Vec<(u32, Aabb)>, Vec<Aap>) {
     let clipped = cell
         .indices()
-        .par_iter()
+        .into_par_iter()
         .filter_map(|i| {
             geometries[*i as usize]
                 .clip_aabb(cell.boundary())

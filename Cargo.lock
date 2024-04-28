@@ -297,6 +297,7 @@ dependencies = [
 name = "kdtree-reducer-cli"
 version = "1.0.0"
 dependencies = [
+ "clap",
  "geometry",
  "kdtree",
  "nalgebra",

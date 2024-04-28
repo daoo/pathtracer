@@ -48,6 +48,37 @@ impl CheckedIntersection {
             _ => false,
         }
     }
+
+    fn as_bytes(&self, iteration: u16) -> [u8; 50] {
+        let mut bytes = [0u8; 50];
+        let ray = if let Some(kdtree) = self.kdtree {
+            self.ray.extended(kdtree.1.t)
+        } else if let Some(reference) = self.reference {
+            self.ray.extended(reference.1.t)
+        } else {
+            self.ray
+        };
+        let correct_point = self.ray.param(self.reference.unwrap().1.t);
+        let actual_point = if let Some(kdtree) = self.kdtree {
+            self.ray.param(kdtree.1.t)
+        } else {
+            [0.0, 0.0, 0.0].into()
+        };
+        bytes[0..2].copy_from_slice(&iteration.to_le_bytes());
+        bytes[2..6].copy_from_slice(&ray.origin.x.to_le_bytes());
+        bytes[6..10].copy_from_slice(&ray.origin.y.to_le_bytes());
+        bytes[10..14].copy_from_slice(&ray.origin.z.to_le_bytes());
+        bytes[14..18].copy_from_slice(&ray.direction.x.to_le_bytes());
+        bytes[18..22].copy_from_slice(&ray.direction.y.to_le_bytes());
+        bytes[22..26].copy_from_slice(&ray.direction.z.to_le_bytes());
+        bytes[26..30].copy_from_slice(&correct_point.x.to_le_bytes());
+        bytes[30..34].copy_from_slice(&correct_point.y.to_le_bytes());
+        bytes[34..38].copy_from_slice(&correct_point.z.to_le_bytes());
+        bytes[38..42].copy_from_slice(&actual_point.x.to_le_bytes());
+        bytes[42..46].copy_from_slice(&actual_point.y.to_le_bytes());
+        bytes[46..50].copy_from_slice(&actual_point.z.to_le_bytes());
+        bytes
+    }
 }
 
 impl RayBouncer {
@@ -193,6 +224,9 @@ struct Args {
     #[arg(short = 'i', long, required = true)]
     input: std::path::PathBuf,
 
+    /// Output ray fail binary data path
+    #[arg(short = 'o', long)]
+    output: Option<std::path::PathBuf>,
     /// Image size in pixels
     #[arg(short, long, default_value_t = Size::new(512, 512))]
     size: Size,
@@ -270,7 +304,7 @@ fn main() {
         .collect::<Vec<_>>();
     let fails = pixels
         .into_par_iter()
-        .flat_map(|pixel| bouncer.bounce_pixel(pixel))
+        .filter_map(|pixel| bouncer.bounce_pixel(pixel))
         .map(|fail| {
             eprintln!("{:?}", fail.ray);
             eprintln!("  reference: {:?}", fail.reference);
@@ -280,36 +314,11 @@ fn main() {
         .collect::<Vec<_>>();
     println!("Found {} fails", fails.len());
 
-    println!("Writing failed rays to /tmp/raysfails.bin...");
-    let mut logger = BufWriter::new(File::create("/tmp/rayfails.bin").unwrap());
-    fails.iter().enumerate().for_each(|(i, fail)| {
-        let mut bytes = [0u8; 50];
-        let ray = if let Some(kdtree) = fail.kdtree {
-            fail.ray.extended(kdtree.1.t)
-        } else if let Some(reference) = fail.reference {
-            fail.ray.extended(reference.1.t)
-        } else {
-            fail.ray
-        };
-        let correct_point = fail.ray.param(fail.reference.unwrap().1.t);
-        let actual_point = if let Some(kdtree) = fail.kdtree {
-            fail.ray.param(kdtree.1.t)
-        } else {
-            [0.0, 0.0, 0.0].into()
-        };
-        bytes[0..2].copy_from_slice(&(i as u16).to_le_bytes());
-        bytes[2..6].copy_from_slice(&ray.origin.x.to_le_bytes());
-        bytes[6..10].copy_from_slice(&ray.origin.y.to_le_bytes());
-        bytes[10..14].copy_from_slice(&ray.origin.z.to_le_bytes());
-        bytes[14..18].copy_from_slice(&ray.direction.x.to_le_bytes());
-        bytes[18..22].copy_from_slice(&ray.direction.y.to_le_bytes());
-        bytes[22..26].copy_from_slice(&ray.direction.z.to_le_bytes());
-        bytes[26..30].copy_from_slice(&correct_point.x.to_le_bytes());
-        bytes[30..34].copy_from_slice(&correct_point.y.to_le_bytes());
-        bytes[34..38].copy_from_slice(&correct_point.z.to_le_bytes());
-        bytes[38..42].copy_from_slice(&actual_point.x.to_le_bytes());
-        bytes[42..46].copy_from_slice(&actual_point.y.to_le_bytes());
-        bytes[46..50].copy_from_slice(&actual_point.z.to_le_bytes());
-        logger.write_all(&bytes).unwrap()
-    });
+    if let Some(path) = args.output {
+        println!("Writing failed rays to {:?}...", path);
+        let mut logger = BufWriter::new(File::create(path).unwrap());
+        fails.iter().enumerate().for_each(|(i, fail)| {
+            logger.write_all(&fail.as_bytes(i as u16)).unwrap();
+        });
+    }
 }
