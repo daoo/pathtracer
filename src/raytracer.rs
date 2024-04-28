@@ -1,12 +1,10 @@
 use std::ops::RangeInclusive;
 
-use crate::{
-    camera::Pinhole, image_buffer::ImageBuffer, light::SphericalLight, material::Material,
-    scene::Scene,
-};
+use crate::{image_buffer::ImageBuffer, material::Material};
 use geometry::{intersection::RayIntersection, ray::Ray};
 use kdtree::KdTree;
 use nalgebra::{UnitVector3, Vector2, Vector3};
+use scene::{camera::Pinhole, light::SphericalLight, Scene};
 
 pub struct Raytracer {
     pub scene: Scene,
@@ -80,5 +78,9 @@ impl Raytracer {
                 buffer.add_pixel_mut(x, y, value.into());
             }
         }
+    }
+
+    pub fn camera(&self) -> &Pinhole {
+        &self.camera
     }
 }

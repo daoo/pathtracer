@@ -3,6 +3,10 @@ use nalgebra::{UnitVector3, Vector2, Vector3};
 use std::{collections::BTreeMap, sync::Arc};
 use wavefront::{mtl, obj};
 
+pub mod camera;
+pub mod light;
+pub mod material;
+
 use crate::{
     camera::Camera,
     light::SphericalLight,

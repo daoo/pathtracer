@@ -7,10 +7,12 @@ use kdtree::{
 };
 use nalgebra::Vector2;
 use pathtracer::{
-    camera::Pinhole, material::Material, sampling::uniform_sample_unit_square, scene::Scene,
+    material::Material,
+    sampling::{sample_light, uniform_sample_unit_square},
 };
 use rand::{rngs::SmallRng, SeedableRng};
 use rayon::prelude::*;
+use scene::{camera::Pinhole, Scene};
 use std::{
     fmt::Display,
     fs::File,
@@ -149,7 +151,7 @@ impl RayBouncer {
             .lights
             .iter()
             .filter_map(|light| {
-                let shadow_ray = Ray::between(&point_above, &light.sample(rng));
+                let shadow_ray = Ray::between(&point_above, &sample_light(light, rng));
                 let shadow = self.checked_ray_intersect(&shadow_ray, 0.0..=1.0);
                 (!shadow.is_valid()).then_some(shadow)
             })

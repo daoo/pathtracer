@@ -3,11 +3,9 @@ use kdtree::{
     build::build_kdtree,
     build_sah::{self, SahKdTreeBuilder},
 };
-use pathtracer::{
-    camera::Pinhole, image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLogger,
-    scene::Scene,
-};
+use pathtracer::{image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLogger};
 use rand::{rngs::SmallRng, SeedableRng};
+use scene::{camera::Pinhole, Scene};
 use std::{
     fmt::Display,
     fs::File,

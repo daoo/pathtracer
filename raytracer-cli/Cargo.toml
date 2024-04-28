@@ -7,4 +7,5 @@ edition = "2021"
 clap = { version = "4.5.4", features = ["derive"] }
 kdtree = { version = "1.0.0", path = "../kdtree" }
 pathtracer = { version = "1.0.0", path = ".." }
+scene = { version = "1.0.0", path = "../scene" }
 wavefront = { version = "1.0.0", path = "../wavefront" }

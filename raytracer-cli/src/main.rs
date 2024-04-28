@@ -1,8 +1,10 @@
 use clap::Parser;
 use kdtree::build_sah;
 use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder};
+use pathtracer::image_buffer::ImageBuffer;
 use pathtracer::raytracer::Raytracer;
-use pathtracer::{camera::Pinhole, image_buffer::ImageBuffer, scene::Scene};
+use scene::camera::Pinhole;
+use scene::Scene;
 use std::fmt::Display;
 use std::fs::File;
 use std::io::BufReader;

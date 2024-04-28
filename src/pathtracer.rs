@@ -1,13 +1,16 @@
 use std::ops::RangeInclusive;
 
 use crate::{
-    camera::Pinhole, image_buffer::ImageBuffer, material::Material, raylogger::RayLogger,
-    sampling::uniform_sample_unit_square, scene::Scene,
+    image_buffer::ImageBuffer,
+    material::Material,
+    raylogger::RayLogger,
+    sampling::{sample_light, uniform_sample_unit_square},
 };
 use geometry::{intersection::RayIntersection, ray::Ray};
 use kdtree::KdTree;
 use nalgebra::{Vector2, Vector3};
 use rand::rngs::SmallRng;
+use scene::{camera::Pinhole, Scene};
 
 pub struct Pathtracer {
     pub max_bounces: u8,
@@ -87,7 +90,7 @@ impl Pathtracer {
             .lights
             .iter()
             .map(|light| {
-                let shadow_ray = Ray::between(&point_above, &light.sample(pixel.rng));
+                let shadow_ray = Ray::between(&point_above, &sample_light(light, pixel.rng));
                 if self.intersect_any(&shadow_ray, 0.0..=1.0) {
                     return Vector3::zeros();
                 }

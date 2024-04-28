@@ -1,6 +1,7 @@
 use nalgebra::{UnitVector3, Vector2, Vector3};
 use rand::rngs::SmallRng;
 use rand::Rng;
+use scene::light::SphericalLight;
 
 pub fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vector2<f32> {
     Vector2::new(rng.gen(), rng.gen())
@@ -102,4 +103,8 @@ mod tests {
             assert!(error <= 1e-6, "{}", error);
         }
     }
+}
+
+pub fn sample_light(light: &SphericalLight, rng: &mut SmallRng) -> Vector3<f32> {
+    light.center + *uniform_sample_unit_sphere(rng) * light.radius
 }
