@@ -31,6 +31,7 @@ impl Raytracer {
         offset_point: Vector3<f32>,
         wi: Vector3<f32>,
         n: UnitVector3<f32>,
+        uv: Vector2<f32>,
         light: &SphericalLight,
     ) -> Vector3<f32> {
         let direction = light.center - target;
@@ -44,7 +45,7 @@ impl Raytracer {
         let wo = direction.normalize();
         let radiance = light.emitted(target);
         material
-            .brdf(&OutgoingRay { wi, n, wo })
+            .brdf(&OutgoingRay { wi, n, wo, uv })
             .component_mul(&radiance)
             * wo.dot(&n).abs()
     }
@@ -60,6 +61,7 @@ impl Raytracer {
         let wi = -ray.direction;
         let point = ray.param(intersection.t);
         let n = triangle.normals.lerp(intersection.u, intersection.v);
+        let uv = triangle.texcoords.lerp(intersection.u, intersection.v);
 
         // TODO: How to chose offset?
         let offset_point = point + 0.0001 * n.into_inner();
@@ -68,7 +70,7 @@ impl Raytracer {
         self.scene
             .lights
             .iter()
-            .map(|light| self.light_contribution(material, point, offset_point, wi, n, light))
+            .map(|light| self.light_contribution(material, point, offset_point, wi, n, uv, light))
             .sum()
     }
 

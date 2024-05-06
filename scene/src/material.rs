@@ -1,3 +1,4 @@
+use image::Rgb32FImage;
 use nalgebra::{UnitVector3, Vector3};
 
 #[derive(Debug, PartialEq)]
@@ -10,6 +11,7 @@ pub struct MaterialSample {
 #[derive(Clone, Debug)]
 pub struct DiffuseReflectiveMaterial {
     pub reflectance: Vector3<f32>,
+    pub texture: Option<Rgb32FImage>,
 }
 
 #[derive(Clone, Debug)]

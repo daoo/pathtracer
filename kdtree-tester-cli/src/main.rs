@@ -137,6 +137,7 @@ impl RayBouncer {
 
         let wi = -ray.direction;
         let n = triangle.normals.lerp(intersection.u, intersection.v);
+        let uv = triangle.texcoords.lerp(intersection.u, intersection.v);
         let material = triangle.material.as_ref();
 
         // TODO: How to chose offset?
@@ -159,7 +160,7 @@ impl RayBouncer {
             return Some(*checked);
         }
 
-        let sample = material.sample(&IncomingRay { wi, n }, rng);
+        let sample = material.sample(&IncomingRay { wi, n, uv }, rng);
         let next_ray = Ray {
             origin: if sample.wo.dot(&n) >= 0.0 {
                 point_above

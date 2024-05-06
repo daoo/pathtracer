@@ -36,6 +36,12 @@ pub struct TriangleTexcoords {
     pub uv2: Vector2<f32>,
 }
 
+impl TriangleTexcoords {
+    pub fn lerp(&self, u: f32, v: f32) -> Vector2<f32> {
+        (1.0 - (u + v)) * self.uv0 + u * self.uv1 + v * self.uv2
+    }
+}
+
 pub struct TriangleData {
     pub triangle: Triangle,
     pub normals: TriangleNormals,
@@ -50,8 +56,12 @@ pub struct Scene {
     pub environment: Vector3<f32>,
 }
 
-fn collect_triangle_data(obj: &obj::Obj, mtl: &mtl::Mtl) -> Vec<TriangleData> {
-    let materials = materials_from_mtl(mtl);
+fn collect_triangle_data(
+    image_directory: &Path,
+    obj: &obj::Obj,
+    mtl: &mtl::Mtl,
+) -> Vec<TriangleData> {
+    let materials = materials_from_mtl(image_directory, mtl);
     obj.chunks
         .iter()
         .flat_map(|chunk| {
@@ -82,9 +92,15 @@ fn collect_triangle_data(obj: &obj::Obj, mtl: &mtl::Mtl) -> Vec<TriangleData> {
         .collect::<Vec<_>>()
 }
 
-fn blend_from_mtl(material: &mtl::Material) -> Arc<MaterialModel> {
+fn blend_from_mtl(image_directory: &Path, material: &mtl::Material) -> Arc<MaterialModel> {
+    let texture = (!material.diffuse_map.is_empty()).then(|| {
+        image::open(image_directory.join(&material.diffuse_map))
+            .unwrap()
+            .to_rgb32f()
+    });
     let reflection = DiffuseReflectiveMaterial {
         reflectance: material.diffuse_reflection.into(),
+        texture,
     };
     let refraction = SpecularRefractiveMaterial {
         index_of_refraction: material.index_of_refraction,
@@ -110,10 +126,13 @@ fn blend_from_mtl(material: &mtl::Material) -> Arc<MaterialModel> {
     Arc::new(material)
 }
 
-fn materials_from_mtl(mtl: &mtl::Mtl) -> BTreeMap<&str, Arc<MaterialModel>> {
+fn materials_from_mtl<'p, 'm>(
+    image_directory: &'p Path,
+    mtl: &'m mtl::Mtl,
+) -> BTreeMap<&'m str, Arc<MaterialModel>> {
     mtl.materials
         .iter()
-        .map(|m| (m.name.as_str(), blend_from_mtl(m)))
+        .map(|m| (m.name.as_str(), blend_from_mtl(image_directory, m)))
         .collect::<BTreeMap<_, _>>()
 }
 
@@ -146,9 +165,9 @@ fn collect_lights(mtl: &mtl::Mtl) -> Vec<SphericalLight> {
 }
 
 impl Scene {
-    pub fn from_wavefront(obj: &obj::Obj, mtl: &mtl::Mtl) -> Scene {
+    pub fn from_wavefront(image_directory: &Path, obj: &obj::Obj, mtl: &mtl::Mtl) -> Scene {
         Scene {
-            triangle_data: collect_triangle_data(obj, mtl),
+            triangle_data: collect_triangle_data(image_directory, obj, mtl),
             cameras: collect_cameras(mtl),
             lights: collect_lights(mtl),
             environment: Vector3::new(0.8, 0.8, 0.8),
@@ -171,7 +190,7 @@ impl Scene {
         println!("  Cameras: {}", mtl.cameras.len());
 
         println!("Collecting scene...");
-        let scene = Scene::from_wavefront(&obj, &mtl);
+        let scene = Scene::from_wavefront(mtl_path.parent().unwrap(), &obj, &mtl);
         println!("  Triangles: {}", scene.triangle_data.len());
         scene
     }

@@ -77,6 +77,7 @@ impl Pathtracer {
 
         let wi = -ray.direction;
         let n = triangle.normals.lerp(intersection.u, intersection.v);
+        let uv = triangle.texcoords.lerp(intersection.u, intersection.v);
         let material = triangle.material.as_ref();
 
         // TODO: How to chose offset?
@@ -97,7 +98,7 @@ impl Pathtracer {
                 let wo = shadow_ray.direction.normalize();
                 let radiance = light.emitted(point);
                 material
-                    .brdf(&OutgoingRay { wi, n, wo })
+                    .brdf(&OutgoingRay { wi, n, wo, uv })
                     .component_mul(&radiance)
                     * wo.dot(&n).abs()
             })
@@ -106,7 +107,7 @@ impl Pathtracer {
         let accumulated_radiance =
             accumulated_radiance + accumulated_transport.component_mul(&incoming_radiance);
 
-        let sample = material.sample(&IncomingRay { wi, n }, pixel.rng);
+        let sample = material.sample(&IncomingRay { wi, n, uv }, pixel.rng);
         let next_ray = Ray {
             origin: if sample.wo.dot(&n) >= 0.0 {
                 point_above

@@ -1,4 +1,4 @@
-use nalgebra::{RealField, UnitVector3, Vector3};
+use nalgebra::{RealField, UnitVector3, Vector2, Vector3};
 use rand::{rngs::SmallRng, Rng};
 use scene::material::{
     BlendMaterial, DiffuseReflectiveMaterial, FresnelBlendMaterial, MaterialSample,
@@ -23,17 +23,23 @@ fn is_same_sign(a: f32, b: f32) -> bool {
 pub struct IncomingRay {
     pub wi: Vector3<f32>,
     pub n: UnitVector3<f32>,
+    pub uv: Vector2<f32>,
 }
 
 impl IncomingRay {
     fn with_normal(&self, n: UnitVector3<f32>) -> IncomingRay {
-        IncomingRay { wi: self.wi, n }
+        IncomingRay {
+            wi: self.wi,
+            n,
+            uv: self.uv,
+        }
     }
 
     fn with_wo(&self, wo: Vector3<f32>) -> OutgoingRay {
         OutgoingRay {
             wi: self.wi,
             n: self.n,
+            uv: self.uv,
             wo,
         }
     }
@@ -47,6 +53,7 @@ impl IncomingRay {
 pub struct OutgoingRay {
     pub wi: Vector3<f32>,
     pub n: UnitVector3<f32>,
+    pub uv: Vector2<f32>,
     pub wo: Vector3<f32>,
 }
 
@@ -59,6 +66,7 @@ impl OutgoingRay {
         IncomingRay {
             wi: self.wi,
             n: self.n,
+            uv: self.uv,
         }
     }
 }
@@ -70,8 +78,15 @@ pub trait Material {
 }
 
 impl Material for DiffuseReflectiveMaterial {
-    fn brdf(&self, _: &OutgoingRay) -> Vector3<f32> {
-        self.reflectance * f32::frac_1_pi()
+    fn brdf(&self, outgoing: &OutgoingRay) -> Vector3<f32> {
+        if let Some(texture) = &self.texture {
+            let px = (texture.width() as f32 * outgoing.uv.x).floor();
+            let py = (texture.height() as f32 * outgoing.uv.y).floor();
+            let reflectance: Vector3<f32> = texture[(px as u32, py as u32)].0.into();
+            reflectance * f32::frac_1_pi()
+        } else {
+            self.reflectance * f32::frac_1_pi()
+        }
     }
 
     fn sample(&self, incoming: &IncomingRay, rng: &mut SmallRng) -> MaterialSample {
@@ -205,7 +220,8 @@ mod specular_refractive_material_tests {
         };
         let wi = Vector3::new(-1.0, 2.0, 0.0).normalize();
         let n = UnitVector3::new_normalize(Vector3::new(0.0, 1.0, 0.0));
-        let incoming = IncomingRay { wi, n };
+        let uv = Vector2::zeros();
+        let incoming = IncomingRay { wi, n, uv };
         let mut rng = SmallRng::seed_from_u64(0);
 
         let actual = material.sample(&incoming, &mut rng);
@@ -225,7 +241,8 @@ mod specular_refractive_material_tests {
         };
         let wi = Vector3::new(-1.0, -2.0, 0.0).normalize();
         let n = UnitVector3::new_normalize(Vector3::new(0.0, 1.0, 0.0));
-        let incoming = IncomingRay { wi, n };
+        let uv = Vector2::zeros();
+        let incoming = IncomingRay { wi, n, uv };
         let mut rng = SmallRng::seed_from_u64(0);
 
         let actual = material.sample(&incoming, &mut rng);

@@ -551,6 +551,7 @@ name = "scene"
 version = "1.0.0"
 dependencies = [
  "geometry",
+ "image",
  "nalgebra",
  "simba",
  "wavefront",
