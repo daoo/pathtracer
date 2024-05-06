@@ -123,8 +123,8 @@ where
             materials.last_mut().unwrap().transparency = x;
         } else if let Ok((_, _)) = tagged("specularroughness", float, trimmed) {
             // TODO: not supported
-        } else if let Ok((_, _)) = tagged("map_kd", rest, trimmed) {
-            // TODO: not supported
+        } else if let Ok((_, x)) = tagged("map_kd", rest, trimmed) {
+            materials.last_mut().unwrap().diffuse_map = x.to_string();
         } else {
             panic!("Unexpected line: \"{line}\"");
         }
@@ -222,7 +222,10 @@ mod tests {
             mtl_test("newmtl m1\nspecularroughness 1.").materials.len(),
             1
         );
-        assert_eq!(mtl_test("newmtl m1\nmap_kd todo").materials.len(), 1);
+        assert_eq!(
+            mtl_test("newmtl m1\nmap_kd file.png").materials[0].diffuse_map,
+            "file.png"
+        );
     }
 
     #[test]
