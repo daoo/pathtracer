@@ -12,7 +12,7 @@ use scene::{camera::Pinhole, Scene};
 use std::{
     fmt::Display,
     fs::File,
-    io::{BufReader, BufWriter, Write},
+    io::{BufWriter, Write},
     ops::RangeInclusive,
     str::{self, FromStr},
 };
@@ -20,7 +20,6 @@ use tracing::{
     material::Material,
     sampling::{sample_light, uniform_sample_unit_square},
 };
-use wavefront::{mtl, obj};
 
 struct RayBouncer {
     scene: Scene,
@@ -254,24 +253,7 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
-
-    println!("Loading {}...", args.input.display());
-    let obj = obj::obj(&mut BufReader::new(File::open(&args.input).unwrap()));
-    println!("  Chunks: {}", obj.chunks.len());
-    println!("  Vertices: {}", obj.vertices.len());
-    println!("  Normals: {}", obj.normals.len());
-    println!("  Texcoords: {}", obj.texcoords.len());
-
-    let mtl_path = args.input.parent().unwrap().join(&obj.mtl_lib);
-    println!("Loading {}...", mtl_path.display());
-    let mtl = mtl::mtl(&mut BufReader::new(File::open(mtl_path).unwrap()));
-    println!("  Materials: {}", mtl.materials.len());
-    println!("  Lights: {}", mtl.lights.len());
-    println!("  Cameras: {}", mtl.cameras.len());
-
-    println!("Collecting scene...");
-    let scene = Scene::from_wavefront(&obj, &mtl);
-    println!("  Triangles: {}", scene.triangle_data.len());
+    let scene = Scene::read_obj_file_with_print_logging(&args.input);
 
     println!("Building kdtree...");
     let kdtree = build_kdtree(

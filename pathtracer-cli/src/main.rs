@@ -7,15 +7,13 @@ use rand::{rngs::SmallRng, SeedableRng};
 use scene::{camera::Pinhole, Scene};
 use std::{
     fmt::Display,
-    fs::File,
-    io::{BufReader, Write},
+    io::Write,
     str::FromStr,
     sync::mpsc::{self, Receiver, Sender},
     thread,
     time::{Duration, Instant},
 };
 use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLogger};
-use wavefront::{mtl, obj};
 
 #[derive(Clone, Copy, Debug)]
 struct Size {
@@ -154,24 +152,7 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
 
 fn main() {
     let args = Args::parse();
-
-    println!("Loading {}...", args.input.display());
-    let obj = obj::obj(&mut BufReader::new(File::open(&args.input).unwrap()));
-    println!("  Chunks: {}", obj.chunks.len());
-    println!("  Vertices: {}", obj.vertices.len());
-    println!("  Normals: {}", obj.normals.len());
-    println!("  Texcoords: {}", obj.texcoords.len());
-
-    let mtl_path = args.input.parent().unwrap().join(&obj.mtl_lib);
-    println!("Loading {}...", mtl_path.display());
-    let mtl = mtl::mtl(&mut BufReader::new(File::open(mtl_path).unwrap()));
-    println!("  Materials: {}", mtl.materials.len());
-    println!("  Lights: {}", mtl.lights.len());
-    println!("  Cameras: {}", mtl.cameras.len());
-
-    println!("Collecting scene...");
-    let scene = Scene::from_wavefront(&obj, &mtl);
-    println!("  Triangles: {}", scene.triangle_data.len());
+    let scene = Scene::read_obj_file_with_print_logging(&args.input);
 
     println!("Building kdtree...");
     let kdtree = build_kdtree(

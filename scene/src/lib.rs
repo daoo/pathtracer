@@ -1,6 +1,6 @@
 use geometry::triangle::Triangle;
 use nalgebra::{UnitVector3, Vector2, Vector3};
-use std::{collections::BTreeMap, sync::Arc};
+use std::{collections::BTreeMap, fs::File, io::BufReader, path::Path, sync::Arc};
 use wavefront::{mtl, obj};
 
 pub mod camera;
@@ -153,5 +153,26 @@ impl Scene {
             lights: collect_lights(mtl),
             environment: Vector3::new(0.8, 0.8, 0.8),
         }
+    }
+
+    pub fn read_obj_file_with_print_logging(path: &Path) -> Scene {
+        println!("Loading {}...", path.display());
+        let obj = obj::obj(&mut BufReader::new(File::open(path).unwrap()));
+        println!("  Chunks: {}", obj.chunks.len());
+        println!("  Vertices: {}", obj.vertices.len());
+        println!("  Normals: {}", obj.normals.len());
+        println!("  Texcoords: {}", obj.texcoords.len());
+
+        let mtl_path = path.parent().unwrap().join(&obj.mtl_lib);
+        println!("Loading {}...", mtl_path.display());
+        let mtl = mtl::mtl(&mut BufReader::new(File::open(&mtl_path).unwrap()));
+        println!("  Materials: {}", mtl.materials.len());
+        println!("  Lights: {}", mtl.lights.len());
+        println!("  Cameras: {}", mtl.cameras.len());
+
+        println!("Collecting scene...");
+        let scene = Scene::from_wavefront(&obj, &mtl);
+        println!("  Triangles: {}", scene.triangle_data.len());
+        scene
     }
 }

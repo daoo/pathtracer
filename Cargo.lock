@@ -318,7 +318,6 @@ dependencies = [
  "rayon",
  "scene",
  "tracing",
- "wavefront",
 ]
 
 [[package]]
@@ -433,7 +432,6 @@ dependencies = [
  "scene",
  "time",
  "tracing",
- "wavefront",
 ]
 
 [[package]]
@@ -537,7 +535,6 @@ dependencies = [
  "kdtree",
  "scene",
  "tracing",
- "wavefront",
 ]
 
 [[package]]
@@ -681,7 +678,6 @@ dependencies = [
  "rand",
  "scene",
  "simba",
- "wavefront",
 ]
 
 [[package]]
