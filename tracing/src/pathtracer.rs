@@ -2,7 +2,7 @@ use std::ops::RangeInclusive;
 
 use crate::{
     image_buffer::ImageBuffer,
-    material::Material,
+    material::{IncomingRay, Material, OutgoingRay},
     raylogger::RayLogger,
     sampling::{sample_light, uniform_sample_unit_square},
 };
@@ -94,18 +94,19 @@ impl Pathtracer {
                 if self.intersect_any(&shadow_ray, 0.0..=1.0) {
                     return Vector3::zeros();
                 }
-
                 let wo = shadow_ray.direction.normalize();
                 let radiance = light.emitted(point);
-
-                material.brdf(&wi, &wo, &n).component_mul(&radiance) * wo.dot(&n).abs()
+                material
+                    .brdf(&OutgoingRay { wi, n, wo })
+                    .component_mul(&radiance)
+                    * wo.dot(&n).abs()
             })
             .sum();
 
         let accumulated_radiance =
             accumulated_radiance + accumulated_transport.component_mul(&incoming_radiance);
 
-        let sample = material.sample(&wi, &n, pixel.rng);
+        let sample = material.sample(&IncomingRay { wi, n }, pixel.rng);
         let next_ray = Ray {
             origin: if sample.wo.dot(&n) >= 0.0 {
                 point_above

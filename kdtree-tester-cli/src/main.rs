@@ -17,7 +17,7 @@ use std::{
     str::{self, FromStr},
 };
 use tracing::{
-    material::Material,
+    material::{IncomingRay, Material},
     sampling::{sample_light, uniform_sample_unit_square},
 };
 
@@ -159,7 +159,7 @@ impl RayBouncer {
             return Some(*checked);
         }
 
-        let sample = material.sample(&wi, &n, rng);
+        let sample = material.sample(&IncomingRay { wi, n }, rng);
         let next_ray = Ray {
             origin: if sample.wo.dot(&n) >= 0.0 {
                 point_above

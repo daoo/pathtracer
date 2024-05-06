@@ -19,50 +19,87 @@ fn is_same_sign(a: f32, b: f32) -> bool {
     a.signum() == b.signum()
 }
 
-fn is_same_hemisphere(wi: &Vector3<f32>, wo: &Vector3<f32>, n: &UnitVector3<f32>) -> bool {
-    is_same_sign(wi.dot(n), wo.dot(n))
+#[derive(Debug)]
+pub struct IncomingRay {
+    pub wi: Vector3<f32>,
+    pub n: UnitVector3<f32>,
+}
+
+impl IncomingRay {
+    fn with_normal(&self, n: UnitVector3<f32>) -> IncomingRay {
+        IncomingRay { wi: self.wi, n }
+    }
+
+    fn with_wo(&self, wo: Vector3<f32>) -> OutgoingRay {
+        OutgoingRay {
+            wi: self.wi,
+            n: self.n,
+            wo,
+        }
+    }
+
+    fn reflectance(&self, r0: f32) -> f32 {
+        r0 + (1.0 - r0) * (1.0 - self.wi.dot(&self.n).abs()).powf(5.0)
+    }
+}
+
+#[derive(Debug)]
+pub struct OutgoingRay {
+    pub wi: Vector3<f32>,
+    pub n: UnitVector3<f32>,
+    pub wo: Vector3<f32>,
+}
+
+impl OutgoingRay {
+    fn is_same_hemisphere(&self) -> bool {
+        is_same_sign(self.wi.dot(&self.n), self.wo.dot(&self.n))
+    }
+
+    fn as_incoming(&self) -> IncomingRay {
+        IncomingRay {
+            wi: self.wi,
+            n: self.n,
+        }
+    }
 }
 
 pub trait Material {
-    fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &UnitVector3<f32>) -> Vector3<f32>;
+    fn brdf(&self, outgoing: &OutgoingRay) -> Vector3<f32>;
 
-    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, rng: &mut SmallRng)
-        -> MaterialSample;
+    fn sample(&self, incoming: &IncomingRay, rng: &mut SmallRng) -> MaterialSample;
 }
 
 impl Material for DiffuseReflectiveMaterial {
-    fn brdf(&self, _: &Vector3<f32>, _: &Vector3<f32>, _: &UnitVector3<f32>) -> Vector3<f32> {
+    fn brdf(&self, _: &OutgoingRay) -> Vector3<f32> {
         self.reflectance * f32::frac_1_pi()
     }
 
-    fn sample(
-        &self,
-        wi: &Vector3<f32>,
-        n: &UnitVector3<f32>,
-        rng: &mut SmallRng,
-    ) -> MaterialSample {
-        let tangent = perpendicular(n).normalize();
-        let bitangent = n.cross(&tangent);
+    fn sample(&self, incoming: &IncomingRay, rng: &mut SmallRng) -> MaterialSample {
+        let tangent = perpendicular(&incoming.n).normalize();
+        let bitangent = incoming.n.cross(&tangent);
         let s = cosine_sample_hemisphere(rng);
 
-        let wo = UnitVector3::new_normalize(s.x * tangent + s.y * bitangent + s.z * n.into_inner());
+        let wo = UnitVector3::new_normalize(s.x * tangent + s.y * bitangent + s.z * *incoming.n);
         MaterialSample {
             pdf: 1.0,
-            brdf: self.brdf(wi, &wo, n),
+            brdf: self.brdf(&incoming.with_wo(*wo)),
             wo,
         }
     }
 }
 
 impl Material for SpecularReflectiveMaterial {
-    fn brdf(&self, _: &Vector3<f32>, _: &Vector3<f32>, _: &UnitVector3<f32>) -> Vector3<f32> {
+    fn brdf(&self, _: &OutgoingRay) -> Vector3<f32> {
         Vector3::zeros()
     }
 
-    fn sample(&self, wi: &Vector3<f32>, n: &UnitVector3<f32>, _: &mut SmallRng) -> MaterialSample {
-        let wo = UnitVector3::new_normalize(2.0 * wi.dot(n).abs() * n.into_inner() - wi);
-        let pdf = if is_same_hemisphere(wi, &wo, n) {
-            wo.dot(n).abs()
+    fn sample(&self, incoming: &IncomingRay, _: &mut SmallRng) -> MaterialSample {
+        let wo = UnitVector3::new_normalize(
+            2.0 * incoming.wi.dot(&incoming.n).abs() * *incoming.n - incoming.wi,
+        );
+        let outgoing = incoming.with_wo(*wo);
+        let pdf = if outgoing.is_same_hemisphere() {
+            wo.dot(&outgoing.n).abs()
         } else {
             0.0
         };
@@ -75,44 +112,35 @@ impl Material for SpecularReflectiveMaterial {
 }
 
 impl Material for SpecularRefractiveMaterial {
-    fn brdf(&self, _: &Vector3<f32>, _: &Vector3<f32>, _: &UnitVector3<f32>) -> Vector3<f32> {
+    fn brdf(&self, _: &OutgoingRay) -> Vector3<f32> {
         Vector3::zeros()
     }
 
-    fn sample(
-        &self,
-        wi: &Vector3<f32>,
-        n: &UnitVector3<f32>,
-        rng: &mut SmallRng,
-    ) -> MaterialSample {
-        let (eta, n_refracted) = if (-wi).dot(n) < 0.0 {
-            (1.0 / self.index_of_refraction, *n)
+    fn sample(&self, incoming: &IncomingRay, rng: &mut SmallRng) -> MaterialSample {
+        let (eta, n_refracted) = if (-incoming.wi).dot(&incoming.n) < 0.0 {
+            (1.0 / self.index_of_refraction, incoming.n)
         } else {
-            (self.index_of_refraction, -*n)
+            (self.index_of_refraction, -incoming.n)
         };
 
-        let w = -(-wi).dot(&n_refracted) * eta;
+        let w = -(-incoming.wi).dot(&n_refracted) * eta;
         let k = 1.0 + (w - eta) * (w + eta);
         if k < 0.0 {
             const TOTAL_INTERNAL_REFLECTION: SpecularReflectiveMaterial =
                 SpecularReflectiveMaterial {
                     reflectance: Vector3::new(1.0, 1.0, 1.0),
                 };
-            return TOTAL_INTERNAL_REFLECTION.sample(wi, &n_refracted, rng);
+            return TOTAL_INTERNAL_REFLECTION.sample(&incoming.with_normal(n_refracted), rng);
         }
 
         let k = k.sqrt();
-        let wo = UnitVector3::new_normalize(-eta * wi + (w - k) * *n_refracted);
+        let wo = UnitVector3::new_normalize(-eta * incoming.wi + (w - k) * *n_refracted);
         MaterialSample {
             pdf: 1.0,
-            brdf: Vector3::new(1., 1., 1.),
+            brdf: Vector3::new(1.0, 1.0, 1.0),
             wo,
         }
     }
-}
-
-fn reflectance(r0: f32, wi: &Vector3<f32>, n: &Vector3<f32>) -> f32 {
-    r0 + (1.0 - r0) * (1.0 - wi.dot(n).abs()).powf(5.0)
 }
 
 fn mix(x: Vector3<f32>, y: Vector3<f32>, a: f32) -> Vector3<f32> {
@@ -124,24 +152,19 @@ where
     M1: Material,
     M2: Material,
 {
-    fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &UnitVector3<f32>) -> Vector3<f32> {
+    fn brdf(&self, outgoing: &OutgoingRay) -> Vector3<f32> {
         mix(
-            self.refraction.brdf(wi, wo, n),
-            self.reflection.brdf(wi, wo, n),
-            reflectance(self.r0, wi, n),
+            self.refraction.brdf(outgoing),
+            self.reflection.brdf(outgoing),
+            outgoing.as_incoming().reflectance(self.r0),
         )
     }
 
-    fn sample(
-        &self,
-        wi: &Vector3<f32>,
-        n: &UnitVector3<f32>,
-        rng: &mut SmallRng,
-    ) -> MaterialSample {
-        if rng.gen::<f32>() < reflectance(self.r0, wi, n) {
-            self.reflection.sample(wi, n, rng)
+    fn sample(&self, incoming: &IncomingRay, rng: &mut SmallRng) -> MaterialSample {
+        if rng.gen::<f32>() < incoming.reflectance(self.r0) {
+            self.reflection.sample(incoming, rng)
         } else {
-            self.refraction.sample(wi, n, rng)
+            self.refraction.sample(incoming, rng)
         }
     }
 }
@@ -151,24 +174,19 @@ where
     M1: Material,
     M2: Material,
 {
-    fn brdf(&self, wi: &Vector3<f32>, wo: &Vector3<f32>, n: &UnitVector3<f32>) -> Vector3<f32> {
+    fn brdf(&self, outgoing: &OutgoingRay) -> Vector3<f32> {
         mix(
-            self.second.brdf(wi, wo, n),
-            self.first.brdf(wi, wo, n),
+            self.second.brdf(outgoing),
+            self.first.brdf(outgoing),
             self.factor,
         )
     }
 
-    fn sample(
-        &self,
-        wi: &Vector3<f32>,
-        n: &UnitVector3<f32>,
-        rng: &mut SmallRng,
-    ) -> MaterialSample {
+    fn sample(&self, incoming: &IncomingRay, rng: &mut SmallRng) -> MaterialSample {
         if rng.gen::<f32>() < self.factor {
-            self.first.sample(wi, n, rng)
+            self.first.sample(incoming, rng)
         } else {
-            self.second.sample(wi, n, rng)
+            self.second.sample(incoming, rng)
         }
     }
 }
@@ -187,9 +205,10 @@ mod specular_refractive_material_tests {
         };
         let wi = Vector3::new(-1.0, 2.0, 0.0).normalize();
         let n = UnitVector3::new_normalize(Vector3::new(0.0, 1.0, 0.0));
+        let incoming = IncomingRay { wi, n };
         let mut rng = SmallRng::seed_from_u64(0);
 
-        let actual = material.sample(&wi, &n, &mut rng);
+        let actual = material.sample(&incoming, &mut rng);
 
         let n1 = 1.0;
         let n2 = material.index_of_refraction;
@@ -206,9 +225,10 @@ mod specular_refractive_material_tests {
         };
         let wi = Vector3::new(-1.0, -2.0, 0.0).normalize();
         let n = UnitVector3::new_normalize(Vector3::new(0.0, 1.0, 0.0));
+        let incoming = IncomingRay { wi, n };
         let mut rng = SmallRng::seed_from_u64(0);
 
-        let actual = material.sample(&wi, &n, &mut rng);
+        let actual = material.sample(&incoming, &mut rng);
 
         let n1 = material.index_of_refraction;
         let n2 = 1.0;

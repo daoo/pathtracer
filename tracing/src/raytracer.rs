@@ -1,6 +1,9 @@
 use std::ops::RangeInclusive;
 
-use crate::{image_buffer::ImageBuffer, material::Material};
+use crate::{
+    image_buffer::ImageBuffer,
+    material::{Material, OutgoingRay},
+};
 use geometry::{intersection::RayIntersection, ray::Ray};
 use kdtree::KdTree;
 use nalgebra::{UnitVector3, Vector2, Vector3};
@@ -38,10 +41,12 @@ impl Raytracer {
         if self.intersect_any(&shadow_ray, 0.0..=1.0) {
             return Vector3::zeros();
         }
-
-        let wr = direction.normalize();
+        let wo = direction.normalize();
         let radiance = light.emitted(target);
-        material.brdf(&wi, &wr, &n).component_mul(&radiance) * wr.dot(&n).abs()
+        material
+            .brdf(&OutgoingRay { wi, n, wo })
+            .component_mul(&radiance)
+            * wo.dot(&n).abs()
     }
 
     fn trace_ray(&self, ray: &Ray) -> Vector3<f32> {
