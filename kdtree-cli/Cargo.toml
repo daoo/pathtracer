@@ -8,5 +8,5 @@ edition = "2021"
 clap = { version = "4.5.4", features = ["derive"] }
 geometry = { version = "1.0.0", path = "../geometry" }
 kdtree = { version = "1.0.0", path = "../kdtree" }
-time = { version = "0.3.34", features = ["formatting"] }
+time = { version = "0.3.36", features = ["formatting"] }
 wavefront = { version = "1.0.0", path = "../wavefront" }
