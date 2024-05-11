@@ -12,6 +12,7 @@ pub mod clip;
 pub mod geometric;
 pub mod intersection;
 pub mod ray;
+pub mod sphere;
 pub mod triangle;
 
 pub trait Geometry {
