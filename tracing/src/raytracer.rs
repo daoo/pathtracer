@@ -6,8 +6,8 @@ use crate::{
 };
 use geometry::{intersection::RayIntersection, ray::Ray};
 use kdtree::KdTree;
-use nalgebra::{UnitVector3, Vector2, Vector3};
-use scene::{camera::Pinhole, light::SphericalLight, Scene};
+use nalgebra::{Vector2, Vector3};
+use scene::{camera::Pinhole, material::MaterialModel, Scene};
 
 pub struct Raytracer {
     pub scene: Scene,
@@ -22,32 +22,6 @@ impl Raytracer {
 
     fn intersect_any(&self, ray: &Ray, t_range: RangeInclusive<f32>) -> bool {
         self.intersect(ray, t_range).is_some()
-    }
-
-    fn light_contribution(
-        &self,
-        material: &dyn Material,
-        target: Vector3<f32>,
-        offset_point: Vector3<f32>,
-        wi: Vector3<f32>,
-        n: UnitVector3<f32>,
-        uv: Vector2<f32>,
-        light: &SphericalLight,
-    ) -> Vector3<f32> {
-        let direction = light.center - target;
-        let shadow_ray = Ray {
-            origin: offset_point,
-            direction,
-        };
-        if self.intersect_any(&shadow_ray, 0.0..=1.0) {
-            return Vector3::zeros();
-        }
-        let wo = direction.normalize();
-        let radiance = light.emitted(target);
-        material
-            .brdf(&OutgoingRay { wi, n, wo, uv })
-            .component_mul(&radiance)
-            * wo.dot(&n).abs()
     }
 
     fn trace_ray(&self, ray: &Ray) -> Vector3<f32> {
@@ -66,11 +40,27 @@ impl Raytracer {
         // TODO: How to chose offset?
         let offset_point = point + 0.0001 * n.into_inner();
 
-        let material = triangle.material.as_ref();
         self.scene
             .lights
             .iter()
-            .map(|light| self.light_contribution(material, point, offset_point, wi, n, uv, light))
+            .map(|light| {
+                let this = &self;
+                let material: &MaterialModel = &triangle.material;
+                let direction = light.center - point;
+                let shadow_ray = Ray {
+                    origin: offset_point,
+                    direction,
+                };
+                if this.intersect_any(&shadow_ray, 0.0..=1.0) {
+                    return Vector3::zeros();
+                }
+                let wo = direction.normalize();
+                let radiance = light.emitted(point);
+                material
+                    .brdf(&OutgoingRay { wi, n, wo, uv })
+                    .component_mul(&radiance)
+                    * wo.dot(&n).abs()
+            })
             .sum()
     }
 

@@ -126,8 +126,8 @@ fn blend_from_mtl(image_directory: &Path, material: &mtl::Material) -> Arc<Mater
     Arc::new(material)
 }
 
-fn materials_from_mtl<'p, 'm>(
-    image_directory: &'p Path,
+fn materials_from_mtl<'m>(
+    image_directory: &Path,
     mtl: &'m mtl::Mtl,
 ) -> BTreeMap<&'m str, Arc<MaterialModel>> {
     mtl.materials
