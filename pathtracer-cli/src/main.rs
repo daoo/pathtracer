@@ -98,6 +98,7 @@ fn create_ray_logger(thread: u32) -> RayLogger {
 fn worker_thread(
     thread: u32,
     pathtracer: &Pathtracer,
+    camera: &Pinhole,
     size: Size,
     iterations: u32,
     tx: &Sender<Duration>,
@@ -107,7 +108,13 @@ fn worker_thread(
     let mut ray_logger = create_ray_logger(thread);
     for iteration in 0..iterations {
         let t1 = Instant::now();
-        pathtracer.render(iteration as u16, &mut ray_logger, &mut buffer, &mut rng);
+        pathtracer.render(
+            iteration as u16,
+            camera,
+            &mut ray_logger,
+            &mut buffer,
+            &mut rng,
+        );
         let t2 = Instant::now();
         let duration = t2 - t1;
         tx.send(duration).unwrap();
@@ -179,7 +186,6 @@ fn main() {
         max_bounces: args.max_bounces,
         scene,
         kdtree,
-        camera,
     };
 
     thread::scope(|s| {
@@ -189,8 +195,16 @@ fn main() {
             .map(|i| {
                 let tx = tx.clone();
                 let pathtracer = &pathtracer;
+                let camera = &camera;
                 s.spawn(move || {
-                    worker_thread(i, pathtracer, args.size, args.iterations_per_thread, &tx)
+                    worker_thread(
+                        i,
+                        pathtracer,
+                        camera,
+                        args.size,
+                        args.iterations_per_thread,
+                        &tx,
+                    )
                 })
             })
             .collect::<Vec<_>>();

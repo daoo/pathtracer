@@ -16,7 +16,6 @@ pub struct Pathtracer {
     pub max_bounces: u8,
     pub scene: Scene,
     pub kdtree: KdTree,
-    pub camera: Pinhole,
 }
 
 struct Pixel<'a> {
@@ -141,6 +140,7 @@ impl Pathtracer {
     pub fn render(
         &self,
         iteration: u16,
+        camera: &Pinhole,
         ray_logger: &mut RayLogger,
         buffer: &mut ImageBuffer,
         rng: &mut SmallRng,
@@ -151,7 +151,7 @@ impl Pathtracer {
                 let pixel_center =
                     Vector2::new(x as f32, y as f32) + uniform_sample_unit_square(rng);
                 let scene_direction = pixel_center.component_div(&buffer_size);
-                let ray = self.camera.ray(scene_direction.x, scene_direction.y);
+                let ray = camera.ray(scene_direction.x, scene_direction.y);
                 let mut pixel = Pixel {
                     iteration,
                     x: x as u16,
