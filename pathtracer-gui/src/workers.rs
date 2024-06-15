@@ -11,13 +11,6 @@ use rand::{rngs::SmallRng, SeedableRng};
 use scene::camera::{Camera, Pinhole};
 use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLogger};
 
-#[derive(Debug, Clone)]
-struct RenderView {
-    pub width: u32,
-    pub height: u32,
-    pub pinhole: Pinhole,
-}
-
 #[derive(Debug, Clone, Copy)]
 pub struct RenderMeta {
     pub iteration: u16,
@@ -31,20 +24,20 @@ pub struct RenderResult {
 
 fn worker_loop(
     pathtracer: Arc<Pathtracer>,
-    start_view: RenderView,
-    rx: Receiver<RenderView>,
+    start_pinhole: Pinhole,
+    rx: Receiver<Pinhole>,
     tx: Sender<RenderResult>,
 ) {
     let mut rng = SmallRng::from_entropy();
-    let mut buffer = ImageBuffer::new(start_view.width, start_view.height);
-    let mut view = start_view;
+    let mut buffer = ImageBuffer::new(start_pinhole.width, start_pinhole.height);
+    let mut pinhole = start_pinhole;
     let mut iteration = 0;
     loop {
         match rx.try_recv() {
-            Ok(new_view) => {
-                eprintln!("Resetting buffer {new_view:?}");
-                buffer = ImageBuffer::new(new_view.width, new_view.height);
-                view = new_view;
+            Ok(new_pinhole) => {
+                eprintln!("Resetting buffer {new_pinhole:?}");
+                buffer = ImageBuffer::new(new_pinhole.width, new_pinhole.height);
+                pinhole = new_pinhole;
                 iteration = 0;
             }
             Err(mpsc::TryRecvError::Empty) => (),
@@ -59,7 +52,7 @@ fn worker_loop(
         let t1 = time::Instant::now();
         pathtracer.render(
             iteration,
-            &view.pinhole,
+            &pinhole,
             &mut RayLogger::None(),
             &mut buffer,
             &mut rng,
@@ -84,24 +77,19 @@ fn worker_loop(
 pub struct Workers {
     camera: Camera,
     threads: Vec<JoinHandle<()>>,
-    settings: Option<Sender<RenderView>>,
+    settings: Option<Sender<Pinhole>>,
     result: Receiver<RenderResult>,
 }
 
 impl Workers {
     pub fn new(pathtracer: Arc<Pathtracer>, width: u32, height: u32) -> Workers {
-        let (render_settings_tx, render_settings_rx) = mpsc::channel::<RenderView>();
+        let (render_settings_tx, render_settings_rx) = mpsc::channel::<Pinhole>();
         let (render_result_tx, render_result_rx) = mpsc::channel::<RenderResult>();
         let camera = pathtracer.scene.cameras[0].clone();
-        let pinhole = Pinhole::new(&camera, width as f32, height as f32);
-        let view = RenderView {
-            width,
-            height,
-            pinhole,
-        };
+        let pinhole = Pinhole::new(&camera, width, height);
         let thread = std::thread::Builder::new()
             .name("Pathtracer Thread".to_string())
-            .spawn(move || worker_loop(pathtracer, view, render_settings_rx, render_result_tx))
+            .spawn(move || worker_loop(pathtracer, pinhole, render_settings_rx, render_result_tx))
             .unwrap();
 
         Workers {
@@ -113,15 +101,10 @@ impl Workers {
     }
 
     pub fn send(&self, width: u32, height: u32) {
-        let pinhole = Pinhole::new(&self.camera, width as f32, height as f32);
         self.settings
             .as_ref()
             .unwrap()
-            .send(RenderView {
-                width,
-                height,
-                pinhole,
-            })
+            .send(Pinhole::new(&self.camera, width, height))
             .unwrap()
     }
 
