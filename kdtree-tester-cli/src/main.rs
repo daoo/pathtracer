@@ -194,10 +194,6 @@ impl Size {
         Size { width, height }
     }
 
-    fn aspect_ratio(self) -> f32 {
-        self.width as f32 / self.height as f32
-    }
-
     fn as_vec2(self) -> Vector2<f32> {
         Vector2::new(self.width as f32, self.height as f32)
     }
@@ -275,7 +271,7 @@ fn main() {
         "Testing up to {} rays...",
         args.size.width * args.size.height * args.bounces
     );
-    let camera = Pinhole::new(&scene.cameras[0], args.size.aspect_ratio());
+    let camera = Pinhole::new(&scene.cameras[0], args.size.width, args.size.height);
     let bouncer = RayBouncer {
         scene,
         kdtree,

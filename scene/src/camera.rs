@@ -30,6 +30,8 @@ impl Camera {
 
 #[derive(Clone, Debug)]
 pub struct Pinhole {
+    pub width: u32,
+    pub height: u32,
     pub position: Vector3<f32>,
     pub plane: Vector3<f32>,
     pub dx: Vector3<f32>,
@@ -37,13 +39,16 @@ pub struct Pinhole {
 }
 
 impl Pinhole {
-    pub fn new(camera: &Camera, aspect_ratio: f32) -> Pinhole {
+    pub fn new(camera: &Camera, width: u32, height: u32) -> Pinhole {
+        let aspect_ratio = width as f32 / height as f32;
         let half_fov_radians = camera.fov_degrees * std::f32::consts::PI / 360.0;
         let x = camera.right.into_inner() * (half_fov_radians.sin() * aspect_ratio);
         let y = camera.up.into_inner() * half_fov_radians.sin();
         let z = camera.direction.into_inner() * half_fov_radians.cos();
 
         Pinhole {
+            width,
+            height,
             position: camera.position,
             plane: z + y - x,
             dx: 2.0 * x,

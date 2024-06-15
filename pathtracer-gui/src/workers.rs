@@ -93,7 +93,7 @@ impl Workers {
         let (render_settings_tx, render_settings_rx) = mpsc::channel::<RenderView>();
         let (render_result_tx, render_result_rx) = mpsc::channel::<RenderResult>();
         let camera = pathtracer.scene.cameras[0].clone();
-        let pinhole = Pinhole::new(&camera, width as f32 / height as f32);
+        let pinhole = Pinhole::new(&camera, width as f32, height as f32);
         let view = RenderView {
             width,
             height,
@@ -113,7 +113,7 @@ impl Workers {
     }
 
     pub fn send(&self, width: u32, height: u32) {
-        let pinhole = Pinhole::new(&self.camera, width as f32 / height as f32);
+        let pinhole = Pinhole::new(&self.camera, width as f32, height as f32);
         self.settings
             .as_ref()
             .unwrap()

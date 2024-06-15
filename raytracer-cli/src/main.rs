@@ -14,10 +14,6 @@ impl Size {
     fn new(width: u32, height: u32) -> Self {
         Size { width, height }
     }
-
-    fn aspect_ratio(self) -> f32 {
-        self.width as f32 / self.height as f32
-    }
 }
 
 impl FromStr for Size {
@@ -85,7 +81,7 @@ fn main() {
     );
 
     println!("Rendering...");
-    let camera = Pinhole::new(&scene.cameras[0], args.size.aspect_ratio());
+    let camera = Pinhole::new(&scene.cameras[0], args.size.width, args.size.height);
     let raytracer = Raytracer {
         scene,
         kdtree,
