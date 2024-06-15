@@ -1,6 +1,8 @@
 use clap::Parser;
 use eframe::egui;
+use egui::Vec2;
 use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder};
+use nalgebra::Vector3;
 use scene::Scene;
 use std::{str, sync::Arc};
 use tracing::pathtracer::Pathtracer;
@@ -24,6 +26,7 @@ struct Args {
 }
 
 struct PathtracerGui {
+    size: Vec2,
     last_meta: Option<RenderMeta>,
     texture: Option<egui::TextureHandle>,
     workers: Workers,
@@ -32,6 +35,7 @@ struct PathtracerGui {
 impl PathtracerGui {
     fn new(workers: Workers) -> Self {
         Self {
+            size: Vec2::new(512.0, 512.0),
             last_meta: None,
             texture: None,
             workers,
@@ -56,10 +60,27 @@ impl eframe::App for PathtracerGui {
                     }
                 });
 
+                let mut translation = Vector3::zeros();
+                if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
+                    translation.y = 0.1;
+                }
+                if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
+                    translation.y = -0.1;
+                }
+                if ui.input(|i| i.key_pressed(egui::Key::ArrowLeft)) {
+                    translation.x = -0.1;
+                }
+                if ui.input(|i| i.key_pressed(egui::Key::ArrowRight)) {
+                    translation.x = 0.1;
+                }
+
                 if resize {
-                    let width = ui.available_size().x as u32;
-                    let height = ui.available_size().y as u32;
-                    self.workers.send(width, height);
+                    self.size = ui.available_size();
+                }
+
+                if resize || translation != Vector3::zeros() {
+                    self.workers
+                        .send(self.size.x as u32, self.size.y as u32, translation);
                 }
 
                 if let Some(texture) = &self.texture {

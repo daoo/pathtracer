@@ -8,6 +8,7 @@ clap = { version = "4.5.4", features = ["derive"] }
 eframe = { version = "0.27.2", default-features = false, features = ["default_fonts", "x11", "glow"] }
 egui = "0.27.2"
 kdtree = { version = "1.0.0", path = "../kdtree" }
+nalgebra = { version = "0.32.5", default-features = false }
 rand = { version = "0.8.5", default-features = false, features = ["std", "small_rng"] }
 scene = { version = "1.0.0", path = "../scene" }
 tracing = { version = "1.0.0", path = "../tracing" }

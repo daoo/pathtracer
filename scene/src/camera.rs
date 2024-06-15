@@ -26,6 +26,16 @@ impl Camera {
             fov_degrees,
         }
     }
+
+    pub fn translate(&self, v: &Vector3<f32>) -> Self {
+        Camera {
+            position: self.position + v,
+            direction: self.direction,
+            up: self.up,
+            right: self.right,
+            fov_degrees: self.fov_degrees,
+        }
+    }
 }
 
 #[derive(Clone, Debug)]

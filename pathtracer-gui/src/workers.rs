@@ -7,6 +7,7 @@ use std::{
     time,
 };
 
+use nalgebra::Vector3;
 use rand::{rngs::SmallRng, SeedableRng};
 use scene::camera::{Camera, Pinhole};
 use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLogger};
@@ -100,7 +101,8 @@ impl Workers {
         }
     }
 
-    pub fn send(&self, width: u32, height: u32) {
+    pub fn send(&mut self, width: u32, height: u32, translation: Vector3<f32>) {
+        self.camera = self.camera.translate(&translation);
         self.settings
             .as_ref()
             .unwrap()

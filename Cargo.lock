@@ -1669,6 +1669,7 @@ dependencies = [
  "eframe",
  "egui",
  "kdtree",
+ "nalgebra",
  "rand",
  "scene",
  "tracing 1.0.0",
