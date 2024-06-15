@@ -1,18 +1,12 @@
 use clap::Parser;
 use eframe::egui;
 use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder};
-use rand::{rngs::SmallRng, SeedableRng};
-use scene::{camera::Pinhole, Scene};
-use std::{
-    str,
-    sync::{
-        mpsc::{self, TryRecvError},
-        Arc,
-    },
-    thread::JoinHandle,
-    time,
-};
-use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLogger};
+use scene::Scene;
+use std::{str, sync::Arc};
+use tracing::pathtracer::Pathtracer;
+use workers::{RenderMeta, Workers};
+
+mod workers;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -29,109 +23,18 @@ struct Args {
     empty_factor: f32,
 }
 
-#[derive(Debug, Clone)]
-struct RenderSettings {
-    width: u32,
-    height: u32,
-}
-
-#[derive(Debug, Clone, Copy)]
-struct RenderMeta {
-    iteration: u16,
-    duration: time::Duration,
-}
-
-struct RenderResult {
-    meta: RenderMeta,
-    image: egui::ImageData,
-}
-
-fn worker_loop(
-    start_settings: RenderSettings,
-    pathtracer: Arc<Pathtracer>,
-    rx: mpsc::Receiver<RenderSettings>,
-    tx: mpsc::Sender<RenderResult>,
-) {
-    let mut rng = SmallRng::from_entropy();
-    let mut settings = start_settings;
-    let mut buffer = ImageBuffer::new(settings.width, settings.height);
-    let mut pinhole = Pinhole::new(&pathtracer.scene.cameras[0], buffer.aspect_ratio());
-    let mut iteration = 0;
-    loop {
-        match rx.try_recv() {
-            Ok(new_settings) => {
-                eprintln!("Resetting buffer {new_settings:?}");
-                settings = new_settings;
-                buffer = ImageBuffer::new(settings.width, settings.height);
-                pinhole = Pinhole::new(&pathtracer.scene.cameras[0], buffer.aspect_ratio());
-                iteration = 0;
-            }
-            Err(TryRecvError::Empty) => (),
-            Err(_) => return,
-        }
-        eprintln!(
-            "Rendering {}x{} iteration {}",
-            buffer.width(),
-            buffer.height(),
-            iteration
-        );
-        let t1 = time::Instant::now();
-        pathtracer.render(
-            iteration,
-            &pinhole,
-            &mut RayLogger::None(),
-            &mut buffer,
-            &mut rng,
-        );
-        let t2 = time::Instant::now();
-        let duration = t2 - t1;
-        iteration += 1;
-        let image = egui::ColorImage::from_rgba_unmultiplied(
-            [buffer.width() as usize, buffer.height() as usize],
-            &buffer.div(iteration as f32).gamma_correct().to_rgba8(),
-        );
-        let _ = tx.send(RenderResult {
-            meta: RenderMeta {
-                iteration,
-                duration,
-            },
-            image: egui::ImageData::Color(Arc::new(image)),
-        });
-    }
-}
-
-fn new_worker(
-    start_settings: RenderSettings,
-    pathtracer: Arc<Pathtracer>,
-    rx: mpsc::Receiver<RenderSettings>,
-    tx: mpsc::Sender<RenderResult>,
-) -> JoinHandle<()> {
-    std::thread::Builder::new()
-        .name("Pathtracer Thread".to_string())
-        .spawn(move || worker_loop(start_settings, pathtracer, rx, tx))
-        .unwrap()
-}
-
 struct PathtracerGui {
-    settings: RenderSettings,
     last_meta: Option<RenderMeta>,
     texture: Option<egui::TextureHandle>,
-    start_work_tx: mpsc::Sender<RenderSettings>,
-    render_result_rc: mpsc::Receiver<RenderResult>,
+    workers: Workers,
 }
 
 impl PathtracerGui {
-    fn new(
-        settings: RenderSettings,
-        start_work_tx: mpsc::Sender<RenderSettings>,
-        render_result_rc: mpsc::Receiver<RenderResult>,
-    ) -> Self {
+    fn new(workers: Workers) -> Self {
         Self {
-            settings,
             last_meta: None,
             texture: None,
-            start_work_tx,
-            render_result_rc,
+            workers,
         }
     }
 }
@@ -154,10 +57,9 @@ impl eframe::App for PathtracerGui {
                 });
 
                 if resize {
-                    let new_size = [ui.available_size().x as u32, ui.available_size().y as u32];
-                    self.settings.width = new_size[0];
-                    self.settings.height = new_size[1];
-                    self.start_work_tx.send(self.settings.clone()).unwrap();
+                    let width = ui.available_size().x as u32;
+                    let height = ui.available_size().y as u32;
+                    self.workers.send(width, height);
                 }
 
                 if let Some(texture) = &self.texture {
@@ -165,7 +67,7 @@ impl eframe::App for PathtracerGui {
                 }
             });
 
-            if let Ok(result) = self.render_result_rc.try_recv() {
+            if let Some(result) = self.workers.try_recv() {
                 self.texture = Some(ui.ctx().load_texture(
                     "buffer",
                     result.image,
@@ -174,6 +76,10 @@ impl eframe::App for PathtracerGui {
                 self.last_meta = Some(result.meta);
             }
         });
+    }
+
+    fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
+        self.workers.join();
     }
 }
 
@@ -196,35 +102,21 @@ fn main() {
         args.max_depth,
     );
 
-    let settings = RenderSettings {
-        width: 512,
-        height: 512,
-    };
     let pathtracer = Arc::new(Pathtracer {
         max_bounces: 16,
         scene,
         kdtree,
     });
-    let (start_work_tx, start_work_rc) = mpsc::channel::<RenderSettings>();
-    let (render_result_tx, render_result_rc) = mpsc::channel::<RenderResult>();
-    let thread = new_worker(
-        settings.clone(),
-        pathtracer,
-        start_work_rc,
-        render_result_tx,
-    );
-    let gui = Box::new(PathtracerGui::new(
-        settings,
-        start_work_tx.clone(),
-        render_result_rc,
-    ));
+    let gui = PathtracerGui::new(Workers::new(pathtracer, 512, 512));
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default().with_inner_size([512.0, 512.0]),
         ..Default::default()
     };
-    eframe::run_native("pathtracer-cli", options, Box::new(move |_cc| gui)).unwrap();
-
-    drop(start_work_tx);
-    thread.join().unwrap();
+    eframe::run_native(
+        "pathtracer-cli",
+        options,
+        Box::new(move |_cc| Box::new(gui)),
+    )
+    .unwrap();
 }
