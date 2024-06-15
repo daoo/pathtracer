@@ -47,7 +47,7 @@ impl Pathtracer {
             return accumulated_radiance;
         }
 
-        let intersection = self.intersect(ray, 0.0..=std::f32::MAX);
+        let intersection = self.intersect(ray, 0.0..=f32::MAX);
         if intersection.is_none() {
             pixel
                 .ray_logger
