@@ -104,7 +104,7 @@ fn worker_thread(
     let mut ray_logger = create_ray_logger(thread);
     for iteration in 0..iterations {
         let t1 = Instant::now();
-        pathtracer.render(
+        pathtracer.render_mut(
             iteration as u16,
             camera,
             &mut ray_logger,

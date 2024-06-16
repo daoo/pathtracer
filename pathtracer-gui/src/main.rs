@@ -89,11 +89,11 @@ impl eframe::App for PathtracerGui {
             });
 
             if let Some(result) = self.workers.try_recv() {
-                self.texture = Some(ui.ctx().load_texture(
-                    "buffer",
-                    result.image,
-                    Default::default(),
-                ));
+                let image = egui::ColorImage::from_rgba_unmultiplied(
+                    [result.image.width() as usize, result.image.height() as usize],
+                    &result.image.to_rgba8(),
+                );
+                self.texture = Some(ui.ctx().load_texture("buffer", image, Default::default()));
                 self.last_meta = Some(result.meta);
             }
         });

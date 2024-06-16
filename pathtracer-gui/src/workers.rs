@@ -8,9 +8,8 @@ use std::{
 };
 
 use nalgebra::Vector3;
-use rand::{rngs::SmallRng, SeedableRng};
 use scene::camera::{Camera, Pinhole};
-use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLogger};
+use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer};
 
 #[derive(Debug, Clone, Copy)]
 pub struct RenderMeta {
@@ -20,7 +19,7 @@ pub struct RenderMeta {
 
 pub struct RenderResult {
     pub meta: RenderMeta,
-    pub image: egui::ImageData,
+    pub image: ImageBuffer,
 }
 
 fn worker_loop(
@@ -29,16 +28,15 @@ fn worker_loop(
     rx: Receiver<Pinhole>,
     tx: Sender<RenderResult>,
 ) {
-    let mut rng = SmallRng::from_entropy();
-    let mut buffer = ImageBuffer::new(start_pinhole.width, start_pinhole.height);
     let mut pinhole = start_pinhole;
     let mut iteration = 0;
+    let mut combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
     loop {
         match rx.try_recv() {
             Ok(new_pinhole) => {
                 eprintln!("Resetting buffer {new_pinhole:?}");
-                buffer = ImageBuffer::new(new_pinhole.width, new_pinhole.height);
                 pinhole = new_pinhole;
+                combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
                 iteration = 0;
             }
             Err(mpsc::TryRecvError::Empty) => (),
@@ -46,31 +44,22 @@ fn worker_loop(
         }
         eprintln!(
             "Rendering {}x{} iteration {}",
-            buffer.width(),
-            buffer.height(),
-            iteration
+            pinhole.width, pinhole.height, iteration
         );
         let t1 = time::Instant::now();
-        pathtracer.render(
-            iteration,
-            &pinhole,
-            &mut RayLogger::None(),
-            &mut buffer,
-            &mut rng,
-        );
+        combined_buffer.add_mut(&pathtracer.render(&pinhole, 0..pinhole.width, 0..pinhole.height));
         let t2 = time::Instant::now();
         let duration = t2 - t1;
         iteration += 1;
-        let image = egui::ColorImage::from_rgba_unmultiplied(
-            [buffer.width() as usize, buffer.height() as usize],
-            &buffer.div(iteration as f32).gamma_correct().to_rgba8(),
-        );
         let _ = tx.send(RenderResult {
             meta: RenderMeta {
                 iteration,
                 duration,
             },
-            image: egui::ImageData::Color(Arc::new(image)),
+            image: combined_buffer
+                .clone()
+                .div(iteration as f32)
+                .gamma_correct(),
         });
     }
 }

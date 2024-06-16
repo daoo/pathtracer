@@ -1,5 +1,6 @@
 use std::path::Path;
 
+#[derive(Clone)]
 pub struct ImageBuffer(image::ImageBuffer<image::Rgb<f32>, Vec<f32>>);
 
 fn gamma_correct(x: f32) -> f32 {
@@ -10,6 +11,10 @@ fn gamma_correct(x: f32) -> f32 {
 impl ImageBuffer {
     pub fn new(width: u32, height: u32) -> Self {
         ImageBuffer(image::ImageBuffer::new(width, height))
+    }
+
+    pub fn from_vec(width: u32, height: u32, vec: Vec<f32>) -> Option<Self> {
+        image::ImageBuffer::from_vec(width, height, vec).map(ImageBuffer)
     }
 
     pub fn size(&self) -> [u32; 2] {
