@@ -11,14 +11,9 @@ use nalgebra::Vector3;
 use scene::camera::{Camera, Pinhole};
 use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer};
 
-#[derive(Debug, Clone, Copy)]
-pub struct RenderMeta {
+pub struct RenderResult {
     pub iteration: u16,
     pub duration: time::Duration,
-}
-
-pub struct RenderResult {
-    pub meta: RenderMeta,
     pub image: ImageBuffer,
 }
 
@@ -52,10 +47,8 @@ fn worker_loop(
         let duration = t2 - t1;
         iteration += 1;
         let _ = tx.send(RenderResult {
-            meta: RenderMeta {
-                iteration,
-                duration,
-            },
+            iteration,
+            duration,
             image: combined_buffer
                 .clone()
                 .div(iteration as f32)

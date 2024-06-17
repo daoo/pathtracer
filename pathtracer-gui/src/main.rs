@@ -4,9 +4,9 @@ use egui::Vec2;
 use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder};
 use nalgebra::Vector3;
 use scene::Scene;
-use std::{str, sync::Arc};
+use std::{str, sync::Arc, time};
 use tracing::pathtracer::Pathtracer;
-use workers::{RenderMeta, Workers};
+use workers::Workers;
 
 mod workers;
 
@@ -25,10 +25,15 @@ struct Args {
     empty_factor: f32,
 }
 
+struct RenderState {
+    iteration: u16,
+    duration: time::Duration,
+    texture: egui::TextureHandle,
+}
+
 struct PathtracerGui {
     size: Vec2,
-    last_meta: Option<RenderMeta>,
-    texture: Option<egui::TextureHandle>,
+    render: Option<RenderState>,
     workers: Workers,
 }
 
@@ -36,8 +41,7 @@ impl PathtracerGui {
     fn new(workers: Workers) -> Self {
         Self {
             size: Vec2::new(512.0, 512.0),
-            last_meta: None,
-            texture: None,
+            render: None,
             workers,
         }
     }
@@ -48,9 +52,13 @@ impl eframe::App for PathtracerGui {
         ctx.request_repaint_after(std::time::Duration::from_millis(100));
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.vertical(|ui| {
-                ui.label(self.last_meta.map_or("rendering...".to_string(), |meta| {
-                    format!("{} in {} ms", meta.iteration, meta.duration.as_millis())
-                }));
+                ui.label(
+                    self.render
+                        .as_ref()
+                        .map_or("rendering...".to_string(), |meta| {
+                            format!("{} in {} ms", meta.iteration, meta.duration.as_millis())
+                        }),
+                );
 
                 let mut resize = false;
                 ui.horizontal(|ui| {
@@ -83,18 +91,25 @@ impl eframe::App for PathtracerGui {
                         .send(self.size.x as u32, self.size.y as u32, translation);
                 }
 
-                if let Some(texture) = &self.texture {
-                    ui.image(texture);
+                if let Some(render) = &self.render {
+                    ui.image(&render.texture);
                 }
             });
 
             if let Some(result) = self.workers.try_recv() {
                 let image = egui::ColorImage::from_rgba_unmultiplied(
-                    [result.image.width() as usize, result.image.height() as usize],
+                    [
+                        result.image.width() as usize,
+                        result.image.height() as usize,
+                    ],
                     &result.image.to_rgba8(),
                 );
-                self.texture = Some(ui.ctx().load_texture("buffer", image, Default::default()));
-                self.last_meta = Some(result.meta);
+                let texture = ui.ctx().load_texture("buffer", image, Default::default());
+                self.render = Some(RenderState {
+                    iteration: result.iteration,
+                    duration: result.duration,
+                    texture,
+                });
             }
         });
     }
