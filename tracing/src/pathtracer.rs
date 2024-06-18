@@ -21,16 +21,8 @@ pub struct Subdivision {
 }
 
 impl Subdivision {
-    fn width(&self) -> u32 {
-        self.x2 - self.x1
-    }
-
-    fn height(&self) -> u32 {
-        self.y2 - self.y1
-    }
-
-    fn pixels(&self) -> impl Iterator<Item = Vector2<u32>> + '_ {
-        (self.y1..self.y2).flat_map(|y| (self.x1..self.y2).map(move |x| Vector2::new(x, y)))
+    fn contains(&self, pixel: Vector2<u32>) -> bool {
+        (self.x1..self.x2).contains(&pixel.x) && (self.y1..self.y2).contains(&pixel.y)
     }
 }
 
@@ -181,22 +173,6 @@ impl Pathtracer {
         self.trace_ray_defaults(&mut ray_logger, rng, &ray)
     }
 
-    pub fn render(
-        &self,
-        pinhole: &Pinhole,
-        subdivision: Subdivision,
-        ray_logger: &mut RayLoggerWithIteration,
-        rng: &mut SmallRng,
-    ) -> ImageBuffer {
-        let colors = subdivision
-            .pixels()
-            .flat_map(|pixel| -> [f32; 3] {
-                self.render_pixel(pinhole, pixel, ray_logger, rng).into()
-            })
-            .collect::<Vec<_>>();
-        ImageBuffer::from_vec(subdivision.width(), subdivision.height(), colors).unwrap()
-    }
-
     pub fn render_mut(
         &self,
         pinhole: &Pinhole,
@@ -207,6 +183,27 @@ impl Pathtracer {
         for y in 0..buffer.height() {
             for x in 0..buffer.width() {
                 let color = self.render_pixel(pinhole, Vector2::new(x, y), ray_logger, rng);
+                buffer.add_pixel_mut(x, y, color.into());
+            }
+        }
+    }
+
+    pub fn render_subdivided_mut(
+        &self,
+        pinhole: &Pinhole,
+        ray_logger: &mut RayLoggerWithIteration,
+        rng: &mut SmallRng,
+        buffer: &mut ImageBuffer,
+        subdivision: Subdivision,
+    ) {
+        for y in 0..buffer.height() {
+            for x in 0..buffer.width() {
+                let pixel = Vector2::new(x, y);
+                let color = if subdivision.contains(pixel) {
+                    self.render_pixel(pinhole, pixel, ray_logger, rng)
+                } else {
+                    Vector3::zeros()
+                };
                 buffer.add_pixel_mut(x, y, color.into());
             }
         }

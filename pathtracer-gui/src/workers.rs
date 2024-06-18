@@ -31,13 +31,13 @@ fn worker_loop(
     let mut rng = SmallRng::from_entropy();
     let mut pinhole = start_pinhole;
     let mut iteration = 0;
-    let mut combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
+    let mut buffer = ImageBuffer::new(pinhole.width, pinhole.height);
     loop {
         match rx.try_recv() {
             Ok(new_pinhole) => {
                 eprintln!("Resetting buffer {new_pinhole:?}");
                 pinhole = new_pinhole;
-                combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
+                buffer = ImageBuffer::new(pinhole.width, pinhole.height);
                 iteration = 0;
             }
             Err(mpsc::TryRecvError::Empty) => (),
@@ -52,27 +52,26 @@ fn worker_loop(
             writer: &mut RayLoggerWriter::None(),
             iteration,
         };
-        combined_buffer.add_mut(&pathtracer.render(
+        let subdivision = Subdivision {
+            x1: 0,
+            y1: 0,
+            x2: pinhole.width,
+            y2: pinhole.height,
+        };
+        pathtracer.render_subdivided_mut(
             &pinhole,
-            Subdivision {
-                x1: 0,
-                y1: 0,
-                x2: pinhole.width,
-                y2: pinhole.height,
-            },
             &mut ray_logger,
             &mut rng,
-        ));
+            &mut buffer,
+            subdivision,
+        );
         let t2 = time::Instant::now();
         let duration = t2 - t1;
         iteration += 1;
         let _ = tx.send(RenderResult {
             iteration,
             duration,
-            image: combined_buffer
-                .clone()
-                .div(iteration as f32)
-                .gamma_correct(),
+            image: buffer.clone().div(iteration as f32).gamma_correct(),
         });
     }
 }
