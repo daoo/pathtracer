@@ -13,7 +13,7 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
-use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLogger};
+use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLoggerWriter};
 
 #[derive(Clone, Copy, Debug)]
 struct Size {
@@ -82,12 +82,12 @@ struct Args {
     empty_factor: f32,
 }
 
-fn create_ray_logger(thread: u32) -> RayLogger {
+fn create_ray_logger(thread: u32) -> RayLoggerWriter {
     if cfg!(feature = "ray_logging") {
         let path = format!("./tmp/raylog{thread}.bin");
-        RayLogger::create(path).unwrap()
+        RayLoggerWriter::create(path).unwrap()
     } else {
-        RayLogger::None()
+        RayLoggerWriter::None()
     }
 }
 
@@ -105,9 +105,8 @@ fn worker_thread(
     for iteration in 0..iterations {
         let t1 = Instant::now();
         pathtracer.render_mut(
-            iteration as u16,
             camera,
-            &mut ray_logger,
+            &mut ray_logger.with_iteration(iteration as u16),
             &mut buffer,
             &mut rng,
         );

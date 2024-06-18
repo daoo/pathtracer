@@ -12,6 +12,7 @@ use scene::camera::{Camera, Pinhole};
 use tracing::{
     image_buffer::ImageBuffer,
     pathtracer::{Pathtracer, Subdivision},
+    raylogger::{RayLoggerWithIteration, RayLoggerWriter},
 };
 
 pub struct RenderResult {
@@ -45,6 +46,10 @@ fn worker_loop(
             pinhole.width, pinhole.height, iteration
         );
         let t1 = time::Instant::now();
+        let mut ray_logger = RayLoggerWithIteration {
+            writer: &mut RayLoggerWriter::None(),
+            iteration,
+        };
         combined_buffer.add_mut(&pathtracer.render(
             &pinhole,
             Subdivision {
@@ -53,6 +58,7 @@ fn worker_loop(
                 x2: pinhole.width,
                 y2: pinhole.height,
             },
+            &mut ray_logger,
         ));
         let t2 = time::Instant::now();
         let duration = t2 - t1;
