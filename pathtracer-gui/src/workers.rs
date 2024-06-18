@@ -9,7 +9,10 @@ use std::{
 
 use nalgebra::Vector3;
 use scene::camera::{Camera, Pinhole};
-use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer};
+use tracing::{
+    image_buffer::ImageBuffer,
+    pathtracer::{Pathtracer, Subdivision},
+};
 
 pub struct RenderResult {
     pub iteration: u16,
@@ -42,7 +45,15 @@ fn worker_loop(
             pinhole.width, pinhole.height, iteration
         );
         let t1 = time::Instant::now();
-        combined_buffer.add_mut(&pathtracer.render(&pinhole, 0..pinhole.width, 0..pinhole.height));
+        combined_buffer.add_mut(&pathtracer.render(
+            &pinhole,
+            Subdivision {
+                x1: 0,
+                y1: 0,
+                x2: pinhole.width,
+                y2: pinhole.height,
+            },
+        ));
         let t2 = time::Instant::now();
         let duration = t2 - t1;
         iteration += 1;

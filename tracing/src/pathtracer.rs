@@ -1,4 +1,4 @@
-use std::ops::{Range, RangeInclusive};
+use std::ops::RangeInclusive;
 
 use crate::{
     image_buffer::ImageBuffer,
@@ -11,6 +11,28 @@ use kdtree::KdTree;
 use nalgebra::{Vector2, Vector3};
 use rand::{rngs::SmallRng, SeedableRng};
 use scene::{camera::Pinhole, Scene};
+
+#[derive(Debug)]
+pub struct Subdivision {
+    pub x1: u32,
+    pub y1: u32,
+    pub x2: u32,
+    pub y2: u32,
+}
+
+impl Subdivision {
+    fn width(&self) -> u32 {
+        self.x2 - self.x1
+    }
+
+    fn height(&self) -> u32 {
+        self.y2 - self.y1
+    }
+
+    fn pixels(&self) -> impl Iterator<Item = Vector2<u32>> + '_ {
+        (self.y1..self.y2).flat_map(|y| (self.x1..self.y2).map(move |x| Vector2::new(x, y)))
+    }
+}
 
 pub struct Pathtracer {
     pub max_bounces: u8,
@@ -152,58 +174,55 @@ impl Pathtracer {
         )
     }
 
-    fn ray(
-        &self,
-        camera: &Pinhole,
-        buffer_size: &Vector2<f32>,
-        rng: &mut SmallRng,
-        x: u32,
-        y: u32,
-    ) -> Ray {
-        let pixel_center = Vector2::new(x as f32, y as f32) + uniform_sample_unit_square(rng);
-        let scene_direction = pixel_center.component_div(buffer_size);
-        camera.ray(scene_direction.x, scene_direction.y)
+    fn ray(&self, pinhole: &Pinhole, rng: &mut SmallRng, pixel: Vector2<u32>) -> Ray {
+        debug_assert!(pixel.x < pinhole.width && pixel.y < pinhole.height);
+        let pixel_center = pixel.cast() + uniform_sample_unit_square(rng);
+        pinhole.ray(
+            pixel_center.x / pinhole.width as f32,
+            pixel_center.y / pinhole.height as f32,
+        )
     }
 
-    pub fn render(
+    fn render_pixel(
         &self,
         pinhole: &Pinhole,
-        range_x: Range<u32>,
-        range_y: Range<u32>,
-    ) -> ImageBuffer {
-        let width = range_x.len() as u32;
-        let height = range_y.len() as u32;
-        let buffer_size = Vector2::new(width as f32, height as f32);
+        pixel: Vector2<u32>,
+        ray_logger: &mut RayLoggerWithMeta,
+        rng: &mut SmallRng,
+    ) -> Vector3<f32> {
+        let ray = self.ray(pinhole, rng, pixel);
+        self.trace_ray_defaults(ray_logger, rng, &ray)
+    }
+
+    pub fn render(&self, pinhole: &Pinhole, subdivision: Subdivision) -> ImageBuffer {
         let mut rng = SmallRng::from_entropy();
-        let vec = range_y
-            .flat_map(|y| range_x.clone().map(move |x| (x, y)))
-            .flat_map(|p| {
-                let ray = self.ray(pinhole, &buffer_size, &mut rng, p.0, p.1);
+        let colors = subdivision
+            .pixels()
+            .flat_map(|pixel| -> [f32; 3] {
                 let mut ray_logger = RayLoggerWithMeta {
                     ray_logger: &mut RayLogger::None(),
                     iteration: 0,
-                    x: p.0 as u16,
-                    y: p.1 as u16,
+                    x: pixel.x as u16,
+                    y: pixel.y as u16,
                 };
-                let value = self.trace_ray_defaults(&mut ray_logger, &mut rng, &ray);
-                Into::<[f32; 3]>::into(value)
+                self.render_pixel(pinhole, pixel, &mut ray_logger, &mut rng)
+                    .into()
             })
             .collect::<Vec<_>>();
-        ImageBuffer::from_vec(width, height, vec).unwrap()
+        ImageBuffer::from_vec(subdivision.width(), subdivision.height(), colors).unwrap()
     }
 
     pub fn render_mut(
         &self,
         iteration: u16,
-        camera: &Pinhole,
+        pinhole: &Pinhole,
         ray_logger: &mut RayLogger,
         buffer: &mut ImageBuffer,
         rng: &mut SmallRng,
     ) {
-        let buffer_size = Vector2::new(buffer.width() as f32, buffer.height() as f32);
         for y in 0..buffer.height() {
             for x in 0..buffer.width() {
-                let ray = self.ray(camera, &buffer_size, rng, x, y);
+                let ray = self.ray(pinhole, rng, Vector2::new(x, y));
                 let mut ray_logger = RayLoggerWithMeta {
                     ray_logger,
                     iteration,
