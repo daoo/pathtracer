@@ -107,8 +107,8 @@ fn worker_thread(
         pathtracer.render_mut(
             camera,
             &mut ray_logger.with_iteration(iteration as u16),
-            &mut buffer,
             &mut rng,
+            &mut buffer,
         );
         let t2 = Instant::now();
         let duration = t2 - t1;

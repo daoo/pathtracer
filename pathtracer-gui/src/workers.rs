@@ -8,6 +8,7 @@ use std::{
 };
 
 use nalgebra::Vector3;
+use rand::{rngs::SmallRng, SeedableRng};
 use scene::camera::{Camera, Pinhole};
 use tracing::{
     image_buffer::ImageBuffer,
@@ -27,6 +28,7 @@ fn worker_loop(
     rx: Receiver<Pinhole>,
     tx: Sender<RenderResult>,
 ) {
+    let mut rng = SmallRng::from_entropy();
     let mut pinhole = start_pinhole;
     let mut iteration = 0;
     let mut combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
@@ -59,6 +61,7 @@ fn worker_loop(
                 y2: pinhole.height,
             },
             &mut ray_logger,
+            &mut rng,
         ));
         let t2 = time::Instant::now();
         let duration = t2 - t1;

@@ -9,7 +9,7 @@ use crate::{
 use geometry::{intersection::RayIntersection, ray::Ray};
 use kdtree::KdTree;
 use nalgebra::{Vector2, Vector3};
-use rand::{rngs::SmallRng, SeedableRng};
+use rand::rngs::SmallRng;
 use scene::{camera::Pinhole, Scene};
 
 #[derive(Debug)]
@@ -155,7 +155,12 @@ impl Pathtracer {
         )
     }
 
-    fn ray(&self, pinhole: &Pinhole, rng: &mut SmallRng, pixel: Vector2<u32>) -> Ray {
+    fn sample_ray_for_pixel(
+        &self,
+        pinhole: &Pinhole,
+        rng: &mut SmallRng,
+        pixel: Vector2<u32>,
+    ) -> Ray {
         debug_assert!(pixel.x < pinhole.width && pixel.y < pinhole.height);
         let pixel_center = pixel.cast() + uniform_sample_unit_square(rng);
         pinhole.ray(
@@ -168,11 +173,12 @@ impl Pathtracer {
         &self,
         pinhole: &Pinhole,
         pixel: Vector2<u32>,
-        ray_logger: &mut RayLoggerWithIterationAndPixel,
+        ray_logger: &mut RayLoggerWithIteration,
         rng: &mut SmallRng,
     ) -> Vector3<f32> {
-        let ray = self.ray(pinhole, rng, pixel);
-        self.trace_ray_defaults(ray_logger, rng, &ray)
+        let mut ray_logger = ray_logger.with_pixel(pixel.x as u16, pixel.y as u16);
+        let ray = self.sample_ray_for_pixel(pinhole, rng, pixel);
+        self.trace_ray_defaults(&mut ray_logger, rng, &ray)
     }
 
     pub fn render(
@@ -180,14 +186,12 @@ impl Pathtracer {
         pinhole: &Pinhole,
         subdivision: Subdivision,
         ray_logger: &mut RayLoggerWithIteration,
+        rng: &mut SmallRng,
     ) -> ImageBuffer {
-        let mut rng = SmallRng::from_entropy();
         let colors = subdivision
             .pixels()
             .flat_map(|pixel| -> [f32; 3] {
-                let mut ray_logger = ray_logger.with_pixel(pixel.x as u16, pixel.y as u16);
-                self.render_pixel(pinhole, pixel, &mut ray_logger, &mut rng)
-                    .into()
+                self.render_pixel(pinhole, pixel, ray_logger, rng).into()
             })
             .collect::<Vec<_>>();
         ImageBuffer::from_vec(subdivision.width(), subdivision.height(), colors).unwrap()
@@ -197,15 +201,13 @@ impl Pathtracer {
         &self,
         pinhole: &Pinhole,
         ray_logger: &mut RayLoggerWithIteration,
-        buffer: &mut ImageBuffer,
         rng: &mut SmallRng,
+        buffer: &mut ImageBuffer,
     ) {
         for y in 0..buffer.height() {
             for x in 0..buffer.width() {
-                let ray = self.ray(pinhole, rng, Vector2::new(x, y));
-                let mut ray_logger = ray_logger.with_pixel(x as u16, y as u16);
-                let value = self.trace_ray_defaults(&mut ray_logger, rng, &ray);
-                buffer.add_pixel_mut(x, y, value.into());
+                let color = self.render_pixel(pinhole, Vector2::new(x, y), ray_logger, rng);
+                buffer.add_pixel_mut(x, y, color.into());
             }
         }
     }
