@@ -24,6 +24,7 @@ pub struct RenderResult {
 
 fn worker_loop(
     pathtracer: Arc<Pathtracer>,
+    half: u32,
     start_pinhole: Pinhole,
     rx: Receiver<Pinhole>,
     tx: Sender<RenderResult>,
@@ -54,9 +55,13 @@ fn worker_loop(
         };
         let subdivision = Subdivision {
             x1: 0,
-            y1: 0,
+            y1: if half == 0 { 0 } else { pinhole.height / 2 },
             x2: pinhole.width,
-            y2: pinhole.height,
+            y2: if half == 0 {
+                pinhole.height / 2
+            } else {
+                pinhole.height
+            },
         };
         pathtracer.render_subdivided_mut(
             &pinhole,
@@ -79,25 +84,41 @@ fn worker_loop(
 pub struct Workers {
     camera: Camera,
     threads: Vec<JoinHandle<()>>,
-    settings: Option<Sender<Pinhole>>,
+    settings: Vec<Sender<Pinhole>>,
     result: Receiver<RenderResult>,
 }
 
 impl Workers {
     pub fn new(pathtracer: Arc<Pathtracer>, width: u32, height: u32) -> Workers {
-        let (render_settings_tx, render_settings_rx) = mpsc::channel::<Pinhole>();
         let (render_result_tx, render_result_rx) = mpsc::channel::<RenderResult>();
         let camera = pathtracer.scene.cameras[0].clone();
         let pinhole = Pinhole::new(&camera, width, height);
-        let thread = std::thread::Builder::new()
-            .name("Pathtracer Thread".to_string())
-            .spawn(move || worker_loop(pathtracer, pinhole, render_settings_rx, render_result_tx))
-            .unwrap();
+        let (render_settings_txs, threads): (Vec<_>, Vec<_>) = (0..=1)
+            .map(|thread| {
+                let pathtracer = pathtracer.clone();
+                let pinhole = pinhole.clone();
+                let (render_settings_tx, render_settings_rx) = mpsc::channel::<Pinhole>();
+                let render_result_tx = render_result_tx.clone();
+                let thread = std::thread::Builder::new()
+                    .name(format!("Pathtracer Thread {thread}"))
+                    .spawn(move || {
+                        worker_loop(
+                            pathtracer,
+                            thread,
+                            pinhole,
+                            render_settings_rx,
+                            render_result_tx,
+                        )
+                    })
+                    .unwrap();
+                (render_settings_tx, thread)
+            })
+            .unzip();
 
         Workers {
             camera,
-            threads: vec![thread],
-            settings: Some(render_settings_tx),
+            threads,
+            settings: render_settings_txs,
             result: render_result_rx,
         }
     }
@@ -105,10 +126,8 @@ impl Workers {
     pub fn send(&mut self, width: u32, height: u32, translation: Vector3<f32>) {
         self.camera = self.camera.translate(&translation);
         self.settings
-            .as_ref()
-            .unwrap()
-            .send(Pinhole::new(&self.camera, width, height))
-            .unwrap()
+            .iter()
+            .for_each(|tx| tx.send(Pinhole::new(&self.camera, width, height)).unwrap());
     }
 
     pub fn try_recv(&self) -> Option<RenderResult> {
@@ -116,7 +135,7 @@ impl Workers {
     }
 
     pub fn join(&mut self) {
-        self.settings = None;
+        self.settings.clear();
         while let Some(thread) = self.threads.pop() {
             thread.join().unwrap();
         }
