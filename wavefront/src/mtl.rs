@@ -117,7 +117,7 @@ where
             materials.last_mut().unwrap().reflection_0_degrees = x;
         } else if let Ok((_, x)) = tagged("reflat90deg", float, trimmed) {
             materials.last_mut().unwrap().reflection_90_degrees = x;
-        } else if let Ok((_, x)) = tagged("indexofrefraction", float, trimmed) {
+        } else if let Ok((_, x)) = tagged("ni", float, trimmed) {
             materials.last_mut().unwrap().index_of_refraction = x;
         } else if let Ok((_, x)) = tagged("transparency", float, trimmed) {
             materials.last_mut().unwrap().transparency = x;
@@ -203,16 +203,16 @@ mod tests {
             [1., 2., 3.]
         );
         assert_eq!(
-            mtl_test("newmtl m1\nreflat0deg 1.").materials[0].reflection_0_degrees,
-            1.
+            mtl_test("newmtl m1\nreflat0deg 0.5").materials[0].reflection_0_degrees,
+            0.5
         );
         assert_eq!(
-            mtl_test("newmtl m1\nreflat90deg 1.").materials[0].reflection_90_degrees,
-            1.
+            mtl_test("newmtl m1\nreflat90deg 0.5").materials[0].reflection_90_degrees,
+            0.5
         );
         assert_eq!(
-            mtl_test("newmtl m1\nindexofrefraction 1.").materials[0].index_of_refraction,
-            1.
+            mtl_test("newmtl m1\nni 0.5").materials[0].index_of_refraction,
+            0.5
         );
         assert_eq!(
             mtl_test("newmtl m1\ntransparency 1.").materials[0].transparency,

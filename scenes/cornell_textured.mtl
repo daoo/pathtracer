@@ -53,7 +53,7 @@ newmtl LeftBox
 	kd 0.25 0.25 0.805804
 	reflat0deg 0.3
 	reflAt90Deg 1.0
-	indexOfRefraction 1.55
+	ni 1.55
 	transparency 0.0
 	specularroughness 0.001
 
@@ -62,6 +62,6 @@ newmtl RightBox
 	kd 0.18 0.725 0.725
 	reflat0deg 0.2
 	reflAt90Deg 1.0
-	indexOfRefraction 1.55
+	ni 1.55
 	transparency 1.0
 	specularroughness 0.001
