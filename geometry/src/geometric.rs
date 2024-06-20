@@ -11,6 +11,7 @@ pub enum Geometric {
 }
 
 impl Geometry for Geometric {
+    #[inline]
     fn min(&self) -> Vector3<f32> {
         match self {
             Geometric::Triangle(t) => t.min(),
@@ -18,6 +19,7 @@ impl Geometry for Geometric {
         }
     }
 
+    #[inline]
     fn max(&self) -> Vector3<f32> {
         match self {
             Geometric::Triangle(t) => t.max(),
@@ -25,6 +27,7 @@ impl Geometry for Geometric {
         }
     }
 
+    #[inline]
     fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
         match self {
             Geometric::Triangle(t) => t.intersect_ray(ray),
@@ -32,6 +35,7 @@ impl Geometry for Geometric {
         }
     }
 
+    #[inline]
     fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
         match self {
             Geometric::Triangle(t) => t.clip_aabb(aabb),

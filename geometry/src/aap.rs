@@ -46,6 +46,7 @@ impl Aap {
             .then(f32::total_cmp(&self.distance, &other.distance))
     }
 
+    #[inline]
     pub fn intersect_ray(&self, ray: &Ray) -> Option<f32> {
         let denom = ray.direction[self.axis];
         if denom == 0.0 {

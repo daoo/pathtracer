@@ -44,12 +44,14 @@ impl Axis {
 
 impl std::ops::Index<Axis> for Vector3<f32> {
     type Output = f32;
+    #[inline]
     fn index(&self, idx: Axis) -> &f32 {
         &self[idx as usize]
     }
 }
 
 impl std::ops::IndexMut<Axis> for Vector3<f32> {
+    #[inline]
     fn index_mut(&mut self, idx: Axis) -> &mut f32 {
         &mut self[idx as usize]
     }

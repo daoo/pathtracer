@@ -66,6 +66,7 @@ impl Pinhole {
         }
     }
 
+    #[inline]
     pub fn ray(&self, x: f32, y: f32) -> Ray {
         Ray {
             origin: self.position,
