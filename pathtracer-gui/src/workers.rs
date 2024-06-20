@@ -3,7 +3,7 @@ use std::{
         mpsc::{self, Receiver, Sender},
         Arc,
     },
-    thread::JoinHandle,
+    thread::{self, JoinHandle},
     time,
 };
 
@@ -24,21 +24,19 @@ pub struct RenderResult {
 
 fn worker_loop(
     pathtracer: Arc<Pathtracer>,
-    half: u32,
     start_pinhole: Pinhole,
     rx: Receiver<Pinhole>,
     tx: Sender<RenderResult>,
 ) {
-    let mut rng = SmallRng::from_entropy();
     let mut pinhole = start_pinhole;
     let mut iteration = 0;
-    let mut buffer = ImageBuffer::new(pinhole.width, pinhole.height);
+    let mut combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
     loop {
         match rx.try_recv() {
             Ok(new_pinhole) => {
                 eprintln!("Resetting buffer {new_pinhole:?}");
                 pinhole = new_pinhole;
-                buffer = ImageBuffer::new(pinhole.width, pinhole.height);
+                combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
                 iteration = 0;
             }
             Err(mpsc::TryRecvError::Empty) => (),
@@ -49,34 +47,54 @@ fn worker_loop(
             pinhole.width, pinhole.height, iteration
         );
         let t1 = time::Instant::now();
-        let mut ray_logger = RayLoggerWithIteration {
-            writer: &mut RayLoggerWriter::None(),
-            iteration,
-        };
-        let subdivision = Subdivision {
-            x1: 0,
-            y1: if half == 0 { 0 } else { pinhole.height / 2 },
-            x2: pinhole.width,
-            y2: if half == 0 {
-                pinhole.height / 2
-            } else {
-                pinhole.height
-            },
-        };
-        pathtracer.render_subdivided_mut(
-            &pinhole,
-            &mut ray_logger,
-            &mut rng,
-            &mut buffer,
-            subdivision,
-        );
+        let [tl, tr, bl, br] = thread::scope(|s| {
+            let spawn = |x, y, w, h| {
+                let pathtracer = pathtracer.clone();
+                let pinhole = pinhole.clone();
+                s.spawn(move || {
+                    let mut rng = SmallRng::from_entropy();
+                    let mut buffer = ImageBuffer::new(pinhole.width, pinhole.height);
+                    let mut ray_logger = RayLoggerWithIteration {
+                        writer: &mut RayLoggerWriter::None(),
+                        iteration,
+                    };
+                    let subdivision = Subdivision {
+                        x1: x,
+                        y1: y,
+                        x2: x + w,
+                        y2: y + h,
+                    };
+                    pathtracer.render_subdivided_mut(
+                        &pinhole,
+                        &mut ray_logger,
+                        &mut rng,
+                        &mut buffer,
+                        subdivision,
+                    );
+                    buffer
+                })
+            };
+            let w = pinhole.width / 2;
+            let h = pinhole.height / 2;
+            let tl = spawn(0, 0, w, h);
+            let tr = spawn(w, 0, w, h);
+            let bl = spawn(0, h, w, h);
+            let br = spawn(w, h, w, h);
+            [
+                tl.join().unwrap(),
+                tr.join().unwrap(),
+                bl.join().unwrap(),
+                br.join().unwrap(),
+            ]
+        });
         let t2 = time::Instant::now();
         let duration = t2 - t1;
         iteration += 1;
+        combined_buffer.add_mut(&tl.add(&tr).add(&bl).add(&br));
         let _ = tx.send(RenderResult {
             iteration,
             duration,
-            image: buffer.clone().div(iteration as f32).gamma_correct(),
+            image: combined_buffer.div(iteration as f32).gamma_correct(),
         });
     }
 }
@@ -93,32 +111,16 @@ impl Workers {
         let (render_result_tx, render_result_rx) = mpsc::channel::<RenderResult>();
         let camera = pathtracer.scene.cameras[0].clone();
         let pinhole = Pinhole::new(&camera, width, height);
-        let (render_settings_txs, threads): (Vec<_>, Vec<_>) = (0..=1)
-            .map(|thread| {
-                let pathtracer = pathtracer.clone();
-                let pinhole = pinhole.clone();
-                let (render_settings_tx, render_settings_rx) = mpsc::channel::<Pinhole>();
-                let render_result_tx = render_result_tx.clone();
-                let thread = std::thread::Builder::new()
-                    .name(format!("Pathtracer Thread {thread}"))
-                    .spawn(move || {
-                        worker_loop(
-                            pathtracer,
-                            thread,
-                            pinhole,
-                            render_settings_rx,
-                            render_result_tx,
-                        )
-                    })
-                    .unwrap();
-                (render_settings_tx, thread)
-            })
-            .unzip();
+        let (render_settings_tx, render_settings_rx) = mpsc::channel::<Pinhole>();
+        let thread = std::thread::Builder::new()
+            .name("Pathtracer Thread".to_string())
+            .spawn(move || worker_loop(pathtracer, pinhole, render_settings_rx, render_result_tx))
+            .unwrap();
 
         Workers {
             camera,
-            threads,
-            settings: render_settings_txs,
+            threads: vec![thread],
+            settings: vec![render_settings_tx],
             result: render_result_rx,
         }
     }
