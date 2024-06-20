@@ -54,7 +54,7 @@ newmtl LeftBox
 	reflat0deg 0.3
 	reflAt90Deg 1.0
 	ni 1.55
-	transparency 0.0
+	tr 0.0
 	specularroughness 0.001
 
 newmtl RightBox
@@ -63,5 +63,5 @@ newmtl RightBox
 	reflat0deg 0.2
 	reflAt90Deg 1.0
 	ni 1.55
-	transparency 1.0
+	tr 1.0
 	specularroughness 0.001

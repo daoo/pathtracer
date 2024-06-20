@@ -39,7 +39,7 @@ newmtl Bottle
 	reflat0deg 0.1
 	reflat90deg 1.0
 	ni 1.4
-	transparency 1.0
+	tr 1.0
 
 newmtl Cork
 	kd 0.6745 0.5725 0.4902

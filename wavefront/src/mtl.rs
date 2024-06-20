@@ -119,7 +119,7 @@ where
             materials.last_mut().unwrap().reflection_90_degrees = x;
         } else if let Ok((_, x)) = tagged("ni", float, trimmed) {
             materials.last_mut().unwrap().index_of_refraction = x;
-        } else if let Ok((_, x)) = tagged("transparency", float, trimmed) {
+        } else if let Ok((_, x)) = tagged("tr", float, trimmed) {
             materials.last_mut().unwrap().transparency = x;
         } else if let Ok((_, _)) = tagged("specularroughness", float, trimmed) {
             // TODO: not supported
@@ -215,8 +215,8 @@ mod tests {
             0.5
         );
         assert_eq!(
-            mtl_test("newmtl m1\ntransparency 1.").materials[0].transparency,
-            1.
+            mtl_test("newmtl m1\ntr 0.5").materials[0].transparency,
+            0.5
         );
         assert_eq!(
             mtl_test("newmtl m1\nspecularroughness 1.").materials.len(),
