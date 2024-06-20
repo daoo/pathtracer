@@ -2462,6 +2462,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "wavefront-cli"
+version = "1.0.0"
+dependencies = [
+ "wavefront",
+]
+
+[[package]]
 name = "wayland-backend"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
