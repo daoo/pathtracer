@@ -115,6 +115,8 @@ where
             materials.last_mut().unwrap().diffuse_reflection = x;
         } else if let Ok((_, x)) = tagged("ks", vec3, trimmed) {
             materials.last_mut().unwrap().specular_reflection = x;
+        } else if let Ok((_, _)) = tagged("ns", float, trimmed) {
+            // TODO: not supported
         } else if let Ok((_, _)) = tagged("ke", float, trimmed) {
             // TODO: not supported
         } else if let Ok((_, x)) = tagged("reflat0deg", float, trimmed) {
