@@ -209,6 +209,10 @@ mod tests {
             [1., 2., 3.]
         );
         assert_eq!(
+            mtl_test("newmtl m1\nmap_Kd file.png").materials[0].diffuse_map,
+            "file.png"
+        );
+        assert_eq!(
             mtl_test("newmtl m1\nKs 1. 2. 3.").materials[0].specular_reflection,
             [1., 2., 3.]
         );
@@ -224,14 +228,11 @@ mod tests {
             mtl_test("newmtl m1\nNi 0.5").materials[0].index_of_refraction,
             0.5
         );
+        assert_eq!(mtl_test("newmtl m1\nd 1.0").materials[0].transparency, 0.0);
         assert_eq!(mtl_test("newmtl m1\nTr 0.5").materials[0].transparency, 0.5);
         assert_eq!(
             mtl_test("newmtl m1\nspecularroughness 1.").materials.len(),
             1
-        );
-        assert_eq!(
-            mtl_test("newmtl m1\nmap_Kd file.png").materials[0].diffuse_map,
-            "file.png"
         );
     }
 
