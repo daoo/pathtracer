@@ -20,34 +20,34 @@ newcamera Camera02
 	camerafov 45.0
 
 newmtl GreenWall
-	kd 0.3137 0.8039 0.3294
+	Kd 0.3137 0.8039 0.3294
 
 newmtl Floor
-	kd 0.7843 0.7843 0.7843
+	Kd 0.7843 0.7843 0.7843
 
 newmtl Roof
-	kd 0.0902 0.0902 0.0902
+	Kd 0.0902 0.0902 0.0902
 
 newmtl BlueWall
-	kd 0.3294 0.3451 0.7255
+	Kd 0.3294 0.3451 0.7255
 
 newmtl RedWall
-	kd 0.7529 0.3059 0.3137
+	Kd 0.7529 0.3059 0.3137
 
 newmtl LeftBox
-	ks 0.7 0.7 0.7
-	kd 0.8 0.8 0.205804
+	Ks 0.7 0.7 0.7
+	Kd 0.8 0.8 0.205804
 	reflat0deg 0.3
 	reflat90deg 1.0
-	ni 1.55
-	tr 0.0
+	Ni 1.55
+	Tr 0.0
 	specularroughness 0.001
 
 newmtl RightBox
-	ks 0.7 0.7 0.7
-	kd 0.18 0.725 0.725
+	Ks 0.7 0.7 0.7
+	Kd 0.18 0.725 0.725
 	reflat0deg 0.2
 	reflat90deg 1.0
-	ni 1.55
-	tr 1.0
+	Ni 1.55
+	Tr 1.0
 	specularroughness 0.001

@@ -29,13 +29,13 @@ newcamera Camera01
 	camerafov 45.0
 
 newmtl Material.001
-	kd 1.0 1.0 1.0
+	Kd 1.0 1.0 1.0
 
 newmtl Material.002
-	kd 1.0 1.0 1.0
+	Kd 1.0 1.0 1.0
 
 newmtl Material.003
-	kd 1.0 1.0 1.0
+	Kd 1.0 1.0 1.0
 
 newmtl Material.004
-	kd 1.0 1.0 1.0
+	Kd 1.0 1.0 1.0

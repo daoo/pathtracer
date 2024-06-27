@@ -1,5 +1,5 @@
 use nom::{
-    bytes::complete::tag_no_case, character::complete::multispace0, combinator::rest,
+    bytes::complete::tag, character::complete::multispace0, combinator::rest,
     number::complete::float, sequence::Tuple, IResult,
 };
 use std::io::BufRead;
@@ -61,7 +61,7 @@ fn tagged<'a, O>(
     data: impl Fn(&'a str) -> IResult<&'a str, O>,
     input: &'a str,
 ) -> IResult<&'a str, O> {
-    let (input, _) = tag_no_case(name)(input)?;
+    let (input, _) = tag(name)(input)?;
     let (input, _) = multispace0(input)?;
     data(input)
 }
@@ -111,30 +111,30 @@ where
             materials.push(Material::new(name.to_string()));
         } else if let Ok((_, _)) = tagged("illum", float, trimmed) {
             // TODO: not supported
-        } else if let Ok((_, _)) = tagged("ka", float, trimmed) {
+        } else if let Ok((_, _)) = tagged("Ka", float, trimmed) {
             // TODO: not supported
-        } else if let Ok((_, x)) = tagged("kd", vec3, trimmed) {
+        } else if let Ok((_, x)) = tagged("Kd", vec3, trimmed) {
             materials.last_mut().unwrap().diffuse_reflection = x;
-        } else if let Ok((_, x)) = tagged("ks", vec3, trimmed) {
+        } else if let Ok((_, x)) = tagged("map_Kd", rest, trimmed) {
+            materials.last_mut().unwrap().diffuse_map = x.to_string();
+        } else if let Ok((_, x)) = tagged("Ks", vec3, trimmed) {
             materials.last_mut().unwrap().specular_reflection = x;
-        } else if let Ok((_, _)) = tagged("ns", float, trimmed) {
+        } else if let Ok((_, _)) = tagged("Ns", float, trimmed) {
             // TODO: not supported
-        } else if let Ok((_, _)) = tagged("ke", float, trimmed) {
+        } else if let Ok((_, _)) = tagged("Ke", float, trimmed) {
             // TODO: not supported
         } else if let Ok((_, x)) = tagged("reflat0deg", float, trimmed) {
             materials.last_mut().unwrap().reflection_0_degrees = x;
         } else if let Ok((_, x)) = tagged("reflat90deg", float, trimmed) {
             materials.last_mut().unwrap().reflection_90_degrees = x;
-        } else if let Ok((_, x)) = tagged("ni", float, trimmed) {
+        } else if let Ok((_, x)) = tagged("Ni", float, trimmed) {
             materials.last_mut().unwrap().index_of_refraction = x;
         } else if let Ok((_, x)) = tagged("d", float, trimmed) {
             materials.last_mut().unwrap().transparency = 1.0 - x;
-        } else if let Ok((_, x)) = tagged("tr", float, trimmed) {
+        } else if let Ok((_, x)) = tagged("Tr", float, trimmed) {
             materials.last_mut().unwrap().transparency = x;
         } else if let Ok((_, _)) = tagged("specularroughness", float, trimmed) {
             // TODO: not supported
-        } else if let Ok((_, x)) = tagged("map_kd", rest, trimmed) {
-            materials.last_mut().unwrap().diffuse_map = x.to_string();
         } else {
             panic!("Unexpected line: \"{line}\"");
         }
@@ -205,11 +205,11 @@ mod tests {
         assert_eq!(mtl_test("newmtl m1").materials.len(), 1);
         assert_eq!(mtl_test("newmtl m1").materials[0].name, "m1");
         assert_eq!(
-            mtl_test("newmtl m1\nkd 1. 2. 3.").materials[0].diffuse_reflection,
+            mtl_test("newmtl m1\nKd 1. 2. 3.").materials[0].diffuse_reflection,
             [1., 2., 3.]
         );
         assert_eq!(
-            mtl_test("newmtl m1\nks 1. 2. 3.").materials[0].specular_reflection,
+            mtl_test("newmtl m1\nKs 1. 2. 3.").materials[0].specular_reflection,
             [1., 2., 3.]
         );
         assert_eq!(
@@ -221,19 +221,16 @@ mod tests {
             0.5
         );
         assert_eq!(
-            mtl_test("newmtl m1\nni 0.5").materials[0].index_of_refraction,
+            mtl_test("newmtl m1\nNi 0.5").materials[0].index_of_refraction,
             0.5
         );
-        assert_eq!(
-            mtl_test("newmtl m1\ntr 0.5").materials[0].transparency,
-            0.5
-        );
+        assert_eq!(mtl_test("newmtl m1\nTr 0.5").materials[0].transparency, 0.5);
         assert_eq!(
             mtl_test("newmtl m1\nspecularroughness 1.").materials.len(),
             1
         );
         assert_eq!(
-            mtl_test("newmtl m1\nmap_kd file.png").materials[0].diffuse_map,
+            mtl_test("newmtl m1\nmap_Kd file.png").materials[0].diffuse_map,
             "file.png"
         );
     }
