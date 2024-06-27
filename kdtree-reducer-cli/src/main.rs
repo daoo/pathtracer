@@ -152,11 +152,18 @@ fn main() {
         .iter()
         .flat_map(|chunk| {
             chunk.faces.iter().map(|face| {
-                Geometric::from(Triangle {
-                    v0: obj.index_vertex(&face.p0).into(),
-                    v1: obj.index_vertex(&face.p1).into(),
-                    v2: obj.index_vertex(&face.p2).into(),
-                })
+                if face.points.len() != 3 {
+                    panic!(
+                        "Only tringular faces supported but found {} vertices.",
+                        face.points.len()
+                    );
+                }
+                Triangle {
+                    v0: obj.index_vertex(&face.points[0]).into(),
+                    v1: obj.index_vertex(&face.points[1]).into(),
+                    v2: obj.index_vertex(&face.points[2]).into(),
+                }
+                .into()
             })
         })
         .collect::<Vec<_>>();

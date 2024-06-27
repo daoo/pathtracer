@@ -66,20 +66,26 @@ fn collect_triangle_data(
         .iter()
         .flat_map(|chunk| {
             chunk.faces.iter().map(|face| {
+                if face.points.len() != 3 {
+                    panic!(
+                        "Only tringular faces supported but found {} vertices.",
+                        face.points.len()
+                    );
+                }
                 let triangle = Triangle {
-                    v0: obj.index_vertex(&face.p0).into(),
-                    v1: obj.index_vertex(&face.p1).into(),
-                    v2: obj.index_vertex(&face.p2).into(),
+                    v0: obj.index_vertex(&face.points[0]).into(),
+                    v1: obj.index_vertex(&face.points[1]).into(),
+                    v2: obj.index_vertex(&face.points[2]).into(),
                 };
                 let normals = TriangleNormals {
-                    n0: obj.index_normal(&face.p0).into(),
-                    n1: obj.index_normal(&face.p1).into(),
-                    n2: obj.index_normal(&face.p2).into(),
+                    n0: obj.index_normal(&face.points[0]).into(),
+                    n1: obj.index_normal(&face.points[1]).into(),
+                    n2: obj.index_normal(&face.points[2]).into(),
                 };
                 let texcoords = TriangleTexcoords {
-                    uv0: obj.index_texcoord(&face.p0).into(),
-                    uv1: obj.index_texcoord(&face.p1).into(),
-                    uv2: obj.index_texcoord(&face.p2).into(),
+                    uv0: obj.index_texcoord(&face.points[0]).into(),
+                    uv1: obj.index_texcoord(&face.points[1]).into(),
+                    uv2: obj.index_texcoord(&face.points[2]).into(),
                 };
                 TriangleData {
                     triangle,

@@ -1,7 +1,8 @@
 use nom::{
     bytes::complete::tag_no_case,
-    character::complete::{char, i32, multispace0},
+    character::complete::{char, i32, multispace0, multispace1},
     combinator::{opt, rest},
+    multi::separated_list0,
     number::complete::float,
     sequence::Tuple,
     IResult,
@@ -17,9 +18,7 @@ pub struct Point {
 
 #[derive(Debug, PartialEq)]
 pub struct Face {
-    pub p0: Point,
-    pub p1: Point,
-    pub p2: Point,
+    pub points: Vec<Point>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -99,10 +98,8 @@ fn point(input: &str) -> IResult<&str, Point> {
         .map(|(input, (v, _, t, _, n))| (input, Point { v, t, n }))
 }
 
-fn triangle(input: &str) -> IResult<&str, Face> {
-    (point, multispace0, point, multispace0, point)
-        .parse(input)
-        .map(|(input, (p0, _, p1, _, p2))| (input, Face { p0, p1, p2 }))
+fn face(input: &str) -> IResult<&str, Face> {
+    separated_list0(multispace1, point)(input).map(|(input, points)| (input, Face { points }))
 }
 
 pub fn obj<R>(input: &mut R) -> Obj
@@ -133,7 +130,7 @@ where
             normals.push(x);
         } else if let Ok((_, x)) = tagged("vt", vec2, trimmed) {
             texcoords.push(x);
-        } else if let Ok((_, x)) = tagged("f", triangle, trimmed) {
+        } else if let Ok((_, x)) = tagged("f", face, trimmed) {
             chunks.last_mut().unwrap().faces.push(x);
         } else if let Ok((_, _)) = tagged("o", rest, trimmed) {
             // TODO: not supported
@@ -204,9 +201,29 @@ mod tests {
             obj_test("usemtl m1\nf 1/2/3 4/5/6 7/8/9").chunks,
             [Chunk {
                 faces: vec![Face {
-                    p0: Point { v: 1, t: 2, n: 3 },
-                    p1: Point { v: 4, t: 5, n: 6 },
-                    p2: Point { v: 7, t: 8, n: 9 }
+                    points: vec![
+                        Point { v: 1, t: 2, n: 3 },
+                        Point { v: 4, t: 5, n: 6 },
+                        Point { v: 7, t: 8, n: 9 }
+                    ]
+                }],
+                material: "m1".to_string()
+            }]
+        );
+        assert_eq!(
+            obj_test("usemtl m1\nf 1/2/3 4/5/6 7/8/9 10/11/12").chunks,
+            [Chunk {
+                faces: vec![Face {
+                    points: vec![
+                        Point { v: 1, t: 2, n: 3 },
+                        Point { v: 4, t: 5, n: 6 },
+                        Point { v: 7, t: 8, n: 9 },
+                        Point {
+                            v: 10,
+                            t: 11,
+                            n: 12
+                        }
+                    ]
                 }],
                 material: "m1".to_string()
             }]
