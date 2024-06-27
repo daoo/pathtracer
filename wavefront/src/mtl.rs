@@ -109,6 +109,8 @@ where
             cameras.last_mut().unwrap().fov = x;
         } else if let Ok((_, name)) = tagged("newmtl", rest, trimmed) {
             materials.push(Material::new(name.to_string()));
+        } else if let Ok((_, _)) = tagged("ka", float, trimmed) {
+            // TODO: not supported
         } else if let Ok((_, x)) = tagged("kd", vec3, trimmed) {
             materials.last_mut().unwrap().diffuse_reflection = x;
         } else if let Ok((_, x)) = tagged("ks", vec3, trimmed) {
