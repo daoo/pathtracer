@@ -132,6 +132,8 @@ where
             texcoords.push(x);
         } else if let Ok((_, x)) = tagged("f", face, trimmed) {
             chunks.last_mut().unwrap().faces.push(x);
+        } else if let Ok((_, _)) = tagged("g", rest, trimmed) {
+            // TODO: not supported
         } else if let Ok((_, _)) = tagged("o", rest, trimmed) {
             // TODO: not supported
         } else if let Ok((_, _)) = tagged("s", rest, trimmed) {
@@ -256,6 +258,7 @@ mod tests {
 
     #[test]
     fn test_unsupported() {
+        assert_eq!(obj_test("g mesh1 model").chunks.len(), 0);
         assert_eq!(obj_test("o todo").chunks.len(), 0);
         assert_eq!(obj_test("s todo").chunks.len(), 0);
     }
