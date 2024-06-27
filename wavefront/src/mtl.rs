@@ -121,6 +121,8 @@ where
             materials.last_mut().unwrap().reflection_90_degrees = x;
         } else if let Ok((_, x)) = tagged("ni", float, trimmed) {
             materials.last_mut().unwrap().index_of_refraction = x;
+        } else if let Ok((_, x)) = tagged("d", float, trimmed) {
+            materials.last_mut().unwrap().transparency = 1.0 - x;
         } else if let Ok((_, x)) = tagged("tr", float, trimmed) {
             materials.last_mut().unwrap().transparency = x;
         } else if let Ok((_, _)) = tagged("specularroughness", float, trimmed) {
