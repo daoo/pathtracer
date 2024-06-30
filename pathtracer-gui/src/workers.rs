@@ -107,14 +107,21 @@ pub struct Workers {
 }
 
 impl Workers {
-    pub fn new(pathtracer: Arc<Pathtracer>, width: u32, height: u32) -> Workers {
+    pub fn new(pathtracer: Pathtracer, width: u32, height: u32) -> Workers {
         let (render_result_tx, render_result_rx) = mpsc::channel::<RenderResult>();
         let camera = pathtracer.scene.cameras[0].clone();
         let pinhole = Pinhole::new(&camera, width, height);
         let (render_settings_tx, render_settings_rx) = mpsc::channel::<Pinhole>();
         let thread = std::thread::Builder::new()
             .name("Pathtracer Thread".to_string())
-            .spawn(move || worker_loop(pathtracer, pinhole, render_settings_rx, render_result_tx))
+            .spawn(move || {
+                worker_loop(
+                    Arc::new(pathtracer),
+                    pinhole,
+                    render_settings_rx,
+                    render_result_tx,
+                )
+            })
             .unwrap();
 
         Workers {
