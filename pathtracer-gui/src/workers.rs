@@ -7,9 +7,8 @@ use std::{
     time,
 };
 
-use nalgebra::Vector3;
 use rand::{rngs::SmallRng, SeedableRng};
-use scene::camera::{Camera, Pinhole};
+use scene::camera::Pinhole;
 use tracing::{
     image_buffer::ImageBuffer,
     pathtracer::{Pathtracer, Subdivision},
@@ -100,17 +99,14 @@ fn worker_loop(
 }
 
 pub struct Workers {
-    camera: Camera,
     threads: Vec<JoinHandle<()>>,
     settings: Vec<Sender<Pinhole>>,
     result: Receiver<RenderResult>,
 }
 
 impl Workers {
-    pub fn new(pathtracer: Pathtracer, width: u32, height: u32) -> Workers {
+    pub fn new(pathtracer: Pathtracer, pinhole: Pinhole) -> Workers {
         let (render_result_tx, render_result_rx) = mpsc::channel::<RenderResult>();
-        let camera = pathtracer.scene.cameras[0].clone();
-        let pinhole = Pinhole::new(&camera, width, height);
         let (render_settings_tx, render_settings_rx) = mpsc::channel::<Pinhole>();
         let thread = std::thread::Builder::new()
             .name("Pathtracer Thread".to_string())
@@ -125,18 +121,16 @@ impl Workers {
             .unwrap();
 
         Workers {
-            camera,
             threads: vec![thread],
             settings: vec![render_settings_tx],
             result: render_result_rx,
         }
     }
 
-    pub fn send(&mut self, width: u32, height: u32, translation: Vector3<f32>) {
-        self.camera = self.camera.translate(&translation);
+    pub fn send(&mut self, pinhole: &Pinhole) {
         self.settings
             .iter()
-            .for_each(|tx| tx.send(Pinhole::new(&self.camera, width, height)).unwrap());
+            .for_each(|tx| tx.send(pinhole.clone()).unwrap());
     }
 
     pub fn try_recv(&self) -> Option<RenderResult> {

@@ -2,6 +2,7 @@ use std::time;
 
 use egui::Vec2;
 use nalgebra::Vector3;
+use scene::camera::{Camera, Pinhole};
 use tracing::pathtracer::Pathtracer;
 
 use crate::workers::Workers;
@@ -15,15 +16,20 @@ struct RenderState {
 pub(crate) struct PathtracerGui {
     size: Vec2,
     render: Option<RenderState>,
+    camera: Camera,
     workers: Workers,
 }
 
 impl PathtracerGui {
     pub(crate) fn new(pathtracer: Pathtracer) -> Self {
+        let (w, h) = (512, 512);
+        let camera = pathtracer.scene.cameras[0].clone();
+        let pinhole = Pinhole::new(&camera, w, h);
         Self {
-            size: Vec2::new(512.0, 512.0),
+            size: Vec2::new(w as f32, h as f32),
             render: None,
-            workers: Workers::new(pathtracer, 512, 512),
+            camera: pathtracer.scene.cameras[0].clone(),
+            workers: Workers::new(pathtracer, pinhole),
         }
     }
 
@@ -76,8 +82,10 @@ impl eframe::App for PathtracerGui {
                 }
 
                 if resize || translation != Vector3::zeros() {
-                    self.workers
-                        .send(self.size.x as u32, self.size.y as u32, translation);
+                    self.camera = self.camera.translate(&translation);
+                    let pinhole =
+                        Pinhole::new(&self.camera, self.size.x as u32, self.size.y as u32);
+                    self.workers.send(&pinhole);
                 }
 
                 if let Some(render) = &self.render {
