@@ -31,15 +31,17 @@ fn worker_loop(
     let mut iteration = 0;
     let mut combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
     loop {
-        match rx.try_recv() {
-            Ok(new_pinhole) => {
-                eprintln!("Resetting buffer {new_pinhole:?}");
-                pinhole = new_pinhole;
-                combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
-                iteration = 0;
+        loop {
+            match rx.try_recv() {
+                Ok(new_pinhole) => {
+                    eprintln!("Resetting buffer {new_pinhole:?}");
+                    pinhole = new_pinhole;
+                    combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
+                    iteration = 0;
+                }
+                Err(mpsc::TryRecvError::Empty) => break,
+                Err(mpsc::TryRecvError::Disconnected) => return,
             }
-            Err(mpsc::TryRecvError::Empty) => (),
-            Err(mpsc::TryRecvError::Disconnected) => return,
         }
         eprintln!(
             "Rendering {}x{} iteration {}",

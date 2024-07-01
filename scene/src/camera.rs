@@ -27,9 +27,9 @@ impl Camera {
         }
     }
 
-    pub fn translate(&self, v: &Vector3<f32>) -> Self {
+    pub fn with_position(&self, position: Vector3<f32>) -> Self {
         Camera {
-            position: self.position + v,
+            position,
             direction: self.direction,
             up: self.up,
             right: self.right,

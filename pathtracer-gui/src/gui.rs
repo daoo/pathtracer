@@ -16,18 +16,20 @@ struct RenderState {
 pub(crate) struct PathtracerGui {
     size: Vec2,
     render: Option<RenderState>,
+    last_update: Option<time::Instant>,
     camera: Camera,
     workers: Workers,
 }
 
 impl PathtracerGui {
     pub(crate) fn new(pathtracer: Pathtracer) -> Self {
-        let (w, h) = (512, 512);
+        let (w, h) = (256, 256);
         let camera = pathtracer.scene.cameras[0].clone();
         let pinhole = Pinhole::new(&camera, w, h);
         Self {
             size: Vec2::new(w as f32, h as f32),
             render: None,
+            last_update: None,
             camera: pathtracer.scene.cameras[0].clone(),
             workers: Workers::new(pathtracer, pinhole),
         }
@@ -63,29 +65,50 @@ impl eframe::App for PathtracerGui {
                     }
                 });
 
-                let mut translation = Vector3::zeros();
-                if ui.input(|i| i.key_pressed(egui::Key::ArrowUp)) {
-                    translation.y = 0.1;
-                }
-                if ui.input(|i| i.key_pressed(egui::Key::ArrowDown)) {
-                    translation.y = -0.1;
-                }
-                if ui.input(|i| i.key_pressed(egui::Key::ArrowLeft)) {
-                    translation.x = -0.1;
-                }
-                if ui.input(|i| i.key_pressed(egui::Key::ArrowRight)) {
-                    translation.x = 0.1;
-                }
+                let movement_value = |key1, key2| {
+                    let (key1, key2) = ui.input(|i| (i.key_down(key1), i.key_down(key2)));
+                    if key1 && !key2 {
+                        -1.0
+                    } else if !key1 && key2 {
+                        1.0
+                    } else {
+                        0.0
+                    }
+                };
+                let translation = Vector3::new(
+                    movement_value(egui::Key::A, egui::Key::E),
+                    movement_value(egui::Key::Semicolon, egui::Key::Period),
+                    movement_value(egui::Key::O, egui::Key::Comma),
+                );
 
                 if resize {
                     self.size = ui.available_size();
-                }
-
-                if resize || translation != Vector3::zeros() {
-                    self.camera = self.camera.translate(&translation);
                     let pinhole =
                         Pinhole::new(&self.camera, self.size.x as u32, self.size.y as u32);
                     self.workers.send(&pinhole);
+                    ctx.request_repaint_after(time::Duration::from_millis(10));
+                } else if translation != Vector3::zeros() {
+                    let now = time::Instant::now();
+                    if let Some(last_update) = self.last_update {
+                        let delta = (now - last_update).as_secs_f32();
+                        const TRANSLATION_SPEED: f32 = 2.0;
+                        let translation_x = delta * TRANSLATION_SPEED * translation.x;
+                        let translation_y = delta * TRANSLATION_SPEED * translation.y;
+                        let translation_z = delta * TRANSLATION_SPEED * translation.z;
+                        self.camera = self.camera.with_position(
+                            self.camera.position
+                                + translation_x * *self.camera.right
+                                + translation_y * *self.camera.up
+                                + translation_z * *self.camera.direction,
+                        );
+                        let pinhole =
+                            Pinhole::new(&self.camera, self.size.x as u32, self.size.y as u32);
+                        self.workers.send(&pinhole);
+                        ctx.request_repaint_after(time::Duration::from_millis(10));
+                    }
+                    self.last_update = Some(now);
+                } else {
+                    self.last_update = None;
                 }
 
                 if let Some(render) = &self.render {
@@ -93,7 +116,7 @@ impl eframe::App for PathtracerGui {
                 }
             });
 
-            if let Some(result) = self.workers.try_recv() {
+            while let Some(result) = self.workers.try_recv() {
                 let image = egui::ColorImage::from_rgba_unmultiplied(
                     [
                         result.image.width() as usize,
