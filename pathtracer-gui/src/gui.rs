@@ -109,7 +109,18 @@ impl PathtracerGui {
         )
     }
 
-    pub fn set_pinhole(&mut self, pinhole: &Pinhole) {
+    pub fn set_size(&mut self, size: Vec2) {
+        self.size = size;
+        self.update_pinhole();
+    }
+
+    pub fn set_camera_position(&mut self, camera_position: Vector3<f32>) {
+        self.camera = self.camera.with_position(camera_position);
+        self.update_pinhole();
+    }
+
+    pub fn update_pinhole(&mut self) {
+        let pinhole = Pinhole::new(&self.camera, self.size.x as u32, self.size.y as u32);
         self.worker_tx
             .iter()
             .for_each(|tx| tx.send(pinhole.clone()).unwrap());
@@ -128,6 +139,42 @@ impl PathtracerGui {
 impl eframe::App for PathtracerGui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
+            if let Some(image) = self.image.lock().unwrap().take() {
+                self.texture = Some(ui.ctx().load_texture("buffer", image, Default::default()));
+            }
+
+            let movement_value =
+                |key1, key2| match ui.input(|i| (i.key_down(key1), i.key_down(key2))) {
+                    (true, false) => -1.0,
+                    (false, true) => 1.0,
+                    _ => 0.0,
+                };
+            let translation = Vector3::new(
+                movement_value(egui::Key::A, egui::Key::E),
+                movement_value(egui::Key::Semicolon, egui::Key::Period),
+                movement_value(egui::Key::O, egui::Key::Comma),
+            );
+
+            if translation != Vector3::zeros() {
+                let now = time::Instant::now();
+                if let Some(last_update) = self.last_update {
+                    let delta = (now - last_update).as_secs_f32();
+                    const TRANSLATION_SPEED: f32 = 2.0;
+                    let translation_x = delta * TRANSLATION_SPEED * translation.x;
+                    let translation_y = delta * TRANSLATION_SPEED * translation.y;
+                    let translation_z = delta * TRANSLATION_SPEED * translation.z;
+                    self.set_camera_position(
+                        self.camera.position
+                            + translation_x * *self.camera.right
+                            + translation_y * *self.camera.up
+                            + translation_z * *self.camera.direction,
+                    );
+                }
+                self.last_update = Some(now);
+            } else {
+                self.last_update = None;
+            }
+
             ui.with_layout(
                 egui::Layout::centered_and_justified(egui::Direction::LeftToRight),
                 |ui| {
@@ -159,62 +206,19 @@ impl eframe::App for PathtracerGui {
                         ui.horizontal(|ui| {
                             resize = ui.button("Auto-Size").clicked();
                             if ui.button("Exit").clicked() {
-                                ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
+                                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                             }
                         });
                     });
 
-                    let movement_value =
-                        |key1, key2| match ui.input(|i| (i.key_down(key1), i.key_down(key2))) {
-                            (true, false) => -1.0,
-                            (false, true) => 1.0,
-                            _ => 0.0,
-                        };
-                    let translation = Vector3::new(
-                        movement_value(egui::Key::A, egui::Key::E),
-                        movement_value(egui::Key::Semicolon, egui::Key::Period),
-                        movement_value(egui::Key::O, egui::Key::Comma),
-                    );
-
                     if resize {
-                        self.size = ui.available_size();
-                        let pinhole =
-                            Pinhole::new(&self.camera, self.size.x as u32, self.size.y as u32);
-                        self.set_pinhole(&pinhole);
-                        ctx.request_repaint_after(time::Duration::from_millis(10));
-                    } else if translation != Vector3::zeros() {
-                        let now = time::Instant::now();
-                        if let Some(last_update) = self.last_update {
-                            let delta = (now - last_update).as_secs_f32();
-                            const TRANSLATION_SPEED: f32 = 2.0;
-                            let translation_x = delta * TRANSLATION_SPEED * translation.x;
-                            let translation_y = delta * TRANSLATION_SPEED * translation.y;
-                            let translation_z = delta * TRANSLATION_SPEED * translation.z;
-                            self.camera = self.camera.with_position(
-                                self.camera.position
-                                    + translation_x * *self.camera.right
-                                    + translation_y * *self.camera.up
-                                    + translation_z * *self.camera.direction,
-                            );
-                            let pinhole =
-                                Pinhole::new(&self.camera, self.size.x as u32, self.size.y as u32);
-                            self.set_pinhole(&pinhole);
-                            ctx.request_repaint_after(time::Duration::from_millis(10));
-                        }
-                        self.last_update = Some(now);
-                    } else {
-                        self.last_update = None;
+                        self.set_size(ui.available_size());
                     }
-
                     if let Some(texture) = &self.texture {
                         ui.image(texture);
                     }
                 },
             );
-
-            if let Some(image) = self.image.lock().unwrap().take() {
-                self.texture = Some(ui.ctx().load_texture("buffer", image, Default::default()));
-            }
         });
     }
 
