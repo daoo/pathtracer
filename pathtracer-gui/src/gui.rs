@@ -41,9 +41,7 @@ fn spawn_receiver_thread(
                             result.image.width() as usize,
                             result.image.height() as usize,
                         ],
-                        &result
-                            .image
-                            .div(result.iteration as f32)
+                        &(result.image / result.iteration as f32)
                             .gamma_correct()
                             .to_rgba8(),
                     ));

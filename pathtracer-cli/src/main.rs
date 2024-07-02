@@ -8,6 +8,7 @@ use scene::{camera::Pinhole, Scene};
 use std::{
     fmt::Display,
     io::Write,
+    ops::Add,
     str::FromStr,
     sync::mpsc::{self, Receiver, Sender},
     thread,
@@ -206,7 +207,7 @@ fn main() {
         let printer = s.spawn(move || printer_thread(args.threads, total_iterations, &rx));
 
         let buffers = threads.into_iter().map(|t| t.join().unwrap());
-        let buffer = buffers.reduce(|a, b| a.add(&b)).unwrap();
+        let buffer = buffers.reduce(Add::add).unwrap();
         drop(tx);
         printer.join().unwrap();
 
@@ -217,8 +218,7 @@ fn main() {
         );
 
         println!("Writing {}...", args.output.display());
-        buffer
-            .div(total_iterations as f32)
+        (buffer / total_iterations as f32)
             .gamma_correct()
             .save_png(&args.output)
             .unwrap();

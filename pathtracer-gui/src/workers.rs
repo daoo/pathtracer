@@ -91,7 +91,7 @@ fn worker_loop(
         let t2 = time::Instant::now();
         let duration = t2 - t1;
         iteration += 1;
-        combined_buffer.add_mut(&tl.add(&tr).add(&bl).add(&br));
+        combined_buffer.add_mut(&(tl + tr + bl + br));
         let _ = tx.send(RenderResult {
             iteration,
             duration,

@@ -182,8 +182,11 @@ impl Pathtracer {
     ) {
         for y in 0..buffer.height() {
             for x in 0..buffer.width() {
-                let color = self.render_pixel(pinhole, Vector2::new(x, y), ray_logger, rng);
-                buffer.add_pixel_mut(x, y, color.into());
+                buffer.add_pixel_mut(
+                    x,
+                    y,
+                    self.render_pixel(pinhole, Vector2::new(x, y), ray_logger, rng),
+                );
             }
         }
     }
@@ -204,7 +207,7 @@ impl Pathtracer {
                 } else {
                     Vector3::zeros()
                 };
-                buffer.add_pixel_mut(x, y, color.into());
+                buffer.add_pixel_mut(x, y, color);
             }
         }
     }

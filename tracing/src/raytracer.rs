@@ -71,8 +71,7 @@ impl Raytracer {
                 let pixel_center = Vector2::new(x as f32, y as f32) + Vector2::new(0.5, 0.5);
                 let scene_direction = pixel_center.component_div(&buffer_size);
                 let ray = self.camera.ray(scene_direction.x, scene_direction.y);
-                let value = self.trace_ray(&ray);
-                buffer.add_pixel_mut(x, y, value.into());
+                buffer.add_pixel_mut(x, y, self.trace_ray(&ray));
             }
         }
     }
