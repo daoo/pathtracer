@@ -1,5 +1,8 @@
 use std::{
-    sync::mpsc::{Receiver, Sender},
+    sync::{
+        mpsc::{Receiver, Sender},
+        Arc, Mutex,
+    },
     thread::JoinHandle,
     time,
 };
@@ -14,17 +17,19 @@ use crate::workers::{spawn_worker, RenderResult};
 struct RenderState {
     iteration: u16,
     duration: time::Duration,
-    texture: egui::TextureHandle,
 }
 
 pub(crate) struct PathtracerGui {
     size: Vec2,
-    render: Option<RenderState>,
+    render: Arc<Mutex<Option<RenderState>>>,
+    image: Arc<Mutex<Option<egui::ColorImage>>>,
+    texture: Option<egui::TextureHandle>,
     last_update: Option<time::Instant>,
     camera: Camera,
+    receiver_thread: Option<JoinHandle<()>>,
     worker_thread: Option<JoinHandle<()>>,
     worker_tx: Option<Sender<Pinhole>>,
-    worker_rx: Receiver<RenderResult>,
+    worker_rx: Option<Receiver<RenderResult>>,
 }
 
 impl PathtracerGui {
@@ -35,31 +40,61 @@ impl PathtracerGui {
         let (thread, tx, rx) = spawn_worker(pathtracer, pinhole);
         Self {
             size: Vec2::new(w as f32, h as f32),
-            render: None,
+            render: Arc::new(Mutex::new(None)),
+            image: Arc::new(Mutex::new(None)),
+            texture: None,
             last_update: None,
             camera,
+            receiver_thread: None,
             worker_thread: Some(thread),
             worker_tx: Some(tx),
-            worker_rx: rx,
+            worker_rx: Some(rx),
         }
     }
 
-    pub(crate) fn run(self) -> Result<(), eframe::Error> {
+    pub(crate) fn run(mut self) -> Result<(), eframe::Error> {
         eframe::run_native(
             "pathtracer-gui",
             Default::default(),
-            Box::new(move |_cc| Box::new(self)),
+            Box::new(move |_cc| {
+                let render_ptr = Arc::clone(&self.render);
+                let image_ptr = Arc::clone(&self.image);
+                let ctx = _cc.egui_ctx.clone();
+                let rx = self.worker_rx.take().unwrap();
+                self.receiver_thread = std::thread::Builder::new()
+                    .name("GUI receiver".to_string())
+                    .spawn(move || {
+                        while let Ok(result) = rx.recv() {
+                            render_ptr.lock().unwrap().replace(RenderState {
+                                iteration: result.iteration,
+                                duration: result.duration,
+                            });
+                            image_ptr.lock().unwrap().replace(
+                                egui::ColorImage::from_rgba_unmultiplied(
+                                    [
+                                        result.image.width() as usize,
+                                        result.image.height() as usize,
+                                    ],
+                                    &result
+                                        .image
+                                        .div(result.iteration as f32)
+                                        .gamma_correct()
+                                        .to_rgba8(),
+                                ),
+                            );
+                            ctx.request_repaint();
+                        }
+                    })
+                    .ok();
+                Box::new(self)
+            }),
         )
     }
 
-    pub fn send(&mut self, pinhole: &Pinhole) {
+    pub fn set_pinhole(&mut self, pinhole: &Pinhole) {
         self.worker_tx
             .iter()
             .for_each(|tx| tx.send(pinhole.clone()).unwrap());
-    }
-
-    pub fn try_recv(&self) -> Option<RenderResult> {
-        self.worker_rx.try_recv().ok()
     }
 
     pub fn stop_worker_thread(&mut self) {
@@ -74,11 +109,12 @@ impl PathtracerGui {
 
 impl eframe::App for PathtracerGui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        ctx.request_repaint_after(std::time::Duration::from_millis(100));
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.vertical(|ui| {
                 ui.label(
                     self.render
+                        .lock()
+                        .unwrap()
                         .as_ref()
                         .map_or("rendering...".to_string(), |meta| {
                             format!("{} in {} ms", meta.iteration, meta.duration.as_millis())
@@ -113,7 +149,7 @@ impl eframe::App for PathtracerGui {
                     self.size = ui.available_size();
                     let pinhole =
                         Pinhole::new(&self.camera, self.size.x as u32, self.size.y as u32);
-                    self.send(&pinhole);
+                    self.set_pinhole(&pinhole);
                     ctx.request_repaint_after(time::Duration::from_millis(10));
                 } else if translation != Vector3::zeros() {
                     let now = time::Instant::now();
@@ -131,7 +167,7 @@ impl eframe::App for PathtracerGui {
                         );
                         let pinhole =
                             Pinhole::new(&self.camera, self.size.x as u32, self.size.y as u32);
-                        self.send(&pinhole);
+                        self.set_pinhole(&pinhole);
                         ctx.request_repaint_after(time::Duration::from_millis(10));
                     }
                     self.last_update = Some(now);
@@ -139,30 +175,19 @@ impl eframe::App for PathtracerGui {
                     self.last_update = None;
                 }
 
-                if let Some(render) = &self.render {
-                    ui.image(&render.texture);
+                if let Some(texture) = &self.texture {
+                    ui.image(texture);
                 }
             });
 
-            while let Some(result) = self.try_recv() {
-                let image = egui::ColorImage::from_rgba_unmultiplied(
-                    [
-                        result.image.width() as usize,
-                        result.image.height() as usize,
-                    ],
-                    &result.image.to_rgba8(),
-                );
-                let texture = ui.ctx().load_texture("buffer", image, Default::default());
-                self.render = Some(RenderState {
-                    iteration: result.iteration,
-                    duration: result.duration,
-                    texture,
-                });
+            if let Some(image) = self.image.lock().unwrap().take() {
+                self.texture = Some(ui.ctx().load_texture("buffer", image, Default::default()));
             }
         });
     }
 
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
         self.stop_worker_thread();
+        self.receiver_thread.take().unwrap().join().unwrap();
     }
 }

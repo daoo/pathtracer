@@ -95,7 +95,7 @@ fn worker_loop(
         let _ = tx.send(RenderResult {
             iteration,
             duration,
-            image: combined_buffer.div(iteration as f32).gamma_correct(),
+            image: combined_buffer.clone(),
         });
     }
 }
@@ -107,7 +107,7 @@ pub fn spawn_worker(
     let (render_result_tx, render_result_rx) = mpsc::channel::<RenderResult>();
     let (render_settings_tx, render_settings_rx) = mpsc::channel::<Pinhole>();
     let thread = std::thread::Builder::new()
-        .name("Pathtracer Thread".to_string())
+        .name("Pathtracer Worker".to_string())
         .spawn(move || {
             worker_loop(
                 Arc::new(pathtracer),
