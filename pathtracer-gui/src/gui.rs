@@ -1,11 +1,15 @@
-use std::time;
+use std::{
+    sync::mpsc::{Receiver, Sender},
+    thread::JoinHandle,
+    time,
+};
 
 use egui::Vec2;
 use nalgebra::Vector3;
 use scene::camera::{Camera, Pinhole};
 use tracing::pathtracer::Pathtracer;
 
-use crate::workers::Workers;
+use crate::workers::{spawn_worker, RenderResult};
 
 struct RenderState {
     iteration: u16,
@@ -18,7 +22,9 @@ pub(crate) struct PathtracerGui {
     render: Option<RenderState>,
     last_update: Option<time::Instant>,
     camera: Camera,
-    workers: Workers,
+    worker_thread: Option<JoinHandle<()>>,
+    worker_tx: Option<Sender<Pinhole>>,
+    worker_rx: Receiver<RenderResult>,
 }
 
 impl PathtracerGui {
@@ -26,12 +32,15 @@ impl PathtracerGui {
         let (w, h) = (256, 256);
         let camera = pathtracer.scene.cameras[0].clone();
         let pinhole = Pinhole::new(&camera, w, h);
+        let (thread, tx, rx) = spawn_worker(pathtracer, pinhole);
         Self {
             size: Vec2::new(w as f32, h as f32),
             render: None,
             last_update: None,
-            camera: pathtracer.scene.cameras[0].clone(),
-            workers: Workers::new(pathtracer, pinhole),
+            camera,
+            worker_thread: Some(thread),
+            worker_tx: Some(tx),
+            worker_rx: rx,
         }
     }
 
@@ -41,6 +50,25 @@ impl PathtracerGui {
             Default::default(),
             Box::new(move |_cc| Box::new(self)),
         )
+    }
+
+    pub fn send(&mut self, pinhole: &Pinhole) {
+        self.worker_tx
+            .iter()
+            .for_each(|tx| tx.send(pinhole.clone()).unwrap());
+    }
+
+    pub fn try_recv(&self) -> Option<RenderResult> {
+        self.worker_rx.try_recv().ok()
+    }
+
+    pub fn stop_worker_thread(&mut self) {
+        if let Some(tx) = self.worker_tx.take() {
+            drop(tx)
+        }
+        if let Some(t) = self.worker_thread.take() {
+            t.join().unwrap()
+        }
     }
 }
 
@@ -85,7 +113,7 @@ impl eframe::App for PathtracerGui {
                     self.size = ui.available_size();
                     let pinhole =
                         Pinhole::new(&self.camera, self.size.x as u32, self.size.y as u32);
-                    self.workers.send(&pinhole);
+                    self.send(&pinhole);
                     ctx.request_repaint_after(time::Duration::from_millis(10));
                 } else if translation != Vector3::zeros() {
                     let now = time::Instant::now();
@@ -103,7 +131,7 @@ impl eframe::App for PathtracerGui {
                         );
                         let pinhole =
                             Pinhole::new(&self.camera, self.size.x as u32, self.size.y as u32);
-                        self.workers.send(&pinhole);
+                        self.send(&pinhole);
                         ctx.request_repaint_after(time::Duration::from_millis(10));
                     }
                     self.last_update = Some(now);
@@ -116,7 +144,7 @@ impl eframe::App for PathtracerGui {
                 }
             });
 
-            while let Some(result) = self.workers.try_recv() {
+            while let Some(result) = self.try_recv() {
                 let image = egui::ColorImage::from_rgba_unmultiplied(
                     [
                         result.image.width() as usize,
@@ -135,6 +163,6 @@ impl eframe::App for PathtracerGui {
     }
 
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
-        self.workers.join();
+        self.stop_worker_thread();
     }
 }

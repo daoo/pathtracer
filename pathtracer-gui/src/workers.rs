@@ -100,49 +100,23 @@ fn worker_loop(
     }
 }
 
-pub struct Workers {
-    threads: Vec<JoinHandle<()>>,
-    settings: Vec<Sender<Pinhole>>,
-    result: Receiver<RenderResult>,
-}
+pub fn spawn_worker(
+    pathtracer: Pathtracer,
+    pinhole: Pinhole,
+) -> (JoinHandle<()>, Sender<Pinhole>, Receiver<RenderResult>) {
+    let (render_result_tx, render_result_rx) = mpsc::channel::<RenderResult>();
+    let (render_settings_tx, render_settings_rx) = mpsc::channel::<Pinhole>();
+    let thread = std::thread::Builder::new()
+        .name("Pathtracer Thread".to_string())
+        .spawn(move || {
+            worker_loop(
+                Arc::new(pathtracer),
+                pinhole,
+                render_settings_rx,
+                render_result_tx,
+            )
+        })
+        .unwrap();
 
-impl Workers {
-    pub fn new(pathtracer: Pathtracer, pinhole: Pinhole) -> Workers {
-        let (render_result_tx, render_result_rx) = mpsc::channel::<RenderResult>();
-        let (render_settings_tx, render_settings_rx) = mpsc::channel::<Pinhole>();
-        let thread = std::thread::Builder::new()
-            .name("Pathtracer Thread".to_string())
-            .spawn(move || {
-                worker_loop(
-                    Arc::new(pathtracer),
-                    pinhole,
-                    render_settings_rx,
-                    render_result_tx,
-                )
-            })
-            .unwrap();
-
-        Workers {
-            threads: vec![thread],
-            settings: vec![render_settings_tx],
-            result: render_result_rx,
-        }
-    }
-
-    pub fn send(&mut self, pinhole: &Pinhole) {
-        self.settings
-            .iter()
-            .for_each(|tx| tx.send(pinhole.clone()).unwrap());
-    }
-
-    pub fn try_recv(&self) -> Option<RenderResult> {
-        self.result.try_recv().ok()
-    }
-
-    pub fn join(&mut self) {
-        self.settings.clear();
-        while let Some(thread) = self.threads.pop() {
-            thread.join().unwrap();
-        }
-    }
+    (thread, render_settings_tx, render_result_rx)
 }
