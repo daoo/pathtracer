@@ -7,7 +7,7 @@ use kdtree::{
 };
 use nalgebra::Vector2;
 use rand::{rngs::SmallRng, SeedableRng};
-use rayon::prelude::*;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use scene::{camera::Pinhole, Scene};
 use std::{
     fmt::Display,

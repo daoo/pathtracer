@@ -1,17 +1,20 @@
 use std::{
+    ops::Add,
     sync::{
         mpsc::{self, Receiver, Sender},
         Arc,
     },
-    thread::{self, JoinHandle},
+    thread::JoinHandle,
     time,
 };
 
+use nalgebra::Vector2;
 use rand::{rngs::SmallRng, SeedableRng};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use scene::camera::Pinhole;
 use tracing::{
     image_buffer::ImageBuffer,
-    pathtracer::{Pathtracer, Subdivision},
+    pathtracer::Pathtracer,
     raylogger::{RayLoggerWithIteration, RayLoggerWriter},
 };
 
@@ -48,50 +51,48 @@ fn worker_loop(
             pinhole.width, pinhole.height, iteration
         );
         let t1 = time::Instant::now();
-        let [tl, tr, bl, br] = thread::scope(|s| {
-            let spawn = |x, y, w, h| {
-                let pathtracer = pathtracer.clone();
-                let pinhole = pinhole.clone();
-                s.spawn(move || {
-                    let mut rng = SmallRng::from_entropy();
-                    let mut buffer = ImageBuffer::new(pinhole.width, pinhole.height);
+        let sub_width = 128;
+        let sub_height = 128;
+        let xs = 0..(pinhole.width / sub_width);
+        let ys = 0..(pinhole.height / sub_height);
+        let pixels = ys
+            .flat_map(|y| {
+                xs.clone()
+                    .map(move |x| Vector2::new(x * sub_width, y * sub_height))
+            })
+            .collect::<Vec<_>>();
+        let resulting_buffer = pixels
+            .into_par_iter()
+            .fold(
+                || {
+                    (
+                        SmallRng::from_entropy(),
+                        ImageBuffer::new(pinhole.width, pinhole.height),
+                    )
+                },
+                |(mut rng, mut buffer), pixel| {
                     let mut ray_logger = RayLoggerWithIteration {
                         writer: &mut RayLoggerWriter::None(),
                         iteration,
-                    };
-                    let subdivision = Subdivision {
-                        x1: x,
-                        y1: y,
-                        x2: x + w,
-                        y2: y + h,
                     };
                     pathtracer.render_subdivided_mut(
                         &pinhole,
                         &mut ray_logger,
                         &mut rng,
                         &mut buffer,
-                        subdivision,
+                        pixel,
+                        Vector2::new(sub_width, sub_height),
                     );
-                    buffer
-                })
-            };
-            let w = pinhole.width / 2;
-            let h = pinhole.height / 2;
-            let tl = spawn(0, 0, w, h);
-            let tr = spawn(w, 0, w, h);
-            let bl = spawn(0, h, w, h);
-            let br = spawn(w, h, w, h);
-            [
-                tl.join().unwrap(),
-                tr.join().unwrap(),
-                bl.join().unwrap(),
-                br.join().unwrap(),
-            ]
-        });
+                    (rng, buffer)
+                },
+            )
+            .map(|(_, buffer)| buffer)
+            .reduce_with(Add::add)
+            .unwrap();
+        combined_buffer.add_mut(&resulting_buffer);
         let t2 = time::Instant::now();
         let duration = t2 - t1;
         iteration += 1;
-        combined_buffer.add_mut(&(tl + tr + bl + br));
         let _ = tx.send(RenderResult {
             iteration,
             duration,

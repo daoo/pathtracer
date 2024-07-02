@@ -1717,6 +1717,7 @@ dependencies = [
  "kdtree",
  "nalgebra",
  "rand",
+ "rayon",
  "scene",
  "tracing 1.0.0",
  "wavefront",

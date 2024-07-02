@@ -41,12 +41,13 @@ impl ImageBuffer {
         self.0[(y as usize, x as usize)] += p;
     }
 
-    pub fn add_at_mut(&mut self, at: Vector2<usize>, rhs: &Self) {
+    pub fn add_at(mut self, at: Vector2<u32>, rhs: &Self) -> Self {
         for y in 0..rhs.0.nrows() {
             for x in 0..rhs.0.ncols() {
-                self.0[(at.y + y, at.x + x)] += rhs.0[(y, x)];
+                self.0[(at.y as usize + y, at.x as usize + x)] += rhs.0[(y, x)];
             }
         }
+        self
     }
 
     pub fn gamma_correct(self) -> Self {

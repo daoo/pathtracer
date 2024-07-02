@@ -12,20 +12,6 @@ use nalgebra::{Vector2, Vector3};
 use rand::rngs::SmallRng;
 use scene::{camera::Pinhole, Scene};
 
-#[derive(Debug)]
-pub struct Subdivision {
-    pub x1: u32,
-    pub y1: u32,
-    pub x2: u32,
-    pub y2: u32,
-}
-
-impl Subdivision {
-    fn contains(&self, pixel: Vector2<u32>) -> bool {
-        (self.x1..self.x2).contains(&pixel.x) && (self.y1..self.y2).contains(&pixel.y)
-    }
-}
-
 pub struct Pathtracer {
     pub max_bounces: u8,
     pub scene: Scene,
@@ -197,17 +183,14 @@ impl Pathtracer {
         ray_logger: &mut RayLoggerWithIteration,
         rng: &mut SmallRng,
         buffer: &mut ImageBuffer,
-        subdivision: Subdivision,
+        sub_start: Vector2<u32>,
+        sub_size: Vector2<u32>,
     ) {
-        for y in 0..buffer.height() {
-            for x in 0..buffer.width() {
-                let pixel = Vector2::new(x, y);
-                let color = if subdivision.contains(pixel) {
-                    self.render_pixel(pinhole, pixel, ray_logger, rng)
-                } else {
-                    Vector3::zeros()
-                };
-                buffer.add_pixel_mut(x, y, color);
+        for sub_y in 0..sub_size.y {
+            for sub_x in 0..sub_size.x {
+                let pixel = sub_start + Vector2::new(sub_x, sub_y);
+                let color = self.render_pixel(pinhole, pixel, ray_logger, rng);
+                buffer.add_pixel_mut(pixel.x, pixel.y, color);
             }
         }
     }
