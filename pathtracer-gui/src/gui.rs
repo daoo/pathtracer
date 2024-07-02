@@ -19,13 +19,50 @@ struct RenderState {
     duration: time::Duration,
 }
 
+fn spawn_receiver_thread(
+    rx: Receiver<RenderResult>,
+    render_ptr: Arc<Mutex<Option<RenderState>>>,
+    image_ptr: Arc<Mutex<Option<egui::ColorImage>>>,
+    ctx: egui::Context,
+) -> Result<JoinHandle<()>, std::io::Error> {
+    std::thread::Builder::new()
+        .name("GUI receiver".to_string())
+        .spawn(move || {
+            while let Ok(result) = rx.recv() {
+                render_ptr.lock().unwrap().replace(RenderState {
+                    iteration: result.iteration,
+                    duration: result.duration,
+                });
+                image_ptr
+                    .lock()
+                    .unwrap()
+                    .replace(egui::ColorImage::from_rgba_unmultiplied(
+                        [
+                            result.image.width() as usize,
+                            result.image.height() as usize,
+                        ],
+                        &result
+                            .image
+                            .div(result.iteration as f32)
+                            .gamma_correct()
+                            .to_rgba8(),
+                    ));
+                ctx.request_repaint();
+            }
+        })
+}
+
 pub(crate) struct PathtracerGui {
     size: Vec2,
+
+    camera: Camera,
+    last_update: Option<time::Instant>,
+
     render: Arc<Mutex<Option<RenderState>>>,
     image: Arc<Mutex<Option<egui::ColorImage>>>,
+
     texture: Option<egui::TextureHandle>,
-    last_update: Option<time::Instant>,
-    camera: Camera,
+
     receiver_thread: Option<JoinHandle<()>>,
     worker_thread: Option<JoinHandle<()>>,
     worker_tx: Option<Sender<Pinhole>>,
@@ -33,59 +70,40 @@ pub(crate) struct PathtracerGui {
 }
 
 impl PathtracerGui {
-    pub(crate) fn new(pathtracer: Pathtracer) -> Self {
-        let (w, h) = (256, 256);
-        let camera = pathtracer.scene.cameras[0].clone();
-        let pinhole = Pinhole::new(&camera, w, h);
-        let (thread, tx, rx) = spawn_worker(pathtracer, pinhole);
+    pub(crate) fn new(camera: Camera) -> Self {
         Self {
-            size: Vec2::new(w as f32, h as f32),
+            size: Vec2::new(256.0, 256.0),
+            camera,
+            last_update: None,
             render: Arc::new(Mutex::new(None)),
             image: Arc::new(Mutex::new(None)),
             texture: None,
-            last_update: None,
-            camera,
             receiver_thread: None,
-            worker_thread: Some(thread),
-            worker_tx: Some(tx),
-            worker_rx: Some(rx),
+            worker_thread: None,
+            worker_tx: None,
+            worker_rx: None,
         }
     }
 
-    pub(crate) fn run(mut self) -> Result<(), eframe::Error> {
+    pub(crate) fn run(mut self, pathtracer: Pathtracer) -> Result<(), eframe::Error> {
         eframe::run_native(
             "pathtracer-gui",
             Default::default(),
             Box::new(move |_cc| {
-                let render_ptr = Arc::clone(&self.render);
-                let image_ptr = Arc::clone(&self.image);
-                let ctx = _cc.egui_ctx.clone();
-                let rx = self.worker_rx.take().unwrap();
-                self.receiver_thread = std::thread::Builder::new()
-                    .name("GUI receiver".to_string())
-                    .spawn(move || {
-                        while let Ok(result) = rx.recv() {
-                            render_ptr.lock().unwrap().replace(RenderState {
-                                iteration: result.iteration,
-                                duration: result.duration,
-                            });
-                            image_ptr.lock().unwrap().replace(
-                                egui::ColorImage::from_rgba_unmultiplied(
-                                    [
-                                        result.image.width() as usize,
-                                        result.image.height() as usize,
-                                    ],
-                                    &result
-                                        .image
-                                        .div(result.iteration as f32)
-                                        .gamma_correct()
-                                        .to_rgba8(),
-                                ),
-                            );
-                            ctx.request_repaint();
-                        }
-                    })
-                    .ok();
+                let pinhole = Pinhole::new(&self.camera, self.size.x as u32, self.size.y as u32);
+                let (thread, tx, rx) = spawn_worker(pathtracer, pinhole);
+                self.worker_thread = Some(thread);
+                self.worker_tx = Some(tx);
+                self.worker_rx = Some(rx);
+                self.receiver_thread = Some(
+                    spawn_receiver_thread(
+                        self.worker_rx.take().unwrap(),
+                        Arc::clone(&self.render),
+                        Arc::clone(&self.image),
+                        _cc.egui_ctx.clone(),
+                    )
+                    .unwrap(),
+                );
                 Box::new(self)
             }),
         )

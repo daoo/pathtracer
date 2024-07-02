@@ -48,5 +48,7 @@ fn main() {
         kdtree,
     };
 
-    PathtracerGui::new(pathtracer).run().unwrap();
+    PathtracerGui::new(pathtracer.scene.cameras[0].clone())
+        .run(pathtracer)
+        .unwrap();
 }
