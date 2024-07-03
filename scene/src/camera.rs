@@ -1,5 +1,5 @@
 use geometry::ray::Ray;
-use nalgebra::{UnitVector3, Vector3};
+use nalgebra::{UnitVector3, Vector2, Vector3};
 
 #[derive(Clone, Debug)]
 pub struct Camera {
@@ -64,6 +64,11 @@ impl Pinhole {
             dx: 2.0 * x,
             dy: -2.0 * y,
         }
+    }
+
+    #[inline]
+    pub fn size(&self) -> Vector2<u32> {
+        Vector2::new(self.width, self.height)
     }
 
     #[inline]

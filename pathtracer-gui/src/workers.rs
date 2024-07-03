@@ -24,6 +24,44 @@ pub struct RenderResult {
     pub image: ImageBuffer,
 }
 
+fn render_subdivided(
+    pathtracer: &Pathtracer,
+    pinhole: &Pinhole,
+    sub_size: Vector2<u32>,
+) -> ImageBuffer {
+    let count_x = pinhole.width / sub_size.x;
+    let count_y = pinhole.height / sub_size.y;
+    (0..count_x * count_y)
+        .into_par_iter()
+        .fold(
+            || {
+                (
+                    SmallRng::from_entropy(),
+                    ImageBuffer::new(pinhole.width, pinhole.height),
+                )
+            },
+            |(mut rng, mut buffer), i| {
+                let pixel = Vector2::new(i % sub_size.x, i / sub_size.x);
+                let mut ray_logger = RayLoggerWithIteration {
+                    writer: &mut RayLoggerWriter::None(),
+                    iteration: 0,
+                };
+                pathtracer.render_subdivided_mut(
+                    &pinhole,
+                    &mut ray_logger,
+                    &mut rng,
+                    &mut buffer,
+                    pixel,
+                    sub_size,
+                );
+                (rng, buffer)
+            },
+        )
+        .map(|(_, buffer)| buffer)
+        .reduce_with(Add::add)
+        .unwrap()
+}
+
 fn worker_loop(
     pathtracer: Arc<Pathtracer>,
     start_pinhole: Pinhole,
@@ -51,45 +89,8 @@ fn worker_loop(
             pinhole.width, pinhole.height, iteration
         );
         let t1 = time::Instant::now();
-        let sub_width = 128;
-        let sub_height = 128;
-        let xs = 0..(pinhole.width / sub_width);
-        let ys = 0..(pinhole.height / sub_height);
-        let pixels = ys
-            .flat_map(|y| {
-                xs.clone()
-                    .map(move |x| Vector2::new(x * sub_width, y * sub_height))
-            })
-            .collect::<Vec<_>>();
-        let resulting_buffer = pixels
-            .into_par_iter()
-            .fold(
-                || {
-                    (
-                        SmallRng::from_entropy(),
-                        ImageBuffer::new(pinhole.width, pinhole.height),
-                    )
-                },
-                |(mut rng, mut buffer), pixel| {
-                    let mut ray_logger = RayLoggerWithIteration {
-                        writer: &mut RayLoggerWriter::None(),
-                        iteration,
-                    };
-                    pathtracer.render_subdivided_mut(
-                        &pinhole,
-                        &mut ray_logger,
-                        &mut rng,
-                        &mut buffer,
-                        pixel,
-                        Vector2::new(sub_width, sub_height),
-                    );
-                    (rng, buffer)
-                },
-            )
-            .map(|(_, buffer)| buffer)
-            .reduce_with(Add::add)
-            .unwrap();
-        combined_buffer.add_mut(&resulting_buffer);
+        let buffer = render_subdivided(&pathtracer, &pinhole, Vector2::new(128, 128));
+        combined_buffer.add_mut(&buffer);
         let t2 = time::Instant::now();
         let duration = t2 - t1;
         iteration += 1;
