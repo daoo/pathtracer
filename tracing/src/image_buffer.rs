@@ -1,107 +1,116 @@
-use std::{
-    ops::{Add, Div},
-    path::Path,
-};
+use std::ops::{Add, AddAssign, Index, IndexMut};
 
-use nalgebra::{DMatrix, Vector2, Vector3};
+use nalgebra::{Vector2, Vector3};
 
 #[derive(Clone)]
-pub struct ImageBuffer(DMatrix<Vector3<f32>>);
+pub struct ImageBuffer {
+    pub width: u32,
+    pub height: u32,
+    pub pixels: Vec<Vector3<f32>>,
+}
 
-fn gamma_correct(x: f32) -> f32 {
+fn gamma_correct(x: Vector3<f32>) -> Vector3<f32> {
     const GAMMA_POWER: f32 = 1.0 / 2.2;
-    1.0f32.min(x.powf(GAMMA_POWER))
+    x.zip_map(&Vector3::from_element(GAMMA_POWER), |b, e| b.powf(e))
+        .inf(&Vector3::from_element(1.0))
 }
 
 impl ImageBuffer {
+    #[inline]
     pub fn new(width: u32, height: u32) -> Self {
-        ImageBuffer(DMatrix::from_element(
-            height as usize,
-            width as usize,
-            Vector3::zeros(),
-        ))
+        Self {
+            width,
+            height,
+            pixels: [Vector3::zeros()].repeat((width * height) as usize),
+        }
     }
 
-    pub fn width(&self) -> u32 {
-        self.0.ncols() as u32
+    #[inline]
+    fn index(&self, idx: Vector2<u32>) -> usize {
+        (self.width * idx.y + idx.x) as usize
     }
 
-    pub fn height(&self) -> u32 {
-        self.0.nrows() as u32
-    }
-
-    pub fn add_mut(&mut self, rhs: &Self) {
-        self.0
-            .iter_mut()
-            .zip(rhs.0.iter())
-            .for_each(|(a, b)| *a += *b);
-    }
-
-    pub fn add_pixel_mut(&mut self, x: u32, y: u32, p: Vector3<f32>) {
-        self.0[(y as usize, x as usize)] += p;
-    }
-
+    #[inline]
     pub fn add_at(mut self, at: Vector2<u32>, rhs: &Self) -> Self {
-        for y in 0..rhs.0.nrows() {
-            for x in 0..rhs.0.ncols() {
-                self.0[(at.y as usize + y, at.x as usize + x)] += rhs.0[(y, x)];
+        debug_assert!(at.x + rhs.width <= self.width && at.y + rhs.height <= self.height);
+        for y in 0..rhs.height {
+            for x in 0..rhs.width {
+                self[Vector2::new(at.x + x, at.y + y)] += rhs[Vector2::new(x, y)];
             }
         }
         self
     }
 
-    pub fn gamma_correct(self) -> Self {
-        ImageBuffer(self.0.map(|p| p.map(gamma_correct)))
-    }
-
-    pub fn to_rgb8(self) -> Vec<u8> {
-        self.0
-            .transpose()
+    pub fn to_rgb8(self, iterations: u16) -> Vec<u8> {
+        let iterations_inv = 1.0 / iterations as f32;
+        self.pixels
             .into_iter()
-            .flat_map(|p| {
-                [
-                    (p.x * 255.0).round() as u8,
-                    (p.y * 255.0).round() as u8,
-                    (p.z * 255.0).round() as u8,
-                ]
+            .flat_map(|p| -> [u8; 3] {
+                (gamma_correct(p * iterations_inv) * 255.0)
+                    .map(|c| c.round() as u8)
+                    .into()
             })
             .collect()
     }
 
-    pub fn to_rgba8(self) -> Vec<u8> {
-        self.0
-            .transpose()
-            .into_iter()
-            .flat_map(|p| {
-                [
-                    (p.x * 255.0).round() as u8,
-                    (p.y * 255.0).round() as u8,
-                    (p.z * 255.0).round() as u8,
-                    u8::MAX,
-                ]
-            })
-            .collect()
+    #[inline]
+    pub fn into_rgba_iter(self, iterations: u16) -> impl Iterator<Item = [u8; 4]> {
+        let iterations_inv = 1.0 / iterations as f32;
+        self.pixels.into_iter().map(move |p| -> [u8; 4] {
+            let p = (gamma_correct(p * iterations_inv) * 255.0).map(|c| c.round() as u8);
+            [p.x, p.y, p.z, u8::MAX]
+        })
     }
 
-    pub fn save_png(self, path: &Path) -> Result<(), image::ImageError> {
-        image::RgbImage::from_raw(self.width(), self.height(), self.to_rgb8())
-            .unwrap()
-            .save_with_format(path, image::ImageFormat::Png)
+    #[inline]
+    pub fn as_rgb_image(self, iterations: u16) -> image::RgbImage {
+        image::RgbImage::from_raw(self.width, self.height, self.to_rgb8(iterations)).unwrap()
+    }
+}
+
+impl Index<Vector2<u32>> for ImageBuffer {
+    type Output = Vector3<f32>;
+
+    #[inline]
+    fn index(&self, index: Vector2<u32>) -> &Self::Output {
+        &self.pixels[self.index(index)]
+    }
+}
+
+impl IndexMut<Vector2<u32>> for ImageBuffer {
+    #[inline]
+    fn index_mut(&mut self, index: Vector2<u32>) -> &mut Self::Output {
+        let index = self.index(index);
+        &mut self.pixels[index]
     }
 }
 
 impl Add for ImageBuffer {
     type Output = Self;
 
+    #[inline]
     fn add(self, rhs: Self) -> Self::Output {
-        Self(self.0 + &rhs.0)
+        debug_assert!(self.width == rhs.width && self.height == rhs.height);
+        Self {
+            width: self.width,
+            height: self.height,
+            pixels: self
+                .pixels
+                .into_iter()
+                .zip(rhs.pixels.iter())
+                .map(|(a, b)| a + b)
+                .collect::<Vec<_>>(),
+        }
     }
 }
 
-impl Div<f32> for ImageBuffer {
-    type Output = Self;
-
-    fn div(self, rhs: f32) -> Self::Output {
-        Self(self.0.map(|p| p / rhs))
+impl AddAssign for ImageBuffer {
+    #[inline]
+    fn add_assign(&mut self, rhs: Self) {
+        debug_assert!(self.width == rhs.width && self.height == rhs.height);
+        self.pixels
+            .iter_mut()
+            .zip(rhs.pixels.iter())
+            .for_each(|(a, b)| *a += *b);
     }
 }

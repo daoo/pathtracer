@@ -10,7 +10,7 @@ use std::{
 use egui::Vec2;
 use nalgebra::Vector3;
 use scene::camera::{Camera, Pinhole};
-use tracing::pathtracer::Pathtracer;
+use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer};
 
 use crate::workers::{spawn_worker, RenderResult};
 
@@ -19,7 +19,33 @@ struct RenderState {
     duration: time::Duration,
 }
 
-fn spawn_receiver_thread(
+fn convert(iterations: u16, buffer: ImageBuffer) -> egui::ColorImage {
+    let size = [buffer.width as usize, buffer.height as usize];
+    let pixels = buffer
+        .into_rgba_iter(iterations)
+        .map(|p| egui::Color32::from_rgba_premultiplied(p[0], p[1], p[2], p[3]))
+        .collect();
+    egui::ColorImage { size, pixels }
+}
+
+fn receiver_thread(
+    rx: Receiver<RenderResult>,
+    render_ptr: Arc<Mutex<Option<RenderState>>>,
+    image_ptr: Arc<Mutex<Option<egui::ColorImage>>>,
+    ctx: egui::Context,
+) {
+    while let Ok(result) = rx.recv() {
+        let image = convert(result.iteration, result.image);
+        render_ptr.lock().unwrap().replace(RenderState {
+            iteration: result.iteration,
+            duration: result.duration,
+        });
+        image_ptr.lock().unwrap().replace(image);
+        ctx.request_repaint();
+    }
+}
+
+fn spawn_receiver(
     rx: Receiver<RenderResult>,
     render_ptr: Arc<Mutex<Option<RenderState>>>,
     image_ptr: Arc<Mutex<Option<egui::ColorImage>>>,
@@ -27,27 +53,7 @@ fn spawn_receiver_thread(
 ) -> Result<JoinHandle<()>, std::io::Error> {
     std::thread::Builder::new()
         .name("GUI receiver".to_string())
-        .spawn(move || {
-            while let Ok(result) = rx.recv() {
-                render_ptr.lock().unwrap().replace(RenderState {
-                    iteration: result.iteration,
-                    duration: result.duration,
-                });
-                image_ptr
-                    .lock()
-                    .unwrap()
-                    .replace(egui::ColorImage::from_rgba_unmultiplied(
-                        [
-                            result.image.width() as usize,
-                            result.image.height() as usize,
-                        ],
-                        &(result.image / result.iteration as f32)
-                            .gamma_correct()
-                            .to_rgba8(),
-                    ));
-                ctx.request_repaint();
-            }
-        })
+        .spawn(move || receiver_thread(rx, render_ptr, image_ptr, ctx))
 }
 
 pub(crate) struct PathtracerGui {
@@ -95,7 +101,7 @@ impl PathtracerGui {
                 self.worker_tx = Some(tx);
                 self.worker_rx = Some(rx);
                 self.receiver_thread = Some(
-                    spawn_receiver_thread(
+                    spawn_receiver(
                         self.worker_rx.take().unwrap(),
                         Arc::clone(&self.render),
                         Arc::clone(&self.image),

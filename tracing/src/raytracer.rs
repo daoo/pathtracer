@@ -65,13 +65,14 @@ impl Raytracer {
     }
 
     pub fn render(&self, buffer: &mut ImageBuffer) {
-        let buffer_size = Vector2::new(buffer.width() as f32, buffer.height() as f32);
-        for y in 0..buffer.height() {
-            for x in 0..buffer.width() {
-                let pixel_center = Vector2::new(x as f32, y as f32) + Vector2::new(0.5, 0.5);
+        let buffer_size = Vector2::new(buffer.width as f32, buffer.height as f32);
+        for y in 0..buffer.height {
+            for x in 0..buffer.width {
+                let pixel = Vector2::new(x, y);
+                let pixel_center = Vector2::new(pixel.x as f32 + 0.5, pixel.y as f32 + 0.5);
                 let scene_direction = pixel_center.component_div(&buffer_size);
                 let ray = self.camera.ray(scene_direction.x, scene_direction.y);
-                buffer.add_pixel_mut(x, y, self.trace_ray(&ray));
+                buffer[pixel] += self.trace_ray(&ray);
             }
         }
     }

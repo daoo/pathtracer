@@ -1700,6 +1700,7 @@ name = "pathtracer-cli"
 version = "1.0.0"
 dependencies = [
  "clap",
+ "image 0.25.1",
  "kdtree",
  "rand",
  "scene",
@@ -1896,6 +1897,7 @@ name = "raytracer-cli"
 version = "1.0.0"
 dependencies = [
  "clap",
+ "image 0.25.1",
  "kdtree",
  "scene",
  "tracing 1.0.0",

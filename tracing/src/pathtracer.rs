@@ -166,13 +166,10 @@ impl Pathtracer {
         rng: &mut SmallRng,
         buffer: &mut ImageBuffer,
     ) {
-        for y in 0..buffer.height() {
-            for x in 0..buffer.width() {
-                buffer.add_pixel_mut(
-                    x,
-                    y,
-                    self.render_pixel(pinhole, Vector2::new(x, y), ray_logger, rng),
-                );
+        for y in 0..buffer.height {
+            for x in 0..buffer.width {
+                let pixel = Vector2::new(x, y);
+                buffer[pixel] += self.render_pixel(pinhole, pixel, ray_logger, rng);
             }
         }
     }
@@ -189,8 +186,7 @@ impl Pathtracer {
         for sub_y in 0..sub_size.y {
             for sub_x in 0..sub_size.x {
                 let pixel = sub_start + Vector2::new(sub_x, sub_y);
-                let color = self.render_pixel(pinhole, pixel, ray_logger, rng);
-                buffer.add_pixel_mut(pixel.x, pixel.y, color);
+                buffer[pixel] += self.render_pixel(pinhole, pixel, ray_logger, rng);
             }
         }
     }

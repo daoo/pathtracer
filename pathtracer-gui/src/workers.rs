@@ -114,7 +114,7 @@ fn worker_loop(
 
         let (duration, buffer) =
             measure(|| render_subdivided(&pathtracer, &pinhole, pinhole.size() / 4));
-        combined_buffer.add_mut(&buffer);
+        combined_buffer += buffer;
         iteration += 1;
         let _ = tx.send(RenderResult {
             iteration,

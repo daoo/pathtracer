@@ -1,4 +1,5 @@
 use clap::Parser;
+use image::ImageFormat;
 use kdtree::{
     build::build_kdtree,
     build_sah::{self, SahKdTreeBuilder},
@@ -218,9 +219,9 @@ fn main() {
         );
 
         println!("Writing {}...", args.output.display());
-        (buffer / total_iterations as f32)
-            .gamma_correct()
-            .save_png(&args.output)
+        buffer
+            .as_rgb_image(total_iterations as u16)
+            .save_with_format(&args.output, ImageFormat::Png)
             .unwrap();
     });
 }
