@@ -109,7 +109,7 @@ impl PathtracerGui {
                     )
                     .unwrap(),
                 );
-                Box::new(self)
+                Ok(Box::new(self))
             }),
         )
     }
