@@ -271,7 +271,7 @@ fn main() {
         "Testing up to {} rays...",
         args.size.width * args.size.height * args.bounces
     );
-    let camera = Pinhole::new(&scene.cameras[0], args.size.width, args.size.height);
+    let camera = Pinhole::new(scene.cameras[0].clone(), args.size.width, args.size.height);
     let bouncer = RayBouncer {
         scene,
         kdtree,

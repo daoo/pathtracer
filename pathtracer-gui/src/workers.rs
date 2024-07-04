@@ -14,6 +14,7 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use scene::camera::Pinhole;
 use tracing::{
     image_buffer::ImageBuffer,
+    measure::measure,
     pathtracer::Pathtracer,
     raylogger::{RayLoggerWithIteration, RayLoggerWriter},
 };
@@ -31,6 +32,12 @@ fn render_subdivided(
 ) -> ImageBuffer {
     let count_x = pinhole.width / sub_size.x;
     let count_y = pinhole.height / sub_size.y;
+    eprintln!(
+        "Rendering size={:?} sub_size={:?} count={:?}",
+        pinhole.size().as_slice(),
+        sub_size.as_slice(),
+        [count_x, count_y]
+    );
     (0..count_x * count_y)
         .into_par_iter()
         .fold(
@@ -41,13 +48,13 @@ fn render_subdivided(
                 )
             },
             |(mut rng, mut buffer), i| {
-                let pixel = Vector2::new(i % sub_size.x, i / sub_size.x);
+                let pixel = Vector2::new(i % count_x * sub_size.x, i / count_x * sub_size.y);
                 let mut ray_logger = RayLoggerWithIteration {
                     writer: &mut RayLoggerWriter::None(),
                     iteration: 0,
                 };
                 pathtracer.render_subdivided_mut(
-                    &pinhole,
+                    pinhole,
                     &mut ray_logger,
                     &mut rng,
                     &mut buffer,
@@ -75,7 +82,12 @@ fn worker_loop(
         loop {
             match rx.try_recv() {
                 Ok(new_pinhole) => {
-                    eprintln!("Resetting buffer {new_pinhole:?}");
+                    eprintln!(
+                        "New pinhole position={:?} direction={:?} size={:?}",
+                        new_pinhole.camera.position.as_slice(),
+                        new_pinhole.camera.direction.as_slice(),
+                        new_pinhole.size().as_slice(),
+                    );
                     pinhole = new_pinhole;
                     combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
                     iteration = 0;
@@ -84,15 +96,25 @@ fn worker_loop(
                 Err(mpsc::TryRecvError::Disconnected) => return,
             }
         }
-        eprintln!(
-            "Rendering {}x{} iteration {}",
-            pinhole.width, pinhole.height, iteration
-        );
-        let t1 = time::Instant::now();
-        let buffer = render_subdivided(&pathtracer, &pinhole, Vector2::new(128, 128));
+        if iteration == 0 {
+            let pinhole_small = Pinhole::new(
+                pinhole.camera.clone(),
+                64,
+                64 * pinhole.height / pinhole.width,
+            );
+            let (duration, buffer) = measure(|| {
+                render_subdivided(&pathtracer, &pinhole_small, pinhole_small.size() / 3)
+            });
+            let _ = tx.send(RenderResult {
+                iteration: 1,
+                duration,
+                image: buffer,
+            });
+        }
+
+        let (duration, buffer) =
+            measure(|| render_subdivided(&pathtracer, &pinhole, pinhole.size() / 4));
         combined_buffer.add_mut(&buffer);
-        let t2 = time::Instant::now();
-        let duration = t2 - t1;
         iteration += 1;
         let _ = tx.send(RenderResult {
             iteration,

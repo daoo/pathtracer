@@ -147,7 +147,7 @@ fn collect_cameras(mtl: &mtl::Mtl) -> Vec<Camera> {
         .iter()
         .map(|camera| {
             Camera::new(
-                &camera.position.into(),
+                camera.position.into(),
                 &camera.target.into(),
                 &camera.up.into(),
                 camera.fov,

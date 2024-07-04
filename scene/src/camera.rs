@@ -12,14 +12,14 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(
-        position: &Vector3<f32>,
+        position: Vector3<f32>,
         target: &Vector3<f32>,
         up: &Vector3<f32>,
         fov_degrees: f32,
     ) -> Camera {
         let direction = UnitVector3::new_normalize(target - position);
         Camera {
-            position: *position,
+            position,
             direction,
             up: UnitVector3::new_normalize(*up),
             right: UnitVector3::new_normalize(direction.cross(up)),
@@ -40,16 +40,16 @@ impl Camera {
 
 #[derive(Clone, Debug)]
 pub struct Pinhole {
+    pub camera: Camera,
     pub width: u32,
     pub height: u32,
-    pub position: Vector3<f32>,
     pub plane: Vector3<f32>,
     pub dx: Vector3<f32>,
     pub dy: Vector3<f32>,
 }
 
 impl Pinhole {
-    pub fn new(camera: &Camera, width: u32, height: u32) -> Pinhole {
+    pub fn new(camera: Camera, width: u32, height: u32) -> Pinhole {
         let aspect_ratio = width as f32 / height as f32;
         let half_fov_radians = camera.fov_degrees * std::f32::consts::PI / 360.0;
         let x = camera.right.into_inner() * (half_fov_radians.sin() * aspect_ratio);
@@ -57,9 +57,9 @@ impl Pinhole {
         let z = camera.direction.into_inner() * half_fov_radians.cos();
 
         Pinhole {
+            camera,
             width,
             height,
-            position: camera.position,
             plane: z + y - x,
             dx: 2.0 * x,
             dy: -2.0 * y,
@@ -74,7 +74,7 @@ impl Pinhole {
     #[inline]
     pub fn ray(&self, x: f32, y: f32) -> Ray {
         Ray {
-            origin: self.position,
+            origin: self.camera.position,
             direction: self.plane + x * self.dx + y * self.dy,
         }
     }

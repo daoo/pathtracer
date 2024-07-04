@@ -81,7 +81,7 @@ fn main() {
     );
 
     println!("Rendering...");
-    let camera = Pinhole::new(&scene.cameras[0], args.size.width, args.size.height);
+    let camera = Pinhole::new(scene.cameras[0].clone(), args.size.width, args.size.height);
     let raytracer = Raytracer {
         scene,
         kdtree,

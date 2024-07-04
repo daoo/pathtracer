@@ -88,7 +88,8 @@ impl PathtracerGui {
             "pathtracer-gui",
             Default::default(),
             Box::new(move |_cc| {
-                let pinhole = Pinhole::new(&self.camera, self.size.x as u32, self.size.y as u32);
+                let pinhole =
+                    Pinhole::new(self.camera.clone(), self.size.x as u32, self.size.y as u32);
                 let (thread, tx, rx) = spawn_worker(pathtracer, pinhole);
                 self.worker_thread = Some(thread);
                 self.worker_tx = Some(tx);
@@ -118,10 +119,10 @@ impl PathtracerGui {
     }
 
     pub fn update_pinhole(&mut self) {
-        let pinhole = Pinhole::new(&self.camera, self.size.x as u32, self.size.y as u32);
-        self.worker_tx
-            .iter()
-            .for_each(|tx| tx.send(pinhole.clone()).unwrap());
+        let pinhole = Pinhole::new(self.camera.clone(), self.size.x as u32, self.size.y as u32);
+        if let Some(tx) = &self.worker_tx {
+            tx.send(pinhole).unwrap()
+        }
     }
 
     pub fn stop_worker_thread(&mut self) {
@@ -213,7 +214,7 @@ impl eframe::App for PathtracerGui {
                         self.set_size(ui.available_size());
                     }
                     if let Some(texture) = &self.texture {
-                        ui.image(texture);
+                        ui.add(egui::Image::from_texture(texture).fit_to_exact_size(self.size));
                     }
                 },
             );
