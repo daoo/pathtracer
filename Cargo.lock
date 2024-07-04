@@ -2272,7 +2272,6 @@ version = "1.0.0"
 dependencies = [
  "assert_approx_eq",
  "geometry",
- "image 0.25.1",
  "kdtree",
  "nalgebra",
  "rand",

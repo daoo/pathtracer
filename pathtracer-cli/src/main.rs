@@ -1,5 +1,5 @@
 use clap::Parser;
-use image::ImageFormat;
+use image::{ImageFormat, RgbImage};
 use kdtree::{
     build::build_kdtree,
     build_sah::{self, SahKdTreeBuilder},
@@ -219,9 +219,14 @@ fn main() {
         );
 
         println!("Writing {}...", args.output.display());
-        buffer
-            .as_rgb_image(total_iterations as u16)
-            .save_with_format(&args.output, ImageFormat::Png)
-            .unwrap();
+
+        RgbImage::from_raw(
+            buffer.width,
+            buffer.height,
+            buffer.to_rgb8(total_iterations as u16),
+        )
+        .unwrap()
+        .save_with_format(&args.output, ImageFormat::Png)
+        .unwrap();
     });
 }

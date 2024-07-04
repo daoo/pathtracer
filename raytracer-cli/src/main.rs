@@ -1,5 +1,5 @@
 use clap::Parser;
-use image::ImageFormat;
+use image::{ImageFormat, RgbImage};
 use kdtree::{build::build_kdtree, build_sah, build_sah::SahKdTreeBuilder};
 use scene::{camera::Pinhole, Scene};
 use std::{fmt::Display, str::FromStr};
@@ -92,8 +92,8 @@ fn main() {
     raytracer.render(&mut buffer);
 
     println!("Writing {}...", args.output.display());
-    buffer
-        .as_rgb_image(1)
+    RgbImage::from_raw(buffer.width, buffer.height, buffer.to_rgb8(1))
+        .unwrap()
         .save_with_format(&args.output, ImageFormat::Png)
         .unwrap();
 }

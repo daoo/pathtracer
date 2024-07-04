@@ -61,11 +61,6 @@ impl ImageBuffer {
             [p.x, p.y, p.z, u8::MAX]
         })
     }
-
-    #[inline]
-    pub fn as_rgb_image(self, iterations: u16) -> image::RgbImage {
-        image::RgbImage::from_raw(self.width, self.height, self.to_rgb8(iterations)).unwrap()
-    }
 }
 
 impl Index<Vector2<u32>> for ImageBuffer {
