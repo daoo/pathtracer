@@ -22,21 +22,15 @@ use tracing::{
 pub struct RenderResult {
     pub iterations: u16,
     pub duration: time::Duration,
-    pub image: egui::ColorImage,
+    pub buffer: ImageBuffer,
 }
 
 impl RenderResult {
-    fn from_buffer(iterations: u16, duration: time::Duration, buffer: ImageBuffer) -> Self {
-        let size = [buffer.width as usize, buffer.height as usize];
-        let pixels = buffer
-            .into_rgba_iter(iterations)
-            .map(|p| egui::Color32::from_rgba_premultiplied(p[0], p[1], p[2], p[3]))
-            .collect();
-        let image = egui::ColorImage { size, pixels };
+    fn new(iterations: u16, duration: time::Duration, buffer: ImageBuffer) -> Self {
         RenderResult {
             iterations,
             duration,
-            image,
+            buffer,
         }
     }
 }
@@ -121,14 +115,14 @@ fn worker_loop(
             let (duration, buffer) = measure(|| {
                 render_subdivided(&pathtracer, &pinhole_small, pinhole_small.size() / 3)
             });
-            let _ = tx.send(RenderResult::from_buffer(1, duration, buffer));
+            let _ = tx.send(RenderResult::new(1, duration, buffer));
         }
 
         let (duration, buffer) =
             measure(|| render_subdivided(&pathtracer, &pinhole, pinhole.size() / 4));
         combined_buffer += buffer;
         iteration += 1;
-        let _ = tx.send(RenderResult::from_buffer(
+        let _ = tx.send(RenderResult::new(
             iteration,
             duration,
             combined_buffer.clone(),
@@ -136,23 +130,37 @@ fn worker_loop(
     }
 }
 
-pub fn spawn_worker(
-    pathtracer: Pathtracer,
-    pinhole: Pinhole,
-) -> (JoinHandle<()>, Sender<Pinhole>, Receiver<RenderResult>) {
-    let (render_result_tx, render_result_rx) = mpsc::channel::<RenderResult>();
-    let (render_settings_tx, render_settings_rx) = mpsc::channel::<Pinhole>();
-    let thread = std::thread::Builder::new()
-        .name("Pathtracer Worker".to_string())
-        .spawn(move || {
-            worker_loop(
-                Arc::new(pathtracer),
-                pinhole,
-                render_settings_rx,
-                render_result_tx,
-            )
-        })
-        .unwrap();
+pub(crate) struct Worker {
+    thread: JoinHandle<()>,
+    pinhole_tx: Sender<Pinhole>,
+    result_rx: Receiver<RenderResult>,
+}
 
-    (thread, render_settings_tx, render_result_rx)
+impl Worker {
+    pub fn spawn(pathtracer: Pathtracer, pinhole: Pinhole) -> Self {
+        let (result_tx, result_rx) = mpsc::channel::<RenderResult>();
+        let (pinhole_tx, pinhole_rx) = mpsc::channel::<Pinhole>();
+        let thread = std::thread::Builder::new()
+            .name("Pathtracer Worker".to_string())
+            .spawn(move || worker_loop(Arc::new(pathtracer), pinhole, pinhole_rx, result_tx))
+            .unwrap();
+        Self {
+            thread,
+            pinhole_tx,
+            result_rx,
+        }
+    }
+
+    pub fn send(&self, pinhole: Pinhole) {
+        self.pinhole_tx.send(pinhole).unwrap();
+    }
+
+    pub fn try_receive(&self) -> Option<RenderResult> {
+        self.result_rx.try_recv().ok()
+    }
+
+    pub fn join(self) {
+        drop(self.pinhole_tx);
+        self.thread.join().unwrap();
+    }
 }

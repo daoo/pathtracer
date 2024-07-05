@@ -26,6 +26,11 @@ impl ImageBuffer {
     }
 
     #[inline]
+    pub fn size(&self) -> (u32, u32) {
+        (self.width, self.height)
+    }
+
+    #[inline]
     fn index(&self, idx: Vector2<u32>) -> usize {
         (self.width * idx.y + idx.x) as usize
     }

@@ -1,12 +1,13 @@
 use clap::Parser;
 use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder};
-use scene::Scene;
+use scene::{camera::Pinhole, Scene};
+use stage::Stage;
 use tracing::pathtracer::Pathtracer;
 
-use crate::gui::PathtracerGui;
+use crate::worker::Worker;
 
-mod gui;
-mod workers;
+mod stage;
+mod worker;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -48,7 +49,11 @@ fn main() {
         kdtree,
     };
 
-    PathtracerGui::new(pathtracer.scene.cameras[0].clone())
-        .run(pathtracer)
-        .unwrap();
+    let camera = pathtracer.scene.cameras[0].clone();
+    let pinhole = Pinhole::new(camera.clone(), 128, 128);
+    let worker = Worker::spawn(pathtracer, pinhole);
+
+    miniquad::start(Default::default(), move || {
+        Box::new(Stage::new(worker, camera))
+    });
 }

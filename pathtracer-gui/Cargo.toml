@@ -1,16 +1,14 @@
 [package]
 name = "pathtracer-gui"
-version = "1.0.0"
+version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.5.4", features = ["derive"] }
-eframe = { version = "0.28.0", default-features = false, features = ["default_fonts", "x11", "glow"] }
-egui = "0.28.0"
+clap = { version = "4.5.8", features = ["derive"] }
 kdtree = { version = "1.0.0", path = "../kdtree" }
+miniquad = "0.4.2"
 nalgebra = { version = "0.33.0", default-features = false }
-rand = { version = "0.8.5", default-features = false, features = ["std", "small_rng"] }
-rayon = "1.10.0"
+rand = { version = "0.8.5", default-features = false, features = ["small_rng"] }
+rayon = { version = "1.10.0", default-features = false }
 scene = { version = "1.0.0", path = "../scene" }
 tracing = { version = "1.0.0", path = "../tracing" }
-wavefront = { version = "1.0.0", path = "../wavefront" }
