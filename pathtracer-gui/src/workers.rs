@@ -20,9 +20,25 @@ use tracing::{
 };
 
 pub struct RenderResult {
-    pub iteration: u16,
+    pub iterations: u16,
     pub duration: time::Duration,
-    pub image: ImageBuffer,
+    pub image: egui::ColorImage,
+}
+
+impl RenderResult {
+    fn from_buffer(iterations: u16, duration: time::Duration, buffer: ImageBuffer) -> Self {
+        let size = [buffer.width as usize, buffer.height as usize];
+        let pixels = buffer
+            .into_rgba_iter(iterations)
+            .map(|p| egui::Color32::from_rgba_premultiplied(p[0], p[1], p[2], p[3]))
+            .collect();
+        let image = egui::ColorImage { size, pixels };
+        RenderResult {
+            iterations,
+            duration,
+            image,
+        }
+    }
 }
 
 fn render_subdivided(
@@ -105,22 +121,18 @@ fn worker_loop(
             let (duration, buffer) = measure(|| {
                 render_subdivided(&pathtracer, &pinhole_small, pinhole_small.size() / 3)
             });
-            let _ = tx.send(RenderResult {
-                iteration: 1,
-                duration,
-                image: buffer,
-            });
+            let _ = tx.send(RenderResult::from_buffer(1, duration, buffer));
         }
 
         let (duration, buffer) =
             measure(|| render_subdivided(&pathtracer, &pinhole, pinhole.size() / 4));
         combined_buffer += buffer;
         iteration += 1;
-        let _ = tx.send(RenderResult {
+        let _ = tx.send(RenderResult::from_buffer(
             iteration,
             duration,
-            image: combined_buffer.clone(),
-        });
+            combined_buffer.clone(),
+        ));
     }
 }
 

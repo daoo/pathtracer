@@ -10,22 +10,13 @@ use std::{
 use egui::Vec2;
 use nalgebra::Vector3;
 use scene::camera::{Camera, Pinhole};
-use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer};
+use tracing::pathtracer::Pathtracer;
 
 use crate::workers::{spawn_worker, RenderResult};
 
 struct RenderState {
     iteration: u16,
     duration: time::Duration,
-}
-
-fn convert(iterations: u16, buffer: ImageBuffer) -> egui::ColorImage {
-    let size = [buffer.width as usize, buffer.height as usize];
-    let pixels = buffer
-        .into_rgba_iter(iterations)
-        .map(|p| egui::Color32::from_rgba_premultiplied(p[0], p[1], p[2], p[3]))
-        .collect();
-    egui::ColorImage { size, pixels }
 }
 
 fn receiver_thread(
@@ -35,12 +26,11 @@ fn receiver_thread(
     ctx: egui::Context,
 ) {
     while let Ok(result) = rx.recv() {
-        let image = convert(result.iteration, result.image);
         render_ptr.lock().unwrap().replace(RenderState {
-            iteration: result.iteration,
+            iteration: result.iterations,
             duration: result.duration,
         });
-        image_ptr.lock().unwrap().replace(image);
+        image_ptr.lock().unwrap().replace(result.image);
         ctx.request_repaint();
     }
 }
