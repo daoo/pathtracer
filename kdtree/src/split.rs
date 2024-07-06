@@ -71,18 +71,15 @@ pub fn split_and_partition(clipped: &[(u32, Aabb)], aabb: &Aabb, plane: Aap) -> 
 #[cfg(test)]
 mod partition_triangles_tests {
     use geometry::axis::Axis;
-    use nalgebra::Vector3;
+    use glam::Vec3;
 
     use super::*;
 
     #[test]
     fn test() {
-        let triangle0 =
-            Aabb::from_extents(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 1.0, 0.0));
-        let triangle1 =
-            Aabb::from_extents(Vector3::new(1.0, 0.0, 0.0), Vector3::new(1.0, 1.0, 1.0));
-        let triangle2 =
-            Aabb::from_extents(Vector3::new(1.0, 0.0, 0.0), Vector3::new(2.0, 1.0, 0.0));
+        let triangle0 = Aabb::from_extents(Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 0.0));
+        let triangle1 = Aabb::from_extents(Vec3::new(1.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0));
+        let triangle2 = Aabb::from_extents(Vec3::new(1.0, 0.0, 0.0), Vec3::new(2.0, 1.0, 0.0));
         let clipped = [(0, triangle0), (1, triangle1), (2, triangle2)];
         let plane = Aap {
             axis: Axis::X,

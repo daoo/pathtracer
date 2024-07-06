@@ -1,33 +1,28 @@
 use geometry::ray::Ray;
-use nalgebra::{UnitVector3, Vector2, Vector3};
+use glam::{UVec2, Vec3};
 
 #[derive(Clone, Debug)]
 pub struct Camera {
-    pub position: Vector3<f32>,
-    pub direction: UnitVector3<f32>,
-    pub up: UnitVector3<f32>,
-    pub right: UnitVector3<f32>,
+    pub position: Vec3,
+    pub direction: Vec3,
+    pub up: Vec3,
+    pub right: Vec3,
     pub fov_degrees: f32,
 }
 
 impl Camera {
-    pub fn new(
-        position: Vector3<f32>,
-        target: &Vector3<f32>,
-        up: &Vector3<f32>,
-        fov_degrees: f32,
-    ) -> Camera {
-        let direction = UnitVector3::new_normalize(target - position);
+    pub fn new(position: Vec3, target: Vec3, up: Vec3, fov_degrees: f32) -> Camera {
+        let direction = (target - position).normalize();
         Camera {
             position,
             direction,
-            up: UnitVector3::new_normalize(*up),
-            right: UnitVector3::new_normalize(direction.cross(up)),
+            up: up.normalize(),
+            right: direction.cross(up).normalize(),
             fov_degrees,
         }
     }
 
-    pub fn with_position(&self, position: Vector3<f32>) -> Self {
+    pub fn with_position(&self, position: Vec3) -> Self {
         Camera {
             position,
             direction: self.direction,
@@ -43,18 +38,18 @@ pub struct Pinhole {
     pub camera: Camera,
     pub width: u32,
     pub height: u32,
-    pub plane: Vector3<f32>,
-    pub dx: Vector3<f32>,
-    pub dy: Vector3<f32>,
+    pub plane: Vec3,
+    pub dx: Vec3,
+    pub dy: Vec3,
 }
 
 impl Pinhole {
     pub fn new(camera: Camera, width: u32, height: u32) -> Pinhole {
         let aspect_ratio = width as f32 / height as f32;
         let half_fov_radians = camera.fov_degrees * std::f32::consts::PI / 360.0;
-        let x = camera.right.into_inner() * (half_fov_radians.sin() * aspect_ratio);
-        let y = camera.up.into_inner() * half_fov_radians.sin();
-        let z = camera.direction.into_inner() * half_fov_radians.cos();
+        let x = camera.right * (half_fov_radians.sin() * aspect_ratio);
+        let y = camera.up * half_fov_radians.sin();
+        let z = camera.direction * half_fov_radians.cos();
 
         Pinhole {
             camera,
@@ -67,8 +62,8 @@ impl Pinhole {
     }
 
     #[inline]
-    pub fn size(&self) -> Vector2<u32> {
-        Vector2::new(self.width, self.height)
+    pub fn size(&self) -> UVec2 {
+        UVec2::new(self.width, self.height)
     }
 
     #[inline]

@@ -1,5 +1,5 @@
 use geometry::triangle::Triangle;
-use nalgebra::{UnitVector3, Vector2, Vector3};
+use glam::{Vec2, Vec3};
 use std::{collections::BTreeMap, fs::File, io::BufReader, path::Path, sync::Arc};
 use wavefront::{mtl, obj};
 
@@ -18,26 +18,26 @@ use crate::{
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct TriangleNormals {
-    pub n0: Vector3<f32>,
-    pub n1: Vector3<f32>,
-    pub n2: Vector3<f32>,
+    pub n0: Vec3,
+    pub n1: Vec3,
+    pub n2: Vec3,
 }
 
 impl TriangleNormals {
-    pub fn lerp(&self, u: f32, v: f32) -> UnitVector3<f32> {
-        UnitVector3::new_normalize((1.0 - (u + v)) * self.n0 + u * self.n1 + v * self.n2)
+    pub fn lerp(&self, u: f32, v: f32) -> Vec3 {
+        ((1.0 - (u + v)) * self.n0 + u * self.n1 + v * self.n2).normalize()
     }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct TriangleTexcoords {
-    pub uv0: Vector2<f32>,
-    pub uv1: Vector2<f32>,
-    pub uv2: Vector2<f32>,
+    pub uv0: Vec2,
+    pub uv1: Vec2,
+    pub uv2: Vec2,
 }
 
 impl TriangleTexcoords {
-    pub fn lerp(&self, u: f32, v: f32) -> Vector2<f32> {
+    pub fn lerp(&self, u: f32, v: f32) -> Vec2 {
         (1.0 - (u + v)) * self.uv0 + u * self.uv1 + v * self.uv2
     }
 }
@@ -53,7 +53,7 @@ pub struct Scene {
     pub triangle_data: Vec<TriangleData>,
     pub cameras: Vec<Camera>,
     pub lights: Vec<SphericalLight>,
-    pub environment: Vector3<f32>,
+    pub environment: Vec3,
 }
 
 fn collect_triangle_data(
@@ -148,8 +148,8 @@ fn collect_cameras(mtl: &mtl::Mtl) -> Vec<Camera> {
         .map(|camera| {
             Camera::new(
                 camera.position.into(),
-                &camera.target.into(),
-                &camera.up.into(),
+                camera.target.into(),
+                camera.up.into(),
                 camera.fov,
             )
         })
@@ -163,7 +163,7 @@ fn collect_lights(mtl: &mtl::Mtl) -> Vec<SphericalLight> {
             SphericalLight::new(
                 light.position.into(),
                 light.radius,
-                &light.color.into(),
+                light.color.into(),
                 light.intensity,
             )
         })
@@ -176,7 +176,7 @@ impl Scene {
             triangle_data: collect_triangle_data(image_directory, obj, mtl),
             cameras: collect_cameras(mtl),
             lights: collect_lights(mtl),
-            environment: Vector3::new(0.8, 0.8, 0.8),
+            environment: Vec3::new(0.8, 0.8, 0.8),
         }
     }
 

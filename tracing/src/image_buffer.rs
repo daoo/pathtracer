@@ -1,18 +1,16 @@
 use std::ops::{Add, AddAssign, Index, IndexMut};
 
-use nalgebra::{Vector2, Vector3};
+use glam::{UVec2, Vec3};
 
 #[derive(Clone)]
 pub struct ImageBuffer {
     pub width: u32,
     pub height: u32,
-    pub pixels: Vec<Vector3<f32>>,
+    pub pixels: Vec<Vec3>,
 }
 
-fn gamma_correct(x: Vector3<f32>) -> Vector3<f32> {
-    const GAMMA_POWER: f32 = 1.0 / 2.2;
-    x.zip_map(&Vector3::from_element(GAMMA_POWER), |b, e| b.powf(e))
-        .inf(&Vector3::from_element(1.0))
+fn gamma_correct(x: Vec3) -> Vec3 {
+    x.powf(1.0 / 2.2).min(Vec3::ONE)
 }
 
 impl ImageBuffer {
@@ -21,7 +19,7 @@ impl ImageBuffer {
         Self {
             width,
             height,
-            pixels: [Vector3::zeros()].repeat((width * height) as usize),
+            pixels: [Vec3::ZERO].repeat((width * height) as usize),
         }
     }
 
@@ -31,16 +29,16 @@ impl ImageBuffer {
     }
 
     #[inline]
-    fn index(&self, idx: Vector2<u32>) -> usize {
+    fn index(&self, idx: UVec2) -> usize {
         (self.width * idx.y + idx.x) as usize
     }
 
     #[inline]
-    pub fn add_at(mut self, at: Vector2<u32>, rhs: &Self) -> Self {
+    pub fn add_at(mut self, at: UVec2, rhs: &Self) -> Self {
         debug_assert!(at.x + rhs.width <= self.width && at.y + rhs.height <= self.height);
         for y in 0..rhs.height {
             for x in 0..rhs.width {
-                self[Vector2::new(at.x + x, at.y + y)] += rhs[Vector2::new(x, y)];
+                self[UVec2::new(at.x + x, at.y + y)] += rhs[UVec2::new(x, y)];
             }
         }
         self
@@ -51,9 +49,8 @@ impl ImageBuffer {
         self.pixels
             .into_iter()
             .flat_map(|p| -> [u8; 3] {
-                (gamma_correct(p * iterations_inv) * 255.0)
-                    .map(|c| c.round() as u8)
-                    .into()
+                let color = (gamma_correct(p * iterations_inv) * 255.0).round();
+                [color.x as u8, color.y as u8, color.z as u8]
             })
             .collect()
     }
@@ -62,24 +59,24 @@ impl ImageBuffer {
     pub fn into_rgba_iter(self, iterations: u16) -> impl Iterator<Item = [u8; 4]> {
         let iterations_inv = 1.0 / iterations as f32;
         self.pixels.into_iter().map(move |p| -> [u8; 4] {
-            let p = (gamma_correct(p * iterations_inv) * 255.0).map(|c| c.round() as u8);
-            [p.x, p.y, p.z, u8::MAX]
+            let p = (gamma_correct(p * iterations_inv) * 255.0).round();
+            [p.x as u8, p.y as u8, p.z as u8, u8::MAX]
         })
     }
 }
 
-impl Index<Vector2<u32>> for ImageBuffer {
-    type Output = Vector3<f32>;
+impl Index<UVec2> for ImageBuffer {
+    type Output = Vec3;
 
     #[inline]
-    fn index(&self, index: Vector2<u32>) -> &Self::Output {
+    fn index(&self, index: UVec2) -> &Self::Output {
         &self.pixels[self.index(index)]
     }
 }
 
-impl IndexMut<Vector2<u32>> for ImageBuffer {
+impl IndexMut<UVec2> for ImageBuffer {
     #[inline]
-    fn index_mut(&mut self, index: Vector2<u32>) -> &mut Self::Output {
+    fn index_mut(&mut self, index: UVec2) -> &mut Self::Output {
         let index = self.index(index);
         &mut self.pixels[index]
     }
@@ -97,7 +94,7 @@ impl Add for ImageBuffer {
             pixels: self
                 .pixels
                 .into_iter()
-                .zip(rhs.pixels.iter())
+                .zip(rhs.pixels)
                 .map(|(a, b)| a + b)
                 .collect::<Vec<_>>(),
         }

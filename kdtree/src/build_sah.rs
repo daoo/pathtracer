@@ -1,4 +1,4 @@
-use nalgebra::Vector3;
+use glam::Vec3;
 use rayon::prelude::*;
 
 use geometry::{aabb::Aabb, aap::Aap, bound::geometries_bounding_box, geometric::Geometric};
@@ -69,7 +69,7 @@ impl SahKdTreeBuilder {
 impl KdTreeBuilder for SahKdTreeBuilder {
     fn starting_box(&self) -> KdCell {
         KdCell::new(
-            geometries_bounding_box(&self.geometries).enlarge(&Vector3::new(1.0, 1.0, 1.0)),
+            geometries_bounding_box(&self.geometries).enlarge(Vec3::new(1.0, 1.0, 1.0)),
             (0u32..self.geometries.len() as u32).collect(),
         )
     }
@@ -123,9 +123,9 @@ mod tests {
     #[test]
     fn non_axially_aligned_triangle() {
         let triangle = Triangle {
-            v0: Vector3::new(0.0, 0.0, 0.0),
-            v1: Vector3::new(1.0, 0.0, 0.0),
-            v2: Vector3::new(1.0, 1.0, 1.0),
+            v0: Vec3::new(0.0, 0.0, 0.0),
+            v1: Vec3::new(1.0, 0.0, 0.0),
+            v2: Vec3::new(1.0, 1.0, 1.0),
         };
         let builder = SahKdTreeBuilder {
             traverse_cost: 0.1,
@@ -170,9 +170,9 @@ mod tests {
     #[test]
     fn axially_aligned_triangle() {
         let triangle = Triangle {
-            v0: Vector3::new(0.0, 0.0, 0.0),
-            v1: Vector3::new(1.0, 0.0, 0.0),
-            v2: Vector3::new(1.0, 1.0, 0.0),
+            v0: Vec3::new(0.0, 0.0, 0.0),
+            v1: Vec3::new(1.0, 0.0, 0.0),
+            v2: Vec3::new(1.0, 1.0, 0.0),
         };
         let builder = SahKdTreeBuilder {
             traverse_cost: 1.0,

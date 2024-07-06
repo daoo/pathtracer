@@ -1,8 +1,9 @@
+use glam::Vec3;
+
 use crate::{
     aabb::Aabb, axial_triangle::AxiallyAlignedTriangle, intersection::RayIntersection, ray::Ray,
     triangle::Triangle, Geometry,
 };
-use nalgebra::Vector3;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Geometric {
@@ -12,7 +13,7 @@ pub enum Geometric {
 
 impl Geometry for Geometric {
     #[inline]
-    fn min(&self) -> Vector3<f32> {
+    fn min(&self) -> Vec3 {
         match self {
             Geometric::Triangle(t) => t.min(),
             Geometric::AxiallyAlignedTriangle(t) => t.min(),
@@ -20,7 +21,7 @@ impl Geometry for Geometric {
     }
 
     #[inline]
-    fn max(&self) -> Vector3<f32> {
+    fn max(&self) -> Vec3 {
         match self {
             Geometric::Triangle(t) => t.max(),
             Geometric::AxiallyAlignedTriangle(t) => t.max(),

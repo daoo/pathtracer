@@ -1,4 +1,4 @@
-use nalgebra::{Vector2, Vector3};
+use glam::{Vec2, Vec3};
 
 use crate::{
     aabb::Aabb,
@@ -12,21 +12,21 @@ use crate::{
 #[derive(Clone, Debug, PartialEq)]
 pub struct AxiallyAlignedTriangle {
     pub plane: Aap,
-    pub v0: Vector2<f32>,
-    pub v1: Vector2<f32>,
-    pub v2: Vector2<f32>,
+    pub v0: Vec2,
+    pub v1: Vec2,
+    pub v2: Vec2,
 }
 
 impl AxiallyAlignedTriangle {
-    pub fn base0(&self) -> Vector2<f32> {
+    pub fn base0(&self) -> Vec2 {
         self.v1 - self.v0
     }
 
-    pub fn base1(&self) -> Vector2<f32> {
+    pub fn base1(&self) -> Vec2 {
         self.v2 - self.v0
     }
 
-    pub fn param(&self, u: f32, v: f32) -> Vector2<f32> {
+    pub fn param(&self, u: f32, v: f32) -> Vec2 {
         debug_assert!(u >= 0.0 && v >= 0.0 && u + v <= 1.0);
         self.v0 + u * self.base0() + v * self.base1()
     }
@@ -39,7 +39,7 @@ impl AxiallyAlignedTriangle {
         ]
     }
 
-    pub fn intersect_point(&self, point: Vector2<f32>) -> Option<Intersection> {
+    pub fn intersect_point(&self, point: Vec2) -> Option<Intersection> {
         let base1 = self.v1 - self.v0;
         let base2 = self.v2 - self.v0;
         let s = point - self.v0;
@@ -65,13 +65,13 @@ impl AxiallyAlignedTriangle {
 }
 
 impl Geometry for AxiallyAlignedTriangle {
-    fn min(&self) -> Vector3<f32> {
-        let p = self.v0.inf(&self.v1.inf(&self.v2));
+    fn min(&self) -> Vec3 {
+        let p = self.v0.min(self.v1.min(self.v2));
         self.plane.axis.add_to(p, self.plane.distance)
     }
 
-    fn max(&self) -> Vector3<f32> {
-        let p = self.v0.sup(&self.v1.sup(&self.v2));
+    fn max(&self) -> Vec3 {
+        let p = self.v0.max(self.v1.max(self.v2));
         self.plane.axis.add_to(p, self.plane.distance)
     }
 
@@ -102,9 +102,10 @@ impl Geometry for AxiallyAlignedTriangle {
             return None;
         }
         let start = (clipped[0], clipped[0]);
-        let (min, max) = clipped[1..]
-            .iter()
-            .fold(start, |(min, max), b| (min.inf(b), max.sup(b)));
+        let (min, max) = clipped
+            .into_iter()
+            .skip(1)
+            .fold(start, |(min, max), b| (min.min(b), max.max(b)));
 
         Some(Aabb::from_extents(min, max))
     }
@@ -121,20 +122,20 @@ mod tests {
             axis: Axis::X,
             distance: 0.0,
         },
-        v0: Vector2::new(0.0, 0.0),
-        v1: Vector2::new(1.0, 0.0),
-        v2: Vector2::new(0.0, 1.0),
+        v0: Vec2::new(0.0, 0.0),
+        v1: Vec2::new(1.0, 0.0),
+        v2: Vec2::new(0.0, 1.0),
     };
 
     #[test]
     fn intersect_point_outside_triangle() {
-        assert_eq!(TEST_TRIANGLE.intersect_point(Vector2::new(2.0, 2.0)), None);
+        assert_eq!(TEST_TRIANGLE.intersect_point(Vec2::new(2.0, 2.0)), None);
     }
 
     #[test]
     fn intersect_point_at_v1() {
         assert_eq!(
-            TEST_TRIANGLE.intersect_point(Vector2::new(1.0, 0.0)),
+            TEST_TRIANGLE.intersect_point(Vec2::new(1.0, 0.0)),
             Some(Intersection::new(1.0, 0.0))
         );
     }
@@ -142,7 +143,7 @@ mod tests {
     #[test]
     fn intersect_point_at_v2() {
         assert_eq!(
-            TEST_TRIANGLE.intersect_point(Vector2::new(0.0, 1.0)),
+            TEST_TRIANGLE.intersect_point(Vec2::new(0.0, 1.0)),
             Some(Intersection::new(0.0, 1.0))
         );
     }
@@ -150,7 +151,7 @@ mod tests {
     #[test]
     fn intersect_point_at_middle_of_edge3() {
         assert_eq!(
-            TEST_TRIANGLE.intersect_point(Vector2::new(0.5, 0.5)),
+            TEST_TRIANGLE.intersect_point(Vec2::new(0.5, 0.5)),
             Some(Intersection::new(0.5, 0.5))
         );
     }
@@ -162,20 +163,20 @@ mod tests {
                 axis: Axis::X,
                 distance: 0.0,
             },
-            v0: Vector2::new(0.0, 0.0),
-            v1: Vector2::new(1.0, 0.0),
-            v2: Vector2::new(0.0, 1.0),
+            v0: Vec2::new(0.0, 0.0),
+            v1: Vec2::new(1.0, 0.0),
+            v2: Vec2::new(0.0, 1.0),
         };
         let negative = AxiallyAlignedTriangle {
             plane: Aap {
                 axis: Axis::X,
                 distance: 0.0,
             },
-            v0: Vector2::new(0.0, 0.0),
-            v1: Vector2::new(0.0, 1.0),
-            v2: Vector2::new(1.0, 0.0),
+            v0: Vec2::new(0.0, 0.0),
+            v1: Vec2::new(0.0, 1.0),
+            v2: Vec2::new(1.0, 0.0),
         };
-        let point = Vector2::new(0.5, 0.0);
+        let point = Vec2::new(0.5, 0.0);
 
         assert_eq!(
             positive.intersect_point(point),

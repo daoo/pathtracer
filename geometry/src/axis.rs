@@ -1,4 +1,4 @@
-use nalgebra::{Vector2, Vector3};
+use glam::{Vec2, Vec3, Vec3Swizzles};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Axis {
@@ -17,23 +17,23 @@ impl Axis {
         }
     }
 
-    pub fn as_vector3(&self, v: f32) -> Vector3<f32> {
+    pub fn as_vector3(&self, v: f32) -> Vec3 {
         match self {
-            Axis::X => Vector3::new(v, 0.0, 0.0),
-            Axis::Y => Vector3::new(0.0, v, 0.0),
-            Axis::Z => Vector3::new(0.0, 0.0, v),
+            Axis::X => Vec3::new(v, 0.0, 0.0),
+            Axis::Y => Vec3::new(0.0, v, 0.0),
+            Axis::Z => Vec3::new(0.0, 0.0, v),
         }
     }
 
-    pub fn add_to(&self, v: Vector2<f32>, s: f32) -> Vector3<f32> {
+    pub fn add_to(&self, v: Vec2, s: f32) -> Vec3 {
         match self {
-            Axis::X => Vector3::new(s, v.x, v.y),
-            Axis::Y => Vector3::new(v.x, s, v.y),
-            Axis::Z => Vector3::new(v.x, v.y, s),
+            Axis::X => Vec3::new(s, v.x, v.y),
+            Axis::Y => Vec3::new(v.x, s, v.y),
+            Axis::Z => Vec3::new(v.x, v.y, s),
         }
     }
 
-    pub fn remove_from(&self, v: Vector3<f32>) -> Vector2<f32> {
+    pub fn remove_from(&self, v: Vec3) -> Vec2 {
         match self {
             Axis::X => v.yz(),
             Axis::Y => v.xz(),
@@ -42,7 +42,7 @@ impl Axis {
     }
 }
 
-impl std::ops::Index<Axis> for Vector3<f32> {
+impl std::ops::Index<Axis> for Vec3 {
     type Output = f32;
     #[inline]
     fn index(&self, idx: Axis) -> &f32 {
@@ -50,7 +50,7 @@ impl std::ops::Index<Axis> for Vector3<f32> {
     }
 }
 
-impl std::ops::IndexMut<Axis> for Vector3<f32> {
+impl std::ops::IndexMut<Axis> for Vec3 {
     #[inline]
     fn index_mut(&mut self, idx: Axis) -> &mut f32 {
         &mut self[idx as usize]

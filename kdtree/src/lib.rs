@@ -214,7 +214,7 @@ impl KdTree {
 #[cfg(test)]
 mod tests {
     use geometry::{axis::Axis, triangle::Triangle};
-    use nalgebra::Vector3;
+    use glam::Vec3;
 
     use super::*;
 
@@ -224,7 +224,7 @@ mod tests {
             root: Box::new(KdNode::Leaf(vec![])),
             geometries: vec![],
         };
-        let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(1., 1., 1.));
+        let ray = Ray::between(Vec3::new(0., 0., 0.), Vec3::new(1., 1., 1.));
 
         assert_eq!(tree.intersect(&ray, 0.0..=1.0), None);
     }
@@ -232,14 +232,14 @@ mod tests {
     #[test]
     fn intersect_ray_intersecting_split_plane_and_both_triangles() {
         let triangle0 = Triangle {
-            v0: Vector3::new(0., 0., -1.),
-            v1: Vector3::new(2., 0., -1.),
-            v2: Vector3::new(2., 2., -1.),
+            v0: Vec3::new(0., 0., -1.),
+            v1: Vec3::new(2., 0., -1.),
+            v2: Vec3::new(2., 2., -1.),
         };
         let triangle1 = Triangle {
-            v0: Vector3::new(0., 0., 1.),
-            v1: Vector3::new(2., 0., 1.),
-            v2: Vector3::new(2., 2., 1.),
+            v0: Vec3::new(0., 0., 1.),
+            v1: Vec3::new(2., 0., 1.),
+            v2: Vec3::new(2., 2., 1.),
         };
         let tree = KdTree {
             root: Box::new(KdNode::Node {
@@ -252,7 +252,7 @@ mod tests {
             }),
             geometries: vec![triangle0.into(), triangle1.into()],
         };
-        let ray = Ray::between(&Vector3::new(1., 1., -2.), &Vector3::new(1., 1., 2.));
+        let ray = Ray::between(Vec3::new(1., 1., -2.), Vec3::new(1., 1., 2.));
 
         assert_eq!(
             tree.intersect(&ray, 0.0..=1.0),
@@ -267,14 +267,14 @@ mod tests {
     #[test]
     fn intersect_ray_parallel_to_split_plane_and_intersecting_one_triangle() {
         let triangle0 = Triangle {
-            v0: Vector3::new(0., 0., 0.),
-            v1: Vector3::new(1., 0., 0.),
-            v2: Vector3::new(0., 1., 0.),
+            v0: Vec3::new(0., 0., 0.),
+            v1: Vec3::new(1., 0., 0.),
+            v2: Vec3::new(0., 1., 0.),
         };
         let triangle1 = Triangle {
-            v0: Vector3::new(1., 0., 0.),
-            v1: Vector3::new(2., 0., 0.),
-            v2: Vector3::new(2., 1., 0.),
+            v0: Vec3::new(1., 0., 0.),
+            v1: Vec3::new(2., 0., 0.),
+            v2: Vec3::new(2., 1., 0.),
         };
         let tree = KdTree {
             root: KdNode::new_node(
@@ -284,8 +284,8 @@ mod tests {
             ),
             geometries: vec![triangle0.into(), triangle1.into()],
         };
-        let ray_triangle0_v0 = Ray::between(&Vector3::new(0., 0., -1.), &Vector3::new(0., 0., 1.));
-        let ray_triangle1_v1 = Ray::between(&Vector3::new(2., 0., -1.), &Vector3::new(2., 0., 1.));
+        let ray_triangle0_v0 = Ray::between(Vec3::new(0., 0., -1.), Vec3::new(0., 0., 1.));
+        let ray_triangle1_v1 = Ray::between(Vec3::new(2., 0., -1.), Vec3::new(2., 0., 1.));
 
         assert_eq!(
             tree.intersect(&ray_triangle0_v0, 0.0..=1.0),
@@ -300,14 +300,14 @@ mod tests {
     #[test]
     fn intersect_ray_orthogonal_to_split_plane_and_intersecting_both_triangles() {
         let triangle0 = Triangle {
-            v0: Vector3::new(0., -1., -1.),
-            v1: Vector3::new(0., 1., -1.),
-            v2: Vector3::new(0., 1., 1.),
+            v0: Vec3::new(0., -1., -1.),
+            v1: Vec3::new(0., 1., -1.),
+            v2: Vec3::new(0., 1., 1.),
         };
         let triangle1 = Triangle {
-            v0: Vector3::new(2., -1., -1.),
-            v1: Vector3::new(2., 1., -1.),
-            v2: Vector3::new(2., 1., 1.),
+            v0: Vec3::new(2., -1., -1.),
+            v1: Vec3::new(2., 1., -1.),
+            v2: Vec3::new(2., 1., 1.),
         };
         let tree = KdTree {
             root: KdNode::new_node(
@@ -317,7 +317,7 @@ mod tests {
             ),
             geometries: vec![triangle0.into(), triangle1.into()],
         };
-        let ray = Ray::between(&Vector3::new(-1., 0., 0.), &Vector3::new(3., 0., 0.));
+        let ray = Ray::between(Vec3::new(-1., 0., 0.), Vec3::new(3., 0., 0.));
 
         assert_eq!(
             tree.intersect(&ray, 0.0..=1.0),
@@ -332,9 +332,9 @@ mod tests {
     #[test]
     fn intersect_split_at_axially_aligned_triangle() {
         let triangle = Triangle {
-            v0: Vector3::new(0., 0., 1.),
-            v1: Vector3::new(1., 0., 1.),
-            v2: Vector3::new(0., 1., 1.),
+            v0: Vec3::new(0., 0., 1.),
+            v1: Vec3::new(1., 0., 1.),
+            v2: Vec3::new(0., 1., 1.),
         };
         let tree_left = KdTree {
             root: KdNode::new_node(Aap::new_z(1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
@@ -344,7 +344,7 @@ mod tests {
             root: KdNode::new_node(Aap::new_z(1.0), KdNode::empty(), KdNode::new_leaf(vec![0])),
             geometries: vec![triangle.into()],
         };
-        let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
+        let ray = Ray::between(Vec3::new(0., 0., 0.), Vec3::new(0., 0., 2.));
 
         assert_eq!(
             tree_left.intersect(&ray, 0.0..=1.0),
@@ -359,9 +359,9 @@ mod tests {
     #[test]
     fn intersect_flat_cell_left_left() {
         let triangle = Triangle {
-            v0: Vector3::new(0., 0., 1.),
-            v1: Vector3::new(1., 0., 1.),
-            v2: Vector3::new(0., 1., 1.),
+            v0: Vec3::new(0., 0., 1.),
+            v1: Vec3::new(1., 0., 1.),
+            v2: Vec3::new(0., 1., 1.),
         };
         let tree = KdTree {
             root: KdNode::new_node(
@@ -371,7 +371,7 @@ mod tests {
             ),
             geometries: vec![triangle.into()],
         };
-        let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
+        let ray = Ray::between(Vec3::new(0., 0., 0.), Vec3::new(0., 0., 2.));
 
         assert_eq!(
             tree.intersect(&ray, 0.0..=1.0),
@@ -386,9 +386,9 @@ mod tests {
     #[test]
     fn intersect_flat_cell_right_left() {
         let triangle = Triangle {
-            v0: Vector3::new(0., 0., 1.),
-            v1: Vector3::new(1., 0., 1.),
-            v2: Vector3::new(0., 1., 1.),
+            v0: Vec3::new(0., 0., 1.),
+            v1: Vec3::new(1., 0., 1.),
+            v2: Vec3::new(0., 1., 1.),
         };
         let tree = KdTree {
             root: KdNode::new_node(
@@ -398,7 +398,7 @@ mod tests {
             ),
             geometries: vec![triangle.into()],
         };
-        let ray = Ray::between(&Vector3::new(0., 0., 0.), &Vector3::new(0., 0., 2.));
+        let ray = Ray::between(Vec3::new(0., 0., 0.), Vec3::new(0., 0., 2.));
 
         assert_eq!(
             tree.intersect(&ray, 0.0..=1.0),
@@ -413,9 +413,9 @@ mod tests {
     #[test]
     fn intersect_flat_cell_minimized_example() {
         let triangle = Triangle {
-            v0: Vector3::new(1.0, 1.0, -1.0),
-            v1: Vector3::new(-1.0, 1.0, -1.0),
-            v2: Vector3::new(1.0, -1.0, -1.0),
+            v0: Vec3::new(1.0, 1.0, -1.0),
+            v1: Vec3::new(-1.0, 1.0, -1.0),
+            v2: Vec3::new(1.0, -1.0, -1.0),
         };
         let root = KdNode::new_node(
             Aap::new_z(-1.0),
@@ -427,8 +427,8 @@ mod tests {
             root,
         };
         let ray = Ray {
-            origin: Vector3::new(0.0, 0.0, 3.0),
-            direction: Vector3::new(0.06646079, 0.08247295, -0.9238795),
+            origin: Vec3::new(0.0, 0.0, 3.0),
+            direction: Vec3::new(0.06646079, 0.08247295, -0.9238795),
         };
 
         let actual = tree.intersect(&ray, 0.0..=f32::MAX);
@@ -449,17 +449,17 @@ mod tests {
     #[test]
     fn intersect_rounding_error_example() {
         let triangle = Triangle {
-            v0: Vector3::new(-1.0, -1.0, 1.0),
-            v1: Vector3::new(-1.0, -1.0, -1.0),
-            v2: Vector3::new(-1.0, 1.0, 1.0),
+            v0: Vec3::new(-1.0, -1.0, 1.0),
+            v1: Vec3::new(-1.0, -1.0, -1.0),
+            v2: Vec3::new(-1.0, 1.0, 1.0),
         };
         let tree = KdTree {
             root: KdNode::new_node(Aap::new_x(-1.0), KdNode::empty(), KdNode::new_leaf(vec![0])),
             geometries: vec![triangle.into()],
         };
         let ray = Ray {
-            origin: Vector3::new(-0.5170438, -0.4394186, -0.045965273),
-            direction: Vector3::new(-0.8491798, -0.1408107, -0.5089852),
+            origin: Vec3::new(-0.5170438, -0.4394186, -0.045965273),
+            direction: Vec3::new(-0.8491798, -0.1408107, -0.5089852),
         };
 
         let actual = tree.intersect(&ray, 0.0..=f32::MAX);

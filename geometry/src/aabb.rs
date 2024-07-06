@@ -1,30 +1,30 @@
-use nalgebra::Vector3;
+use glam::Vec3;
 
 use super::aap::Aap;
 
-#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Aabb {
-    min: Vector3<f32>,
-    max: Vector3<f32>,
+    min: Vec3,
+    max: Vec3,
 }
 
 impl Aabb {
-    pub fn from_extents(min: Vector3<f32>, max: Vector3<f32>) -> Aabb {
-        debug_assert!(min <= max);
+    pub fn from_extents(min: Vec3, max: Vec3) -> Aabb {
+        debug_assert!(min.cmple(max).all());
         Aabb { min, max }
     }
 
     pub fn empty() -> Aabb {
         Aabb {
-            min: Vector3::zeros(),
-            max: Vector3::zeros(),
+            min: Vec3::ZERO,
+            max: Vec3::ZERO,
         }
     }
 
     pub fn unit() -> Aabb {
         Aabb {
-            min: Vector3::new(0., 0., 0.),
-            max: Vector3::new(1., 1., 1.),
+            min: Vec3::new(0., 0., 0.),
+            max: Vec3::new(1., 1., 1.),
         }
     }
 
@@ -32,23 +32,23 @@ impl Aabb {
         self.min == self.max
     }
 
-    pub fn center(&self) -> Vector3<f32> {
+    pub fn center(&self) -> Vec3 {
         self.min + self.half_size()
     }
 
-    pub fn half_size(&self) -> Vector3<f32> {
+    pub fn half_size(&self) -> Vec3 {
         self.size() / 2.0
     }
 
-    pub fn size(&self) -> Vector3<f32> {
+    pub fn size(&self) -> Vec3 {
         self.max - self.min
     }
 
-    pub fn min(&self) -> Vector3<f32> {
+    pub fn min(&self) -> Vec3 {
         self.min
     }
 
-    pub fn max(&self) -> Vector3<f32> {
+    pub fn max(&self) -> Vec3 {
         self.max
     }
 
@@ -62,7 +62,7 @@ impl Aabb {
         size.x * size.y * size.z
     }
 
-    pub fn enlarge(&self, delta: &Vector3<f32>) -> Aabb {
+    pub fn enlarge(&self, delta: Vec3) -> Aabb {
         let half_delta = delta / 2.0;
         Aabb {
             min: self.min - half_delta,
@@ -96,16 +96,16 @@ impl Aabb {
         (fst, snd)
     }
 
-    pub fn clamp(&self, point: Vector3<f32>) -> Vector3<f32> {
-        Vector3::new(
+    pub fn clamp(&self, point: Vec3) -> Vec3 {
+        Vec3::new(
             point.x.clamp(self.min.x, self.max.x),
             point.y.clamp(self.min.y, self.max.y),
             point.z.clamp(self.min.z, self.max.z),
         )
     }
 
-    pub fn contains(&self, point: &Vector3<f32>) -> bool {
-        *point >= self.min && *point <= self.max
+    pub fn contains(&self, point: Vec3) -> bool {
+        point.cmpge(self.min).all() && point.cmple(self.max).all()
     }
 }
 

@@ -7,8 +7,8 @@ use crate::{
     sampling::{sample_light, uniform_sample_unit_square},
 };
 use geometry::{intersection::RayIntersection, ray::Ray};
+use glam::{UVec2, Vec3};
 use kdtree::KdTree;
-use nalgebra::{Vector2, Vector3};
 use rand::rngs::SmallRng;
 use scene::{camera::Pinhole, Scene};
 
@@ -31,11 +31,11 @@ impl Pathtracer {
         &self,
         ray_logger: &mut RayLoggerWithIterationAndPixel,
         rng: &mut SmallRng,
-        accumulated_radiance: Vector3<f32>,
-        accumulated_transport: Vector3<f32>,
+        accumulated_radiance: Vec3,
+        accumulated_transport: Vec3,
         accumulated_bounces: u8,
         ray: &Ray,
-    ) -> Vector3<f32> {
+    ) -> Vec3 {
         if accumulated_bounces >= self.max_bounces {
             return accumulated_radiance;
         }
@@ -43,8 +43,7 @@ impl Pathtracer {
         let intersection = self.intersect(ray, 0.0..=f32::MAX);
         if intersection.is_none() {
             ray_logger.log_infinite(ray, accumulated_bounces).unwrap();
-            return accumulated_radiance
-                + accumulated_transport.component_mul(&self.scene.environment);
+            return accumulated_radiance + accumulated_transport * self.scene.environment;
         }
         let (triangle_index, intersection) = intersection.unwrap();
         let triangle = &self.scene.triangle_data[triangle_index as usize];
@@ -59,51 +58,47 @@ impl Pathtracer {
         let material = triangle.material.as_ref();
 
         // TODO: How to chose offset?
-        let offset = 0.00001 * n.into_inner();
+        let offset = 0.00001 * n;
         let point = ray.param(intersection.t);
         let point_above = point + offset;
         let point_below = point - offset;
 
-        let incoming_radiance: Vector3<f32> = self
+        let incoming_radiance: Vec3 = self
             .scene
             .lights
             .iter()
             .map(|light| {
-                let shadow_ray = Ray::between(&point_above, &sample_light(light, rng));
+                let shadow_ray = Ray::between(point_above, sample_light(light, rng));
                 if self.intersect_any(&shadow_ray, 0.0..=1.0) {
-                    return Vector3::zeros();
+                    return Vec3::ZERO;
                 }
                 let wo = shadow_ray.direction.normalize();
                 let radiance = light.emitted(point);
-                material
-                    .brdf(&OutgoingRay { wi, n, wo, uv })
-                    .component_mul(&radiance)
-                    * wo.dot(&n).abs()
+                material.brdf(&OutgoingRay { wi, n, wo, uv }) * radiance * wo.dot(n).abs()
             })
             .sum();
 
-        let accumulated_radiance =
-            accumulated_radiance + accumulated_transport.component_mul(&incoming_radiance);
+        let accumulated_radiance = accumulated_radiance + accumulated_transport * incoming_radiance;
 
         let sample = material.sample(&IncomingRay { wi, n, uv }, rng);
         let next_ray = Ray {
-            origin: if sample.wo.dot(&n) >= 0.0 {
+            origin: if sample.wo.dot(n) >= 0.0 {
                 point_above
             } else {
                 point_below
             },
-            direction: *sample.wo,
+            direction: sample.wo,
         };
 
         if sample.pdf <= 0.01 {
             return accumulated_radiance;
         }
 
-        let cosine_term = sample.wo.dot(&n).abs();
+        let cosine_term = sample.wo.dot(n).abs();
         let accumulated_transport =
-            accumulated_transport.component_mul(&(sample.brdf * (cosine_term / sample.pdf)));
+            accumulated_transport * sample.brdf * (cosine_term / sample.pdf);
 
-        if accumulated_transport.norm() <= 0.01 {
+        if accumulated_transport.length() <= 0.01 {
             return accumulated_radiance;
         }
 
@@ -122,25 +117,20 @@ impl Pathtracer {
         ray_logger: &mut RayLoggerWithIterationAndPixel,
         rng: &mut SmallRng,
         ray: &Ray,
-    ) -> Vector3<f32> {
+    ) -> Vec3 {
         self.trace_ray(
             ray_logger,
             rng,
-            Vector3::zeros(),
-            Vector3::new(1.0, 1.0, 1.0),
+            Vec3::ZERO,
+            Vec3::new(1.0, 1.0, 1.0),
             0,
             ray,
         )
     }
 
-    fn sample_ray_for_pixel(
-        &self,
-        pinhole: &Pinhole,
-        rng: &mut SmallRng,
-        pixel: Vector2<u32>,
-    ) -> Ray {
+    fn sample_ray_for_pixel(&self, pinhole: &Pinhole, rng: &mut SmallRng, pixel: UVec2) -> Ray {
         debug_assert!(pixel.x < pinhole.width && pixel.y < pinhole.height);
-        let pixel_center = pixel.cast() + uniform_sample_unit_square(rng);
+        let pixel_center = pixel.as_vec2() + uniform_sample_unit_square(rng);
         pinhole.ray(
             pixel_center.x / pinhole.width as f32,
             pixel_center.y / pinhole.height as f32,
@@ -150,10 +140,10 @@ impl Pathtracer {
     fn render_pixel(
         &self,
         pinhole: &Pinhole,
-        pixel: Vector2<u32>,
+        pixel: UVec2,
         ray_logger: &mut RayLoggerWithIteration,
         rng: &mut SmallRng,
-    ) -> Vector3<f32> {
+    ) -> Vec3 {
         let mut ray_logger = ray_logger.with_pixel(pixel.x as u16, pixel.y as u16);
         let ray = self.sample_ray_for_pixel(pinhole, rng, pixel);
         self.trace_ray_defaults(&mut ray_logger, rng, &ray)
@@ -168,7 +158,7 @@ impl Pathtracer {
     ) {
         for y in 0..buffer.height {
             for x in 0..buffer.width {
-                let pixel = Vector2::new(x, y);
+                let pixel = UVec2::new(x, y);
                 buffer[pixel] += self.render_pixel(pinhole, pixel, ray_logger, rng);
             }
         }
@@ -180,12 +170,12 @@ impl Pathtracer {
         ray_logger: &mut RayLoggerWithIteration,
         rng: &mut SmallRng,
         buffer: &mut ImageBuffer,
-        sub_start: Vector2<u32>,
-        sub_size: Vector2<u32>,
+        sub_start: UVec2,
+        sub_size: UVec2,
     ) {
         for sub_y in 0..sub_size.y {
             for sub_x in 0..sub_size.x {
-                let pixel = sub_start + Vector2::new(sub_x, sub_y);
+                let pixel = sub_start + UVec2::new(sub_x, sub_y);
                 buffer[pixel] += self.render_pixel(pinhole, pixel, ray_logger, rng);
             }
         }

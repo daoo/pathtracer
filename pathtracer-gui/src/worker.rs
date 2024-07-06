@@ -8,7 +8,7 @@ use std::{
     time,
 };
 
-use nalgebra::Vector2;
+use glam::UVec2;
 use rand::{rngs::SmallRng, SeedableRng};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use scene::camera::Pinhole;
@@ -35,17 +35,13 @@ impl RenderResult {
     }
 }
 
-fn render_subdivided(
-    pathtracer: &Pathtracer,
-    pinhole: &Pinhole,
-    sub_size: Vector2<u32>,
-) -> ImageBuffer {
+fn render_subdivided(pathtracer: &Pathtracer, pinhole: &Pinhole, sub_size: UVec2) -> ImageBuffer {
     let count_x = pinhole.width / sub_size.x;
     let count_y = pinhole.height / sub_size.y;
     eprintln!(
         "Rendering size={:?} sub_size={:?} count={:?}",
-        pinhole.size().as_slice(),
-        sub_size.as_slice(),
+        pinhole.size(),
+        sub_size,
         [count_x, count_y]
     );
     (0..count_x * count_y)
@@ -58,7 +54,7 @@ fn render_subdivided(
                 )
             },
             |(mut rng, mut buffer), i| {
-                let pixel = Vector2::new(i % count_x * sub_size.x, i / count_x * sub_size.y);
+                let pixel = UVec2::new(i % count_x * sub_size.x, i / count_x * sub_size.y);
                 let mut ray_logger = RayLoggerWithIteration {
                     writer: &mut RayLoggerWriter::None(),
                     iteration: 0,
@@ -94,9 +90,9 @@ fn worker_loop(
                 Ok(new_pinhole) => {
                     eprintln!(
                         "New pinhole position={:?} direction={:?} size={:?}",
-                        new_pinhole.camera.position.as_slice(),
-                        new_pinhole.camera.direction.as_slice(),
-                        new_pinhole.size().as_slice(),
+                        new_pinhole.camera.position,
+                        new_pinhole.camera.direction,
+                        new_pinhole.size(),
                     );
                     pinhole = new_pinhole;
                     combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);

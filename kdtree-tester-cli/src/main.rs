@@ -1,11 +1,11 @@
 use clap::Parser;
 use geometry::{intersection::RayIntersection, ray::Ray, Geometry};
+use glam::Vec2;
 use kdtree::{
     build::build_kdtree,
     build_sah::{self, SahKdTreeBuilder},
     KdTree,
 };
-use nalgebra::Vector2;
 use rand::{rngs::SmallRng, SeedableRng};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use scene::{camera::Pinhole, Scene};
@@ -141,7 +141,7 @@ impl RayBouncer {
         let material = triangle.material.as_ref();
 
         // TODO: How to chose offset?
-        let offset = 0.00001 * n.into_inner();
+        let offset = 0.00001 * n;
         let point = ray.param(intersection.t);
         let point_above = point + offset;
         let point_below = point - offset;
@@ -151,7 +151,7 @@ impl RayBouncer {
             .lights
             .iter()
             .filter_map(|light| {
-                let shadow_ray = Ray::between(&point_above, &sample_light(light, rng));
+                let shadow_ray = Ray::between(point_above, sample_light(light, rng));
                 let shadow = self.checked_ray_intersect(&shadow_ray, 0.0..=1.0);
                 (!shadow.is_valid()).then_some(shadow)
             })
@@ -162,12 +162,12 @@ impl RayBouncer {
 
         let sample = material.sample(&IncomingRay { wi, n, uv }, rng);
         let next_ray = Ray {
-            origin: if sample.wo.dot(&n) >= 0.0 {
+            origin: if sample.wo.dot(n) >= 0.0 {
                 point_above
             } else {
                 point_below
             },
-            direction: *sample.wo,
+            direction: sample.wo,
         };
 
         self.bounce(rng, &next_ray, accumulated_bounces + 1)
@@ -176,8 +176,8 @@ impl RayBouncer {
     fn bounce_pixel(&self, pixel: (u32, u32)) -> Option<CheckedIntersection> {
         let (x, y) = pixel;
         let mut rng = SmallRng::seed_from_u64((y * self.size.height + x) as u64);
-        let pixel_center = Vector2::new(x as f32, y as f32) + uniform_sample_unit_square(&mut rng);
-        let scene_direction = pixel_center.component_div(&self.size.as_vec2());
+        let pixel_center = Vec2::new(x as f32, y as f32) + uniform_sample_unit_square(&mut rng);
+        let scene_direction = pixel_center / self.size.as_vec2();
         let ray = self.camera.ray(scene_direction.x, scene_direction.y);
         self.bounce(&mut rng, &ray, 0)
     }
@@ -194,8 +194,8 @@ impl Size {
         Size { width, height }
     }
 
-    fn as_vec2(self) -> Vector2<f32> {
-        Vector2::new(self.width as f32, self.height as f32)
+    fn as_vec2(self) -> Vec2 {
+        Vec2::new(self.width as f32, self.height as f32)
     }
 }
 

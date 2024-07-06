@@ -1,24 +1,24 @@
-use nalgebra::Vector3;
+use glam::Vec3;
 
 use crate::{aabb::Aabb, intersection::RayIntersection, ray::Ray, Geometry};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Sphere {
-    pub center: Vector3<f32>,
+    pub center: Vec3,
     pub radius: f32,
 }
 
 impl Geometry for Sphere {
-    fn min(&self) -> Vector3<f32> {
-        Vector3::new(
+    fn min(&self) -> Vec3 {
+        Vec3::new(
             self.center.x - self.radius,
             self.center.y - self.radius,
             self.center.z - self.radius,
         )
     }
 
-    fn max(&self) -> Vector3<f32> {
-        Vector3::new(
+    fn max(&self) -> Vec3 {
+        Vec3::new(
             self.center.x + self.radius,
             self.center.y + self.radius,
             self.center.z + self.radius,
@@ -27,9 +27,9 @@ impl Geometry for Sphere {
 
     fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
         let p = ray.origin - self.center;
-        let a = ray.direction.dot(&ray.direction);
-        let b = 2.0 * ray.direction.dot(&p);
-        let c = p.dot(&p) - self.radius * self.radius;
+        let a = ray.direction.dot(ray.direction);
+        let b = 2.0 * ray.direction.dot(p);
+        let c = p.dot(p) - self.radius * self.radius;
         let discriminant = b * b - 4.0 * a * c;
         if discriminant < 0.0 {
             return None;
@@ -53,10 +53,10 @@ mod tests {
     #[test]
     fn intersect_ray_axially_through_center() {
         let sphere = Sphere {
-            center: Vector3::new(1.0, 0.0, 0.0),
+            center: Vec3::new(1.0, 0.0, 0.0),
             radius: 1.0,
         };
-        let ray = Ray::between(&Vector3::new(0.0, 0.0, 0.0), &Vector3::new(2.0, 0.0, 0.0));
+        let ray = Ray::between(Vec3::new(0.0, 0.0, 0.0), Vec3::new(2.0, 0.0, 0.0));
 
         let actual = sphere.intersect_ray(&ray);
 
@@ -73,10 +73,10 @@ mod tests {
     #[test]
     fn intersect_ray_diagonally_through_center() {
         let sphere = Sphere {
-            center: Vector3::new(1.0, 1.0, 1.0),
+            center: Vec3::new(1.0, 1.0, 1.0),
             radius: 1.0,
         };
-        let ray = Ray::between(&Vector3::new(0.0, 0.0, 0.0), &Vector3::new(2.0, 2.0, 2.0));
+        let ray = Ray::between(Vec3::new(0.0, 0.0, 0.0), Vec3::new(2.0, 2.0, 2.0));
 
         let actual = sphere.intersect_ray(&ray);
 
@@ -93,10 +93,10 @@ mod tests {
     #[test]
     fn intersect_ray_touching_in_a_point() {
         let sphere = Sphere {
-            center: Vector3::new(1.0, 0.0, 0.0),
+            center: Vec3::new(1.0, 0.0, 0.0),
             radius: 1.0,
         };
-        let ray = Ray::between(&Vector3::new(0.0, 1.0, 0.0), &Vector3::new(2.0, 1.0, 0.0));
+        let ray = Ray::between(Vec3::new(0.0, 1.0, 0.0), Vec3::new(2.0, 1.0, 0.0));
 
         let actual = sphere.intersect_ray(&ray);
 
@@ -113,10 +113,10 @@ mod tests {
     #[test]
     fn intersect_ray_not_intersecting() {
         let sphere = Sphere {
-            center: Vector3::new(1.0, 0.0, 0.0),
+            center: Vec3::new(1.0, 0.0, 0.0),
             radius: 1.0,
         };
-        let ray = Ray::between(&Vector3::new(0.0, 2.0, 0.0), &Vector3::new(2.0, 2.0, 0.0));
+        let ray = Ray::between(Vec3::new(0.0, 2.0, 0.0), Vec3::new(2.0, 2.0, 0.0));
 
         let actual = sphere.intersect_ray(&ray);
 

@@ -1,4 +1,4 @@
-use nalgebra::{Vector2, Vector3};
+use glam::{Vec2, Vec3};
 
 use crate::ray::Ray;
 
@@ -32,11 +32,11 @@ impl Aap {
         }
     }
 
-    pub fn add_to(&self, point: Vector2<f32>) -> Vector3<f32> {
+    pub fn add_to(&self, point: Vec2) -> Vec3 {
         self.axis.add_to(point, self.distance)
     }
 
-    pub fn vector(&self) -> Vector3<f32> {
+    pub fn vector(&self) -> Vec3 {
         self.axis.as_vector3(self.distance)
     }
 
@@ -56,19 +56,19 @@ impl Aap {
         Some((self.distance - ray.origin[self.axis]) / denom)
     }
 
-    pub fn intersect_ray_point(&self, ray: &Ray) -> Option<Vector3<f32>> {
+    pub fn intersect_ray_point(&self, ray: &Ray) -> Option<Vec3> {
         self.intersect_ray(ray).map(|t| match self.axis {
-            Axis::X => Vector3::new(
+            Axis::X => Vec3::new(
                 self.distance,
                 ray.origin.y + t * ray.direction.y,
                 ray.origin.z + t * ray.direction.z,
             ),
-            Axis::Y => Vector3::new(
+            Axis::Y => Vec3::new(
                 ray.origin.x + t * ray.direction.x,
                 self.distance,
                 ray.origin.z + t * ray.direction.z,
             ),
-            Axis::Z => Vector3::new(
+            Axis::Z => Vec3::new(
                 ray.origin.x + t * ray.direction.x,
                 ray.origin.y + t * ray.direction.y,
                 self.distance,
@@ -89,7 +89,7 @@ mod tests {
             axis: Axis::X,
             distance: 5.0,
         };
-        let ray = Ray::between(&Vector3::zeros(), &Vector3::new(5.0, 0.0, 0.0));
+        let ray = Ray::between(Vec3::ZERO, Vec3::new(5.0, 0.0, 0.0));
 
         assert_eq!(plane.intersect_ray(&ray), Some(1.0));
     }
@@ -100,7 +100,7 @@ mod tests {
             axis: Axis::X,
             distance: 5.0,
         };
-        let ray = Ray::between(&Vector3::zeros(), &Vector3::new(10.0, 0.0, 0.0));
+        let ray = Ray::between(Vec3::ZERO, Vec3::new(10.0, 0.0, 0.0));
 
         assert_eq!(plane.intersect_ray(&ray), Some(0.5));
     }
@@ -111,7 +111,7 @@ mod tests {
             axis: Axis::X,
             distance: 5.0,
         };
-        let ray = Ray::between(&Vector3::zeros(), &Vector3::new(4.0, 0.0, 0.0));
+        let ray = Ray::between(Vec3::ZERO, Vec3::new(4.0, 0.0, 0.0));
 
         assert_eq!(plane.intersect_ray(&ray), Some(1.25));
     }
@@ -122,7 +122,7 @@ mod tests {
             axis: Axis::X,
             distance: 5.0,
         };
-        let ray = Ray::between(&Vector3::new(4.0, 0.0, 0.0), &Vector3::new(6.0, 0.0, 0.0));
+        let ray = Ray::between(Vec3::new(4.0, 0.0, 0.0), Vec3::new(6.0, 0.0, 0.0));
 
         assert_eq!(plane.intersect_ray(&ray), Some(0.5));
     }
@@ -133,7 +133,7 @@ mod tests {
             axis: Axis::X,
             distance: 5.0,
         };
-        let ray = Ray::between(&Vector3::new(6.0, 0.0, 0.0), &Vector3::new(4.0, 0.0, 0.0));
+        let ray = Ray::between(Vec3::new(6.0, 0.0, 0.0), Vec3::new(4.0, 0.0, 0.0));
 
         assert_eq!(plane.intersect_ray(&ray), Some(0.5));
     }
@@ -144,7 +144,7 @@ mod tests {
             axis: Axis::X,
             distance: 2.0,
         };
-        let ray = Ray::between(&Vector3::new(1.0, 1.0, 0.0), &(Vector3::new(3.0, 3.0, 0.0)));
+        let ray = Ray::between(Vec3::new(1.0, 1.0, 0.0), Vec3::new(3.0, 3.0, 0.0));
 
         assert_eq!(plane.intersect_ray(&ray), Some(0.5));
     }
@@ -155,7 +155,7 @@ mod tests {
             axis: Axis::Y,
             distance: 2.0,
         };
-        let ray = Ray::between(&Vector3::new(1.0, 1.0, 0.0), &Vector3::new(3.0, 3.0, 0.0));
+        let ray = Ray::between(Vec3::new(1.0, 1.0, 0.0), Vec3::new(3.0, 3.0, 0.0));
 
         assert_eq!(plane.intersect_ray(&ray), Some(0.5));
     }
@@ -166,7 +166,7 @@ mod tests {
             axis: Axis::Y,
             distance: 2.0,
         };
-        let ray = Ray::between(&Vector3::new(3.0, 1.0, 0.0), &Vector3::new(1.0, 3.0, 0.0));
+        let ray = Ray::between(Vec3::new(3.0, 1.0, 0.0), Vec3::new(1.0, 3.0, 0.0));
 
         assert_eq!(plane.intersect_ray(&ray), Some(0.5));
     }
@@ -177,7 +177,7 @@ mod tests {
             axis: Axis::X,
             distance: 2.0,
         };
-        let ray = Ray::between(&Vector3::new(0.0, 0.0, 0.0), &(Vector3::new(0.0, 1.0, 0.0)));
+        let ray = Ray::between(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0));
 
         assert_eq!(plane.intersect_ray(&ray), None);
     }
@@ -188,11 +188,11 @@ mod tests {
             axis: Axis::Y,
             distance: 2.0,
         };
-        let ray = Ray::between(&Vector3::new(0.0, 0.0, 0.0), &Vector3::new(2.0, 4.0, 6.0));
+        let ray = Ray::between(Vec3::new(0.0, 0.0, 0.0), Vec3::new(2.0, 4.0, 6.0));
 
         assert_eq!(
             plane.intersect_ray_point(&ray),
-            Some(Vector3::new(1.0, 2.0, 3.0))
+            Some(Vec3::new(1.0, 2.0, 3.0))
         );
     }
 }

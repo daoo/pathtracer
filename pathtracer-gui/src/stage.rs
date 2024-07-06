@@ -1,11 +1,11 @@
 use std::time::Instant;
 
+use glam::{Mat3, Vec3};
 use miniquad::{
     window, Bindings, BufferLayout, BufferSource, BufferType, BufferUsage, EventHandler, KeyCode,
     Pipeline, PipelineParams, RenderingBackend, ShaderSource, TextureId, VertexAttribute,
     VertexFormat,
 };
-use nalgebra::{Matrix3, Vector3};
 use scene::camera::{Camera, Pinhole};
 
 use crate::worker::Worker;
@@ -29,13 +29,13 @@ struct InputState {
 }
 
 impl InputState {
-    fn translation(&self) -> Vector3<f32> {
+    fn translation(&self) -> Vec3 {
         let f = |(a, b)| match (a, b) {
             (true, false) => -1.0,
             (false, true) => 1.0,
             _ => 0.0,
         };
-        Vector3::new(f(self.move_x), f(self.move_y), f(self.move_z))
+        Vec3::new(f(self.move_x), f(self.move_y), f(self.move_z))
     }
 }
 
@@ -167,14 +167,11 @@ impl EventHandler for Stage {
         let delta = (now - self.last_update).as_secs_f32();
         if let Some(worker) = &self.worker {
             let translation = self.input.translation();
-            if translation != Vector3::zeros() {
+            if translation != Vec3::ZERO {
                 const TRANSLATION_SPEED: f32 = 2.0;
                 let distance = delta * TRANSLATION_SPEED;
-                let translation_matrix = Matrix3::from_rows(&[
-                    self.camera.right.into_inner().transpose(),
-                    self.camera.up.into_inner().transpose(),
-                    self.camera.direction.into_inner().transpose(),
-                ]);
+                let translation_matrix =
+                    Mat3::from_cols(self.camera.right, self.camera.up, self.camera.direction);
                 let position = self.camera.position + translation_matrix * translation * distance;
                 self.camera = self.camera.with_position(position);
                 let texture_size = self.ctx.texture_size(self.texture);

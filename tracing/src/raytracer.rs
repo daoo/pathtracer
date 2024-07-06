@@ -5,8 +5,8 @@ use crate::{
     material::{Material, OutgoingRay},
 };
 use geometry::{intersection::RayIntersection, ray::Ray};
+use glam::{UVec2, Vec2, Vec3};
 use kdtree::KdTree;
-use nalgebra::{Vector2, Vector3};
 use scene::{camera::Pinhole, material::MaterialModel, Scene};
 
 pub struct Raytracer {
@@ -24,7 +24,7 @@ impl Raytracer {
         self.intersect(ray, t_range).is_some()
     }
 
-    fn trace_ray(&self, ray: &Ray) -> Vector3<f32> {
+    fn trace_ray(&self, ray: &Ray) -> Vec3 {
         let intersection = self.intersect(ray, 0.0..=f32::MAX);
         if intersection.is_none() {
             return self.scene.environment;
@@ -38,7 +38,7 @@ impl Raytracer {
         let uv = triangle.texcoords.lerp(intersection.u, intersection.v);
 
         // TODO: How to chose offset?
-        let offset_point = point + 0.0001 * n.into_inner();
+        let offset_point = point + 0.0001 * n;
 
         self.scene
             .lights
@@ -52,25 +52,22 @@ impl Raytracer {
                     direction,
                 };
                 if this.intersect_any(&shadow_ray, 0.0..=1.0) {
-                    return Vector3::zeros();
+                    return Vec3::ZERO;
                 }
                 let wo = direction.normalize();
                 let radiance = light.emitted(point);
-                material
-                    .brdf(&OutgoingRay { wi, n, wo, uv })
-                    .component_mul(&radiance)
-                    * wo.dot(&n).abs()
+                material.brdf(&OutgoingRay { wi, n, wo, uv }) * radiance * wo.dot(n).abs()
             })
             .sum()
     }
 
     pub fn render(&self, buffer: &mut ImageBuffer) {
-        let buffer_size = Vector2::new(buffer.width as f32, buffer.height as f32);
+        let buffer_size = Vec2::new(buffer.width as f32, buffer.height as f32);
         for y in 0..buffer.height {
             for x in 0..buffer.width {
-                let pixel = Vector2::new(x, y);
-                let pixel_center = Vector2::new(pixel.x as f32 + 0.5, pixel.y as f32 + 0.5);
-                let scene_direction = pixel_center.component_div(&buffer_size);
+                let pixel = UVec2::new(x, y);
+                let pixel_center = Vec2::new(pixel.x as f32 + 0.5, pixel.y as f32 + 0.5);
+                let scene_direction = pixel_center / buffer_size;
                 let ray = self.camera.ray(scene_direction.x, scene_direction.y);
                 buffer[pixel] += self.trace_ray(&ray);
             }

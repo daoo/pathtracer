@@ -7,7 +7,6 @@ edition = "2021"
 clap = { version = "4.5.4", features = ["derive"] }
 geometry = { version = "1.0.0", path = "../geometry" }
 kdtree = { version = "1.0.0", path = "../kdtree" }
-nalgebra = { version = "0.33.0", default-features = false }
 rand = { version = "0.8.5", default-features = false, features = ["std", "small_rng"] }
 rayon = "1.10.0"
 wavefront = { version = "1.0.0", path = "../wavefront" }

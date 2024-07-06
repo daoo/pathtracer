@@ -1,6 +1,6 @@
 use aabb::Aabb;
+use glam::Vec3;
 use intersection::RayIntersection;
-use nalgebra::Vector3;
 use ray::Ray;
 
 pub mod aabb;
@@ -16,8 +16,8 @@ pub mod sphere;
 pub mod triangle;
 
 pub trait Geometry {
-    fn min(&self) -> Vector3<f32>;
-    fn max(&self) -> Vector3<f32>;
+    fn min(&self) -> Vec3;
+    fn max(&self) -> Vec3;
 
     fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection>;
     fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb>;

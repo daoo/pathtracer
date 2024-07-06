@@ -1,15 +1,15 @@
-use nalgebra::Vector3;
+use glam::Vec3;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ray {
-    pub origin: Vector3<f32>,
-    pub direction: Vector3<f32>,
+    pub origin: Vec3,
+    pub direction: Vec3,
 }
 
 impl Ray {
-    pub fn between(a: &Vector3<f32>, b: &Vector3<f32>) -> Ray {
+    pub fn between(a: Vec3, b: Vec3) -> Ray {
         Ray {
-            origin: *a,
+            origin: a,
             direction: b - a,
         }
     }
@@ -21,7 +21,7 @@ impl Ray {
         }
     }
 
-    pub fn param(&self, t: f32) -> Vector3<f32> {
+    pub fn param(&self, t: f32) -> Vec3 {
         self.origin + t * self.direction
     }
 

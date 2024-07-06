@@ -1,4 +1,4 @@
-use nalgebra::{RealField, UnitVector3, Vector2, Vector3};
+use glam::{Vec2, Vec3};
 use rand::{rngs::SmallRng, Rng};
 use scene::material::{
     BlendMaterial, DiffuseReflectiveMaterial, FresnelBlendMaterial, MaterialSample,
@@ -7,11 +7,11 @@ use scene::material::{
 
 use crate::sampling::cosine_sample_hemisphere;
 
-fn perpendicular(v: &Vector3<f32>) -> Vector3<f32> {
+fn perpendicular(v: &Vec3) -> Vec3 {
     if v.x.abs() < v.y.abs() {
-        Vector3::new(0., -v.z, v.y)
+        Vec3::new(0., -v.z, v.y)
     } else {
-        Vector3::new(-v.z, 0., v.x)
+        Vec3::new(-v.z, 0., v.x)
     }
 }
 
@@ -21,13 +21,13 @@ fn is_same_sign(a: f32, b: f32) -> bool {
 
 #[derive(Debug)]
 pub struct IncomingRay {
-    pub wi: Vector3<f32>,
-    pub n: UnitVector3<f32>,
-    pub uv: Vector2<f32>,
+    pub wi: Vec3,
+    pub n: Vec3,
+    pub uv: Vec2,
 }
 
 impl IncomingRay {
-    fn with_normal(&self, n: UnitVector3<f32>) -> IncomingRay {
+    fn with_normal(&self, n: Vec3) -> IncomingRay {
         IncomingRay {
             wi: self.wi,
             n,
@@ -35,7 +35,7 @@ impl IncomingRay {
         }
     }
 
-    fn with_wo(&self, wo: Vector3<f32>) -> OutgoingRay {
+    fn with_wo(&self, wo: Vec3) -> OutgoingRay {
         OutgoingRay {
             wi: self.wi,
             n: self.n,
@@ -45,21 +45,21 @@ impl IncomingRay {
     }
 
     fn reflectance(&self, r0: f32) -> f32 {
-        r0 + (1.0 - r0) * (1.0 - self.wi.dot(&self.n).abs()).powf(5.0)
+        r0 + (1.0 - r0) * (1.0 - self.wi.dot(self.n).abs()).powf(5.0)
     }
 }
 
 #[derive(Debug)]
 pub struct OutgoingRay {
-    pub wi: Vector3<f32>,
-    pub n: UnitVector3<f32>,
-    pub uv: Vector2<f32>,
-    pub wo: Vector3<f32>,
+    pub wi: Vec3,
+    pub n: Vec3,
+    pub uv: Vec2,
+    pub wo: Vec3,
 }
 
 impl OutgoingRay {
     fn is_same_hemisphere(&self) -> bool {
-        is_same_sign(self.wi.dot(&self.n), self.wo.dot(&self.n))
+        is_same_sign(self.wi.dot(self.n), self.wo.dot(self.n))
     }
 
     fn as_incoming(&self) -> IncomingRay {
@@ -72,49 +72,47 @@ impl OutgoingRay {
 }
 
 pub trait Material {
-    fn brdf(&self, outgoing: &OutgoingRay) -> Vector3<f32>;
+    fn brdf(&self, outgoing: &OutgoingRay) -> Vec3;
 
     fn sample(&self, incoming: &IncomingRay, rng: &mut SmallRng) -> MaterialSample;
 }
 
 impl Material for DiffuseReflectiveMaterial {
-    fn brdf(&self, outgoing: &OutgoingRay) -> Vector3<f32> {
+    fn brdf(&self, outgoing: &OutgoingRay) -> Vec3 {
         if let Some(texture) = &self.texture {
             let px = (texture.width() as f32 * outgoing.uv.x).floor();
             let py = (texture.height() as f32 * outgoing.uv.y).floor();
-            let reflectance: Vector3<f32> = texture[(px as u32, py as u32)].0.into();
-            reflectance * f32::frac_1_pi()
+            let reflectance: Vec3 = texture[(px as u32, py as u32)].0.into();
+            reflectance * std::f32::consts::FRAC_1_PI
         } else {
-            self.reflectance * f32::frac_1_pi()
+            self.reflectance * std::f32::consts::FRAC_1_PI
         }
     }
 
     fn sample(&self, incoming: &IncomingRay, rng: &mut SmallRng) -> MaterialSample {
         let tangent = perpendicular(&incoming.n).normalize();
-        let bitangent = incoming.n.cross(&tangent);
+        let bitangent = incoming.n.cross(tangent);
         let s = cosine_sample_hemisphere(rng);
 
-        let wo = UnitVector3::new_normalize(s.x * tangent + s.y * bitangent + s.z * *incoming.n);
+        let wo = (s.x * tangent + s.y * bitangent + s.z * incoming.n).normalize();
         MaterialSample {
             pdf: 1.0,
-            brdf: self.brdf(&incoming.with_wo(*wo)),
+            brdf: self.brdf(&incoming.with_wo(wo)),
             wo,
         }
     }
 }
 
 impl Material for SpecularReflectiveMaterial {
-    fn brdf(&self, _: &OutgoingRay) -> Vector3<f32> {
-        Vector3::zeros()
+    fn brdf(&self, _: &OutgoingRay) -> Vec3 {
+        Vec3::ZERO
     }
 
     fn sample(&self, incoming: &IncomingRay, _: &mut SmallRng) -> MaterialSample {
-        let wo = UnitVector3::new_normalize(
-            2.0 * incoming.wi.dot(&incoming.n).abs() * *incoming.n - incoming.wi,
-        );
-        let outgoing = incoming.with_wo(*wo);
+        let wo = (2.0 * incoming.wi.dot(incoming.n).abs() * incoming.n - incoming.wi).normalize();
+        let outgoing = incoming.with_wo(wo);
         let pdf = if outgoing.is_same_hemisphere() {
-            wo.dot(&outgoing.n).abs()
+            wo.dot(outgoing.n).abs()
         } else {
             0.0
         };
@@ -127,38 +125,38 @@ impl Material for SpecularReflectiveMaterial {
 }
 
 impl Material for SpecularRefractiveMaterial {
-    fn brdf(&self, _: &OutgoingRay) -> Vector3<f32> {
-        Vector3::zeros()
+    fn brdf(&self, _: &OutgoingRay) -> Vec3 {
+        Vec3::ZERO
     }
 
     fn sample(&self, incoming: &IncomingRay, rng: &mut SmallRng) -> MaterialSample {
-        let (eta, n_refracted) = if (-incoming.wi).dot(&incoming.n) < 0.0 {
+        let (eta, n_refracted) = if (-incoming.wi).dot(incoming.n) < 0.0 {
             (1.0 / self.index_of_refraction, incoming.n)
         } else {
             (self.index_of_refraction, -incoming.n)
         };
 
-        let w = -(-incoming.wi).dot(&n_refracted) * eta;
+        let w = -(-incoming.wi).dot(n_refracted) * eta;
         let k = 1.0 + (w - eta) * (w + eta);
         if k < 0.0 {
             const TOTAL_INTERNAL_REFLECTION: SpecularReflectiveMaterial =
                 SpecularReflectiveMaterial {
-                    reflectance: Vector3::new(1.0, 1.0, 1.0),
+                    reflectance: Vec3::new(1.0, 1.0, 1.0),
                 };
             return TOTAL_INTERNAL_REFLECTION.sample(&incoming.with_normal(n_refracted), rng);
         }
 
         let k = k.sqrt();
-        let wo = UnitVector3::new_normalize(-eta * incoming.wi + (w - k) * *n_refracted);
+        let wo = (-eta * incoming.wi + (w - k) * n_refracted).normalize();
         MaterialSample {
             pdf: 1.0,
-            brdf: Vector3::new(1.0, 1.0, 1.0),
+            brdf: Vec3::new(1.0, 1.0, 1.0),
             wo,
         }
     }
 }
 
-fn mix(x: Vector3<f32>, y: Vector3<f32>, a: f32) -> Vector3<f32> {
+fn mix(x: Vec3, y: Vec3, a: f32) -> Vec3 {
     x * (1.0 - a) + y * a
 }
 
@@ -167,7 +165,7 @@ where
     M1: Material,
     M2: Material,
 {
-    fn brdf(&self, outgoing: &OutgoingRay) -> Vector3<f32> {
+    fn brdf(&self, outgoing: &OutgoingRay) -> Vec3 {
         mix(
             self.refraction.brdf(outgoing),
             self.reflection.brdf(outgoing),
@@ -189,7 +187,7 @@ where
     M1: Material,
     M2: Material,
 {
-    fn brdf(&self, outgoing: &OutgoingRay) -> Vector3<f32> {
+    fn brdf(&self, outgoing: &OutgoingRay) -> Vec3 {
         mix(
             self.second.brdf(outgoing),
             self.first.brdf(outgoing),
@@ -218,9 +216,9 @@ mod specular_refractive_material_tests {
         let material = SpecularRefractiveMaterial {
             index_of_refraction: 1.5,
         };
-        let wi = Vector3::new(-1.0, 2.0, 0.0).normalize();
-        let n = UnitVector3::new_normalize(Vector3::new(0.0, 1.0, 0.0));
-        let uv = Vector2::zeros();
+        let wi = Vec3::new(-1.0, 2.0, 0.0).normalize();
+        let n = Vec3::new(0.0, 1.0, 0.0);
+        let uv = Vec2::ZERO;
         let incoming = IncomingRay { wi, n, uv };
         let mut rng = SmallRng::seed_from_u64(0);
 
@@ -228,8 +226,8 @@ mod specular_refractive_material_tests {
 
         let n1 = 1.0;
         let n2 = material.index_of_refraction;
-        let theta1 = wi.dot(&n).acos();
-        let theta2 = actual.wo.dot(&-n).acos();
+        let theta1 = wi.dot(n).acos();
+        let theta2 = actual.wo.dot(-n).acos();
         assert_approx_eq!(n1 * theta1.sin(), n2 * theta2.sin(), 2e-7);
         assert!(actual.wo.y < 0.0);
     }
@@ -239,9 +237,9 @@ mod specular_refractive_material_tests {
         let material = SpecularRefractiveMaterial {
             index_of_refraction: 1.5,
         };
-        let wi = Vector3::new(-1.0, -2.0, 0.0).normalize();
-        let n = UnitVector3::new_normalize(Vector3::new(0.0, 1.0, 0.0));
-        let uv = Vector2::zeros();
+        let wi = Vec3::new(-1.0, -2.0, 0.0).normalize();
+        let n = Vec3::new(0.0, 1.0, 0.0);
+        let uv = Vec2::ZERO;
         let incoming = IncomingRay { wi, n, uv };
         let mut rng = SmallRng::seed_from_u64(0);
 
@@ -249,8 +247,8 @@ mod specular_refractive_material_tests {
 
         let n1 = material.index_of_refraction;
         let n2 = 1.0;
-        let theta1 = wi.dot(&n).acos();
-        let theta2 = actual.wo.dot(&n).acos();
+        let theta1 = wi.dot(n).acos();
+        let theta2 = actual.wo.dot(n).acos();
         assert_approx_eq!(n1 * theta1.sin(), n2 * theta2.sin(), 2e-7);
         assert!(actual.wo.y > 0.0);
     }

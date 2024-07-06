@@ -9,8 +9,7 @@ ray_logging = []
 [dependencies]
 assert_approx_eq = "1.1.0"
 geometry = { version = "1.0.0", path = "../geometry" }
+glam = "0.28.0"
 kdtree = { version = "1.0.0", path = "../kdtree" }
-nalgebra = { version = "0.33.0", default-features = false, features = ["alloc"] }
 rand = { version = "0.8.5", default-features = false, features = ["small_rng", "std"] }
 scene = { version = "1.0.0", path = "../scene" }
-simba = { version = "0.9.0", default-features = false, features = ["std"] }

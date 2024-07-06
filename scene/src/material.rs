@@ -1,22 +1,22 @@
+use glam::Vec3;
 use image::Rgb32FImage;
-use nalgebra::{UnitVector3, Vector3};
 
 #[derive(Debug, PartialEq)]
 pub struct MaterialSample {
     pub pdf: f32,
-    pub brdf: Vector3<f32>,
-    pub wo: UnitVector3<f32>,
+    pub brdf: Vec3,
+    pub wo: Vec3,
 }
 
 #[derive(Clone, Debug)]
 pub struct DiffuseReflectiveMaterial {
-    pub reflectance: Vector3<f32>,
+    pub reflectance: Vec3,
     pub texture: Option<Rgb32FImage>,
 }
 
 #[derive(Clone, Debug)]
 pub struct SpecularReflectiveMaterial {
-    pub reflectance: Vector3<f32>,
+    pub reflectance: Vec3,
 }
 
 #[derive(Clone, Debug)]
