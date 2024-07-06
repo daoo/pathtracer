@@ -2,11 +2,12 @@ use std::time::Instant;
 
 use glam::{Mat3, Vec3};
 use miniquad::{
-    window, Bindings, BufferLayout, BufferSource, BufferType, BufferUsage, EventHandler, KeyCode,
-    Pipeline, PipelineParams, RenderingBackend, ShaderSource, TextureId, VertexAttribute,
+    Bindings, BufferLayout, BufferSource, BufferType, BufferUsage, EventHandler, GlContext,
+    KeyCode, Pipeline, PipelineParams, RenderingBackend, ShaderSource, TextureId, VertexAttribute,
     VertexFormat,
 };
 use scene::camera::{Camera, Pinhole};
+use tracing::pathtracer::Pathtracer;
 
 use crate::worker::Worker;
 
@@ -40,7 +41,7 @@ impl InputState {
 }
 
 pub(crate) struct Stage {
-    ctx: Box<dyn RenderingBackend>,
+    ctx: Box<GlContext>,
 
     pipeline: Pipeline,
     bindings: Bindings,
@@ -48,15 +49,21 @@ pub(crate) struct Stage {
 
     worker: Option<Worker>,
 
+    target_size: (u32, u32),
     camera: Camera,
 
+    waiting_for_first_result: bool,
     last_update: Instant,
     input: InputState,
 }
 
 impl Stage {
-    pub fn new(worker: Worker, camera: Camera) -> Stage {
-        let mut ctx: Box<dyn RenderingBackend> = window::new_rendering_backend();
+    pub fn new(pathtracer: Pathtracer, camera: Camera) -> Stage {
+        let target_size = (128, 128);
+        let pinhole = Pinhole::new(camera.clone(), target_size.0, target_size.1);
+        let worker = Worker::spawn(pathtracer, pinhole);
+
+        let mut ctx = Box::new(GlContext::new());
 
         #[rustfmt::skip]
         let full_screen_quad: [Vertex; 4] = [
@@ -81,7 +88,12 @@ impl Stage {
         let texture = ctx.new_texture(
             miniquad::TextureAccess::Static,
             miniquad::TextureSource::Empty,
-            Default::default(),
+            miniquad::TextureParams {
+                format: miniquad::TextureFormat::RGB8,
+                width: 0,
+                height: 0,
+                ..Default::default()
+            },
         );
 
         let bindings = Bindings {
@@ -116,7 +128,9 @@ impl Stage {
             bindings,
             texture,
             worker: Some(worker),
+            target_size,
             camera,
+            waiting_for_first_result: false,
             last_update: Instant::now(),
             input: InputState::default(),
         }
@@ -156,7 +170,9 @@ impl EventHandler for Stage {
     fn resize_event(&mut self, width: f32, height: f32) {
         if !cfg!(debug_assertions) {
             if let Some(worker) = &self.worker {
-                let pinhole = Pinhole::new(self.camera.clone(), width as u32, height as u32);
+                self.target_size = (width as u32, height as u32);
+                let pinhole =
+                    Pinhole::new(self.camera.clone(), self.target_size.0, self.target_size.1);
                 worker.send(pinhole);
             }
         }
@@ -167,19 +183,21 @@ impl EventHandler for Stage {
         let delta = (now - self.last_update).as_secs_f32();
         if let Some(worker) = &self.worker {
             let translation = self.input.translation();
-            if translation != Vec3::ZERO {
+            if translation != Vec3::ZERO && !self.waiting_for_first_result {
                 const TRANSLATION_SPEED: f32 = 2.0;
                 let distance = delta * TRANSLATION_SPEED;
                 let translation_matrix =
                     Mat3::from_cols(self.camera.right, self.camera.up, self.camera.direction);
                 let position = self.camera.position + translation_matrix * translation * distance;
                 self.camera = self.camera.with_position(position);
-                let texture_size = self.ctx.texture_size(self.texture);
-                let pinhole = Pinhole::new(self.camera.clone(), texture_size.0, texture_size.1);
+                let pinhole =
+                    Pinhole::new(self.camera.clone(), self.target_size.0, self.target_size.1);
                 worker.send(pinhole);
+                self.waiting_for_first_result = true;
             }
 
-            if let Some(result) = worker.try_receive() {
+            while let Some(result) = worker.try_receive() {
+                self.waiting_for_first_result = false;
                 eprintln!(
                     "Received {:?} @ {} rendered in {:?}.",
                     [result.buffer.width, result.buffer.height],
@@ -188,6 +206,12 @@ impl EventHandler for Stage {
                 );
                 let texture_size = self.ctx.texture_size(self.texture);
                 if result.buffer.size() != texture_size {
+                    eprintln!(
+                        "Reallocating texture {:?} {:?} to {:?}.",
+                        self.texture,
+                        texture_size,
+                        result.buffer.size()
+                    );
                     self.ctx.delete_texture(self.texture);
                     let width = result.buffer.width;
                     let height = result.buffer.height;
@@ -202,6 +226,10 @@ impl EventHandler for Stage {
                     );
                     self.bindings.images = vec![self.texture];
                 } else {
+                    eprintln!(
+                        "Updating existing texture {:?} {:?}.",
+                        self.texture, texture_size
+                    );
                     self.ctx
                         .texture_update(self.texture, &result.buffer.to_rgb8(result.iterations))
                 }

@@ -38,12 +38,6 @@ impl RenderResult {
 fn render_subdivided(pathtracer: &Pathtracer, pinhole: &Pinhole, sub_size: UVec2) -> ImageBuffer {
     let count_x = pinhole.width / sub_size.x;
     let count_y = pinhole.height / sub_size.y;
-    eprintln!(
-        "Rendering size={:?} sub_size={:?} count={:?}",
-        pinhole.size(),
-        sub_size,
-        [count_x, count_y]
-    );
     (0..count_x * count_y)
         .into_par_iter()
         .fold(
@@ -108,12 +102,14 @@ fn worker_loop(
                 64,
                 64 * pinhole.height / pinhole.width,
             );
+            eprintln!("Rendering scaled down size={:?}", pinhole_small.size());
             let (duration, buffer) = measure(|| {
                 render_subdivided(&pathtracer, &pinhole_small, pinhole_small.size() / 3)
             });
             let _ = tx.send(RenderResult::new(1, duration, buffer));
         }
 
+        eprintln!("Rendering size={:?}", pinhole.size());
         let (duration, buffer) =
             measure(|| render_subdivided(&pathtracer, &pinhole, pinhole.size() / 4));
         combined_buffer += buffer;
@@ -152,7 +148,16 @@ impl Worker {
     }
 
     pub fn try_receive(&self) -> Option<RenderResult> {
-        self.result_rx.try_recv().ok()
+        let mut previous = self.result_rx.try_recv();
+        while previous.is_ok() {
+            let result = self.result_rx.try_recv();
+            if result.is_ok() {
+                previous = result;
+            } else {
+                return previous.ok();
+            }
+        }
+        None
     }
 
     pub fn join(self) {
