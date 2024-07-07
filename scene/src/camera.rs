@@ -68,10 +68,7 @@ impl Pinhole {
 
     #[inline]
     pub fn ray(&self, x: f32, y: f32) -> Ray {
-        Ray {
-            origin: self.camera.position,
-            direction: self.plane + x * self.dx + y * self.dy,
-        }
+        Ray::new(self.camera.position, self.plane + x * self.dx + y * self.dy)
     }
 }
 

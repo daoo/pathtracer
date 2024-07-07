@@ -428,10 +428,10 @@ mod tests {
             geometries: vec![triangle.into()],
             root,
         };
-        let ray = Ray {
-            origin: Vec3::new(0.0, 0.0, 3.0),
-            direction: Vec3::new(0.06646079, 0.08247295, -0.9238795),
-        };
+        let ray = Ray::new(
+            Vec3::new(0.0, 0.0, 3.0),
+            Vec3::new(0.06646079, 0.08247295, -0.9238795),
+        );
 
         let actual = tree.intersect(&ray, 0.0..=f32::MAX);
 
@@ -459,10 +459,10 @@ mod tests {
             root: KdNode::new_node(Aap::new_x(-1.0), KdNode::empty(), KdNode::new_leaf(vec![0])),
             geometries: vec![triangle.into()],
         };
-        let ray = Ray {
-            origin: Vec3::new(-0.5170438, -0.4394186, -0.045965273),
-            direction: Vec3::new(-0.8491798, -0.1408107, -0.5089852),
-        };
+        let ray = Ray::new(
+            Vec3::new(-0.5170438, -0.4394186, -0.045965273),
+            Vec3::new(-0.8491798, -0.1408107, -0.5089852),
+        );
 
         let actual = tree.intersect(&ray, 0.0..=f32::MAX);
 

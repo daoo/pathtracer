@@ -81,14 +81,14 @@ impl Pathtracer {
         let accumulated_radiance = accumulated_radiance + accumulated_transport * incoming_radiance;
 
         let sample = material.sample(&IncomingRay { wi, n, uv }, rng);
-        let next_ray = Ray {
-            origin: if sample.wo.dot(n) >= 0.0 {
+        let next_ray = Ray::new(
+            if sample.wo.dot(n) >= 0.0 {
                 point_above
             } else {
                 point_below
             },
-            direction: sample.wo,
-        };
+            sample.wo,
+        );
 
         if sample.pdf <= 0.01 {
             return accumulated_radiance;

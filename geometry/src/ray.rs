@@ -7,6 +7,10 @@ pub struct Ray {
 }
 
 impl Ray {
+    pub fn new(origin: Vec3, direction: Vec3) -> Ray {
+        Ray { origin, direction }
+    }
+
     pub fn between(a: Vec3, b: Vec3) -> Ray {
         Ray {
             origin: a,

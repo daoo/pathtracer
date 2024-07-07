@@ -47,10 +47,7 @@ impl Raytracer {
                 let this = &self;
                 let material: &MaterialModel = &triangle.material;
                 let direction = light.center - point;
-                let shadow_ray = Ray {
-                    origin: offset_point,
-                    direction,
-                };
+                let shadow_ray = Ray::new(offset_point, direction);
                 if this.intersect_any(&shadow_ray, 0.0..=1.0) {
                     return Vec3::ZERO;
                 }

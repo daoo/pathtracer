@@ -118,10 +118,10 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let ray = Ray {
-        origin: [3.897963, 0.24242611, -4.203691].into(),
-        direction: [-13.897963, 9.757574, 14.2036915].into(),
-    };
+    let ray = Ray::new(
+        [3.897963, 0.24242611, -4.203691].into(),
+        [-13.897963, 9.757574, 14.2036915].into(),
+    );
     let expected_intersection = (
         7589,
         RayIntersection {
