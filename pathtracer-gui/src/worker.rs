@@ -82,12 +82,6 @@ fn worker_loop(
         loop {
             match rx.try_recv() {
                 Ok(new_pinhole) => {
-                    eprintln!(
-                        "New pinhole position={:?} direction={:?} size={:?}",
-                        new_pinhole.camera.position,
-                        new_pinhole.camera.direction,
-                        new_pinhole.size(),
-                    );
                     pinhole = new_pinhole;
                     combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
                     iteration = 0;
@@ -102,23 +96,22 @@ fn worker_loop(
                 64,
                 64 * pinhole.height / pinhole.width,
             );
-            eprintln!("Rendering scaled down size={:?}", pinhole_small.size());
             let (duration, buffer) = measure(|| {
                 render_subdivided(&pathtracer, &pinhole_small, pinhole_small.size() / 3)
             });
             let _ = tx.send(RenderResult::new(1, duration, buffer));
+            iteration = 1;
+        } else {
+            let (duration, buffer) =
+                measure(|| render_subdivided(&pathtracer, &pinhole, pinhole.size() / 4));
+            combined_buffer += buffer;
+            let _ = tx.send(RenderResult::new(
+                iteration,
+                duration,
+                combined_buffer.clone(),
+            ));
+            iteration += 1;
         }
-
-        eprintln!("Rendering size={:?}", pinhole.size());
-        let (duration, buffer) =
-            measure(|| render_subdivided(&pathtracer, &pinhole, pinhole.size() / 4));
-        combined_buffer += buffer;
-        iteration += 1;
-        let _ = tx.send(RenderResult::new(
-            iteration,
-            duration,
-            combined_buffer.clone(),
-        ));
     }
 }
 

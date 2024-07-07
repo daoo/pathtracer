@@ -52,7 +52,6 @@ pub(crate) struct Stage {
     target_size: (u32, u32),
     camera: Camera,
 
-    waiting_for_first_result: bool,
     last_update: Instant,
     input: InputState,
 }
@@ -130,9 +129,62 @@ impl Stage {
             worker: Some(worker),
             target_size,
             camera,
-            waiting_for_first_result: false,
             last_update: Instant::now(),
             input: InputState::default(),
+        }
+    }
+
+    fn send_pinhole(&mut self) {
+        if let Some(worker) = &self.worker {
+            let pinhole = Pinhole::new(self.camera.clone(), self.target_size.0, self.target_size.1);
+            worker.send(pinhole);
+            eprintln!("Sent {:?} at {:?}.", self.target_size, self.camera.position,);
+        }
+    }
+
+    fn update_input(&mut self) {
+        let now = Instant::now();
+        let delta = now - self.last_update;
+        let translation = self.input.translation();
+        if translation != Vec3::ZERO {
+            const TRANSLATION_SPEED: f32 = 2.0;
+            let distance = delta.as_secs_f32() * TRANSLATION_SPEED;
+            let translation_matrix =
+                Mat3::from_cols(self.camera.right, self.camera.up, self.camera.direction);
+            let position = self.camera.position + translation_matrix * translation * distance;
+            self.camera = self.camera.with_position(position);
+            self.send_pinhole();
+        }
+        self.last_update = now;
+    }
+
+    fn update_texture(&mut self) {
+        while let Some(result) = self.worker.as_ref().and_then(|worker| worker.try_receive()) {
+            eprintln!(
+                "Received {:?} @ {} rendered in {:?}.",
+                result.buffer.size(),
+                result.iterations,
+                result.duration,
+            );
+            let texture_size = self.ctx.texture_size(self.texture);
+            if result.buffer.size() != texture_size {
+                self.ctx.delete_texture(self.texture);
+                let width = result.buffer.width;
+                let height = result.buffer.height;
+                self.texture = self.ctx.new_texture_from_data_and_format(
+                    &result.buffer.to_rgb8(result.iterations),
+                    miniquad::TextureParams {
+                        format: miniquad::TextureFormat::RGB8,
+                        width,
+                        height,
+                        ..Default::default()
+                    },
+                );
+                self.bindings.images = vec![self.texture];
+            } else {
+                self.ctx
+                    .texture_update(self.texture, &result.buffer.to_rgb8(result.iterations))
+            }
         }
     }
 }
@@ -169,73 +221,14 @@ impl EventHandler for Stage {
 
     fn resize_event(&mut self, width: f32, height: f32) {
         if !cfg!(debug_assertions) {
-            if let Some(worker) = &self.worker {
-                self.target_size = (width as u32, height as u32);
-                let pinhole =
-                    Pinhole::new(self.camera.clone(), self.target_size.0, self.target_size.1);
-                worker.send(pinhole);
-            }
+            self.target_size = (width as u32, height as u32);
+            self.send_pinhole();
         }
     }
 
     fn update(&mut self) {
-        let now = Instant::now();
-        let delta = (now - self.last_update).as_secs_f32();
-        if let Some(worker) = &self.worker {
-            let translation = self.input.translation();
-            if translation != Vec3::ZERO && !self.waiting_for_first_result {
-                const TRANSLATION_SPEED: f32 = 2.0;
-                let distance = delta * TRANSLATION_SPEED;
-                let translation_matrix =
-                    Mat3::from_cols(self.camera.right, self.camera.up, self.camera.direction);
-                let position = self.camera.position + translation_matrix * translation * distance;
-                self.camera = self.camera.with_position(position);
-                let pinhole =
-                    Pinhole::new(self.camera.clone(), self.target_size.0, self.target_size.1);
-                worker.send(pinhole);
-                self.waiting_for_first_result = true;
-            }
-
-            while let Some(result) = worker.try_receive() {
-                self.waiting_for_first_result = false;
-                eprintln!(
-                    "Received {:?} @ {} rendered in {:?}.",
-                    [result.buffer.width, result.buffer.height],
-                    result.iterations,
-                    result.duration,
-                );
-                let texture_size = self.ctx.texture_size(self.texture);
-                if result.buffer.size() != texture_size {
-                    eprintln!(
-                        "Reallocating texture {:?} {:?} to {:?}.",
-                        self.texture,
-                        texture_size,
-                        result.buffer.size()
-                    );
-                    self.ctx.delete_texture(self.texture);
-                    let width = result.buffer.width;
-                    let height = result.buffer.height;
-                    self.texture = self.ctx.new_texture_from_data_and_format(
-                        &result.buffer.to_rgb8(result.iterations),
-                        miniquad::TextureParams {
-                            format: miniquad::TextureFormat::RGB8,
-                            width,
-                            height,
-                            ..Default::default()
-                        },
-                    );
-                    self.bindings.images = vec![self.texture];
-                } else {
-                    eprintln!(
-                        "Updating existing texture {:?} {:?}.",
-                        self.texture, texture_size
-                    );
-                    self.ctx
-                        .texture_update(self.texture, &result.buffer.to_rgb8(result.iterations))
-                }
-            }
-        }
-        self.last_update = now;
+        self.update_input();
+        self.update_texture();
     }
 
     fn draw(&mut self) {
@@ -250,7 +243,7 @@ impl EventHandler for Stage {
     }
 
     fn quit_requested_event(&mut self) {
-        eprintln!("Exiting");
+        eprintln!("Exiting...");
         let worker = self.worker.take().unwrap();
         worker.join();
     }
