@@ -20,13 +20,12 @@ fn intersect_closest(
         .iter()
         .filter_map(|index| {
             let index = *index;
-            geometries[index as usize]
-                .intersect_ray(ray)
-                .and_then(|intersection| {
-                    t_range
-                        .contains(&intersection.t)
-                        .then_some((index, intersection))
-                })
+            let geometry = unsafe { geometries.get_unchecked(index as usize) };
+            geometry.intersect_ray(ray).and_then(|intersection| {
+                t_range
+                    .contains(&intersection.t)
+                    .then_some((index, intersection))
+            })
         })
         .min_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t))
 }
