@@ -1,12 +1,14 @@
 use std::{fmt::Display, ops::RangeInclusive};
 
+use arrayvec::ArrayVec;
 use geometry::{aap::Aap, geometric::Geometric, intersection::RayIntersection, ray::Ray, Geometry};
-use smallvec::SmallVec;
 
 pub mod build;
 pub mod build_sah;
 pub mod format;
 mod split;
+
+pub const MAX_DEPTH: usize = 20;
 
 fn intersect_closest(
     geometries: &[Geometric],
@@ -105,20 +107,19 @@ impl KdNode {
         let mut node = self;
         let mut t1 = *t_range.start();
         let mut t2 = *t_range.end();
-        let mut stack: SmallVec<[(&KdNode, f32, f32); 5]> = SmallVec::new();
+        let mut stack: ArrayVec<(&KdNode, f32, f32), MAX_DEPTH> = ArrayVec::new();
         loop {
             match node {
                 KdNode::Leaf(indices) => {
                     match intersect_closest(geometries, indices, ray, t1..=t2) {
                         Some(result) => return Some(result),
                         _ if t2 == *t_range.end() => return None,
-                        _ => {
-                            if let Some(s) = stack.pop() {
+                        _ => match stack.pop() {
+                            Some(s) => {
                                 (node, t1, t2) = s;
-                            } else {
-                                return None;
                             }
-                        }
+                            None => return None,
+                        },
                     }
                 }
                 KdNode::Node { plane, left, right } => {
@@ -134,7 +135,8 @@ impl KdNode {
                         } else if t < t1 {
                             node = far;
                         } else {
-                            stack.push((far, t, t2));
+                            let result = stack.try_push((far, t, t2));
+                            debug_assert!(result.is_ok());
                             node = near;
                             t2 = t;
                         }

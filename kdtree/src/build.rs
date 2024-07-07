@@ -73,6 +73,13 @@ pub fn build_kdtree<B>(builder: B, max_depth: u32) -> KdTree
 where
     B: KdTreeBuilder,
 {
+    if max_depth as usize > super::MAX_DEPTH {
+        panic!(
+            "Max depth ({}) must be smaller than hard coded value ({}).",
+            max_depth,
+            super::MAX_DEPTH
+        );
+    }
     let root = build_helper(&builder, max_depth, 0, builder.starting_box());
     builder.make_tree(root)
 }
