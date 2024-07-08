@@ -89,12 +89,7 @@ fn node_cost(
     }
 }
 
-pub fn tree_cost(
-    kdtree: &KdTree,
-    cost_traverse: f32,
-    cost_intersect: f32,
-    empty_factor: f32,
-) -> f32 {
+fn tree_cost(kdtree: &KdTree, cost_traverse: f32, cost_intersect: f32, empty_factor: f32) -> f32 {
     let bounding_box = geometries_bounding_box(&kdtree.geometries);
     node_cost(
         cost_traverse,
@@ -104,6 +99,62 @@ pub fn tree_cost(
         bounding_box,
         kdtree.root.as_ref(),
     )
+}
+
+struct Statistics {
+    min: usize,
+    max: usize,
+    total: usize,
+    median: f32,
+    mean: f32,
+}
+
+impl Statistics {
+    fn compute(mut vec: Vec<usize>) -> Self {
+        vec.sort();
+        let median = if vec.len() == 1 {
+            vec[0] as f32
+        } else if vec.len() % 2 == 0 {
+            vec[vec.len() / 2] as f32
+        } else {
+            ((vec[vec.len() / 2] + vec[vec.len() / 2 + 1]) as f32) / 2.0
+        };
+        let mean = vec.iter().map(|x| *x as f32).sum::<f32>() / vec.len() as f32;
+        Self {
+            min: *vec.iter().min().unwrap(),
+            max: *vec.iter().max().unwrap(),
+            total: vec.iter().sum(),
+            median,
+            mean,
+        }
+    }
+}
+
+struct KdTreeStatistics {
+    geometries: usize,
+    node_count: usize,
+    leaf_count: usize,
+    leaf_depth: Statistics,
+    leaf_geometries: Statistics,
+}
+
+fn statistics(tree: &KdTree) -> KdTreeStatistics {
+    let geometries = tree.geometries.len();
+    let node_count = tree.iter_nodes().map(|_| 1).sum();
+    let leaf_count = tree.iter_leafs().map(|_| 1).sum();
+    let leaf_depth = Statistics::compute(tree.iter_leafs().map(|(depth, _)| depth).collect());
+    let leaf_geometries = Statistics::compute(
+        tree.iter_leafs()
+            .map(|(_, indices)| indices.len())
+            .collect(),
+    );
+    KdTreeStatistics {
+        geometries,
+        node_count,
+        leaf_count,
+        leaf_depth,
+        leaf_geometries,
+    }
 }
 
 fn main() {
@@ -147,6 +198,7 @@ fn main() {
     };
     let kdtree = build_kdtree(builder, args.max_depth);
     let duration = Instant::now().duration_since(start_time);
+    let duration = Duration::new(duration.as_secs() as i64, duration.as_nanos() as i32);
 
     let cost = tree_cost(
         &kdtree,
@@ -154,16 +206,25 @@ fn main() {
         args.intersect_cost,
         args.empty_factor,
     );
-
-    eprintln!(
-        "Done in {:.3} with cost {cost:.3}.",
-        Duration::new(duration.as_secs() as i64, duration.as_nanos() as i32)
-    );
-    eprintln!(
-        "  Leaf geometry indicies: {}",
-        kdtree.root.count_geometries()
-    );
-    eprintln!("  Node count: {}", kdtree.root.count_nodes());
+    let stats = statistics(&kdtree);
+    eprintln!("Done...");
+    eprintln!("Tree statistics:");
+    eprintln!("  Build time: {:.3}", duration);
+    eprintln!("  SAH cost: {:.3}", cost);
+    eprintln!("  Geometries: {}", stats.geometries);
+    eprintln!("  Node count: {}", stats.node_count);
+    eprintln!("  Leaf count: {}", stats.leaf_count);
+    eprintln!("  Leaf depth:");
+    eprintln!("    Min: {}", stats.leaf_depth.min);
+    eprintln!("    Max: {}", stats.leaf_depth.max);
+    eprintln!("    Mean: {}", stats.leaf_depth.mean);
+    eprintln!("    Median: {}", stats.leaf_depth.median);
+    eprintln!("  Leaf geometry:");
+    eprintln!("    Total: {}", stats.leaf_geometries.total);
+    eprintln!("    Min: {}", stats.leaf_geometries.min);
+    eprintln!("    Max: {}", stats.leaf_geometries.max);
+    eprintln!("    Mean: {}", stats.leaf_geometries.mean);
+    eprintln!("    Median: {}", stats.leaf_geometries.median);
 
     if args.json {
         write_tree_json(&mut io::stdout().lock(), &kdtree).unwrap();

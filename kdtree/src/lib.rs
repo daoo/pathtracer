@@ -64,39 +64,6 @@ impl KdNode {
         }
     }
 
-    pub fn count_nodes(&self) -> usize {
-        match self {
-            KdNode::Leaf(_) => 1,
-            KdNode::Node {
-                plane: _,
-                left,
-                right,
-            } => 1 + left.count_nodes() + right.count_nodes(),
-        }
-    }
-
-    pub fn count_geometries(&self) -> usize {
-        match self {
-            KdNode::Leaf(indices) => indices.len(),
-            KdNode::Node {
-                plane: _,
-                left,
-                right,
-            } => left.count_geometries() + right.count_geometries(),
-        }
-    }
-
-    pub fn all_indices(&self) -> Vec<u32> {
-        match self {
-            KdNode::Leaf(indicies) => indicies.clone(),
-            KdNode::Node {
-                plane: _,
-                left,
-                right,
-            } => [left.all_indices(), right.all_indices()].concat(),
-        }
-    }
-
     pub fn intersect(
         &self,
         geometries: &[Geometric],
@@ -166,24 +133,24 @@ impl Display for KdNode {
 }
 
 pub struct KdTreeNodeIter<'a> {
-    stack: Vec<&'a KdNode>,
+    stack: Vec<(usize, &'a KdNode)>,
 }
 
 impl<'a> Iterator for KdTreeNodeIter<'a> {
-    type Item = &'a KdNode;
+    type Item = (usize, &'a KdNode);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(node) = self.stack.pop() {
+        if let Some((depth, node)) = self.stack.pop() {
             match node {
-                KdNode::Leaf(_) => Some(node),
+                KdNode::Leaf(_) => Some((depth, node)),
                 KdNode::Node {
                     plane: _,
                     left,
                     right,
                 } => {
-                    self.stack.push(left);
-                    self.stack.push(right);
-                    Some(node)
+                    self.stack.push((depth + 1, left));
+                    self.stack.push((depth + 1, right));
+                    Some((depth, node))
                 }
             }
         } else {
@@ -191,6 +158,7 @@ impl<'a> Iterator for KdTreeNodeIter<'a> {
         }
     }
 }
+
 pub struct KdTree {
     pub root: Box<KdNode>,
     pub geometries: Vec<Geometric>,
@@ -199,8 +167,15 @@ pub struct KdTree {
 impl KdTree {
     pub fn iter_nodes(&self) -> KdTreeNodeIter<'_> {
         KdTreeNodeIter {
-            stack: vec![&self.root],
+            stack: vec![(1, &self.root)],
         }
+    }
+
+    pub fn iter_leafs(&self) -> impl Iterator<Item = (usize, &Vec<u32>)> {
+        self.iter_nodes().filter_map(|(depth, node)| match node {
+            KdNode::Leaf(indices) => Some((depth, indices)),
+            _ => None,
+        })
     }
 
     pub fn intersect(
