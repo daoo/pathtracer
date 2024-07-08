@@ -80,6 +80,6 @@ where
             super::MAX_DEPTH
         );
     }
-    let root = build_helper(&builder, max_depth, 0, builder.starting_box());
+    let root = build_helper(&builder, max_depth, 1, builder.starting_box());
     builder.make_tree(root)
 }

@@ -133,7 +133,7 @@ mod tests {
             empty_factor: 0.8,
             geometries: vec![triangle.into()],
         };
-        let tree = build_kdtree(builder, 6);
+        let tree = build_kdtree(builder, 7);
 
         let expected = KdNode::new_node(
             Aap::new_x(0.0),
