@@ -97,10 +97,19 @@ impl Aabb {
     }
 
     pub fn clamp(&self, point: Vec3) -> Vec3 {
+        let clamp = |x, a, b| {
+            if x < a {
+                a
+            } else if x > b {
+                b
+            } else {
+                x
+            }
+        };
         Vec3::new(
-            point.x.clamp(self.min.x, self.max.x),
-            point.y.clamp(self.min.y, self.max.y),
-            point.z.clamp(self.min.z, self.max.z),
+            clamp(point.x, self.min.x, self.max.x),
+            clamp(point.y, self.min.y, self.max.y),
+            clamp(point.z, self.min.z, self.max.z),
         )
     }
 
