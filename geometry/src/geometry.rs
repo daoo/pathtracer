@@ -6,51 +6,51 @@ use crate::{
 };
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Geometric {
+pub enum Geometry {
     Triangle(Triangle),
     AxiallyAlignedTriangle(AxiallyAlignedTriangle),
 }
 
-impl Geometric {
+impl Geometry {
     #[inline]
     pub fn min(&self) -> Vec3 {
         match self {
-            Geometric::Triangle(t) => t.min(),
-            Geometric::AxiallyAlignedTriangle(t) => t.min(),
+            Geometry::Triangle(t) => t.min(),
+            Geometry::AxiallyAlignedTriangle(t) => t.min(),
         }
     }
 
     #[inline]
     pub fn max(&self) -> Vec3 {
         match self {
-            Geometric::Triangle(t) => t.max(),
-            Geometric::AxiallyAlignedTriangle(t) => t.max(),
+            Geometry::Triangle(t) => t.max(),
+            Geometry::AxiallyAlignedTriangle(t) => t.max(),
         }
     }
 
     #[inline]
     pub fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
         match self {
-            Geometric::Triangle(t) => t.intersect_ray(ray),
-            Geometric::AxiallyAlignedTriangle(t) => t.intersect_ray(ray),
+            Geometry::Triangle(t) => t.intersect_ray(ray),
+            Geometry::AxiallyAlignedTriangle(t) => t.intersect_ray(ray),
         }
     }
 
     #[inline]
     pub fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
         match self {
-            Geometric::Triangle(t) => t.clip_aabb(aabb),
-            Geometric::AxiallyAlignedTriangle(t) => t.clip_aabb(aabb),
+            Geometry::Triangle(t) => t.clip_aabb(aabb),
+            Geometry::AxiallyAlignedTriangle(t) => t.clip_aabb(aabb),
         }
     }
 }
 
-impl From<Triangle> for Geometric {
+impl From<Triangle> for Geometry {
     #[inline]
     fn from(value: Triangle) -> Self {
         value
             .as_axially_aligned()
-            .map(Geometric::AxiallyAlignedTriangle)
-            .unwrap_or(Geometric::Triangle(value))
+            .map(Geometry::AxiallyAlignedTriangle)
+            .unwrap_or(Geometry::Triangle(value))
     }
 }

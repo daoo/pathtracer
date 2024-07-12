@@ -1,6 +1,6 @@
 use clap::Parser;
 use geometry::{
-    aabb::Aabb, bound::geometries_bounding_box, geometric::Geometric, triangle::Triangle,
+    aabb::Aabb, bound::geometries_bounding_box, geometry::Geometry, triangle::Triangle,
 };
 use kdtree::{
     build::build_kdtree,
@@ -180,7 +180,7 @@ fn main() {
                 .into()
             })
         })
-        .collect::<Vec<Geometric>>();
+        .collect::<Vec<Geometry>>();
     eprintln!("  Triangles: {}", triangles.len());
 
     eprintln!("Building kdtree...");

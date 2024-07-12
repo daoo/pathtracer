@@ -7,11 +7,11 @@ use std::{
 use clap::Parser;
 use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 
-use geometry::{geometric::Geometric, intersection::RayIntersection, ray::Ray, triangle::Triangle};
+use geometry::{geometry::Geometry, intersection::RayIntersection, ray::Ray, triangle::Triangle};
 use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, format::write_tree_json, KdTree};
 use wavefront::obj;
 
-fn build_test_tree(geometries: Vec<Geometric>) -> kdtree::KdTree {
+fn build_test_tree(geometries: Vec<Geometry>) -> kdtree::KdTree {
     build_kdtree(
         SahKdTreeBuilder {
             traverse_cost: 2.0,
@@ -23,7 +23,7 @@ fn build_test_tree(geometries: Vec<Geometric>) -> kdtree::KdTree {
     )
 }
 
-fn verify_removal(ray: &Ray, actual: &(Geometric, RayIntersection), tree: &KdTree) -> bool {
+fn verify_removal(ray: &Ray, actual: &(Geometry, RayIntersection), tree: &KdTree) -> bool {
     let intersection = tree.intersect(ray, 0.0..=f32::MAX).unwrap();
     let same_geometry = tree.geometries[intersection.0 as usize] == actual.0;
     let same_intersection = intersection.1 == actual.1;
@@ -32,11 +32,11 @@ fn verify_removal(ray: &Ray, actual: &(Geometric, RayIntersection), tree: &KdTre
 
 fn try_removing(
     ray: &Ray,
-    actual: &(Geometric, RayIntersection),
-    geometries: &[Geometric],
+    actual: &(Geometry, RayIntersection),
+    geometries: &[Geometry],
     try_index: usize,
     try_count: usize,
-) -> Option<Vec<Geometric>> {
+) -> Option<Vec<Geometry>> {
     let mut reduced = Vec::with_capacity(geometries.len() - try_count);
     reduced.extend_from_slice(&geometries[0..try_index]);
     reduced.extend_from_slice(&geometries[try_index + try_count..]);
@@ -46,7 +46,7 @@ fn try_removing(
 
 fn reduce_tree(
     ray: &Ray,
-    geometries: Vec<Geometric>,
+    geometries: Vec<Geometry>,
     expected_intersection: &(usize, RayIntersection),
     actual_intersection: &(usize, RayIntersection),
 ) -> KdTree {

@@ -1,10 +1,10 @@
-use geometry::{aabb::Aabb, aap::Aap, geometric::Geometric};
+use geometry::{aabb::Aabb, aap::Aap, geometry::Geometry};
 
 use crate::build::KdCell;
 
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-pub(crate) fn clip_geometries(geometries: &[Geometric], cell: &KdCell) -> Vec<(u32, Aabb)> {
+pub(crate) fn clip_geometries(geometries: &[Geometry], cell: &KdCell) -> Vec<(u32, Aabb)> {
     cell.indices()
         .into_par_iter()
         .filter_map(|i| {

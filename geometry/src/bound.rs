@@ -1,10 +1,10 @@
-use crate::{aabb::Aabb, geometric::Geometric};
+use crate::{aabb::Aabb, geometry::Geometry};
 
 pub fn combine_bounding_boxes(a: &Aabb, b: &Aabb) -> Aabb {
     Aabb::from_extents(a.min().min(b.min()), a.max().max(b.max()))
 }
 
-pub fn geometries_bounding_box(geometries: &[Geometric]) -> Aabb {
+pub fn geometries_bounding_box(geometries: &[Geometry]) -> Aabb {
     if geometries.is_empty() {
         return Aabb::empty();
     }

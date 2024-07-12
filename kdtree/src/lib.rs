@@ -1,7 +1,7 @@
 use std::{fmt::Display, ops::RangeInclusive};
 
 use arrayvec::ArrayVec;
-use geometry::{aap::Aap, geometric::Geometric, intersection::RayIntersection, ray::Ray};
+use geometry::{aap::Aap, geometry::Geometry, intersection::RayIntersection, ray::Ray};
 
 pub mod build;
 pub mod build_sah;
@@ -11,7 +11,7 @@ mod split;
 pub const MAX_DEPTH: usize = 20;
 
 fn intersect_closest(
-    geometries: &[Geometric],
+    geometries: &[Geometry],
     indices: &[u32],
     ray: &Ray,
     t_range: RangeInclusive<f32>,
@@ -66,7 +66,7 @@ impl KdNode {
 
     pub fn intersect(
         &self,
-        geometries: &[Geometric],
+        geometries: &[Geometry],
         ray: &Ray,
         t_range: RangeInclusive<f32>,
     ) -> Option<(u32, RayIntersection)> {
@@ -161,7 +161,7 @@ impl<'a> Iterator for KdTreeNodeIter<'a> {
 
 pub struct KdTree {
     pub root: Box<KdNode>,
-    pub geometries: Vec<Geometric>,
+    pub geometries: Vec<Geometry>,
 }
 
 impl KdTree {

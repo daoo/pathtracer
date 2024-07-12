@@ -1,7 +1,7 @@
 use glam::Vec3;
 use rayon::prelude::*;
 
-use geometry::{aabb::Aabb, aap::Aap, bound::geometries_bounding_box, geometric::Geometric};
+use geometry::{aabb::Aabb, aap::Aap, bound::geometries_bounding_box, geometry::Geometry};
 
 use crate::split::clip_geometries;
 
@@ -15,7 +15,7 @@ pub struct SahKdTreeBuilder {
     pub traverse_cost: f32,
     pub intersect_cost: f32,
     pub empty_factor: f32,
-    pub geometries: Vec<Geometric>,
+    pub geometries: Vec<Geometry>,
 }
 
 pub const MAX_DEPTH: u32 = 20;

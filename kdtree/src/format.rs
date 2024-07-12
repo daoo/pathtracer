@@ -1,8 +1,8 @@
 use crate::{KdNode, KdTree};
-use geometry::{axis::Axis, geometric::Geometric};
+use geometry::{axis::Axis, geometry::Geometry};
 use std::io::{self};
 
-fn write_triangle_bracketed<W>(write: &mut W, geometries: &[Geometric]) -> Result<(), io::Error>
+fn write_triangle_bracketed<W>(write: &mut W, geometries: &[Geometry]) -> Result<(), io::Error>
 where
     W: io::Write,
 {
@@ -12,8 +12,8 @@ where
         geometries
             .iter()
             .map(|t| match t {
-                Geometric::Triangle(t) => t.as_arrays(),
-                Geometric::AxiallyAlignedTriangle(t) => t.as_arrays(),
+                Geometry::Triangle(t) => t.as_arrays(),
+                Geometry::AxiallyAlignedTriangle(t) => t.as_arrays(),
             })
             .collect::<Vec<_>>()
     )
