@@ -27,24 +27,35 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Array
     };
 
     let mut output = ArrayVec::<Vec3, 6>::new();
-    output.push(*v1);
-    output.push(*v2);
-    output.push(*v0);
+    unsafe {
+        output.push_unchecked(*v1);
+        output.push_unchecked(*v2);
+        output.push_unchecked(*v0);
+    }
 
     for clip_plane @ (_, plane) in clip_planes {
+        if output.is_empty() {
+            return output;
+        }
         let input = output.clone();
         output.clear();
-        for (i, b) in input.iter().enumerate() {
-            let a = input[if i == 0 { input.len() - 1 } else { i - 1 }];
-            let ray = Ray::between(a, *b);
+        let points_iter = input.iter().cycle().skip(input.len() - 1).zip(input.iter());
+        for (a, b) in points_iter {
+            let ray = Ray::between(*a, *b);
             let intersecting = plane.intersect_ray_point(&ray);
             if is_inside(clip_plane, *b) {
-                if !is_inside(clip_plane, a) {
-                    output.push(aabb.clamp(intersecting.unwrap()));
+                if !is_inside(clip_plane, *a) {
+                    unsafe {
+                        output.push_unchecked(aabb.clamp(intersecting.unwrap_unchecked()));
+                    }
                 }
-                output.push(*b);
-            } else if is_inside(clip_plane, a) {
-                output.push(aabb.clamp(intersecting.unwrap()));
+                unsafe {
+                    output.push_unchecked(*b);
+                }
+            } else if is_inside(clip_plane, *a) {
+                unsafe {
+                    output.push_unchecked(aabb.clamp(intersecting.unwrap_unchecked()));
+                }
             }
         }
     }
