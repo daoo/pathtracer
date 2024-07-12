@@ -3,7 +3,7 @@ use rayon::prelude::*;
 
 use geometry::{aabb::Aabb, aap::Aap, bound::geometries_bounding_box, geometric::Geometric};
 
-use crate::split::perfect_splits;
+use crate::split::clip_geometries;
 
 use super::{
     build::{KdCell, KdSplit, KdTreeBuilder},
@@ -82,7 +82,11 @@ impl KdTreeBuilder for SahKdTreeBuilder {
 
         let min_by_snd = |a: (_, f32), b: (_, f32)| if a.1 <= b.1 { a } else { b };
 
-        let (clipped, mut splits) = perfect_splits(&self.geometries, cell);
+        let clipped = clip_geometries(&self.geometries, cell);
+        let mut splits = clipped
+            .iter()
+            .flat_map(|(_, aabb)| aabb.sides())
+            .collect::<Vec<_>>();
         splits.sort_unstable_by(Aap::total_cmp);
         splits.dedup();
         splits

@@ -4,21 +4,15 @@ use crate::build::KdCell;
 
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-pub fn perfect_splits(geometries: &[Geometric], cell: &KdCell) -> (Vec<(u32, Aabb)>, Vec<Aap>) {
-    let clipped = cell
-        .indices()
+pub(crate) fn clip_geometries(geometries: &[Geometric], cell: &KdCell) -> Vec<(u32, Aabb)> {
+    cell.indices()
         .into_par_iter()
         .filter_map(|i| {
             geometries[*i as usize]
                 .clip_aabb(cell.boundary())
                 .map(|aabb| (*i, aabb))
         })
-        .collect::<Vec<_>>();
-    let splits = clipped
-        .iter()
-        .flat_map(|(_, aabb)| aabb.sides())
-        .collect::<Vec<_>>();
-    (clipped, splits)
+        .collect::<Vec<_>>()
 }
 
 pub fn partition_triangles(
