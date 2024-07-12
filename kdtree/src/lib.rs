@@ -57,6 +57,7 @@ impl KdNode {
         Box::new(Self::Node { plane, left, right })
     }
 
+    #[inline]
     pub fn is_empty(&self) -> bool {
         match self {
             Self::Leaf(indices) => indices.is_empty(),
@@ -165,12 +166,14 @@ pub struct KdTree {
 }
 
 impl KdTree {
+    #[inline]
     pub fn iter_nodes(&self) -> KdTreeNodeIter<'_> {
         KdTreeNodeIter {
             stack: vec![(1, &self.root)],
         }
     }
 
+    #[inline]
     pub fn iter_leafs(&self) -> impl Iterator<Item = (usize, &Vec<u32>)> {
         self.iter_nodes().filter_map(|(depth, node)| match node {
             KdNode::Leaf(indices) => Some((depth, indices)),
@@ -178,6 +181,7 @@ impl KdTree {
         })
     }
 
+    #[inline]
     pub fn intersect(
         &self,
         ray: &Ray,

@@ -15,7 +15,7 @@ pub(crate) fn clip_geometries(geometries: &[Geometry], cell: &KdCell) -> Vec<(u3
         .collect::<Vec<_>>()
 }
 
-pub fn partition_triangles(
+pub(crate) fn partition_triangles(
     clipped_triangles: &[(u32, Aabb)],
     plane: &Aap,
 ) -> (Vec<u32>, Vec<u32>, Vec<u32>) {
@@ -42,7 +42,7 @@ pub fn partition_triangles(
     (left_triangles, middle_triangles, right_triangles)
 }
 
-pub struct SplitPartitioning {
+pub(crate) struct SplitPartitioning {
     pub left_aabb: Aabb,
     pub right_aabb: Aabb,
     pub left_indices: Vec<u32>,
@@ -50,7 +50,11 @@ pub struct SplitPartitioning {
     pub right_indices: Vec<u32>,
 }
 
-pub fn split_and_partition(clipped: &[(u32, Aabb)], aabb: &Aabb, plane: Aap) -> SplitPartitioning {
+pub(crate) fn split_and_partition(
+    clipped: &[(u32, Aabb)],
+    aabb: &Aabb,
+    plane: Aap,
+) -> SplitPartitioning {
     let (left_aabb, right_aabb) = aabb.split(&plane);
     let (left_indices, middle_indices, right_indices) = partition_triangles(clipped, &plane);
     SplitPartitioning {
