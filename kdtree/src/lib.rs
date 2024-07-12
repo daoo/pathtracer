@@ -1,7 +1,7 @@
 use std::{fmt::Display, ops::RangeInclusive};
 
 use arrayvec::ArrayVec;
-use geometry::{aap::Aap, geometric::Geometric, intersection::RayIntersection, ray::Ray, Geometry};
+use geometry::{aap::Aap, geometric::Geometric, intersection::RayIntersection, ray::Ray};
 
 pub mod build;
 pub mod build_sah;

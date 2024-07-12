@@ -1,6 +1,6 @@
 use glam::Vec3;
 
-use crate::{aabb::Aabb, intersection::RayIntersection, ray::Ray, Geometry};
+use crate::{intersection::RayIntersection, ray::Ray};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Sphere {
@@ -8,8 +8,8 @@ pub struct Sphere {
     pub radius: f32,
 }
 
-impl Geometry for Sphere {
-    fn min(&self) -> Vec3 {
+impl Sphere {
+    pub fn min(&self) -> Vec3 {
         Vec3::new(
             self.center.x - self.radius,
             self.center.y - self.radius,
@@ -17,7 +17,7 @@ impl Geometry for Sphere {
         )
     }
 
-    fn max(&self) -> Vec3 {
+    pub fn max(&self) -> Vec3 {
         Vec3::new(
             self.center.x + self.radius,
             self.center.y + self.radius,
@@ -25,7 +25,7 @@ impl Geometry for Sphere {
         )
     }
 
-    fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
+    pub fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
         let p = ray.origin - self.center;
         let a = ray.direction.dot(ray.direction);
         let b = 2.0 * ray.direction.dot(p);
@@ -39,10 +39,6 @@ impl Geometry for Sphere {
         dbg!(t1, t2);
         let t = if t1 <= t2 { t1 } else { t2 };
         Some(RayIntersection { t, u: 0.0, v: 0.0 })
-    }
-
-    fn clip_aabb(&self, _: &Aabb) -> Option<Aabb> {
-        todo!()
     }
 }
 

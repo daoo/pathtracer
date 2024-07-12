@@ -8,6 +8,7 @@ pub enum Axis {
 }
 
 impl Axis {
+    #[inline]
     pub fn from_u32(n: u32) -> Axis {
         match n % 3 {
             0 => Axis::X,

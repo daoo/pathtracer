@@ -2,7 +2,7 @@ use glam::Vec3;
 
 use crate::{
     aabb::Aabb, aap::Aap, axial_triangle::AxiallyAlignedTriangle, axis::Axis,
-    clip::clip_triangle_aabb, intersection::RayIntersection, ray::Ray, Geometry,
+    clip::clip_triangle_aabb, intersection::RayIntersection, ray::Ray,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -13,39 +13,72 @@ pub struct Triangle {
 }
 
 impl Triangle {
+    #[inline]
     pub fn base0(&self) -> Vec3 {
         self.v1 - self.v0
     }
 
+    #[inline]
     pub fn base1(&self) -> Vec3 {
         self.v2 - self.v0
     }
 
+    #[inline]
     pub fn base_center(&self) -> Vec3 {
         self.v0 + 0.5 * self.base0() + 0.5 * self.base1()
     }
 
+    #[inline]
     pub fn edge0(&self) -> Vec3 {
         self.v1 - self.v0
     }
 
+    #[inline]
     pub fn edge1(&self) -> Vec3 {
         self.v2 - self.v1
     }
 
+    #[inline]
     pub fn edge2(&self) -> Vec3 {
         self.v0 - self.v2
     }
 
+    #[inline]
     pub fn param(&self, u: f32, v: f32) -> Vec3 {
         assert!(u >= 0.0 && v >= 0.0 && u + v <= 1.0);
         self.v0 + u * self.base0() + v * self.base1()
     }
 
+    #[inline]
     pub fn as_arrays(self) -> [[f32; 3]; 3] {
         [self.v0.into(), self.v1.into(), self.v2.into()]
     }
 
+    #[inline]
+    pub fn min(&self) -> Vec3 {
+        self.v0.min(self.v1.min(self.v2))
+    }
+
+    #[inline]
+    pub fn max(&self) -> Vec3 {
+        self.v0.max(self.v1.max(self.v2))
+    }
+
+    pub fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
+        let clipped = clip_triangle_aabb(&self.v0, &self.v1, &self.v2, aabb);
+        if clipped.is_empty() {
+            return None;
+        }
+        let start = (clipped[0], clipped[0]);
+        let (min, max) = clipped
+            .into_iter()
+            .skip(1)
+            .fold(start, |(min, max), b| (min.min(b), max.max(b)));
+
+        Some(Aabb::from_extents(min, max))
+    }
+
+    #[inline]
     pub fn as_axially_aligned(&self) -> Option<AxiallyAlignedTriangle> {
         let check_axis = |axis| {
             (self.v0[axis] == self.v1[axis] && self.v0[axis] == self.v2[axis]).then_some(
@@ -168,40 +201,13 @@ impl<T> From<[T; 3]> for Triangle
 where
     T: Into<Vec3> + Copy,
 {
+    #[inline]
     fn from(value: [T; 3]) -> Self {
         Triangle {
             v0: value[0].into(),
             v1: value[1].into(),
             v2: value[2].into(),
         }
-    }
-}
-
-impl Geometry for Triangle {
-    fn min(&self) -> Vec3 {
-        self.v0.min(self.v1.min(self.v2))
-    }
-
-    fn max(&self) -> Vec3 {
-        self.v0.max(self.v1.max(self.v2))
-    }
-
-    fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
-        self.intersect_ray(ray)
-    }
-
-    fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
-        let clipped = clip_triangle_aabb(&self.v0, &self.v1, &self.v2, aabb);
-        if clipped.is_empty() {
-            return None;
-        }
-        let start = (clipped[0], clipped[0]);
-        let (min, max) = clipped
-            .into_iter()
-            .skip(1)
-            .fold(start, |(min, max), b| (min.min(b), max.max(b)));
-
-        Some(Aabb::from_extents(min, max))
     }
 }
 

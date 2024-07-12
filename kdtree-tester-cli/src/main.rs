@@ -1,5 +1,5 @@
 use clap::Parser;
-use geometry::{intersection::RayIntersection, ray::Ray, Geometry};
+use geometry::{intersection::RayIntersection, ray::Ray};
 use glam::Vec2;
 use kdtree::{
     build::build_kdtree,

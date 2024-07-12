@@ -81,6 +81,7 @@ impl Aabb {
         ]
     }
 
+    #[inline]
     pub fn split(&self, plane: &Aap) -> (Aabb, Aabb) {
         debug_assert!(plane.distance >= self.min[plane.axis]);
         debug_assert!(plane.distance <= self.max[plane.axis]);

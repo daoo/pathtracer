@@ -6,7 +6,6 @@ use crate::{
     clip::clip_triangle_aabb,
     intersection::{Intersection, RayIntersection},
     ray::Ray,
-    Geometry,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -18,19 +17,35 @@ pub struct AxiallyAlignedTriangle {
 }
 
 impl AxiallyAlignedTriangle {
+    #[inline]
+    pub fn min(&self) -> Vec3 {
+        let p = self.v0.min(self.v1.min(self.v2));
+        self.plane.axis.add_to(p, self.plane.distance)
+    }
+
+    #[inline]
+    pub fn max(&self) -> Vec3 {
+        let p = self.v0.max(self.v1.max(self.v2));
+        self.plane.axis.add_to(p, self.plane.distance)
+    }
+
+    #[inline]
     pub fn base0(&self) -> Vec2 {
         self.v1 - self.v0
     }
 
+    #[inline]
     pub fn base1(&self) -> Vec2 {
         self.v2 - self.v0
     }
 
+    #[inline]
     pub fn param(&self, u: f32, v: f32) -> Vec2 {
         debug_assert!(u >= 0.0 && v >= 0.0 && u + v <= 1.0);
         self.v0 + u * self.base0() + v * self.base1()
     }
 
+    #[inline]
     pub fn as_arrays(&self) -> [[f32; 3]; 3] {
         [
             self.plane.add_to(self.v0).into(),
@@ -62,20 +77,8 @@ impl AxiallyAlignedTriangle {
 
         Some(Intersection { u, v })
     }
-}
 
-impl Geometry for AxiallyAlignedTriangle {
-    fn min(&self) -> Vec3 {
-        let p = self.v0.min(self.v1.min(self.v2));
-        self.plane.axis.add_to(p, self.plane.distance)
-    }
-
-    fn max(&self) -> Vec3 {
-        let p = self.v0.max(self.v1.max(self.v2));
-        self.plane.axis.add_to(p, self.plane.distance)
-    }
-
-    fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
+    pub fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
         let axis = self.plane.axis;
         if ray.direction[axis] == 0.0 {
             return None;
@@ -90,7 +93,7 @@ impl Geometry for AxiallyAlignedTriangle {
             })
     }
 
-    fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
+    pub fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
         let clipped = clip_triangle_aabb(
             &self.plane.add_to(self.v0),
             &self.plane.add_to(self.v1),

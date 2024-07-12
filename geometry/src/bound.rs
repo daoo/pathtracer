@@ -1,13 +1,10 @@
-use crate::{aabb::Aabb, Geometry};
+use crate::{aabb::Aabb, geometric::Geometric};
 
 pub fn combine_bounding_boxes(a: &Aabb, b: &Aabb) -> Aabb {
     Aabb::from_extents(a.min().min(b.min()), a.max().max(b.max()))
 }
 
-pub fn geometries_bounding_box<G>(geometries: &[G]) -> Aabb
-where
-    G: Geometry,
-{
+pub fn geometries_bounding_box(geometries: &[Geometric]) -> Aabb {
     if geometries.is_empty() {
         return Aabb::empty();
     }
@@ -41,7 +38,8 @@ mod tests {
                 v1: Vec3::new(-1., -1., -1.),
                 v2: Vec3::new(0., 0., 0.),
             },
-        ];
+        ]
+        .map(|t| t.into());
 
         let actual = geometries_bounding_box(&triangles);
 

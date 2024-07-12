@@ -1,4 +1,4 @@
-use geometry::{aabb::Aabb, aap::Aap, geometric::Geometric, Geometry};
+use geometry::{aabb::Aabb, aap::Aap, geometric::Geometric};
 
 use crate::build::KdCell;
 
