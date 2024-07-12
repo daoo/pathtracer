@@ -8,12 +8,7 @@ use clap::Parser;
 use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 
 use geometry::{geometric::Geometric, intersection::RayIntersection, ray::Ray, triangle::Triangle};
-use kdtree::{
-    build::build_kdtree,
-    build_sah::{self, SahKdTreeBuilder},
-    format::write_tree_json,
-    KdTree,
-};
+use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, format::write_tree_json, KdTree};
 use wavefront::obj;
 
 fn build_test_tree(geometries: Vec<Geometric>) -> kdtree::KdTree {
@@ -63,29 +58,36 @@ fn reduce_tree(
     geometries[2..].shuffle(&mut SmallRng::from_entropy());
     let mut try_index: usize = 2;
     let mut try_count = geometries.len() - try_index;
+    eprintln!(
+        "Kept {} with {} geometries left to check.",
+        try_index, try_count
+    );
     while try_index < geometries.len() {
         let remaining = geometries.len() - try_index;
         try_count = try_count.clamp(1, remaining);
-        eprint!(
-            "Kept {} and {} left to check, trying to remove {}. ",
-            try_index, remaining, try_count
-        );
-        let earlier = Instant::now();
-        if let Some(reduced) = try_removing(ray, &actual, &geometries, try_index, try_count) {
+        eprint!("  Trying to remove {: <5}", try_count);
+        let time_before = Instant::now();
+        let reduced = try_removing(ray, &actual, &geometries, try_index, try_count);
+        let duration = Instant::now().duration_since(time_before).as_micros() as f64 / 1000.0;
+        if let Some(reduced) = reduced {
             geometries = reduced;
-            eprint!("Success! ");
+            eprintln!(" Time: {: <8.3} ms. Success!", duration);
+            eprintln!(
+                "Kept {} with {} geometries left to check.",
+                try_index, try_count
+            );
         } else if try_count > 1 {
             try_count /= 2;
-            eprint!("Fail! Trying to remove fewer. ");
+            eprintln!(" Time: {: <8.3} ms. Fail!", duration);
         } else {
             try_index += 1;
             try_count = remaining;
-            eprint!("Fail! Advancing index. ");
+            eprintln!(" Time: {: <8.3} ms. Fail! Keeping 1 geometry.", duration);
+            eprintln!(
+                "Kept {} with {} geometries left to check.",
+                try_index, try_count
+            );
         }
-        eprintln!(
-            "Took {} ms.",
-            Instant::now().duration_since(earlier).as_micros() as f64 / 1000.0
-        );
     }
     build_test_tree(geometries)
 }
@@ -100,19 +102,6 @@ struct Args {
     /// Output reduced kd-tree JSON data path
     #[arg(short = 'o', long, required = true)]
     output: std::path::PathBuf,
-
-    /// Maximum kd-tree depth
-    #[arg(long, default_value_t = build_sah::MAX_DEPTH)]
-    max_depth: u32,
-    /// SAH kd-tree traverse cost
-    #[arg(long, default_value_t = build_sah::TRAVERSE_COST)]
-    traverse_cost: f32,
-    /// SAH kd-tree intersect cost
-    #[arg(long, default_value_t = build_sah::INTERSECT_COST)]
-    intersect_cost: f32,
-    /// SAH kd-tree empty factor
-    #[arg(long, default_value_t = build_sah::EMPTY_FACTOR)]
-    empty_factor: f32,
 }
 
 fn main() {
