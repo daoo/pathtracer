@@ -21,8 +21,8 @@ def parse_rectangle(s):
 
 def program(args):
     rerun.init("pathtracer")
-    rerun.connect()
-    rerun.log("world", rerun.ViewCoordinates.RIGHT_HAND_Y_UP, timeless=True)
+    rerun.connect(args.server)
+    rerun.log("world", rerun.ViewCoordinates.RIGHT_HAND_Y_UP, static=True)
 
     if args.triangles:
         print(f'Reading "{args.triangles}"...')
@@ -67,6 +67,8 @@ def main():
         description="Visualize pathtracer data with rerun.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+    parser.add_argument("-s", "--server", default=None, help="Rerun server ip:port to connect to")
+
     parser.add_argument("-t", "--triangles", help="kdtree.json file path")
     parser.add_argument("-f", "--ray-fails", help="rayfails.bin file path")
     parser.add_argument("-k", "--kdtree", help="kdtree.json file path")
