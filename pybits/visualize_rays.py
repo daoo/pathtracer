@@ -38,7 +38,7 @@ def visualize_as_one_entity(rays):
     rerun.log(
         "world/rays",
         rerun.LineStrips3D(segments, radii=0.001, colors=colors),
-        timeless=True,
+        static=True,
     )
 
 
@@ -53,5 +53,5 @@ def visualize_grouped_per_path(rays):
         rerun.log(
             f"world/rays/ray_{iteration}_{px}x{py}",
             rerun.LineStrips3D(segments, radii=0.001, colors=colormap(path.color)),
-            timeless=True,
+            static=True,
         )

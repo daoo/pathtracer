@@ -47,7 +47,7 @@ def visualize(rays):
         rerun.log(
             f"{path}/ray",
             rerun.LineStrips3D(segments, radii=0.001, colors=color(ray.i)),
-            timeless=True,
+            static=True,
         )
         rerun.log(
             f"{path}/points",
@@ -56,5 +56,5 @@ def visualize(rays):
                 radii=0.02,
                 colors=[(0, 255, 0), (255, 0, 0)],
             ),
-            timeless=True,
+            static=True,
         )

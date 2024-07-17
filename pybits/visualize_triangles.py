@@ -22,5 +22,5 @@ def visualize(triangles):
             radii=0.002,
             colors=[(255, 255, 255)],
         ),
-        timeless=True,
+        static=True,
     )

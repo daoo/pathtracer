@@ -53,7 +53,7 @@ def visualize_kdnode(colormap, aabb, root):
     rerun.log(
         "world/kdtree",
         rerun.Boxes3D(mins=mins, sizes=sizes, colors=colormap[depths]),
-        timeless=True,
+        static=True,
     )
 
 
