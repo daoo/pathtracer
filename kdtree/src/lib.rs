@@ -60,7 +60,12 @@ impl KdNode {
         loop {
             match node {
                 KdNode::Leaf(indices) => {
-                    match intersect_closest_geometry(geometries, indices, ray, t1..=t2) {
+                    match intersect_closest_geometry(
+                        geometries,
+                        indices.iter().cloned(),
+                        ray,
+                        t1..=t2,
+                    ) {
                         Some(result) => return Some(result),
                         _ if t2 == *t_range.end() => return None,
                         _ => match stack.pop() {

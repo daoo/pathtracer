@@ -37,8 +37,8 @@ impl RayBouncer {
         ray: &Ray,
         t_range: RangeInclusive<f32>,
     ) -> Option<KdIntersection> {
-        let indices = (0u32..self.kdtree.geometries.len() as u32).collect::<Vec<_>>();
-        intersect_closest_geometry(&self.kdtree.geometries, &indices, ray, t_range)
+        let indices = 0u32..self.kdtree.geometries.len() as u32;
+        intersect_closest_geometry(&self.kdtree.geometries, indices, ray, t_range)
     }
 
     fn checked_ray_intersect(

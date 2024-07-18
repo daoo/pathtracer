@@ -25,14 +25,12 @@ impl KdIntersection {
 
 pub fn intersect_closest_geometry(
     geometries: &[Geometry],
-    indices: &[u32], // TODO: accept iterator
+    indices: impl Iterator<Item = u32>,
     ray: &Ray,
     t_range: RangeInclusive<f32>,
 ) -> Option<KdIntersection> {
     indices
-        .iter()
         .filter_map(|index| {
-            let index = *index;
             let geometry = unsafe { geometries.get_unchecked(index as usize) };
             geometry.intersect_ray(ray).and_then(|intersection| {
                 t_range.contains(&intersection.t).then_some(KdIntersection {
