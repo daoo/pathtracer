@@ -293,20 +293,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "kdtree-reducer-cli"
-version = "1.0.0"
-dependencies = [
- "clap",
- "geometry",
- "kdtree",
- "rand",
- "rayon",
- "wavefront",
-]
-
-[[package]]
-name = "kdtree-tester-cli"
-version = "1.0.0"
+name = "kdtree-tester"
+version = "0.1.0"
 dependencies = [
  "clap",
  "geometry",
@@ -316,6 +304,7 @@ dependencies = [
  "rayon",
  "scene",
  "tracing",
+ "wavefront",
 ]
 
 [[package]]
