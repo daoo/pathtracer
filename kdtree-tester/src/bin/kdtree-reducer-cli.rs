@@ -5,10 +5,14 @@ use std::{
 };
 
 use clap::Parser;
+use kdtree_tester::checked_intersection::CheckedIntersection;
 use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 
 use geometry::{geometry::Geometry, intersection::RayIntersection, ray::Ray, triangle::Triangle};
-use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder, format::write_tree_json, KdTree};
+use kdtree::{
+    build::build_kdtree, build_sah::SahKdTreeBuilder, format::write_tree_json,
+    intersection::KdIntersection, KdTree,
+};
 use wavefront::obj;
 
 fn build_test_tree(geometries: Vec<Geometry>) -> kdtree::KdTree {
@@ -45,11 +49,12 @@ fn try_removing(
 }
 
 fn reduce_tree(seed: u64, intersection: &CheckedIntersection, geometries: Vec<Geometry>) -> KdTree {
-    let actual_geometry = geometries[intersection.kdtree.0].clone();
-    let actual = (actual_geometry, intersection.kdtree.1);
+    let actual_intersection = intersection.kdtree.as_ref().unwrap();
+    let actual_geometry = geometries[actual_intersection.index as usize].clone();
+    let actual = (actual_geometry, actual_intersection.intersection);
     let mut geometries = geometries;
-    geometries.swap(0, intersection.reference.0);
-    geometries.swap(1, intersection.kdtree.0);
+    geometries.swap(0, intersection.reference.as_ref().unwrap().index as usize);
+    geometries.swap(1, intersection.kdtree.as_ref().unwrap().index as usize);
     geometries[2..].shuffle(&mut SmallRng::seed_from_u64(seed));
     let mut try_index: usize = 2;
     let mut try_count = geometries.len() - try_index;
@@ -113,36 +118,6 @@ struct Args {
     seed: u64,
 }
 
-#[derive(Debug, Clone, Copy)]
-struct CheckedIntersection {
-    pub ray: Ray,
-    pub reference: (usize, RayIntersection),
-    pub kdtree: (usize, RayIntersection),
-}
-
-impl CheckedIntersection {
-    fn as_bytes(&self, iteration: u16) -> [u8; 50] {
-        let mut bytes = [0u8; 50];
-        let ray = self.ray.extended(self.kdtree.1.t);
-        let correct_point = self.ray.param(self.reference.1.t);
-        let actual_point = self.ray.param(self.kdtree.1.t);
-        bytes[0..2].copy_from_slice(&iteration.to_le_bytes());
-        bytes[2..6].copy_from_slice(&ray.origin.x.to_le_bytes());
-        bytes[6..10].copy_from_slice(&ray.origin.y.to_le_bytes());
-        bytes[10..14].copy_from_slice(&ray.origin.z.to_le_bytes());
-        bytes[14..18].copy_from_slice(&ray.direction.x.to_le_bytes());
-        bytes[18..22].copy_from_slice(&ray.direction.y.to_le_bytes());
-        bytes[22..26].copy_from_slice(&ray.direction.z.to_le_bytes());
-        bytes[26..30].copy_from_slice(&correct_point.x.to_le_bytes());
-        bytes[30..34].copy_from_slice(&correct_point.y.to_le_bytes());
-        bytes[34..38].copy_from_slice(&correct_point.z.to_le_bytes());
-        bytes[38..42].copy_from_slice(&actual_point.x.to_le_bytes());
-        bytes[42..46].copy_from_slice(&actual_point.y.to_le_bytes());
-        bytes[46..50].copy_from_slice(&actual_point.z.to_le_bytes());
-        bytes
-    }
-}
-
 fn main() {
     let args = Args::parse();
 
@@ -151,22 +126,22 @@ fn main() {
             [3.897963, 0.24242611, -4.203691].into(),
             [-13.897963, 9.757574, 14.2036915].into(),
         ),
-        reference: (
+        reference: Some(KdIntersection::new(
             7589,
             RayIntersection {
                 t: 0.0004729527,
                 u: 0.09395919,
                 v: 0.47453666,
             },
-        ),
-        kdtree: (
+        )),
+        kdtree: Some(KdIntersection::new(
             5556,
             RayIntersection {
                 t: 0.05429069,
                 u: 0.2189177,
                 v: 0.74337834,
             },
-        ),
+        )),
     };
     eprintln!("Testing with:");
     eprintln!("  {:?}", &intersection.ray);
