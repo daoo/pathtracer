@@ -1,12 +1,20 @@
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Intersection {
+pub struct PointIntersection {
     pub u: f32,
     pub v: f32,
 }
 
-impl Intersection {
-    pub fn new(u: f32, v: f32) -> Intersection {
-        Intersection { u, v }
+impl PointIntersection {
+    pub fn new(u: f32, v: f32) -> PointIntersection {
+        PointIntersection { u, v }
+    }
+
+    pub fn with_ray_param(&self, t: f32) -> RayIntersection {
+        RayIntersection {
+            t,
+            u: self.u,
+            v: self.v,
+        }
     }
 }
 
