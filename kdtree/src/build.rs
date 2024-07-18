@@ -1,5 +1,7 @@
 use geometry::{aabb::Aabb, aap::Aap};
 
+use crate::build_sah::SahKdTreeBuilder;
+
 use super::{KdNode, KdTree};
 
 #[derive(Debug)]
@@ -37,20 +39,12 @@ pub struct KdSplit {
     pub right: KdCell,
 }
 
-pub trait KdTreeBuilder {
-    fn starting_box(&self) -> KdCell;
-
-    fn find_best_split(&self, depth: u32, cell: &KdCell) -> Option<KdSplit>;
-
-    fn terminate(&self, cell: &KdCell, split: &KdSplit) -> bool;
-
-    fn make_tree(self, root: Box<KdNode>) -> KdTree;
-}
-
-fn build_helper<B>(builder: &B, max_depth: u32, depth: u32, cell: KdCell) -> Box<KdNode>
-where
-    B: KdTreeBuilder,
-{
+fn build_helper(
+    builder: &SahKdTreeBuilder,
+    max_depth: u32,
+    depth: u32,
+    cell: KdCell,
+) -> Box<KdNode> {
     if depth >= max_depth || cell.indices.is_empty() {
         return KdNode::new_leaf(cell.indices);
     }
@@ -69,10 +63,7 @@ where
     }
 }
 
-pub fn build_kdtree<B>(builder: B, max_depth: u32) -> KdTree
-where
-    B: KdTreeBuilder,
-{
+pub fn build_kdtree(builder: SahKdTreeBuilder, max_depth: u32) -> KdTree {
     if max_depth as usize > super::MAX_DEPTH {
         panic!(
             "Max depth ({}) must be smaller than hard coded value ({}).",

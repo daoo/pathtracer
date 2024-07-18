@@ -6,7 +6,7 @@ use geometry::{aabb::Aabb, aap::Aap, bound::geometries_bounding_box, geometry::G
 use crate::split::clip_geometries;
 
 use super::{
-    build::{KdCell, KdSplit, KdTreeBuilder},
+    build::{KdCell, KdSplit},
     split::split_and_partition,
     KdNode, KdTree,
 };
@@ -64,17 +64,15 @@ impl SahKdTreeBuilder {
         let right = KdCell::new(split.right_aabb, split.right_indices);
         Some((KdSplit { plane, left, right }, cost))
     }
-}
 
-impl KdTreeBuilder for SahKdTreeBuilder {
-    fn starting_box(&self) -> KdCell {
+    pub(crate) fn starting_box(&self) -> KdCell {
         KdCell::new(
             geometries_bounding_box(&self.geometries).enlarge(Vec3::new(1.0, 1.0, 1.0)),
             (0u32..self.geometries.len() as u32).collect(),
         )
     }
 
-    fn find_best_split(&self, _: u32, cell: &KdCell) -> Option<KdSplit> {
+    pub(crate) fn find_best_split(&self, _: u32, cell: &KdCell) -> Option<KdSplit> {
         debug_assert!(
             !cell.indices().is_empty(),
             "splitting a kd-cell with no geometries only worsens performance"
@@ -96,7 +94,7 @@ impl KdTreeBuilder for SahKdTreeBuilder {
             .map(|a| a.0)
     }
 
-    fn terminate(&self, cell: &KdCell, split: &KdSplit) -> bool {
+    pub(crate) fn terminate(&self, cell: &KdCell, split: &KdSplit) -> bool {
         let probability_left =
             split.left.boundary().surface_area() / cell.boundary().surface_area();
         let probability_right =
@@ -108,7 +106,7 @@ impl KdTreeBuilder for SahKdTreeBuilder {
         split_cost >= intersect_cost
     }
 
-    fn make_tree(self, root: Box<KdNode>) -> KdTree {
+    pub(crate) fn make_tree(self, root: Box<KdNode>) -> KdTree {
         KdTree {
             root,
             geometries: self.geometries,
