@@ -36,19 +36,13 @@ impl RenderResult {
 }
 
 fn render_subdivided(pathtracer: &Pathtracer, pinhole: &Pinhole, sub_size: UVec2) -> ImageBuffer {
-    let count_x = pinhole.width / sub_size.x;
-    let count_y = pinhole.height / sub_size.y;
-    (0..count_x * count_y)
+    let count = pinhole.size / sub_size;
+    (0..count.x * count.y)
         .into_par_iter()
         .fold(
-            || {
-                (
-                    SmallRng::from_entropy(),
-                    ImageBuffer::new(pinhole.width, pinhole.height),
-                )
-            },
+            || (SmallRng::from_entropy(), ImageBuffer::new(pinhole.size)),
             |(mut rng, mut buffer), i| {
-                let pixel = UVec2::new(i % count_x * sub_size.x, i / count_x * sub_size.y);
+                let pixel = UVec2::new(i % count.x * sub_size.x, i / count.x * sub_size.y);
                 let mut ray_logger = RayLoggerWithIteration {
                     writer: &mut RayLoggerWriter::None(),
                     iteration: 0,
@@ -77,13 +71,13 @@ fn worker_loop(
 ) {
     let mut pinhole = start_pinhole;
     let mut iteration = 0;
-    let mut combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
+    let mut combined_buffer = ImageBuffer::new(pinhole.size);
     loop {
         loop {
             match rx.try_recv() {
                 Ok(new_pinhole) => {
                     pinhole = new_pinhole;
-                    combined_buffer = ImageBuffer::new(pinhole.width, pinhole.height);
+                    combined_buffer = ImageBuffer::new(pinhole.size);
                     iteration = 0;
                 }
                 Err(mpsc::TryRecvError::Empty) => break,
@@ -93,17 +87,15 @@ fn worker_loop(
         if iteration == 0 {
             let pinhole_small = Pinhole::new(
                 pinhole.camera.clone(),
-                64,
-                64 * pinhole.height / pinhole.width,
+                UVec2::new(64, 64 * pinhole.size.y / pinhole.size.x),
             );
-            let (duration, buffer) = measure(|| {
-                render_subdivided(&pathtracer, &pinhole_small, pinhole_small.size() / 3)
-            });
+            let (duration, buffer) =
+                measure(|| render_subdivided(&pathtracer, &pinhole_small, pinhole_small.size / 3));
             let _ = tx.send(RenderResult::new(1, duration, buffer));
             iteration = 1;
         } else {
             let (duration, buffer) =
-                measure(|| render_subdivided(&pathtracer, &pinhole, pinhole.size() / 4));
+                measure(|| render_subdivided(&pathtracer, &pinhole, pinhole.size / 4));
             combined_buffer += buffer;
             let _ = tx.send(RenderResult::new(
                 iteration,

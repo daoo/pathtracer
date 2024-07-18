@@ -130,12 +130,9 @@ impl Pathtracer {
     }
 
     fn sample_ray_for_pixel(&self, pinhole: &Pinhole, rng: &mut SmallRng, pixel: UVec2) -> Ray {
-        debug_assert!(pixel.x < pinhole.width && pixel.y < pinhole.height);
+        debug_assert!(pixel.x < pinhole.size.x && pixel.y < pinhole.size.y);
         let pixel_center = pixel.as_vec2() + uniform_sample_unit_square(rng);
-        pinhole.ray(
-            pixel_center.x / pinhole.width as f32,
-            pixel_center.y / pinhole.height as f32,
-        )
+        pinhole.ray(pixel_center / pinhole.size.as_vec2())
     }
 
     fn render_pixel(
@@ -157,8 +154,8 @@ impl Pathtracer {
         rng: &mut SmallRng,
         buffer: &mut ImageBuffer,
     ) {
-        for y in 0..buffer.height {
-            for x in 0..buffer.width {
+        for y in 0..buffer.size.y {
+            for x in 0..buffer.size.x {
                 let pixel = UVec2::new(x, y);
                 buffer[pixel] += self.render_pixel(pinhole, pixel, ray_logger, rng);
             }

@@ -106,7 +106,7 @@ impl RayBouncer {
         let mut rng = SmallRng::seed_from_u64((y * self.size.y + x) as u64);
         let pixel_center = Vec2::new(x as f32, y as f32) + uniform_sample_unit_square(&mut rng);
         let scene_direction = pixel_center / self.size.as_vec2();
-        let ray = self.camera.ray(scene_direction.x, scene_direction.y);
+        let ray = self.camera.ray(scene_direction);
         self.bounce(rng, &ray, 0)
     }
 }

@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.4", features = ["derive"] }
+glam = "0.28.0"
 image = { version = "0.25.1", default-features = false, features = ["png"] }
 kdtree = { version = "1.0.0", path = "../kdtree" }
 scene = { version = "1.0.0", path = "../scene" }

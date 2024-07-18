@@ -1,5 +1,5 @@
 use geometry::ray::Ray;
-use glam::{UVec2, Vec3};
+use glam::{UVec2, Vec2, Vec3};
 
 #[derive(Clone, Debug)]
 pub struct Camera {
@@ -36,16 +36,15 @@ impl Camera {
 #[derive(Clone, Debug)]
 pub struct Pinhole {
     pub camera: Camera,
-    pub width: u32,
-    pub height: u32,
+    pub size: UVec2,
     pub plane: Vec3,
     pub dx: Vec3,
     pub dy: Vec3,
 }
 
 impl Pinhole {
-    pub fn new(camera: Camera, width: u32, height: u32) -> Pinhole {
-        let aspect_ratio = width as f32 / height as f32;
+    pub fn new(camera: Camera, size: UVec2) -> Pinhole {
+        let aspect_ratio = size.x as f32 / size.y as f32;
         let half_fov_radians = camera.fov_degrees * std::f32::consts::PI / 360.0;
         let x = camera.right * (half_fov_radians.sin() * aspect_ratio);
         let y = camera.up * half_fov_radians.sin();
@@ -53,8 +52,7 @@ impl Pinhole {
 
         Pinhole {
             camera,
-            width,
-            height,
+            size,
             plane: z + y - x,
             dx: 2.0 * x,
             dy: -2.0 * y,
@@ -62,13 +60,11 @@ impl Pinhole {
     }
 
     #[inline]
-    pub fn size(&self) -> UVec2 {
-        UVec2::new(self.width, self.height)
-    }
-
-    #[inline]
-    pub fn ray(&self, x: f32, y: f32) -> Ray {
-        Ray::new(self.camera.position, self.plane + x * self.dx + y * self.dy)
+    pub fn ray(&self, v: Vec2) -> Ray {
+        Ray::new(
+            self.camera.position,
+            self.plane + v.x * self.dx + v.y * self.dy,
+        )
     }
 }
 

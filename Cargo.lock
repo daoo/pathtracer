@@ -401,6 +401,7 @@ name = "pathtracer-cli"
 version = "1.0.0"
 dependencies = [
  "clap",
+ "glam",
  "image",
  "kdtree",
  "rand",
@@ -521,6 +522,7 @@ name = "raytracer-cli"
 version = "1.0.0"
 dependencies = [
  "clap",
+ "glam",
  "image",
  "kdtree",
  "scene",

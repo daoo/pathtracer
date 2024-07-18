@@ -4,8 +4,7 @@ use glam::{UVec2, Vec3};
 
 #[derive(Clone)]
 pub struct ImageBuffer {
-    pub width: u32,
-    pub height: u32,
+    pub size: UVec2,
     pub pixels: Vec<Vec3>,
 }
 
@@ -15,29 +14,23 @@ fn gamma_correct(x: Vec3) -> Vec3 {
 
 impl ImageBuffer {
     #[inline]
-    pub fn new(width: u32, height: u32) -> Self {
+    pub fn new(size: UVec2) -> Self {
         Self {
-            width,
-            height,
-            pixels: [Vec3::ZERO].repeat((width * height) as usize),
+            size,
+            pixels: [Vec3::ZERO].repeat((size.x * size.y) as usize),
         }
     }
 
     #[inline]
-    pub fn size(&self) -> (u32, u32) {
-        (self.width, self.height)
-    }
-
-    #[inline]
     fn index(&self, idx: UVec2) -> usize {
-        (self.width * idx.y + idx.x) as usize
+        (self.size.x * idx.y + idx.x) as usize
     }
 
     #[inline]
     pub fn add_at(mut self, at: UVec2, rhs: &Self) -> Self {
-        debug_assert!(at.x + rhs.width <= self.width && at.y + rhs.height <= self.height);
-        for y in 0..rhs.height {
-            for x in 0..rhs.width {
+        debug_assert!(at.x + rhs.size.x <= self.size.x && at.y + rhs.size.y <= self.size.y);
+        for y in 0..rhs.size.y {
+            for x in 0..rhs.size.x {
                 self[UVec2::new(at.x + x, at.y + y)] += rhs[UVec2::new(x, y)];
             }
         }
@@ -87,10 +80,9 @@ impl Add for ImageBuffer {
 
     #[inline]
     fn add(self, rhs: Self) -> Self::Output {
-        debug_assert!(self.width == rhs.width && self.height == rhs.height);
+        debug_assert!(self.size.x == rhs.size.x && self.size.y == rhs.size.y);
         Self {
-            width: self.width,
-            height: self.height,
+            size: self.size,
             pixels: self
                 .pixels
                 .into_iter()
@@ -104,7 +96,7 @@ impl Add for ImageBuffer {
 impl AddAssign for ImageBuffer {
     #[inline]
     fn add_assign(&mut self, rhs: Self) {
-        debug_assert!(self.width == rhs.width && self.height == rhs.height);
+        debug_assert!(self.size.x == rhs.size.x && self.size.y == rhs.size.y);
         self.pixels
             .iter_mut()
             .zip(rhs.pixels.iter())

@@ -1,4 +1,5 @@
 use clap::Parser;
+use glam::UVec2;
 use image::{ImageFormat, RgbImage};
 use kdtree::{build::build_kdtree, build_sah, build_sah::SahKdTreeBuilder};
 use scene::{camera::Pinhole, Scene};
@@ -7,13 +8,17 @@ use tracing::{image_buffer::ImageBuffer, raytracer::Raytracer};
 
 #[derive(Clone, Copy, Debug)]
 struct Size {
-    width: u32,
-    height: u32,
+    x: u32,
+    y: u32,
 }
 
 impl Size {
-    fn new(width: u32, height: u32) -> Self {
-        Size { width, height }
+    fn new(x: u32, y: u32) -> Self {
+        Size { x, y }
+    }
+
+    fn as_uvec2(self) -> UVec2 {
+        UVec2::new(self.x, self.y)
     }
 }
 
@@ -23,15 +28,15 @@ impl FromStr for Size {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let pos = s.find('x').expect("Could not parse");
         Ok(Size {
-            width: s[0..pos].parse()?,
-            height: s[pos + 1..].parse()?,
+            x: s[0..pos].parse()?,
+            y: s[pos + 1..].parse()?,
         })
     }
 }
 
 impl Display for Size {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}x{}", self.width, self.height)
+        write!(f, "{}x{}", self.x, self.y)
     }
 }
 
@@ -82,17 +87,17 @@ fn main() {
     );
 
     println!("Rendering...");
-    let camera = Pinhole::new(scene.cameras[0].clone(), args.size.width, args.size.height);
+    let camera = Pinhole::new(scene.cameras[0].clone(), args.size.as_uvec2());
     let raytracer = Raytracer {
         scene,
         kdtree,
         camera,
     };
-    let mut buffer = ImageBuffer::new(args.size.width, args.size.height);
+    let mut buffer = ImageBuffer::new(args.size.as_uvec2());
     raytracer.render(&mut buffer);
 
     println!("Writing {}...", args.output.display());
-    RgbImage::from_raw(buffer.width, buffer.height, buffer.to_rgb8(1))
+    RgbImage::from_raw(buffer.size.x, buffer.size.y, buffer.to_rgb8(1))
         .unwrap()
         .save_with_format(&args.output, ImageFormat::Png)
         .unwrap();

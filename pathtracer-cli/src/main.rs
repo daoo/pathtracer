@@ -1,4 +1,5 @@
 use clap::Parser;
+use glam::UVec2;
 use image::{ImageFormat, RgbImage};
 use kdtree::{
     build::build_kdtree,
@@ -19,13 +20,17 @@ use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayL
 
 #[derive(Clone, Copy, Debug)]
 struct Size {
-    width: u32,
-    height: u32,
+    x: u32,
+    y: u32,
 }
 
 impl Size {
-    fn new(width: u32, height: u32) -> Self {
-        Size { width, height }
+    fn new(x: u32, y: u32) -> Self {
+        Size { x, y }
+    }
+
+    fn as_uvec2(self) -> UVec2 {
+        UVec2::new(self.x, self.y)
     }
 }
 
@@ -35,15 +40,15 @@ impl FromStr for Size {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let pos = s.find('x').expect("Could not parse");
         Ok(Size {
-            width: s[0..pos].parse()?,
-            height: s[pos + 1..].parse()?,
+            x: s[0..pos].parse()?,
+            y: s[pos + 1..].parse()?,
         })
     }
 }
 
 impl Display for Size {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}x{}", self.width, self.height)
+        write!(f, "{}x{}", self.x, self.y)
     }
 }
 
@@ -97,12 +102,12 @@ fn worker_thread(
     thread: u32,
     pathtracer: &Pathtracer,
     camera: &Pinhole,
-    size: Size,
+    size: UVec2,
     iterations: u32,
     tx: &Sender<Duration>,
 ) -> ImageBuffer {
     let mut rng = SmallRng::from_entropy();
-    let mut buffer = ImageBuffer::new(size.width, size.height);
+    let mut buffer = ImageBuffer::new(size);
     let mut ray_logger = create_ray_logger(thread);
     for iteration in 0..iterations {
         let t1 = Instant::now();
@@ -178,7 +183,7 @@ fn main() {
         "Rendering {} px image with {} thread(s) and {} total iteration(s)...",
         args.size, args.threads, total_iterations,
     );
-    let camera = Pinhole::new(scene.cameras[0].clone(), args.size.width, args.size.height);
+    let camera = Pinhole::new(scene.cameras[0].clone(), args.size.as_uvec2());
     let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,
         scene,
@@ -198,7 +203,7 @@ fn main() {
                         i,
                         pathtracer,
                         camera,
-                        args.size,
+                        args.size.as_uvec2(),
                         args.iterations_per_thread,
                         &tx,
                     )
@@ -221,8 +226,8 @@ fn main() {
         println!("Writing {}...", args.output.display());
 
         RgbImage::from_raw(
-            buffer.width,
-            buffer.height,
+            buffer.size.x,
+            buffer.size.y,
             buffer.to_rgb8(total_iterations as u16),
         )
         .unwrap()

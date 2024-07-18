@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use glam::{Mat3, Vec3};
+use glam::{Mat3, UVec2, Vec3};
 use miniquad::{
     Bindings, BufferLayout, BufferSource, BufferType, BufferUsage, EventHandler, GlContext,
     KeyCode, Pipeline, PipelineParams, RenderingBackend, ShaderSource, TextureId, VertexAttribute,
@@ -49,7 +49,7 @@ pub(crate) struct Stage {
 
     worker: Option<Worker>,
 
-    target_size: (u32, u32),
+    target_size: UVec2,
     camera: Camera,
 
     last_update: Instant,
@@ -58,8 +58,8 @@ pub(crate) struct Stage {
 
 impl Stage {
     pub fn new(pathtracer: Pathtracer, camera: Camera) -> Stage {
-        let target_size = (128, 128);
-        let pinhole = Pinhole::new(camera.clone(), target_size.0, target_size.1);
+        let target_size = UVec2::new(128, 128);
+        let pinhole = Pinhole::new(camera.clone(), target_size);
         let worker = Worker::spawn(pathtracer, pinhole);
 
         let mut ctx = Box::new(GlContext::new());
@@ -136,7 +136,7 @@ impl Stage {
 
     fn send_pinhole(&mut self) {
         if let Some(worker) = &self.worker {
-            let pinhole = Pinhole::new(self.camera.clone(), self.target_size.0, self.target_size.1);
+            let pinhole = Pinhole::new(self.camera.clone(), self.target_size);
             worker.send(pinhole);
             eprintln!("Sent {:?} at {:?}.", self.target_size, self.camera.position,);
         }
@@ -162,15 +162,15 @@ impl Stage {
         while let Some(result) = self.worker.as_ref().and_then(|worker| worker.try_receive()) {
             eprintln!(
                 "Received {:?} @ {} rendered in {:?}.",
-                result.buffer.size(),
+                result.buffer.size,
                 result.iterations,
                 result.duration,
             );
-            let texture_size = self.ctx.texture_size(self.texture);
-            if result.buffer.size() != texture_size {
+            let texture_size = self.ctx.texture_size(self.texture).into();
+            if result.buffer.size != texture_size {
                 self.ctx.delete_texture(self.texture);
-                let width = result.buffer.width;
-                let height = result.buffer.height;
+                let width = result.buffer.size.x;
+                let height = result.buffer.size.y;
                 self.texture = self.ctx.new_texture_from_data_and_format(
                     &result.buffer.to_rgb8(result.iterations),
                     miniquad::TextureParams {
@@ -221,7 +221,7 @@ impl EventHandler for Stage {
 
     fn resize_event(&mut self, width: f32, height: f32) {
         if !cfg!(debug_assertions) {
-            self.target_size = (width as u32, height as u32);
+            self.target_size = UVec2::new(width as u32, height as u32);
             self.send_pinhole();
         }
     }
