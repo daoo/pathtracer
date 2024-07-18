@@ -25,8 +25,8 @@ fn build_test_tree(geometries: Vec<Geometry>) -> kdtree::KdTree {
 
 fn verify_removal(ray: &Ray, actual: &(Geometry, RayIntersection), tree: &KdTree) -> bool {
     let intersection = tree.intersect(ray, 0.0..=f32::MAX).unwrap();
-    let same_geometry = tree.geometries[intersection.0 as usize] == actual.0;
-    let same_intersection = intersection.1 == actual.1;
+    let same_geometry = tree.geometries[intersection.index as usize] == actual.0;
+    let same_intersection = intersection.intersection == actual.1;
     same_geometry && same_intersection
 }
 

@@ -1,34 +1,16 @@
 use std::{fmt::Display, ops::RangeInclusive};
 
 use arrayvec::ArrayVec;
-use geometry::{aap::Aap, geometry::Geometry, intersection::RayIntersection, ray::Ray};
+use geometry::{aap::Aap, geometry::Geometry, ray::Ray};
+use intersection::{intersect_closest_geometry, KdIntersection};
 
 pub mod build;
 pub mod build_sah;
 pub mod format;
+pub mod intersection;
 mod split;
 
 pub const MAX_DEPTH: usize = 20;
-
-fn intersect_closest(
-    geometries: &[Geometry],
-    indices: &[u32],
-    ray: &Ray,
-    t_range: RangeInclusive<f32>,
-) -> Option<(u32, RayIntersection)> {
-    indices
-        .iter()
-        .filter_map(|index| {
-            let index = *index;
-            let geometry = unsafe { geometries.get_unchecked(index as usize) };
-            geometry.intersect_ray(ray).and_then(|intersection| {
-                t_range
-                    .contains(&intersection.t)
-                    .then_some((index, intersection))
-            })
-        })
-        .min_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t))
-}
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum KdNode {
@@ -70,7 +52,7 @@ impl KdNode {
         geometries: &[Geometry],
         ray: &Ray,
         t_range: RangeInclusive<f32>,
-    ) -> Option<(u32, RayIntersection)> {
+    ) -> Option<KdIntersection> {
         let mut node = self;
         let mut t1 = *t_range.start();
         let mut t2 = *t_range.end();
@@ -78,7 +60,7 @@ impl KdNode {
         loop {
             match node {
                 KdNode::Leaf(indices) => {
-                    match intersect_closest(geometries, indices, ray, t1..=t2) {
+                    match intersect_closest_geometry(geometries, indices, ray, t1..=t2) {
                         Some(result) => return Some(result),
                         _ if t2 == *t_range.end() => return None,
                         _ => match stack.pop() {
@@ -182,18 +164,14 @@ impl KdTree {
     }
 
     #[inline]
-    pub fn intersect(
-        &self,
-        ray: &Ray,
-        t_range: RangeInclusive<f32>,
-    ) -> Option<(u32, RayIntersection)> {
+    pub fn intersect(&self, ray: &Ray, t_range: RangeInclusive<f32>) -> Option<KdIntersection> {
         self.root.intersect(&self.geometries, ray, t_range)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use geometry::{axis::Axis, triangle::Triangle};
+    use geometry::{axis::Axis, intersection::RayIntersection, triangle::Triangle};
     use glam::Vec3;
 
     use super::*;
@@ -236,11 +214,11 @@ mod tests {
 
         assert_eq!(
             tree.intersect(&ray, 0.0..=1.0),
-            Some((0, RayIntersection::new(0.25, 0., 0.5)))
+            Some(KdIntersection::new(0, RayIntersection::new(0.25, 0., 0.5)))
         );
         assert_eq!(
             tree.intersect(&ray.reverse(), 0.0..=1.0),
-            Some((1, RayIntersection::new(0.25, 0., 0.5)))
+            Some(KdIntersection::new(1, RayIntersection::new(0.25, 0., 0.5)))
         );
     }
 
@@ -269,11 +247,11 @@ mod tests {
 
         assert_eq!(
             tree.intersect(&ray_triangle0_v0, 0.0..=1.0),
-            Some((0, RayIntersection::new(0.5, 0., 0.)))
+            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
         );
         assert_eq!(
             tree.intersect(&ray_triangle1_v1, 0.0..=1.0),
-            Some((1, RayIntersection::new(0.5, 1., 0.)))
+            Some(KdIntersection::new(1, RayIntersection::new(0.5, 1., 0.)))
         );
     }
 
@@ -301,11 +279,11 @@ mod tests {
 
         assert_eq!(
             tree.intersect(&ray, 0.0..=1.0),
-            Some((0, RayIntersection::new(0.25, 0., 0.5)))
+            Some(KdIntersection::new(0, RayIntersection::new(0.25, 0., 0.5)))
         );
         assert_eq!(
             tree.intersect(&ray.reverse(), 0.0..=1.0),
-            Some((1, RayIntersection::new(0.25, 0., 0.5)))
+            Some(KdIntersection::new(1, RayIntersection::new(0.25, 0., 0.5)))
         );
     }
 
@@ -328,11 +306,11 @@ mod tests {
 
         assert_eq!(
             tree_left.intersect(&ray, 0.0..=1.0),
-            Some((0, RayIntersection::new(0.5, 0., 0.)))
+            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
         );
         assert_eq!(
             tree_right.intersect(&ray, 0.0..=1.0),
-            Some((0, RayIntersection::new(0.5, 0., 0.)))
+            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
         );
     }
 
@@ -355,11 +333,11 @@ mod tests {
 
         assert_eq!(
             tree.intersect(&ray, 0.0..=1.0),
-            Some((0, RayIntersection::new(0.5, 0., 0.)))
+            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
         );
         assert_eq!(
             tree.intersect(&ray.reverse(), 0.0..=1.0),
-            Some((0, RayIntersection::new(0.5, 0., 0.)))
+            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
         );
     }
 
@@ -382,11 +360,11 @@ mod tests {
 
         assert_eq!(
             tree.intersect(&ray, 0.0..=1.0),
-            Some((0, RayIntersection::new(0.5, 0., 0.)))
+            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
         );
         assert_eq!(
             tree.intersect(&ray.reverse(), 0.0..=1.0),
-            Some((0, RayIntersection::new(0.5, 0., 0.)))
+            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
         );
     }
 
@@ -415,7 +393,7 @@ mod tests {
 
         assert_eq!(
             actual,
-            Some((
+            Some(KdIntersection::new(
                 0,
                 RayIntersection {
                     t: 4.329569,
@@ -446,7 +424,7 @@ mod tests {
 
         assert_eq!(
             actual,
-            Some((
+            Some(KdIntersection::new(
                 0,
                 RayIntersection {
                     t: 0.5687325,

@@ -1,23 +1,24 @@
-use geometry::{intersection::RayIntersection, ray::Ray};
+use geometry::ray::Ray;
+use kdtree::intersection::KdIntersection;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct CheckedIntersection {
     pub ray: Ray,
-    pub reference: Option<(u32, RayIntersection)>,
-    pub kdtree: Option<(u32, RayIntersection)>,
+    pub reference: Option<KdIntersection>,
+    pub kdtree: Option<KdIntersection>,
 }
 
 impl CheckedIntersection {
     pub fn is_valid(&self) -> bool {
         const T_TOLERANCE: f32 = 0.000001;
         const UV_TOLERANCE: f32 = 0.00001;
-        match (self.reference, self.kdtree) {
+        match (&self.reference, &self.kdtree) {
             (None, None) => true,
-            (Some((t1, i1)), Some((t2, i2))) => {
-                t1 == t2
-                    && (i1.t - i2.t).abs() < T_TOLERANCE
-                    && (i1.u - i2.u).abs() < UV_TOLERANCE
-                    && (i1.v - i2.v).abs() < UV_TOLERANCE
+            (Some(a), Some(b)) => {
+                a.index == b.index
+                    && (a.intersection.t - b.intersection.t).abs() < T_TOLERANCE
+                    && (a.intersection.u - b.intersection.u).abs() < UV_TOLERANCE
+                    && (a.intersection.v - b.intersection.v).abs() < UV_TOLERANCE
             }
             _ => false,
         }
@@ -25,16 +26,18 @@ impl CheckedIntersection {
 
     pub fn as_bytes(&self, iteration: u16) -> [u8; 50] {
         let mut bytes = [0u8; 50];
-        let ray = if let Some(kdtree) = self.kdtree {
-            self.ray.extended(kdtree.1.t)
-        } else if let Some(reference) = self.reference {
-            self.ray.extended(reference.1.t)
+        let ray = if let Some(kdtree) = &self.kdtree {
+            self.ray.extended(kdtree.intersection.t)
+        } else if let Some(reference) = &self.reference {
+            self.ray.extended(reference.intersection.t)
         } else {
             self.ray
         };
-        let correct_point = self.ray.param(self.reference.unwrap().1.t);
-        let actual_point = if let Some(kdtree) = self.kdtree {
-            self.ray.param(kdtree.1.t)
+        let correct_point = self
+            .ray
+            .param(self.reference.as_ref().unwrap().intersection.t);
+        let actual_point = if let Some(kdtree) = &self.kdtree {
+            self.ray.param(kdtree.intersection.t)
         } else {
             [0.0, 0.0, 0.0].into()
         };

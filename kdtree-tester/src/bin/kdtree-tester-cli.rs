@@ -1,9 +1,10 @@
 use clap::Parser;
-use geometry::{intersection::RayIntersection, ray::Ray};
+use geometry::ray::Ray;
 use glam::Vec2;
 use kdtree::{
     build::build_kdtree,
     build_sah::{self, SahKdTreeBuilder},
+    intersection::{intersect_closest_geometry, KdIntersection},
     KdTree,
 };
 use kdtree_tester::checked_intersection::CheckedIntersection;
@@ -35,19 +36,9 @@ impl RayBouncer {
         &self,
         ray: &Ray,
         t_range: RangeInclusive<f32>,
-    ) -> Option<(u32, RayIntersection)> {
-        self.kdtree
-            .geometries
-            .iter()
-            .enumerate()
-            .filter_map(|(index, geometry)| {
-                geometry.intersect_ray(ray).and_then(|intersection| {
-                    t_range
-                        .contains(&intersection.t)
-                        .then_some((index as u32, intersection))
-                })
-            })
-            .min_by(|a, b| f32::total_cmp(&a.1.t, &b.1.t))
+    ) -> Option<KdIntersection> {
+        let indices = (0u32..self.kdtree.geometries.len() as u32).collect::<Vec<_>>();
+        intersect_closest_geometry(&self.kdtree.geometries, &indices, ray, t_range)
     }
 
     fn checked_ray_intersect(
@@ -78,8 +69,9 @@ impl RayBouncer {
         if !intersection.is_valid() {
             return Some(intersection);
         };
-        let (triangle_index, intersection) = intersection.reference?;
-        let triangle = &self.scene.triangle_data[triangle_index as usize];
+        let intersection = intersection.reference?;
+        let triangle = &self.scene.triangle_data[intersection.index as usize];
+        let intersection = intersection.intersection;
 
         let wi = -ray.direction;
         let n = triangle.normals.lerp(intersection.u, intersection.v);
@@ -103,7 +95,7 @@ impl RayBouncer {
             })
             .collect::<Vec<_>>();
         if let Some(checked) = incoming_fails.first() {
-            return Some(*checked);
+            return Some(checked.clone());
         }
 
         let sample = material.sample(&IncomingRay { wi, n, uv }, rng);

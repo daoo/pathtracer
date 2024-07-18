@@ -4,9 +4,9 @@ use crate::{
     image_buffer::ImageBuffer,
     material::{Material, OutgoingRay},
 };
-use geometry::{intersection::RayIntersection, ray::Ray};
+use geometry::ray::Ray;
 use glam::{UVec2, Vec2, Vec3};
-use kdtree::KdTree;
+use kdtree::{intersection::KdIntersection, KdTree};
 use scene::{camera::Pinhole, material::MaterialModel, Scene};
 
 pub struct Raytracer {
@@ -16,7 +16,7 @@ pub struct Raytracer {
 }
 
 impl Raytracer {
-    fn intersect(&self, ray: &Ray, t_range: RangeInclusive<f32>) -> Option<(u32, RayIntersection)> {
+    fn intersect(&self, ray: &Ray, t_range: RangeInclusive<f32>) -> Option<KdIntersection> {
         self.kdtree.intersect(ray, t_range)
     }
 
@@ -29,8 +29,9 @@ impl Raytracer {
         if intersection.is_none() {
             return self.scene.environment;
         }
-        let (triangle_index, intersection) = intersection.unwrap();
-        let triangle = &self.scene.triangle_data[triangle_index as usize];
+        let intersection = intersection.unwrap();
+        let triangle = &self.scene.triangle_data[intersection.index as usize];
+        let intersection = intersection.intersection;
 
         let wi = -ray.direction;
         let point = ray.param(intersection.t);
