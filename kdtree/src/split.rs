@@ -1,6 +1,15 @@
 use geometry::{aabb::Aabb, aap::Aap};
 
-pub(crate) fn partition_triangles(
+use crate::cell::KdCell;
+
+#[derive(Debug)]
+pub(crate) struct KdSplit {
+    pub(crate) plane: Aap,
+    pub(crate) left: KdCell,
+    pub(crate) right: KdCell,
+}
+
+fn partition_triangles(
     clipped_triangles: &[(u32, Aabb)],
     plane: &Aap,
 ) -> (Vec<u32>, Vec<u32>, Vec<u32>) {
@@ -27,26 +36,26 @@ pub(crate) fn partition_triangles(
     (left_triangles, middle_triangles, right_triangles)
 }
 
-pub(crate) struct SplitPartitioning {
-    pub plane: Aap,
-    pub parent_aabb: Aabb,
-    pub left_aabb: Aabb,
-    pub right_aabb: Aabb,
-    pub left_indices: Vec<u32>,
-    pub middle_indices: Vec<u32>,
-    pub right_indices: Vec<u32>,
+pub(crate) struct KdPartitioning {
+    pub(crate) plane: Aap,
+    pub(crate) parent_aabb: Aabb,
+    pub(crate) left_aabb: Aabb,
+    pub(crate) right_aabb: Aabb,
+    pub(crate) left_indices: Vec<u32>,
+    pub(crate) middle_indices: Vec<u32>,
+    pub(crate) right_indices: Vec<u32>,
 }
 
-pub(crate) fn split_and_partition(
+pub(crate) fn partition_clipped_geometries(
     clipped: &[(u32, Aabb)],
-    aabb: Aabb,
+    parent_aabb: Aabb,
     plane: Aap,
-) -> SplitPartitioning {
-    let (left_aabb, right_aabb) = aabb.split(&plane);
+) -> KdPartitioning {
+    let (left_aabb, right_aabb) = parent_aabb.split(&plane);
     let (left_indices, middle_indices, right_indices) = partition_triangles(clipped, &plane);
-    SplitPartitioning {
+    KdPartitioning {
         plane,
-        parent_aabb: aabb,
+        parent_aabb,
         left_aabb,
         right_aabb,
         left_indices,
@@ -56,7 +65,7 @@ pub(crate) fn split_and_partition(
 }
 
 #[cfg(test)]
-mod partition_triangles_tests {
+mod tests {
     use geometry::axis::Axis;
     use glam::Vec3;
 

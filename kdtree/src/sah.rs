@@ -1,5 +1,7 @@
-use super::{build::KdSplit, split::split_and_partition};
-use crate::{cell::KdCell, split::SplitPartitioning};
+use crate::{
+    cell::KdCell,
+    split::{partition_clipped_geometries, KdPartitioning, KdSplit},
+};
 use geometry::{aap::Aap, geometry::Geometry};
 
 pub struct SahCost {
@@ -22,7 +24,7 @@ impl SahCost {
         empty_factor * (self.traverse_cost + intersect_cost)
     }
 
-    fn calculate_for_split(&self, split: &SplitPartitioning) -> f32 {
+    fn calculate_for_split(&self, split: &KdPartitioning) -> f32 {
         let surface_area = split.parent_aabb.surface_area();
         let probability_left = split.left_aabb.surface_area() / surface_area;
         let probability_right = split.right_aabb.surface_area() / surface_area;
@@ -47,7 +49,7 @@ impl Default for SahCost {
 
 fn select_best_split_based_on_cost(
     cost: &SahCost,
-    split: SplitPartitioning,
+    split: KdPartitioning,
 ) -> Option<(KdSplit, f32)> {
     // TODO: Place planes to the left or to the right depending on what gives best cost.
     if (split.left_aabb.volume() == 0.0 || split.right_aabb.volume() == 0.0)
@@ -90,7 +92,7 @@ pub(crate) fn find_best_split(
         .filter_map(|plane| {
             select_best_split_based_on_cost(
                 cost,
-                split_and_partition(&clipped, cell.boundary, plane),
+                partition_clipped_geometries(&clipped, cell.boundary, plane),
             )
         })
         .reduce(min_by_snd)

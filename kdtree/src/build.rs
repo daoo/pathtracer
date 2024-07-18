@@ -1,4 +1,4 @@
-use geometry::{aap::Aap, bound::geometries_bounding_box, geometry::Geometry};
+use geometry::{bound::geometries_bounding_box, geometry::Geometry};
 use glam::Vec3;
 
 use crate::{
@@ -7,13 +7,6 @@ use crate::{
 };
 
 use super::{KdNode, KdTree};
-
-#[derive(Debug)]
-pub(crate) struct KdSplit {
-    pub(crate) plane: Aap,
-    pub(crate) left: KdCell,
-    pub(crate) right: KdCell,
-}
 
 fn starting_box(geometries: &[Geometry]) -> KdCell {
     KdCell::new(
@@ -61,7 +54,7 @@ pub fn build_kdtree(geometries: Vec<Geometry>, max_depth: u32, cost: &SahCost) -
 
 #[cfg(test)]
 mod tests {
-    use geometry::triangle::Triangle;
+    use geometry::{aap::Aap, triangle::Triangle};
     use glam::Vec3;
 
     use crate::{build::build_kdtree, KdNode};
