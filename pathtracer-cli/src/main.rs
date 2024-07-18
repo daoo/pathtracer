@@ -1,10 +1,7 @@
 use clap::Parser;
 use glam::UVec2;
 use image::{ImageFormat, RgbImage};
-use kdtree::{
-    build::build_kdtree,
-    build_sah::{self, SahKdTreeBuilder},
-};
+use kdtree::{build::build_kdtree, sah::SahCost, MAX_DEPTH};
 use rand::{rngs::SmallRng, SeedableRng};
 use scene::{camera::Pinhole, Scene};
 use std::{
@@ -76,16 +73,16 @@ struct Args {
     threads: u32,
 
     /// Maximum kd-tree depth
-    #[arg(long, default_value_t = build_sah::MAX_DEPTH)]
+    #[arg(long, default_value_t = MAX_DEPTH as u32)]
     max_depth: u32,
     /// SAH kd-tree traverse cost
-    #[arg(long, default_value_t = build_sah::TRAVERSE_COST)]
+    #[arg(long, default_value_t = SahCost::default().traverse_cost)]
     traverse_cost: f32,
     /// SAH kd-tree intersect cost
-    #[arg(long, default_value_t = build_sah::INTERSECT_COST)]
+    #[arg(long, default_value_t = SahCost::default().intersect_cost)]
     intersect_cost: f32,
     /// SAH kd-tree empty factor
-    #[arg(long, default_value_t = build_sah::EMPTY_FACTOR)]
+    #[arg(long, default_value_t = SahCost::default().empty_factor)]
     empty_factor: f32,
 }
 
@@ -165,17 +162,13 @@ fn main() {
 
     println!("Building kdtree...");
     let kdtree = build_kdtree(
-        SahKdTreeBuilder {
+        scene.collect_geometries_as_vec(),
+        args.max_depth,
+        &SahCost {
             traverse_cost: args.traverse_cost,
             intersect_cost: args.intersect_cost,
             empty_factor: args.empty_factor,
-            geometries: scene
-                .triangle_data
-                .iter()
-                .map(|t| t.triangle.into())
-                .collect(),
         },
-        args.max_depth,
     );
 
     let total_iterations = args.threads * args.iterations_per_thread;

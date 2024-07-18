@@ -4,7 +4,7 @@ use crate::build::KdCell;
 
 pub(crate) fn clip_geometries(geometries: &[Geometry], cell: &KdCell) -> Vec<(u32, Aabb)> {
     cell.indices()
-        .into_iter()
+        .iter()
         .filter_map(|i| {
             geometries[*i as usize]
                 .clip_aabb(cell.boundary())

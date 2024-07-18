@@ -4,9 +4,9 @@ use geometry::{
 };
 use kdtree::{
     build::build_kdtree,
-    build_sah::{self, SahKdTreeBuilder},
     format::{write_tree_dot, write_tree_json, write_tree_pretty, write_tree_rust},
-    KdNode, KdTree,
+    sah::SahCost,
+    KdNode, KdTree, MAX_DEPTH,
 };
 use std::{
     fs::File,
@@ -34,16 +34,16 @@ struct Args {
     dot: bool,
 
     /// Maximum kd-tree depth
-    #[arg(long, default_value_t = build_sah::MAX_DEPTH)]
+    #[arg(long, default_value_t = MAX_DEPTH as u32)]
     max_depth: u32,
     /// SAH kd-tree traverse cost
-    #[arg(long, default_value_t = build_sah::TRAVERSE_COST)]
+    #[arg(long, default_value_t = SahCost::default().traverse_cost)]
     traverse_cost: f32,
     /// SAH kd-tree intersect cost
-    #[arg(long, default_value_t = build_sah::INTERSECT_COST)]
+    #[arg(long, default_value_t = SahCost::default().intersect_cost)]
     intersect_cost: f32,
     /// SAH kd-tree empty factor
-    #[arg(long, default_value_t = build_sah::EMPTY_FACTOR)]
+    #[arg(long, default_value_t = SahCost::default().empty_factor)]
     empty_factor: f32,
 }
 
@@ -161,7 +161,7 @@ fn main() {
     let args = Args::parse();
     eprintln!("Reading {:?}...", &args.input);
     let obj = obj::obj(&mut BufReader::new(File::open(args.input).unwrap()));
-    let triangles = obj
+    let geometries = obj
         .chunks
         .iter()
         .flat_map(|chunk| {
@@ -181,7 +181,7 @@ fn main() {
             })
         })
         .collect::<Vec<Geometry>>();
-    eprintln!("  Triangles: {}", triangles.len());
+    eprintln!("  Geometries: {}", geometries.len());
 
     eprintln!("Building kdtree...");
     eprintln!("  Max depth: {:?}", args.max_depth);
@@ -190,13 +190,12 @@ fn main() {
     eprintln!("  Empty factor: {:?}", args.empty_factor);
 
     let start_time = Instant::now();
-    let builder = SahKdTreeBuilder {
-        geometries: triangles,
+    let cost = SahCost {
         traverse_cost: args.traverse_cost,
         intersect_cost: args.intersect_cost,
         empty_factor: args.empty_factor,
     };
-    let kdtree = build_kdtree(builder, args.max_depth);
+    let kdtree = build_kdtree(geometries, args.max_depth, &cost);
     let duration = Instant::now().duration_since(start_time);
     let duration = Duration::new(duration.as_secs() as i64, duration.as_nanos() as i32);
 

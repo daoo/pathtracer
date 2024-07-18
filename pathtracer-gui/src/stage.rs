@@ -162,9 +162,7 @@ impl Stage {
         while let Some(result) = self.worker.as_ref().and_then(|worker| worker.try_receive()) {
             eprintln!(
                 "Received {:?} @ {} rendered in {:?}.",
-                result.buffer.size,
-                result.iterations,
-                result.duration,
+                result.buffer.size, result.iterations, result.duration,
             );
             let texture_size = self.ctx.texture_size(self.texture).into();
             if result.buffer.size != texture_size {

@@ -5,9 +5,9 @@ use geometry::{aap::Aap, geometry::Geometry, ray::Ray};
 use intersection::{intersect_closest_geometry, KdIntersection};
 
 pub mod build;
-pub mod build_sah;
 pub mod format;
 pub mod intersection;
+pub mod sah;
 mod split;
 
 pub const MAX_DEPTH: usize = 20;

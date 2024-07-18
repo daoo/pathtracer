@@ -1,4 +1,4 @@
-use geometry::triangle::Triangle;
+use geometry::{geometry::Geometry, triangle::Triangle};
 use glam::{Vec2, Vec3};
 use std::{collections::BTreeMap, fs::File, io::BufReader, path::Path, sync::Arc};
 use wavefront::{mtl, obj};
@@ -199,5 +199,12 @@ impl Scene {
         let scene = Scene::from_wavefront(mtl_path.parent().unwrap(), &obj, &mtl);
         println!("  Triangles: {}", scene.triangle_data.len());
         scene
+    }
+
+    pub fn collect_geometries_as_vec(&self) -> Vec<Geometry> {
+        self.triangle_data
+            .iter()
+            .map(|t| t.triangle.into())
+            .collect()
     }
 }

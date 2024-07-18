@@ -1,5 +1,5 @@
 use clap::Parser;
-use kdtree::{build::build_kdtree, build_sah::SahKdTreeBuilder};
+use kdtree::{build::build_kdtree, sah::SahCost, MAX_DEPTH};
 use scene::Scene;
 use stage::Stage;
 use tracing::pathtracer::Pathtracer;
@@ -12,13 +12,17 @@ struct Args {
     #[arg(short = 'i', long, required = true)]
     input: std::path::PathBuf,
 
-    #[arg(long, default_value_t = 20)]
+    /// Maximum kd-tree depth
+    #[arg(long, default_value_t = MAX_DEPTH as u32)]
     max_depth: u32,
-    #[arg(long, default_value_t = 2.0)]
+    /// SAH kd-tree traverse cost
+    #[arg(long, default_value_t = SahCost::default().traverse_cost)]
     traverse_cost: f32,
-    #[arg(long, default_value_t = 1.0)]
+    /// SAH kd-tree intersect cost
+    #[arg(long, default_value_t = SahCost::default().intersect_cost)]
     intersect_cost: f32,
-    #[arg(long, default_value_t = 0.8)]
+    /// SAH kd-tree empty factor
+    #[arg(long, default_value_t = SahCost::default().empty_factor)]
     empty_factor: f32,
 }
 
@@ -28,17 +32,13 @@ fn main() {
 
     println!("Building kdtree...");
     let kdtree = build_kdtree(
-        SahKdTreeBuilder {
+        scene.collect_geometries_as_vec(),
+        args.max_depth,
+        &SahCost {
             traverse_cost: args.traverse_cost,
             intersect_cost: args.intersect_cost,
             empty_factor: args.empty_factor,
-            geometries: scene
-                .triangle_data
-                .iter()
-                .map(|t| t.triangle.into())
-                .collect(),
         },
-        args.max_depth,
     );
 
     let pathtracer = Pathtracer {

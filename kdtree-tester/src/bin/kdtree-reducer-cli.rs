@@ -10,21 +10,13 @@ use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 
 use geometry::{geometry::Geometry, intersection::RayIntersection, ray::Ray, triangle::Triangle};
 use kdtree::{
-    build::build_kdtree, build_sah::SahKdTreeBuilder, format::write_tree_json,
-    intersection::KdIntersection, KdTree,
+    build::build_kdtree, format::write_tree_json, intersection::KdIntersection, sah::SahCost,
+    KdTree, MAX_DEPTH,
 };
 use wavefront::obj;
 
 fn build_test_tree(geometries: Vec<Geometry>) -> kdtree::KdTree {
-    build_kdtree(
-        SahKdTreeBuilder {
-            traverse_cost: 2.0,
-            intersect_cost: 1.0,
-            empty_factor: 0.8,
-            geometries,
-        },
-        20,
-    )
+    build_kdtree(geometries, MAX_DEPTH as u32, &SahCost::default())
 }
 
 fn verify_removal(ray: &Ray, actual: &(Geometry, RayIntersection), tree: &KdTree) -> bool {
