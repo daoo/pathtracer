@@ -2,11 +2,9 @@ use geometry::{aabb::Aabb, aap::Aap, geometry::Geometry};
 
 use crate::build::KdCell;
 
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
-
 pub(crate) fn clip_geometries(geometries: &[Geometry], cell: &KdCell) -> Vec<(u32, Aabb)> {
     cell.indices()
-        .into_par_iter()
+        .into_iter()
         .filter_map(|i| {
             geometries[*i as usize]
                 .clip_aabb(cell.boundary())

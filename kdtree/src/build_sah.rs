@@ -1,15 +1,11 @@
-use glam::Vec3;
-use rayon::prelude::*;
-
-use geometry::{aabb::Aabb, aap::Aap, bound::geometries_bounding_box, geometry::Geometry};
-
-use crate::split::clip_geometries;
-
 use super::{
     build::{KdCell, KdSplit},
     split::split_and_partition,
     KdNode, KdTree,
 };
+use crate::split::clip_geometries;
+use geometry::{aabb::Aabb, aap::Aap, bound::geometries_bounding_box, geometry::Geometry};
+use glam::Vec3;
 
 pub struct SahKdTreeBuilder {
     pub traverse_cost: f32,
@@ -88,9 +84,9 @@ impl SahKdTreeBuilder {
         splits.sort_unstable_by(Aap::total_cmp);
         splits.dedup();
         splits
-            .into_par_iter()
+            .into_iter()
             .filter_map(|plane| self.split_and_calculate_cost(cell, plane, &clipped))
-            .reduce_with(min_by_snd)
+            .reduce(min_by_snd)
             .map(|a| a.0)
     }
 
