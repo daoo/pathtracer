@@ -29,7 +29,7 @@ impl Pathtracer {
 
     fn trace_ray(
         &self,
-        ray_logger: &mut RayLoggerWithIterationAndPixel,
+        mut ray_logger: RayLoggerWithIterationAndPixel,
         rng: &mut SmallRng,
         accumulated_radiance: Vec3,
         accumulated_transport: Vec3,
@@ -115,7 +115,7 @@ impl Pathtracer {
 
     fn trace_ray_defaults(
         &self,
-        ray_logger: &mut RayLoggerWithIterationAndPixel,
+        ray_logger: RayLoggerWithIterationAndPixel,
         rng: &mut SmallRng,
         ray: &Ray,
     ) -> Vec3 {
@@ -145,9 +145,9 @@ impl Pathtracer {
         ray_logger: &mut RayLoggerWithIteration,
         rng: &mut SmallRng,
     ) -> Vec3 {
-        let mut ray_logger = ray_logger.with_pixel(pixel.x as u16, pixel.y as u16);
+        let ray_logger = ray_logger.with_pixel(pixel.x as u16, pixel.y as u16);
         let ray = self.sample_ray_for_pixel(pinhole, rng, pixel);
-        self.trace_ray_defaults(&mut ray_logger, rng, &ray)
+        self.trace_ray_defaults(ray_logger, rng, &ray)
     }
 
     pub fn render_mut(

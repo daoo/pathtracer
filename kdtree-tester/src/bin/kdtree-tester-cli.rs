@@ -57,7 +57,7 @@ impl RayBouncer {
 
     fn bounce(
         &self,
-        rng: &mut SmallRng,
+        mut rng: SmallRng,
         ray: &Ray,
         accumulated_bounces: u32,
     ) -> Option<CheckedIntersection> {
@@ -89,7 +89,7 @@ impl RayBouncer {
             .lights
             .iter()
             .filter_map(|light| {
-                let shadow_ray = Ray::between(point_above, sample_light(light, rng));
+                let shadow_ray = Ray::between(point_above, sample_light(light, &mut rng));
                 let shadow = self.checked_ray_intersect(&shadow_ray, 0.0..=1.0);
                 (!shadow.is_valid()).then_some(shadow)
             })
@@ -98,7 +98,7 @@ impl RayBouncer {
             return Some(checked.clone());
         }
 
-        let sample = material.sample(&IncomingRay { wi, n, uv }, rng);
+        let sample = material.sample(&IncomingRay { wi, n, uv }, &mut rng);
         let next_ray = Ray::new(
             if sample.wo.dot(n) >= 0.0 {
                 point_above
@@ -117,7 +117,7 @@ impl RayBouncer {
         let pixel_center = Vec2::new(x as f32, y as f32) + uniform_sample_unit_square(&mut rng);
         let scene_direction = pixel_center / self.size.as_vec2();
         let ray = self.camera.ray(scene_direction.x, scene_direction.y);
-        self.bounce(&mut rng, &ray, 0)
+        self.bounce(rng, &ray, 0)
     }
 }
 
