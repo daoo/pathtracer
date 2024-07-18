@@ -1,8 +1,5 @@
-use super::{
-    build::{KdCell, KdSplit},
-    split::split_and_partition,
-};
-use crate::split::{clip_geometries, SplitPartitioning};
+use super::{build::KdSplit, split::split_and_partition};
+use crate::{cell::KdCell, split::SplitPartitioning};
 use geometry::{aap::Aap, geometry::Geometry};
 
 pub struct SahCost {
@@ -75,13 +72,13 @@ pub(crate) fn find_best_split(
     cell: &KdCell,
 ) -> Option<KdSplit> {
     debug_assert!(
-        !cell.indices().is_empty(),
+        !cell.indices.is_empty(),
         "splitting a kd-cell with no geometries only worsens performance"
     );
 
     let min_by_snd = |a: (_, f32), b: (_, f32)| if a.1 <= b.1 { a } else { b };
 
-    let clipped = clip_geometries(geometries, cell);
+    let clipped = cell.clip_geometries(geometries);
     let mut splits = clipped
         .iter()
         .flat_map(|(_, aabb)| aabb.sides())
@@ -93,7 +90,7 @@ pub(crate) fn find_best_split(
         .filter_map(|plane| {
             select_best_split_based_on_cost(
                 cost,
-                split_and_partition(&clipped, *cell.boundary(), plane),
+                split_and_partition(&clipped, cell.boundary, plane),
             )
         })
         .reduce(min_by_snd)
@@ -101,11 +98,12 @@ pub(crate) fn find_best_split(
 }
 
 pub(crate) fn should_terminate(cost: &SahCost, cell: &KdCell, split: &KdSplit) -> bool {
-    let probability_left = split.left.boundary().surface_area() / cell.boundary().surface_area();
-    let probability_right = split.right.boundary().surface_area() / cell.boundary().surface_area();
+    let surface_area = cell.boundary.surface_area();
+    let probability_left = split.left.boundary.surface_area() / surface_area;
+    let probability_right = split.right.boundary.surface_area() / surface_area;
     let probability = (probability_left, probability_right);
-    let counts = (split.left.indices().len(), split.right.indices().len());
+    let counts = (split.left.indices.len(), split.right.indices.len());
     let split_cost = cost.calculate(probability, counts);
-    let intersect_cost = cost.intersect_cost * cell.indices().len() as f32;
+    let intersect_cost = cost.intersect_cost * cell.indices.len() as f32;
     split_cost >= intersect_cost
 }

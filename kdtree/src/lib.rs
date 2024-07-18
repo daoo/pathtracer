@@ -5,6 +5,7 @@ use geometry::{aap::Aap, geometry::Geometry, ray::Ray};
 use intersection::{intersect_closest_geometry, KdIntersection};
 
 pub mod build;
+pub mod cell;
 pub mod format;
 pub mod intersection;
 pub mod sah;

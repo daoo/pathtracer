@@ -1,43 +1,18 @@
-use geometry::{aabb::Aabb, aap::Aap, bound::geometries_bounding_box, geometry::Geometry};
+use geometry::{aap::Aap, bound::geometries_bounding_box, geometry::Geometry};
 use glam::Vec3;
 
-use crate::sah::{find_best_split, should_terminate, SahCost};
+use crate::{
+    cell::KdCell,
+    sah::{find_best_split, should_terminate, SahCost},
+};
 
 use super::{KdNode, KdTree};
 
 #[derive(Debug)]
-pub struct KdCell {
-    boundary: Aabb,
-    indices: Vec<u32>,
-}
-
-impl KdCell {
-    pub fn new(boundary: Aabb, indices: Vec<u32>) -> Self {
-        debug_assert!(
-            boundary.surface_area() != 0.0,
-            "empty kd-cell cannot intersect a ray"
-        );
-        debug_assert!(
-            !(boundary.volume() == 0.0 && indices.is_empty()),
-            "flat kd-cell without any triangles likely worsens performance"
-        );
-        KdCell { boundary, indices }
-    }
-
-    pub fn boundary(&self) -> &Aabb {
-        &self.boundary
-    }
-
-    pub fn indices(&self) -> &[u32] {
-        &self.indices
-    }
-}
-
-#[derive(Debug)]
-pub struct KdSplit {
-    pub plane: Aap,
-    pub left: KdCell,
-    pub right: KdCell,
+pub(crate) struct KdSplit {
+    pub(crate) plane: Aap,
+    pub(crate) left: KdCell,
+    pub(crate) right: KdCell,
 }
 
 fn starting_box(geometries: &[Geometry]) -> KdCell {

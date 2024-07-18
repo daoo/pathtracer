@@ -1,17 +1,4 @@
-use geometry::{aabb::Aabb, aap::Aap, geometry::Geometry};
-
-use crate::build::KdCell;
-
-pub(crate) fn clip_geometries(geometries: &[Geometry], cell: &KdCell) -> Vec<(u32, Aabb)> {
-    cell.indices()
-        .iter()
-        .filter_map(|i| {
-            geometries[*i as usize]
-                .clip_aabb(cell.boundary())
-                .map(|aabb| (*i, aabb))
-        })
-        .collect::<Vec<_>>()
-}
+use geometry::{aabb::Aabb, aap::Aap};
 
 pub(crate) fn partition_triangles(
     clipped_triangles: &[(u32, Aabb)],
