@@ -3,8 +3,8 @@ use super::{
     split::split_and_partition,
     KdNode, KdTree,
 };
-use crate::split::clip_geometries;
-use geometry::{aabb::Aabb, aap::Aap, bound::geometries_bounding_box, geometry::Geometry};
+use crate::split::{clip_geometries, SplitPartitioning};
+use geometry::{aap::Aap, bound::geometries_bounding_box, geometry::Geometry};
 use glam::Vec3;
 
 pub struct SahKdTreeBuilder {
@@ -33,31 +33,29 @@ impl SahKdTreeBuilder {
         empty_factor * (self.traverse_cost + intersect_cost)
     }
 
-    fn split_and_calculate_cost(
-        &self,
-        cell: &KdCell,
-        plane: Aap,
-        clipped: &[(u32, Aabb)],
-    ) -> Option<(KdSplit, f32)> {
-        let mut split = split_and_partition(clipped, cell.boundary(), plane);
+    fn select_best_split_based_on_cost(&self, split: SplitPartitioning) -> Option<(KdSplit, f32)> {
         // TODO: Place planes to the left or to the right depending on what gives best cost.
         if (split.left_aabb.volume() == 0.0 || split.right_aabb.volume() == 0.0)
             && split.middle_indices.is_empty()
         {
             return None;
         }
-        let probability_left = split.left_aabb.surface_area() / cell.boundary().surface_area();
-        let probability_right = split.right_aabb.surface_area() / cell.boundary().surface_area();
+        let surface_area = split.parent_aabb.surface_area();
+        let probability_left = split.left_aabb.surface_area() / surface_area;
+        let probability_right = split.right_aabb.surface_area() / surface_area;
         let probability = (probability_left, probability_right);
         let counts = (
             split.left_indices.len() + split.middle_indices.len(),
             split.right_indices.len() + split.middle_indices.len(),
         );
         let cost = self.calculate_sah_cost(probability, counts);
-        split.left_indices.extend(&split.middle_indices);
-        split.right_indices.extend(split.middle_indices);
-        let left = KdCell::new(split.left_aabb, split.left_indices);
-        let right = KdCell::new(split.right_aabb, split.right_indices);
+        let mut left_indices = split.left_indices;
+        let mut right_indices = split.right_indices;
+        left_indices.extend(&split.middle_indices);
+        right_indices.extend(split.middle_indices);
+        let left = KdCell::new(split.left_aabb, left_indices);
+        let right = KdCell::new(split.right_aabb, right_indices);
+        let plane = split.plane;
         Some((KdSplit { plane, left, right }, cost))
     }
 
@@ -85,7 +83,13 @@ impl SahKdTreeBuilder {
         splits.dedup();
         splits
             .into_iter()
-            .filter_map(|plane| self.split_and_calculate_cost(cell, plane, &clipped))
+            .filter_map(|plane| {
+                self.select_best_split_based_on_cost(split_and_partition(
+                    &clipped,
+                    *cell.boundary(),
+                    plane,
+                ))
+            })
             .reduce(min_by_snd)
             .map(|a| a.0)
     }

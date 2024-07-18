@@ -41,6 +41,8 @@ pub(crate) fn partition_triangles(
 }
 
 pub(crate) struct SplitPartitioning {
+    pub plane: Aap,
+    pub parent_aabb: Aabb,
     pub left_aabb: Aabb,
     pub right_aabb: Aabb,
     pub left_indices: Vec<u32>,
@@ -50,12 +52,14 @@ pub(crate) struct SplitPartitioning {
 
 pub(crate) fn split_and_partition(
     clipped: &[(u32, Aabb)],
-    aabb: &Aabb,
+    aabb: Aabb,
     plane: Aap,
 ) -> SplitPartitioning {
     let (left_aabb, right_aabb) = aabb.split(&plane);
     let (left_indices, middle_indices, right_indices) = partition_triangles(clipped, &plane);
     SplitPartitioning {
+        plane,
+        parent_aabb: aabb,
         left_aabb,
         right_aabb,
         left_indices,
