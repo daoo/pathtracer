@@ -5,7 +5,7 @@ use kdtree::{
     build_sah::{self, SahKdTreeBuilder},
 };
 use kdtree_tester::ray_bouncer::RayBouncer;
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 use scene::{camera::Pinhole, Scene};
 use std::{
     fmt::Display,
@@ -116,14 +116,22 @@ fn main() {
     let pixels = ys
         .flat_map(|y| xs.clone().map(move |x| (x, y)))
         .collect::<Vec<_>>();
+    let pixel_count = pixels.len();
     let fails = pixels
         .into_par_iter()
-        .filter_map(|pixel| bouncer.bounce_pixel(pixel))
-        .map(|fail| {
-            eprintln!("{:?}", fail.ray);
-            eprintln!("  reference: {:?}", fail.reference);
-            eprintln!("     kdtree: {:?}", fail.kdtree);
-            fail
+        .enumerate()
+        .filter_map(|(i, pixel)| {
+            let result = bouncer.bounce_pixel(pixel);
+            if let Some(fail) = &result {
+                eprintln!(
+                    "Fail on pixel {} x {} ({} / {})",
+                    pixel.0, pixel.1, i, pixel_count
+                );
+                eprintln!("  {:?}", fail.ray);
+                eprintln!("  Expected: {:?}", fail.reference);
+                eprintln!("    Actual: {:?}", fail.kdtree);
+            }
+            result
         })
         .collect::<Vec<_>>();
     println!("Found {} fails", fails.len());

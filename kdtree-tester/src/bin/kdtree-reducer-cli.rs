@@ -63,8 +63,7 @@ fn reduce_tree(seed: u64, intersection: &CheckedIntersection, geometries: Vec<Ge
         try_index, try_count
     );
     while try_index < geometries.len() {
-        let remaining = geometries.len() - try_index;
-        try_count = try_count.clamp(1, remaining);
+        try_count = try_count.clamp(1, geometries.len() - try_index);
         eprint!("  Trying to remove {: <5}", try_count);
         let time_before = Instant::now();
         let reduced = try_removing(
@@ -77,17 +76,18 @@ fn reduce_tree(seed: u64, intersection: &CheckedIntersection, geometries: Vec<Ge
         let duration = Instant::now().duration_since(time_before).as_micros() as f64 / 1000.0;
         if let Some(reduced) = reduced {
             geometries = reduced;
+            try_count = geometries.len() - try_index;
             eprintln!(" Time: {: <8.3} ms. Success!", duration);
             eprintln!(
                 "Kept {} with {} geometries left to check.",
-                try_index, try_count
+                try_index, try_count,
             );
         } else if try_count > 1 {
             try_count /= 2;
             eprintln!(" Time: {: <8.3} ms. Fail!", duration);
         } else {
             try_index += 1;
-            try_count = remaining;
+            try_count = geometries.len() - try_index;
             eprintln!(" Time: {: <8.3} ms. Fail! Keeping 1 geometry.", duration);
             eprintln!(
                 "Kept {} with {} geometries left to check.",
@@ -143,16 +143,11 @@ fn main() {
             },
         )),
     };
-    eprintln!("Testing with:");
+    eprintln!("Seed: {}", args.seed);
+    eprintln!("Testing with failed intersection:");
     eprintln!("  {:?}", &intersection.ray);
     eprintln!("  Expected: {:?}", &intersection.reference);
     eprintln!("    Actual: {:?}", &intersection.kdtree);
-    if let Some(path) = args.fail {
-        eprintln!("Writing test ray to {:?}...", path);
-        let file = File::create(path).unwrap();
-        let mut buf = BufWriter::new(file);
-        buf.write_all(&intersection.as_bytes(1)).unwrap();
-    }
 
     eprintln!("Loading {}...", args.input.display());
     let obj = obj::obj(&mut BufReader::new(File::open(&args.input).unwrap()));
@@ -184,8 +179,17 @@ fn main() {
         .collect::<Vec<_>>();
     eprintln!("  Geometries: {}", geometries.len());
 
+    if let Some(path) = args.fail {
+        eprintln!("Writing test ray to {:?}...", path);
+        let file = File::create(path).unwrap();
+        let mut buf = BufWriter::new(file);
+        buf.write_all(&intersection.as_bytes(1)).unwrap();
+    }
+
+    eprintln!("Reducing tree...");
     let tree = reduce_tree(args.seed, &intersection, geometries);
 
+    eprintln!("Writing reduced tree to {:?}...", args.output);
     write_tree_json(
         &mut BufWriter::new(File::create(args.output).unwrap()),
         &tree,
