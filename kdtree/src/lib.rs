@@ -25,7 +25,7 @@ pub enum KdNode {
 
 impl KdNode {
     pub fn empty() -> Box<Self> {
-        Box::new(Self::Leaf(vec![]))
+        Box::new(Self::Leaf(Vec::new()))
     }
 
     pub fn new_leaf(indices: Vec<u32>) -> Box<Self> {
@@ -185,7 +185,7 @@ mod tests {
     #[test]
     fn intersect_empty_tree() {
         let tree = KdTree {
-            root: Box::new(KdNode::Leaf(vec![])),
+            root: KdNode::empty(),
             geometries: vec![],
         };
         let ray = Ray::between(Vec3::new(0., 0., 0.), Vec3::new(1., 1., 1.));
@@ -211,8 +211,8 @@ mod tests {
                     axis: Axis::X,
                     distance: 1.,
                 },
-                left: Box::new(KdNode::Leaf(vec![0, 1])),
-                right: Box::new(KdNode::Leaf(vec![0, 1])),
+                left: KdNode::new_leaf(vec![0, 1]),
+                right: KdNode::new_leaf(vec![0, 1]),
             }),
             geometries: vec![triangle0.into(), triangle1.into()],
         };
