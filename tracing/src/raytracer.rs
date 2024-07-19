@@ -7,7 +7,7 @@ use crate::{
 use geometry::ray::Ray;
 use glam::{UVec2, Vec2, Vec3};
 use kdtree::{intersection::KdIntersection, KdTree};
-use scene::{camera::Pinhole, material::MaterialModel, Scene};
+use scene::{camera::Pinhole, Scene};
 
 pub struct Raytracer {
     pub scene: Scene,
@@ -30,7 +30,7 @@ impl Raytracer {
             return self.scene.environment;
         }
         let intersection = intersection.unwrap();
-        let triangle = &self.scene.triangle_data[intersection.index as usize];
+        let triangle = self.scene.get_triangle(intersection.index);
         let intersection = intersection.intersection;
 
         let wi = -ray.direction;
@@ -45,16 +45,18 @@ impl Raytracer {
             .lights
             .iter()
             .map(|light| {
-                let this = &self;
-                let material: &MaterialModel = &triangle.material;
                 let direction = light.center - point;
                 let shadow_ray = Ray::new(offset_point, direction);
-                if this.intersect_any(&shadow_ray, 0.0..=1.0) {
+                if self.intersect_any(&shadow_ray, 0.0..=1.0) {
                     return Vec3::ZERO;
                 }
                 let wo = direction.normalize();
                 let radiance = light.emitted(point);
-                material.brdf(&OutgoingRay { wi, n, wo, uv }) * radiance * wo.dot(n).abs()
+                let brdf = self
+                    .scene
+                    .get_material(triangle)
+                    .brdf(&OutgoingRay { wi, n, wo, uv });
+                brdf * radiance * wo.dot(n).abs()
             })
             .sum()
     }

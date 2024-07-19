@@ -1,6 +1,6 @@
 use geometry::{geometry::Geometry, triangle::Triangle};
 use glam::{Vec2, Vec3};
-use std::{collections::BTreeMap, fs::File, io::BufReader, path::Path, sync::Arc};
+use std::{collections::BTreeMap, fs::File, io::BufReader, path::Path};
 use wavefront::{mtl, obj};
 
 pub mod camera;
@@ -42,63 +42,22 @@ impl TriangleTexcoords {
     }
 }
 
-pub struct TriangleData {
+pub struct SceneTriangle {
     pub triangle: Triangle,
     pub normals: TriangleNormals,
     pub texcoords: TriangleTexcoords,
-    pub material: Arc<MaterialModel>,
+    pub material_index: usize,
 }
 
 pub struct Scene {
-    pub triangle_data: Vec<TriangleData>,
+    pub triangles: Vec<SceneTriangle>,
+    pub materials: Vec<MaterialModel>,
     pub cameras: Vec<Camera>,
     pub lights: Vec<SphericalLight>,
     pub environment: Vec3,
 }
 
-fn collect_triangle_data(
-    image_directory: &Path,
-    obj: &obj::Obj,
-    mtl: &mtl::Mtl,
-) -> Vec<TriangleData> {
-    let materials = materials_from_mtl(image_directory, mtl);
-    obj.chunks
-        .iter()
-        .flat_map(|chunk| {
-            chunk.faces.iter().map(|face| {
-                if face.points.len() != 3 {
-                    panic!(
-                        "Only tringular faces supported but found {} vertices.",
-                        face.points.len()
-                    );
-                }
-                let triangle = Triangle {
-                    v0: obj.index_vertex(&face.points[0]).into(),
-                    v1: obj.index_vertex(&face.points[1]).into(),
-                    v2: obj.index_vertex(&face.points[2]).into(),
-                };
-                let normals = TriangleNormals {
-                    n0: obj.index_normal(&face.points[0]).into(),
-                    n1: obj.index_normal(&face.points[1]).into(),
-                    n2: obj.index_normal(&face.points[2]).into(),
-                };
-                let texcoords = TriangleTexcoords {
-                    uv0: obj.index_texcoord(&face.points[0]).into(),
-                    uv1: obj.index_texcoord(&face.points[1]).into(),
-                    uv2: obj.index_texcoord(&face.points[2]).into(),
-                };
-                TriangleData {
-                    triangle,
-                    normals,
-                    texcoords,
-                    material: materials[chunk.material.as_str()].clone(),
-                }
-            })
-        })
-        .collect::<Vec<_>>()
-}
-
-fn blend_from_mtl(image_directory: &Path, material: &mtl::Material) -> Arc<MaterialModel> {
+fn blend_from_mtl(image_directory: &Path, material: &mtl::Material) -> MaterialModel {
     let texture = (!material.diffuse_map.is_empty()).then(|| {
         image::open(image_directory.join(&material.diffuse_map))
             .unwrap()
@@ -129,13 +88,13 @@ fn blend_from_mtl(image_directory: &Path, material: &mtl::Material) -> Arc<Mater
         second: transparency_blend,
         factor: material.reflection_90_degrees,
     };
-    Arc::new(material)
+    material
 }
 
 fn materials_from_mtl<'m>(
     image_directory: &Path,
     mtl: &'m mtl::Mtl,
-) -> BTreeMap<&'m str, Arc<MaterialModel>> {
+) -> BTreeMap<&'m str, MaterialModel> {
     mtl.materials
         .iter()
         .map(|m| (m.name.as_str(), blend_from_mtl(image_directory, m)))
@@ -172,8 +131,47 @@ fn collect_lights(mtl: &mtl::Mtl) -> Vec<SphericalLight> {
 
 impl Scene {
     pub fn from_wavefront(image_directory: &Path, obj: &obj::Obj, mtl: &mtl::Mtl) -> Scene {
+        let materials = materials_from_mtl(image_directory, mtl);
+        let triangles = obj.chunks.iter().flat_map(|chunk| {
+            chunk.faces.iter().map(|face| {
+                if face.points.len() != 3 {
+                    panic!(
+                        "Only tringular faces supported but found {} vertices.",
+                        face.points.len()
+                    );
+                }
+                let triangle = Triangle {
+                    v0: obj.index_vertex(&face.points[0]).into(),
+                    v1: obj.index_vertex(&face.points[1]).into(),
+                    v2: obj.index_vertex(&face.points[2]).into(),
+                };
+                let normals = TriangleNormals {
+                    n0: obj.index_normal(&face.points[0]).into(),
+                    n1: obj.index_normal(&face.points[1]).into(),
+                    n2: obj.index_normal(&face.points[2]).into(),
+                };
+                let texcoords = TriangleTexcoords {
+                    uv0: obj.index_texcoord(&face.points[0]).into(),
+                    uv1: obj.index_texcoord(&face.points[1]).into(),
+                    uv2: obj.index_texcoord(&face.points[2]).into(),
+                };
+                let material_index = materials
+                    .iter()
+                    .enumerate()
+                    .find(|m| m.1 .0 == &chunk.material)
+                    .unwrap()
+                    .0;
+                SceneTriangle {
+                    triangle,
+                    normals,
+                    texcoords,
+                    material_index,
+                }
+            })
+        });
         Scene {
-            triangle_data: collect_triangle_data(image_directory, obj, mtl),
+            triangles: triangles.collect(),
+            materials: materials.into_iter().map(|m| m.1).collect(),
             cameras: collect_cameras(mtl),
             lights: collect_lights(mtl),
             environment: Vec3::new(0.8, 0.8, 0.8),
@@ -197,14 +195,21 @@ impl Scene {
 
         println!("Collecting scene...");
         let scene = Scene::from_wavefront(mtl_path.parent().unwrap(), &obj, &mtl);
-        println!("  Triangles: {}", scene.triangle_data.len());
+        println!("  Triangles: {}", scene.triangles.len());
         scene
     }
 
+    #[inline]
+    pub fn get_triangle(&self, index: u32) -> &SceneTriangle {
+        &self.triangles[index as usize]
+    }
+
+    #[inline]
+    pub fn get_material(&self, triangle: &SceneTriangle) -> &MaterialModel {
+        &self.materials[triangle.material_index]
+    }
+
     pub fn collect_geometries_as_vec(&self) -> Vec<Geometry> {
-        self.triangle_data
-            .iter()
-            .map(|t| t.triangle.into())
-            .collect()
+        self.triangles.iter().map(|t| t.triangle.into()).collect()
     }
 }

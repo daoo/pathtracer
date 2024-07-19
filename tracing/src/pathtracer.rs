@@ -46,7 +46,7 @@ impl Pathtracer {
             return accumulated_radiance + accumulated_transport * self.scene.environment;
         }
         let intersection = intersection.unwrap();
-        let triangle = &self.scene.triangle_data[intersection.index as usize];
+        let triangle = self.scene.get_triangle(intersection.index);
         let intersection = intersection.intersection;
 
         ray_logger
@@ -56,7 +56,6 @@ impl Pathtracer {
         let wi = -ray.direction;
         let n = triangle.normals.lerp(intersection.u, intersection.v);
         let uv = triangle.texcoords.lerp(intersection.u, intersection.v);
-        let material = triangle.material.as_ref();
 
         // TODO: How to chose offset?
         let offset = 0.00001 * n;
@@ -75,13 +74,20 @@ impl Pathtracer {
                 }
                 let wo = shadow_ray.direction.normalize();
                 let radiance = light.emitted(point);
-                material.brdf(&OutgoingRay { wi, n, wo, uv }) * radiance * wo.dot(n).abs()
+                let brdf = self
+                    .scene
+                    .get_material(triangle)
+                    .brdf(&OutgoingRay { wi, n, wo, uv });
+                brdf * radiance * wo.dot(n).abs()
             })
             .sum();
 
         let accumulated_radiance = accumulated_radiance + accumulated_transport * incoming_radiance;
 
-        let sample = material.sample(&IncomingRay { wi, n, uv }, rng);
+        let sample = self
+            .scene
+            .get_material(triangle)
+            .sample(&IncomingRay { wi, n, uv }, rng);
         let next_ray = Ray::new(
             if sample.wo.dot(n) >= 0.0 {
                 point_above
