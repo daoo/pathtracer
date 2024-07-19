@@ -3,6 +3,7 @@ use crate::{
     split::{partition_clipped_geometries, KdPartitioning, KdSplit},
 };
 use geometry::{aap::Aap, geometry::Geometry};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 pub struct SahCost {
     pub traverse_cost: f32,
@@ -87,16 +88,29 @@ pub(crate) fn find_best_split(
         .collect::<Vec<_>>();
     splits.sort_unstable_by(Aap::total_cmp);
     splits.dedup();
-    splits
-        .into_iter()
-        .filter_map(|plane| {
-            select_best_split_based_on_cost(
-                cost,
-                partition_clipped_geometries(&clipped, cell.boundary, plane),
-            )
-        })
-        .reduce(min_by_snd)
-        .map(|a| a.0)
+    if splits.len() <= 100 {
+        splits
+            .into_iter()
+            .filter_map(|plane| {
+                select_best_split_based_on_cost(
+                    cost,
+                    partition_clipped_geometries(&clipped, cell.boundary, plane),
+                )
+            })
+            .reduce(min_by_snd)
+            .map(|a| a.0)
+    } else {
+        splits
+            .into_par_iter()
+            .filter_map(|plane| {
+                select_best_split_based_on_cost(
+                    cost,
+                    partition_clipped_geometries(&clipped, cell.boundary, plane),
+                )
+            })
+            .reduce_with(min_by_snd)
+            .map(|a| a.0)
+    }
 }
 
 pub(crate) fn should_terminate(cost: &SahCost, cell: &KdCell, split: &KdSplit) -> bool {
