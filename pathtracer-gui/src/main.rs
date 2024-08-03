@@ -32,7 +32,7 @@ fn main() {
 
     println!("Building kdtree...");
     let kdtree = build_kdtree(
-        scene.geometries.clone(),
+        &scene.geometries,
         args.max_depth,
         &SahCost {
             traverse_cost: args.traverse_cost,

@@ -11,17 +11,22 @@ use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 use geometry::{geometry::Geometry, intersection::RayIntersection, ray::Ray, triangle::Triangle};
 use kdtree::{
     build::build_kdtree, format::write_tree_json, intersection::KdIntersection, sah::SahCost,
-    KdTree, MAX_DEPTH,
+    KdNode, MAX_DEPTH,
 };
 use wavefront::obj;
 
-fn build_test_tree(geometries: Vec<Geometry>) -> kdtree::KdTree {
+fn build_test_tree(geometries: &[Geometry]) -> KdNode {
     build_kdtree(geometries, MAX_DEPTH as u32, &SahCost::default())
 }
 
-fn verify_removal(ray: &Ray, actual: &(Geometry, RayIntersection), tree: &KdTree) -> bool {
-    let intersection = tree.intersect(ray, 0.0..=f32::MAX).unwrap();
-    let same_geometry = tree.geometries[intersection.index as usize] == actual.0;
+fn verify_removal(
+    geometries: &[Geometry],
+    ray: &Ray,
+    actual: &(Geometry, RayIntersection),
+    tree: &KdNode,
+) -> bool {
+    let intersection = tree.intersect(geometries, ray, 0.0..=f32::MAX).unwrap();
+    let same_geometry = geometries[intersection.index as usize] == actual.0;
     let same_intersection = intersection.intersection == actual.1;
     same_geometry && same_intersection
 }
@@ -36,11 +41,15 @@ fn try_removing(
     let mut reduced = Vec::with_capacity(geometries.len() - try_count);
     reduced.extend_from_slice(&geometries[0..try_index]);
     reduced.extend_from_slice(&geometries[try_index + try_count..]);
-    let tree = build_test_tree(reduced);
-    verify_removal(ray, actual, &tree).then_some(tree.geometries)
+    let tree = build_test_tree(&reduced);
+    verify_removal(&reduced, ray, actual, &tree).then_some(reduced)
 }
 
-fn reduce_tree(seed: u64, intersection: &CheckedIntersection, geometries: Vec<Geometry>) -> KdTree {
+fn reduce_tree(
+    seed: u64,
+    intersection: &CheckedIntersection,
+    geometries: Vec<Geometry>,
+) -> (Vec<Geometry>, KdNode) {
     let actual_intersection = intersection.kdtree.as_ref().unwrap();
     let actual_geometry = geometries[actual_intersection.index as usize].clone();
     let actual = (actual_geometry, actual_intersection.intersection);
@@ -87,7 +96,8 @@ fn reduce_tree(seed: u64, intersection: &CheckedIntersection, geometries: Vec<Ge
             );
         }
     }
-    build_test_tree(geometries)
+    let tree = build_test_tree(&geometries);
+    (geometries, tree)
 }
 
 #[derive(Parser, Debug)]
@@ -179,11 +189,12 @@ fn main() {
     }
 
     eprintln!("Reducing tree...");
-    let tree = reduce_tree(args.seed, &intersection, geometries);
+    let (geometries, tree) = reduce_tree(args.seed, &intersection, geometries);
 
     eprintln!("Writing reduced tree to {:?}...", args.output);
     write_tree_json(
         &mut BufWriter::new(File::create(args.output).unwrap()),
+        &geometries,
         &tree,
     )
     .unwrap();

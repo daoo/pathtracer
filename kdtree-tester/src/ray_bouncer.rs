@@ -3,7 +3,7 @@ use geometry::ray::Ray;
 use glam::{UVec2, Vec2};
 use kdtree::{
     intersection::{intersect_closest_geometry, KdIntersection},
-    KdTree,
+    KdNode,
 };
 use rand::{rngs::SmallRng, SeedableRng};
 use scene::{camera::Pinhole, Scene};
@@ -15,7 +15,7 @@ use tracing::{
 
 pub struct RayBouncer {
     pub scene: Scene,
-    pub kdtree: KdTree,
+    pub kdtree: KdNode,
     pub camera: Pinhole,
     pub bounces: u32,
     pub size: UVec2,
@@ -27,8 +27,8 @@ impl RayBouncer {
         ray: &Ray,
         t_range: RangeInclusive<f32>,
     ) -> Option<KdIntersection> {
-        let indices = 0u32..self.kdtree.geometries.len() as u32;
-        intersect_closest_geometry(&self.kdtree.geometries, indices, ray, t_range)
+        let indices = 0u32..self.scene.geometries.len() as u32;
+        intersect_closest_geometry(&self.scene.geometries, indices, ray, t_range)
     }
 
     fn checked_ray_intersect(
@@ -36,7 +36,9 @@ impl RayBouncer {
         ray: &Ray,
         t_range: RangeInclusive<f32>,
     ) -> CheckedIntersection {
-        let kdtree = self.kdtree.intersect(ray, t_range.clone());
+        let kdtree = self
+            .kdtree
+            .intersect(&self.scene.geometries, ray, t_range.clone());
         let reference = self.reference_ray_intersect(ray, t_range);
         CheckedIntersection {
             ray: *ray,

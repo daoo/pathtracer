@@ -1,4 +1,4 @@
-use crate::{KdNode, KdTree};
+use crate::KdNode;
 use geometry::{axis::Axis, geometry::Geometry};
 use std::io::{self};
 
@@ -46,13 +46,6 @@ where
     Ok(())
 }
 
-pub fn write_tree_pretty<W>(write: &mut W, tree: &KdTree) -> Result<(), io::Error>
-where
-    W: io::Write,
-{
-    write_node_pretty(write, &tree.root)
-}
-
 pub fn write_node_rust<W>(write: &mut W, node: &KdNode) -> Result<(), io::Error>
 where
     W: io::Write,
@@ -81,15 +74,19 @@ where
     Ok(())
 }
 
-pub fn write_tree_rust<W>(write: &mut W, tree: &KdTree) -> Result<(), io::Error>
+pub fn write_tree_rust<W>(
+    write: &mut W,
+    geometries: &[Geometry],
+    tree: &KdNode,
+) -> Result<(), io::Error>
 where
     W: io::Write,
 {
     write!(write, "let geometries = ")?;
-    write_triangle_bracketed(write, &tree.geometries)?;
+    write_triangle_bracketed(write, geometries)?;
     writeln!(write, ";")?;
     write!(write, "let root = ")?;
-    write_node_rust(write, &tree.root)?;
+    write_node_rust(write, tree)?;
     writeln!(write, ";")?;
     writeln!(write, "let tree = KdTree {{ root, geometries }};")?;
     Ok(())
@@ -117,14 +114,18 @@ where
     Ok(())
 }
 
-pub fn write_tree_json<W>(write: &mut W, tree: &KdTree) -> Result<(), io::Error>
+pub fn write_tree_json<W>(
+    write: &mut W,
+    geometries: &[Geometry],
+    tree: &KdNode,
+) -> Result<(), io::Error>
 where
     W: io::Write,
 {
     write!(write, "{{\"triangles\": ")?;
-    write_triangle_bracketed(write, &tree.geometries)?;
+    write_triangle_bracketed(write, geometries)?;
     write!(write, ", \"root\": ")?;
-    write_node_json(write, &tree.root)?;
+    write_node_json(write, tree)?;
     writeln!(write, "}}")?;
     Ok(())
 }
@@ -156,14 +157,14 @@ where
     Ok(())
 }
 
-pub fn write_tree_dot<W>(write: &mut W, tree: &KdTree) -> Result<(), io::Error>
+pub fn write_tree_dot<W>(write: &mut W, tree: &KdNode) -> Result<(), io::Error>
 where
     W: io::Write,
 {
     writeln!(write, "digraph {{")?;
     writeln!(write, "  rankdir=\"LR\";")?;
     writeln!(write, "  node [shape=\"box\"];")?;
-    write_node_dot(write, "t".to_string(), &tree.root)?;
+    write_node_dot(write, "t".to_string(), tree)?;
     writeln!(write, "}}")?;
     Ok(())
 }

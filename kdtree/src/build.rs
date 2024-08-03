@@ -4,9 +4,10 @@ use glam::Vec3;
 use crate::{
     cell::KdCell,
     sah::{find_best_split, should_terminate, SahCost},
+    MAX_DEPTH,
 };
 
-use super::{KdNode, KdTree};
+use super::KdNode;
 
 fn starting_box(geometries: &[Geometry]) -> KdCell {
     KdCell::new(
@@ -40,16 +41,14 @@ fn build_helper(
     }
 }
 
-pub fn build_kdtree(geometries: Vec<Geometry>, max_depth: u32, cost: &SahCost) -> KdTree {
-    if max_depth as usize > super::MAX_DEPTH {
+pub fn build_kdtree(geometries: &[Geometry], max_depth: u32, cost: &SahCost) -> KdNode {
+    if max_depth as usize > MAX_DEPTH {
         panic!(
             "Max depth ({}) must be smaller than hard coded value ({}).",
-            max_depth,
-            super::MAX_DEPTH
+            max_depth, MAX_DEPTH
         );
     }
-    let root = build_helper(&geometries, cost, max_depth, 1, starting_box(&geometries));
-    KdTree { root, geometries }
+    *build_helper(geometries, cost, max_depth, 1, starting_box(geometries))
 }
 
 #[cfg(test)]
@@ -73,7 +72,7 @@ mod tests {
             intersect_cost: 1.0,
             empty_factor: 0.8,
         };
-        let tree = build_kdtree(vec![triangle.into()], 7, &cost);
+        let actual = build_kdtree(&vec![triangle.into()], 7, &cost);
 
         let expected = KdNode::new_node(
             Aap::new_x(0.0),
@@ -101,9 +100,9 @@ mod tests {
             ),
         );
         assert_eq!(
-            tree.root, expected,
+            actual, *expected,
             "\n   actual: {}\n expected: {}",
-            tree.root, expected
+            actual, *expected
         );
     }
 
@@ -119,7 +118,7 @@ mod tests {
             intersect_cost: 10.0,
             empty_factor: 0.8,
         };
-        let tree = build_kdtree(vec![triangle.into()], 6, &cost);
+        let actual = build_kdtree(&vec![triangle.into()], 6, &cost);
 
         let expected = KdNode::new_node(
             Aap::new_x(0.0),
@@ -135,9 +134,9 @@ mod tests {
             ),
         );
         assert_eq!(
-            tree.root, expected,
+            actual, *expected,
             "\n   actual: {}\n expected: {}",
-            tree.root, expected
+            actual, *expected
         );
     }
 }

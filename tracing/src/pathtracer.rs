@@ -8,19 +8,19 @@ use crate::{
 };
 use geometry::ray::Ray;
 use glam::{UVec2, Vec3};
-use kdtree::{intersection::KdIntersection, KdTree};
+use kdtree::{intersection::KdIntersection, KdNode};
 use rand::rngs::SmallRng;
 use scene::{camera::Pinhole, Scene};
 
 pub struct Pathtracer {
     pub max_bounces: u8,
     pub scene: Scene,
-    pub kdtree: KdTree,
+    pub kdtree: KdNode,
 }
 
 impl Pathtracer {
     fn intersect(&self, ray: &Ray, t_range: RangeInclusive<f32>) -> Option<KdIntersection> {
-        self.kdtree.intersect(ray, t_range)
+        self.kdtree.intersect(&self.scene.geometries, ray, t_range)
     }
 
     fn intersect_any(&self, ray: &Ray, t_range: RangeInclusive<f32>) -> bool {

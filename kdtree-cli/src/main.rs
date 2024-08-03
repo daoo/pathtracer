@@ -4,9 +4,9 @@ use geometry::{
 };
 use kdtree::{
     build::build_kdtree,
-    format::{write_tree_dot, write_tree_json, write_tree_pretty, write_tree_rust},
+    format::{write_node_pretty, write_tree_dot, write_tree_json, write_tree_rust},
     sah::SahCost,
-    KdNode, KdTree, MAX_DEPTH,
+    KdNode, MAX_DEPTH,
 };
 use std::{
     fs::File,
@@ -89,15 +89,21 @@ fn node_cost(
     }
 }
 
-fn tree_cost(kdtree: &KdTree, cost_traverse: f32, cost_intersect: f32, empty_factor: f32) -> f32 {
-    let bounding_box = geometries_bounding_box(&kdtree.geometries);
+fn tree_cost(
+    geometries: &[Geometry],
+    node: &KdNode,
+    cost_traverse: f32,
+    cost_intersect: f32,
+    empty_factor: f32,
+) -> f32 {
+    let bounding_box = geometries_bounding_box(geometries);
     node_cost(
         cost_traverse,
         cost_intersect,
         empty_factor,
         bounding_box.surface_area(),
         bounding_box,
-        kdtree.root.as_ref(),
+        node,
     )
 }
 
@@ -138,8 +144,8 @@ struct KdTreeStatistics {
     leaf_geometries: Statistics,
 }
 
-fn statistics(tree: &KdTree) -> KdTreeStatistics {
-    let geometries = tree.geometries.len();
+fn statistics(geometries: &[Geometry], tree: &KdNode) -> KdTreeStatistics {
+    let geometries = geometries.len();
     let node_count = tree.iter_nodes().map(|_| 1).sum();
     let leaf_count = tree.iter_leafs().map(|_| 1).sum();
     let leaf_depth = Statistics::compute(tree.iter_leafs().map(|(depth, _)| depth).collect());
@@ -195,17 +201,18 @@ fn main() {
         intersect_cost: args.intersect_cost,
         empty_factor: args.empty_factor,
     };
-    let kdtree = build_kdtree(geometries, args.max_depth, &cost);
+    let kdtree = build_kdtree(&geometries, args.max_depth, &cost);
     let duration = Instant::now().duration_since(start_time);
     let duration = Duration::new(duration.as_secs() as i64, duration.as_nanos() as i32);
 
     let cost = tree_cost(
+        &geometries,
         &kdtree,
         args.traverse_cost,
         args.intersect_cost,
         args.empty_factor,
     );
-    let stats = statistics(&kdtree);
+    let stats = statistics(&geometries, &kdtree);
     eprintln!("Done...");
     eprintln!("Tree statistics:");
     eprintln!("  Build time: {:.3}", duration);
@@ -226,12 +233,12 @@ fn main() {
     eprintln!("    Median: {}", stats.leaf_geometries.median);
 
     if args.json {
-        write_tree_json(&mut io::stdout().lock(), &kdtree).unwrap();
+        write_tree_json(&mut io::stdout().lock(), &geometries, &kdtree).unwrap();
     } else if args.rust {
-        write_tree_rust(&mut io::stdout().lock(), &kdtree).unwrap();
+        write_tree_rust(&mut io::stdout().lock(), &geometries, &kdtree).unwrap();
     } else if args.dot {
         write_tree_dot(&mut io::stdout().lock(), &kdtree).unwrap();
     } else {
-        write_tree_pretty(&mut io::stdout().lock(), &kdtree).unwrap();
+        write_node_pretty(&mut io::stdout().lock(), &kdtree).unwrap();
     }
 }
