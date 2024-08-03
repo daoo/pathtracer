@@ -93,7 +93,7 @@ fn i32_or_zero(input: &str) -> IResult<&str, i32> {
 }
 
 fn point(input: &str) -> IResult<&str, Point> {
-    (i32, char('/'), i32_or_zero, char('/'), i32)
+    (i32, char('/'), i32_or_zero, char('/'), i32_or_zero)
         .parse(input)
         .map(|(input, (v, _, t, _, n))| (input, Point { v, t, n }))
 }
@@ -199,6 +199,33 @@ mod tests {
 
     #[test]
     fn test_faces() {
+        assert_eq!(
+            obj_test("usemtl m1\nf 1/2/3").chunks,
+            [Chunk {
+                faces: vec![Face {
+                    points: vec![Point { v: 1, t: 2, n: 3 },]
+                }],
+                material: "m1".to_string()
+            }]
+        );
+        assert_eq!(
+            obj_test("usemtl m1\nf 1//3").chunks,
+            [Chunk {
+                faces: vec![Face {
+                    points: vec![Point { v: 1, t: 0, n: 3 },]
+                }],
+                material: "m1".to_string()
+            }]
+        );
+        assert_eq!(
+            obj_test("usemtl m1\nf 1//").chunks,
+            [Chunk {
+                faces: vec![Face {
+                    points: vec![Point { v: 1, t: 0, n: 0 },]
+                }],
+                material: "m1".to_string()
+            }]
+        );
         assert_eq!(
             obj_test("usemtl m1\nf 1/2/3 4/5/6 7/8/9").chunks,
             [Chunk {
