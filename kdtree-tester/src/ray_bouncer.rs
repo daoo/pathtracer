@@ -60,12 +60,12 @@ impl RayBouncer {
             return Some(intersection);
         };
         let intersection = intersection.reference?;
-        let triangle = &self.scene.triangles[intersection.index as usize];
+        let intersection_index = intersection.index;
         let intersection = intersection.intersection;
 
         let wi = -ray.direction;
-        let n = triangle.normals.lerp(intersection.u, intersection.v);
-        let uv = triangle.texcoords.lerp(intersection.u, intersection.v);
+        let n = self.scene.get_normal(intersection_index, &intersection);
+        let uv = self.scene.get_texcoord(intersection_index, &intersection);
         // TODO: How to chose offset?
         let offset = 0.00001 * n;
         let point = ray.param(intersection.t);
@@ -88,7 +88,7 @@ impl RayBouncer {
 
         let sample = self
             .scene
-            .get_material(triangle)
+            .get_material(intersection_index)
             .sample(&IncomingRay { wi, n, uv }, &mut rng);
         let next_ray = Ray::new(
             if sample.wo.dot(n) >= 0.0 {

@@ -30,13 +30,13 @@ impl Raytracer {
             return self.scene.environment;
         }
         let intersection = intersection.unwrap();
-        let triangle = self.scene.get_triangle(intersection.index);
+        let intersection_index = intersection.index;
         let intersection = intersection.intersection;
 
         let wi = -ray.direction;
         let point = ray.param(intersection.t);
-        let n = triangle.normals.lerp(intersection.u, intersection.v);
-        let uv = triangle.texcoords.lerp(intersection.u, intersection.v);
+        let n = self.scene.get_normal(intersection_index, &intersection);
+        let uv = self.scene.get_texcoord(intersection_index, &intersection);
 
         // TODO: How to chose offset?
         let offset_point = point + 0.0001 * n;
@@ -54,7 +54,7 @@ impl Raytracer {
                 let radiance = light.emitted(point);
                 let brdf = self
                     .scene
-                    .get_material(triangle)
+                    .get_material(intersection_index)
                     .brdf(&OutgoingRay { wi, n, wo, uv });
                 brdf * radiance * wo.dot(n).abs()
             })
