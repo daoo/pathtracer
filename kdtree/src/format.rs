@@ -85,10 +85,9 @@ where
     write!(write, "let geometries = ")?;
     write_triangle_bracketed(write, geometries)?;
     writeln!(write, ";")?;
-    write!(write, "let root = ")?;
+    write!(write, "let node = ")?;
     write_node_rust(write, tree)?;
     writeln!(write, ";")?;
-    writeln!(write, "let tree = KdTree {{ root, geometries }};")?;
     Ok(())
 }
 
