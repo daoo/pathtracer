@@ -84,7 +84,7 @@ where
 {
     write!(write, "let geometries = ")?;
     write_triangle_bracketed(write, geometries)?;
-    writeln!(write, ";")?;
+    writeln!(write, ".map(Triangle::from);")?;
     write!(write, "let node = ")?;
     write_node_rust(write, tree)?;
     writeln!(write, ";")?;
