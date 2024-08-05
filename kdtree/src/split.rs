@@ -36,6 +36,7 @@ fn partition_triangles(
     (left_triangles, middle_triangles, right_triangles)
 }
 
+#[derive(Debug)]
 pub(crate) struct KdPartitioning {
     pub(crate) plane: Aap,
     pub(crate) parent_aabb: Aabb,

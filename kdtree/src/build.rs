@@ -1,5 +1,4 @@
 use geometry::{bound::geometries_bounding_box, geometry::Geometry};
-use glam::Vec3;
 
 use crate::{
     cell::KdCell,
@@ -11,7 +10,7 @@ use super::KdNode;
 
 fn starting_box(geometries: &[Geometry]) -> KdCell {
     KdCell::new(
-        geometries_bounding_box(geometries).enlarge(Vec3::new(1.0, 1.0, 1.0)),
+        geometries_bounding_box(geometries),
         (0u32..geometries.len() as u32).collect(),
     )
 }
@@ -62,42 +61,28 @@ mod tests {
 
     #[test]
     fn non_axially_aligned_triangle() {
-        let triangle = Triangle {
+        let triangle1 = Triangle {
             v0: Vec3::new(0.0, 0.0, 0.0),
             v1: Vec3::new(1.0, 0.0, 0.0),
             v2: Vec3::new(1.0, 1.0, 1.0),
         };
+        let triangle2 = Triangle {
+            v0: Vec3::new(1.0, 0.0, 0.0),
+            v1: Vec3::new(2.0, 0.0, 0.0),
+            v2: Vec3::new(2.0, 1.0, 1.0),
+        };
+        let geometries = [triangle1, triangle2].map(Geometry::from);
         let cost = SahCost {
             traverse_cost: 0.1,
             intersect_cost: 1.0,
             empty_factor: 0.8,
         };
-        let actual = build_kdtree(&vec![triangle.into()], 7, &cost);
+        let actual = build_kdtree(&geometries, 7, &cost);
 
         let expected = KdNode::new_node(
-            Aap::new_x(0.0),
-            KdNode::empty(),
-            KdNode::new_node(
-                Aap::new_x(1.0),
-                KdNode::new_node(
-                    Aap::new_y(0.0),
-                    KdNode::empty(),
-                    KdNode::new_node(
-                        Aap::new_y(1.0),
-                        KdNode::new_node(
-                            Aap::new_z(0.0),
-                            KdNode::empty(),
-                            KdNode::new_node(
-                                Aap::new_z(1.0),
-                                KdNode::new_leaf(vec![0]),
-                                KdNode::empty(),
-                            ),
-                        ),
-                        KdNode::empty(),
-                    ),
-                ),
-                KdNode::empty(),
-            ),
+            Aap::new_x(1.0),
+            KdNode::new_leaf(vec![0]),
+            KdNode::new_leaf(vec![1]),
         );
         assert_eq!(
             actual, *expected,
@@ -108,30 +93,33 @@ mod tests {
 
     #[test]
     fn axially_aligned_triangle() {
-        let triangle = Triangle {
+        let triangle1 = Triangle {
             v0: Vec3::new(0.0, 0.0, 0.0),
             v1: Vec3::new(1.0, 0.0, 0.0),
             v2: Vec3::new(1.0, 1.0, 0.0),
         };
-        let cost = SahCost {
-            traverse_cost: 1.0,
-            intersect_cost: 10.0,
-            empty_factor: 0.8,
+        let triangle2 = Triangle {
+            v0: Vec3::new(0.0, 0.0, 1.0),
+            v1: Vec3::new(1.0, 0.0, 1.0),
+            v2: Vec3::new(1.0, 1.0, 1.0),
         };
-        let actual = build_kdtree(&vec![triangle.into()], 6, &cost);
+        let triangle3 = Triangle {
+            v0: Vec3::new(0.0, 0.0, 2.0),
+            v1: Vec3::new(1.0, 0.0, 2.0),
+            v2: Vec3::new(1.0, 1.0, 2.0),
+        };
+        let geometries = [triangle1, triangle2, triangle3].map(Geometry::from);
+        let cost = SahCost {
+            traverse_cost: 0.0,
+            intersect_cost: 1.0,
+            empty_factor: 1.0,
+        };
+        let actual = build_kdtree(&geometries, 6, &cost);
 
         let expected = KdNode::new_node(
-            Aap::new_x(0.0),
-            KdNode::empty(),
-            KdNode::new_node(
-                Aap::new_x(1.0),
-                KdNode::new_node(
-                    Aap::new_y(0.0),
-                    KdNode::empty(),
-                    KdNode::new_node(Aap::new_y(1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
-                ),
-                KdNode::empty(),
-            ),
+            Aap::new_z(1.0),
+            KdNode::new_leaf(vec![0, 1]),
+            KdNode::new_leaf(vec![2, 1]),
         );
         assert_eq!(
             actual, *expected,
