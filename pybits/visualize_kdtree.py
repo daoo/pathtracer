@@ -22,7 +22,7 @@ def axis_number(axis: str) -> int:
     raise ValueError(f"Unknown axis {axis}.")
 
 
-def visualize_kdnode(colormap, aabb, root):
+def visualize_leafs(colormap, aabb, root):
     stack = [(0, aabb, root)]
 
     mins = []
@@ -31,6 +31,9 @@ def visualize_kdnode(colormap, aabb, root):
     while stack:
         (depth, aabb, node) = stack.pop()
         if isinstance(node, list):
+            mins.append(aabb[0])
+            sizes.append(aabb[1] - aabb[0])
+            depths.append(depth)
             continue
         else:
             axis = axis_number(node["axis"])
@@ -43,16 +46,12 @@ def visualize_kdnode(colormap, aabb, root):
             right_aabb = aabb.copy()
             right_aabb[0, axis] = distance
 
-            mins.append(plane[0])
-            sizes.append(plane[1] - plane[0])
-            depths.append(depth)
-
             stack.append((depth + 1, left_aabb, node["left"]))
             stack.append((depth + 1, right_aabb, node["right"]))
 
     rerun.log(
         "world/kdtree",
-        rerun.Boxes3D(mins=mins, sizes=sizes, colors=colormap[depths]),
+        rerun.Boxes3D(mins=mins, sizes=sizes, colors=colormap[np.array(depths) - 1]),
         static=True,
     )
 
@@ -79,4 +78,4 @@ def visualize(kdtree):
     aabb_min = triangles.min(axis=0).min(axis=0)
     aabb_max = triangles.max(axis=0).max(axis=0)
     aabb = np.array([aabb_min, aabb_max])
-    visualize_kdnode(colormap, aabb, kdtree["root"])
+    visualize_leafs(colormap, aabb, kdtree["root"])
