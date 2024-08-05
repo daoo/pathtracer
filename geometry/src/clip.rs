@@ -46,7 +46,7 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Array
             if is_inside(clip_plane, *b) {
                 if !is_inside(clip_plane, *a) {
                     unsafe {
-                        output.push_unchecked(aabb.clamp(intersecting.unwrap_unchecked()));
+                        output.push_unchecked(intersecting.unwrap_unchecked());
                     }
                 }
                 unsafe {
@@ -54,12 +54,13 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Array
                 }
             } else if is_inside(clip_plane, *a) {
                 unsafe {
-                    output.push_unchecked(aabb.clamp(intersecting.unwrap_unchecked()));
+                    output.push_unchecked(intersecting.unwrap_unchecked());
                 }
             }
         }
     }
 
+    output.iter_mut().for_each(|p| *p = aabb.clamp(*p));
     output
 }
 
@@ -161,5 +162,26 @@ mod tests {
             .filter(|p| !aabb.contains(*p))
             .collect::<ArrayVec<Vec3, 1>>();
         assert_eq!(outside.as_slice(), expected);
+    }
+
+    #[test]
+    fn clip_incorrect_clamping_error() {
+        let v0 = Vec3::new(3.835834, 0.136162, -3.724971);
+        let v2 = Vec3::new(3.836198, 0.135679, -4.556344);
+        let v1 = Vec3::new(3.952836, 0.369915, -4.555017);
+        let aabb = Aabb::from_extents(
+            Vec3::new(3.8359935, 0.241052, -4.272935),
+            Vec3::new(3.901177, 0.274277, -4.089322),
+        );
+
+        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+
+        let expected = [
+            Vec3::new(3.901177, 0.2665847, -4.272935),
+            Vec3::new(3.8884628, 0.241052, -4.272935),
+            Vec3::new(3.8883352, 0.241052, -4.0974307),
+            Vec3::new(3.901177, 0.2667079, -4.1885333),
+        ];
+        assert_eq!(actual.as_slice(), expected);
     }
 }
