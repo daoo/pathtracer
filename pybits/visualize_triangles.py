@@ -24,3 +24,15 @@ def visualize(triangles):
         ),
         static=True,
     )
+
+def visualize_individually(triangles):
+    for i, triangle in zip(range(len(triangles)), triangles):
+        rerun.log(
+            f"world/triangles/{i}",
+            rerun.LineStrips3D(
+                loop_around(np.array([triangle])),
+                radii=0.002,
+                colors=(255, 255, 255),
+            ),
+            static=True,
+        )
