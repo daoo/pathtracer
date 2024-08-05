@@ -28,12 +28,14 @@ def visualize_leafs(colormap, aabb, root):
     mins = []
     sizes = []
     depths = []
+    labels = []
     while stack:
         (depth, aabb, node) = stack.pop()
         if isinstance(node, list):
             mins.append(aabb[0])
             sizes.append(aabb[1] - aabb[0])
             depths.append(depth)
+            labels.append(str(node))
             continue
         else:
             axis = axis_number(node["axis"])
@@ -51,7 +53,9 @@ def visualize_leafs(colormap, aabb, root):
 
     rerun.log(
         "world/kdtree",
-        rerun.Boxes3D(mins=mins, sizes=sizes, colors=colormap[np.array(depths) - 1]),
+        rerun.Boxes3D(
+            mins=mins, sizes=sizes, colors=colormap[np.array(depths) - 1], labels=labels
+        ),
         static=True,
     )
 
