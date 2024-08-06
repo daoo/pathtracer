@@ -1,14 +1,5 @@
 use geometry::{aabb::Aabb, aap::Aap};
 
-use crate::cell::KdCell;
-
-#[derive(Debug)]
-pub(crate) struct KdSplit {
-    pub(crate) plane: Aap,
-    pub(crate) left: KdCell,
-    pub(crate) right: KdCell,
-}
-
 fn partition_triangles(
     clipped_triangles: &[(u32, Aabb)],
     plane: &Aap,

@@ -1,6 +1,6 @@
 use crate::{
     cell::KdCell,
-    split::{partition_clipped_geometries, KdPartitioning, KdSplit},
+    split::{partition_clipped_geometries, KdPartitioning},
 };
 use geometry::{aap::Aap, geometry::Geometry};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -46,6 +46,13 @@ impl Default for SahCost {
             empty_factor: 0.8,
         }
     }
+}
+
+#[derive(Debug)]
+pub(crate) struct KdSplit {
+    pub(crate) plane: Aap,
+    pub(crate) left: KdCell,
+    pub(crate) right: KdCell,
 }
 
 fn select_best_split_based_on_cost(
