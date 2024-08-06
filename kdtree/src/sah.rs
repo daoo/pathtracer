@@ -98,7 +98,7 @@ pub(crate) fn find_best_split(
             .filter_map(|plane| {
                 calculate_cost(
                     cost,
-                    split_and_partition_clipped_geometries(&clipped, cell.boundary, plane),
+                    split_and_partition_clipped_geometries(&clipped, cell.boundary.clone(), plane),
                 )
             })
             .reduce(min_by_snd)
@@ -109,7 +109,7 @@ pub(crate) fn find_best_split(
             .filter_map(|plane| {
                 calculate_cost(
                     cost,
-                    split_and_partition_clipped_geometries(&clipped, cell.boundary, plane),
+                    split_and_partition_clipped_geometries(&clipped, cell.boundary.clone(), plane),
                 )
             })
             .reduce_with(min_by_snd)

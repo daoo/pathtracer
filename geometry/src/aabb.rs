@@ -2,7 +2,7 @@ use glam::Vec3;
 
 use super::aap::Aap;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Aabb {
     min: Vec3,
     max: Vec3,

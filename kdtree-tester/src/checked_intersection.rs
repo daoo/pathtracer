@@ -27,11 +27,11 @@ impl CheckedIntersection {
     pub fn as_bytes(&self, iteration: u16) -> [u8; 50] {
         let mut bytes = [0u8; 50];
         let ray = if let Some(kdtree) = &self.kdtree {
-            self.ray.extended(kdtree.intersection.t)
+            &self.ray.extended(kdtree.intersection.t)
         } else if let Some(reference) = &self.reference {
-            self.ray.extended(reference.intersection.t)
+            &self.ray.extended(reference.intersection.t)
         } else {
-            self.ray
+            &self.ray
         };
         let correct_point = self
             .ray

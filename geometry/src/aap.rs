@@ -4,7 +4,7 @@ use crate::ray::Ray;
 
 use super::axis::Axis;
 
-#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Aap {
     pub axis: Axis,
     pub distance: f32,

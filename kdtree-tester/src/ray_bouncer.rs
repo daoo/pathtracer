@@ -41,7 +41,7 @@ impl RayBouncer {
             .intersect(&self.scene.geometries, ray, t_range.clone());
         let reference = self.reference_ray_intersect(ray, t_range);
         CheckedIntersection {
-            ray: *ray,
+            ray: ray.clone(),
             reference,
             kdtree,
         }

@@ -5,7 +5,7 @@ use crate::{
     clip::clip_triangle_aabb, intersection::RayIntersection, ray::Ray,
 };
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Triangle {
     pub v0: Vec3,
     pub v1: Vec3,
@@ -50,7 +50,7 @@ impl Triangle {
     }
 
     #[inline]
-    pub fn as_arrays(self) -> [[f32; 3]; 3] {
+    pub fn as_arrays(&self) -> [[f32; 3]; 3] {
         [self.v0.into(), self.v1.into(), self.v2.into()]
     }
 

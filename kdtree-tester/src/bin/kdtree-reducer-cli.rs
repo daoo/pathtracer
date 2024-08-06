@@ -47,15 +47,16 @@ fn try_removing(
 
 fn reduce_tree(
     seed: u64,
-    intersection: &CheckedIntersection,
+    intersection: CheckedIntersection,
     geometries: Vec<Geometry>,
 ) -> (Vec<Geometry>, KdNode) {
-    let actual_intersection = intersection.kdtree.as_ref().unwrap();
-    let actual_geometry = geometries[actual_intersection.index as usize].clone();
-    let actual = (actual_geometry, actual_intersection.intersection);
+    let actual = (
+        geometries[intersection.kdtree.as_ref().unwrap().index as usize].clone(),
+        intersection.kdtree.as_ref().unwrap().intersection.clone(),
+    );
     let mut geometries = geometries;
-    geometries.swap(0, intersection.reference.as_ref().unwrap().index as usize);
-    geometries.swap(1, intersection.kdtree.as_ref().unwrap().index as usize);
+    geometries.swap(0, intersection.reference.unwrap().index as usize);
+    geometries.swap(1, intersection.kdtree.unwrap().index as usize);
     geometries[2..].shuffle(&mut SmallRng::seed_from_u64(seed));
     let mut try_index: usize = 2;
     let mut try_count = geometries.len() - try_index;
@@ -189,7 +190,7 @@ fn main() {
     }
 
     eprintln!("Reducing tree...");
-    let (geometries, tree) = reduce_tree(args.seed, &intersection, geometries);
+    let (geometries, tree) = reduce_tree(args.seed, intersection, geometries);
 
     eprintln!("Writing reduced tree to {:?}...", args.output);
     write_tree_json(

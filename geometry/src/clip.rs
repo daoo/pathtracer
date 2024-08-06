@@ -18,7 +18,7 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Array
         (true, Aap::new_z(aabb_max.z)),
     ];
 
-    let is_inside = |clip_plane: (bool, Aap), point: Vec3| {
+    let is_inside = |clip_plane: &(bool, Aap), point: Vec3| {
         if clip_plane.0 {
             point[clip_plane.1.axis] <= clip_plane.1.distance
         } else {
@@ -31,7 +31,7 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Array
     output.push(*v2);
     output.push(*v0);
 
-    for clip_plane @ (_, plane) in clip_planes {
+    for clip_plane in clip_planes {
         if output.is_empty() {
             return output;
         }
@@ -40,13 +40,13 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Array
         let points_iter = input.iter().cycle().skip(input.len() - 1).zip(input.iter());
         for (a, b) in points_iter {
             let ray = Ray::between(*a, *b);
-            let intersecting = plane.intersect_ray_point(&ray);
-            if is_inside(clip_plane, *b) {
-                if !is_inside(clip_plane, *a) {
+            let intersecting = clip_plane.1.intersect_ray_point(&ray);
+            if is_inside(&clip_plane, *b) {
+                if !is_inside(&clip_plane, *a) {
                     output.push(intersecting.unwrap());
                 }
                 output.push(*b);
-            } else if is_inside(clip_plane, *a) {
+            } else if is_inside(&clip_plane, *a) {
                 output.push(intersecting.unwrap());
             }
         }

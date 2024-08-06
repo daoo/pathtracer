@@ -16,7 +16,7 @@ use crate::{
     },
 };
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 struct TriangleNormals {
     n0: Vec3,
     n1: Vec3,
@@ -29,7 +29,7 @@ impl TriangleNormals {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 struct TriangleTexcoords {
     uv0: Vec2,
     uv1: Vec2,

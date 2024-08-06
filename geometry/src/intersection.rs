@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PointIntersection {
     pub u: f32,
     pub v: f32,
@@ -18,7 +18,7 @@ impl PointIntersection {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RayIntersection {
     pub t: f32,
     pub u: f32,
