@@ -1,30 +1,30 @@
 use geometry::{aabb::Aabb, aap::Aap};
 
-fn partition_triangles(
-    clipped_triangles: &[(u32, Aabb)],
+fn partition_clipped_geometries(
+    clipped: &[(u32, Aabb)],
     plane: &Aap,
 ) -> (Vec<u32>, Vec<u32>, Vec<u32>) {
-    let mut left_triangles: Vec<u32> = Vec::new();
-    let mut middle_triangles: Vec<u32> = Vec::new();
-    let mut right_triangles: Vec<u32> = Vec::new();
-    left_triangles.reserve(clipped_triangles.len());
-    right_triangles.reserve(clipped_triangles.len());
-    for (index, boundary) in clipped_triangles {
+    let mut left_indices: Vec<u32> = Vec::new();
+    let mut middle_indices: Vec<u32> = Vec::new();
+    let mut right_indices: Vec<u32> = Vec::new();
+    left_indices.reserve(clipped.len());
+    right_indices.reserve(clipped.len());
+    for (index, boundary) in clipped {
         let planar = boundary.min()[plane.axis] == plane.distance
             && boundary.max()[plane.axis] == plane.distance;
         let left = boundary.min()[plane.axis] < plane.distance;
         let right = boundary.max()[plane.axis] > plane.distance;
         if left {
-            left_triangles.push(*index);
+            left_indices.push(*index);
         }
         if planar {
-            middle_triangles.push(*index);
+            middle_indices.push(*index);
         }
         if right {
-            right_triangles.push(*index);
+            right_indices.push(*index);
         }
     }
-    (left_triangles, middle_triangles, right_triangles)
+    (left_indices, middle_indices, right_indices)
 }
 
 #[derive(Debug)]
@@ -38,13 +38,13 @@ pub(crate) struct KdPartitioning {
     pub(crate) right_indices: Vec<u32>,
 }
 
-pub(crate) fn partition_clipped_geometries(
+pub(crate) fn split_and_partition_clipped_geometries(
     clipped: &[(u32, Aabb)],
     parent_aabb: Aabb,
     plane: Aap,
 ) -> KdPartitioning {
     let (left_aabb, right_aabb) = parent_aabb.split(&plane);
-    let (left_indices, middle_indices, right_indices) = partition_triangles(clipped, &plane);
+    let (left_indices, middle_indices, right_indices) = partition_clipped_geometries(clipped, &plane);
     KdPartitioning {
         plane,
         parent_aabb,
@@ -74,7 +74,7 @@ mod tests {
             distance: 1.0,
         };
 
-        let actual = partition_triangles(clipped.as_slice(), &plane);
+        let actual = partition_clipped_geometries(clipped.as_slice(), &plane);
 
         assert_eq!(actual, (vec![0], vec![1], vec![2]));
     }

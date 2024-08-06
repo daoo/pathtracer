@@ -1,6 +1,6 @@
 use crate::{
     cell::KdCell,
-    split::{partition_clipped_geometries, KdPartitioning},
+    partitioning::{split_and_partition_clipped_geometries, KdPartitioning},
 };
 use geometry::{aap::Aap, geometry::Geometry};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -25,14 +25,14 @@ impl SahCost {
         empty_factor * (self.traverse_cost + intersect_cost)
     }
 
-    fn calculate_for_split(&self, split: &KdPartitioning) -> f32 {
-        let surface_area = split.parent_aabb.surface_area();
-        let probability_left = split.left_aabb.surface_area() / surface_area;
-        let probability_right = split.right_aabb.surface_area() / surface_area;
+    fn calculate_for_split(&self, partitioning: &KdPartitioning) -> f32 {
+        let surface_area = partitioning.parent_aabb.surface_area();
+        let probability_left = partitioning.left_aabb.surface_area() / surface_area;
+        let probability_right = partitioning.right_aabb.surface_area() / surface_area;
         let probability = (probability_left, probability_right);
         let counts = (
-            split.left_indices.len() + split.middle_indices.len(),
-            split.right_indices.len() + split.middle_indices.len(),
+            partitioning.left_indices.len() + partitioning.middle_indices.len(),
+            partitioning.right_indices.len() + partitioning.middle_indices.len(),
         );
         self.calculate(probability, counts)
     }
@@ -55,24 +55,21 @@ pub(crate) struct KdSplit {
     pub(crate) right: KdCell,
 }
 
-fn select_best_split_based_on_cost(
-    cost: &SahCost,
-    split: KdPartitioning,
-) -> Option<(KdSplit, f32)> {
+fn calculate_cost(cost: &SahCost, partitioning: KdPartitioning) -> Option<(KdSplit, f32)> {
     // TODO: Place planes to the left or to the right depending on what gives best cost.
-    if (split.left_aabb.volume() == 0.0 || split.right_aabb.volume() == 0.0)
-        && split.middle_indices.is_empty()
+    if (partitioning.left_aabb.volume() == 0.0 || partitioning.right_aabb.volume() == 0.0)
+        && partitioning.middle_indices.is_empty()
     {
         return None;
     }
-    let cost = cost.calculate_for_split(&split);
-    let mut left_indices = split.left_indices;
-    let mut right_indices = split.right_indices;
-    left_indices.extend(&split.middle_indices);
-    right_indices.extend(split.middle_indices);
-    let left = KdCell::new(split.left_aabb, left_indices);
-    let right = KdCell::new(split.right_aabb, right_indices);
-    let plane = split.plane;
+    let cost = cost.calculate_for_split(&partitioning);
+    let mut left_indices = partitioning.left_indices;
+    let mut right_indices = partitioning.right_indices;
+    left_indices.extend(&partitioning.middle_indices);
+    right_indices.extend(partitioning.middle_indices);
+    let left = KdCell::new(partitioning.left_aabb, left_indices);
+    let right = KdCell::new(partitioning.right_aabb, right_indices);
+    let plane = partitioning.plane;
     Some((KdSplit { plane, left, right }, cost))
 }
 
@@ -99,9 +96,9 @@ pub(crate) fn find_best_split(
         splits
             .into_iter()
             .filter_map(|plane| {
-                select_best_split_based_on_cost(
+                calculate_cost(
                     cost,
-                    partition_clipped_geometries(&clipped, cell.boundary, plane),
+                    split_and_partition_clipped_geometries(&clipped, cell.boundary, plane),
                 )
             })
             .reduce(min_by_snd)
@@ -110,9 +107,9 @@ pub(crate) fn find_best_split(
         splits
             .into_par_iter()
             .filter_map(|plane| {
-                select_best_split_based_on_cost(
+                calculate_cost(
                     cost,
-                    partition_clipped_geometries(&clipped, cell.boundary, plane),
+                    split_and_partition_clipped_geometries(&clipped, cell.boundary, plane),
                 )
             })
             .reduce_with(min_by_snd)
