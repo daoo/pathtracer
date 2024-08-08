@@ -74,6 +74,19 @@ mod tests {
     }
 
     #[test]
+    fn clip_triangle_in_box_side() {
+        let v0 = Vec3::new(1.0, 1.0, 0.0);
+        let v1 = Vec3::new(2.0, 1.0, 0.0);
+        let v2 = Vec3::new(2.0, 2.0, 0.0);
+        let aabb = Aabb::from_extents(Vec3::new(0.0, 0.0, 0.0), Vec3::new(3.0, 3.0, 3.0));
+
+        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+
+        let expected = [v1, v2, v0];
+        assert_eq!(actual.as_slice(), expected);
+    }
+
+    #[test]
     fn clip_triangle_above_box() {
         let v0 = Vec3::new(0.0, 2.0, 0.0);
         let v1 = Vec3::new(1.0, 2.0, 0.0);
