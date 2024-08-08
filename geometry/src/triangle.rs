@@ -66,7 +66,7 @@ impl Triangle {
 
     pub fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
         let clipped = clip_triangle_aabb(&self.v0, &self.v1, &self.v2, aabb);
-        if clipped.is_empty() {
+        if clipped.len() <= 2 {
             return None;
         }
         let start = (clipped[0], clipped[0]);

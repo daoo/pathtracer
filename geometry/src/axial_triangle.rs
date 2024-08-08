@@ -97,7 +97,7 @@ impl AxiallyAlignedTriangle {
             aabb,
         );
 
-        if clipped.is_empty() {
+        if clipped.len() <= 2 {
             return None;
         }
         let start = (clipped[0], clipped[0]);
