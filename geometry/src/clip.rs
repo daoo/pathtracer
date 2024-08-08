@@ -31,6 +31,12 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Array
     output.push(*v2);
     output.push(*v0);
 
+    let push_unique = |o: &mut ArrayVec<Vec3, 8>, p: Vec3| {
+        if !o.contains(&p) {
+            o.push(p);
+        }
+    };
+
     for clip_plane in clip_planes {
         if output.is_empty() {
             return output;
@@ -43,11 +49,11 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Array
             let intersecting = clip_plane.1.intersect_ray_point(&ray);
             if is_inside(&clip_plane, *b) {
                 if !is_inside(&clip_plane, *a) {
-                    output.push(intersecting.unwrap());
+                    push_unique(&mut output, intersecting.unwrap());
                 }
-                output.push(*b);
+                push_unique(&mut output, *b);
             } else if is_inside(&clip_plane, *a) {
-                output.push(intersecting.unwrap());
+                push_unique(&mut output, intersecting.unwrap());
             }
         }
     }
@@ -87,7 +93,7 @@ mod tests {
     }
 
     #[test]
-    fn clip_triangle_in_flat_box() {
+    fn clip_triangle_intersecting_flat_box_fully() {
         let v0 = Vec3::new(1.0, 1.0, 0.0);
         let v1 = Vec3::new(2.0, 1.0, 0.0);
         let v2 = Vec3::new(2.0, 2.0, 0.0);
@@ -96,6 +102,19 @@ mod tests {
         let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
 
         let expected = [v1, v2, v0];
+        assert_eq!(actual.as_slice(), expected);
+    }
+
+    #[test]
+    fn clip_triangle_intersecting_flat_box_in_a_line() {
+        let v0 = Vec3::new(1.0, 1.0, -1.0);
+        let v1 = Vec3::new(2.0, 1.0, 0.0);
+        let v2 = Vec3::new(2.0, 2.0, 1.0);
+        let aabb = Aabb::from_extents(Vec3::new(0.0, 0.0, 0.0), Vec3::new(3.0, 3.0, 0.0));
+
+        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+
+        let expected = [Vec3::new(2.0, 1.0, 0.0), Vec3::new(1.5, 1.5, 0.0)];
         assert_eq!(actual.as_slice(), expected);
     }
 
@@ -219,7 +238,6 @@ mod tests {
             Vec3::new(-1.630846, 1.5970019, -6.3492346),
             Vec3::new(-1.6308461, 1.5970019, -6.3507214),
             Vec3::new(-1.630858, 1.59699, -6.807353),
-            Vec3::new(-1.5316842, 1.5598166, -6.807353),
             Vec3::new(-1.5316842, 1.5598166, -6.807353),
             Vec3::new(-1.531684, 1.5598166, -6.8061028),
             Vec3::new(-1.531684, 1.5598228, -6.633503),
