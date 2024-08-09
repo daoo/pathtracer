@@ -17,7 +17,7 @@ fn starting_box(geometries: &[Geometry]) -> KdCell {
 
 fn build_helper(
     geometries: &[Geometry],
-    cost: &SahCost,
+    sah: &SahCost,
     max_depth: u32,
     depth: u32,
     cell: KdCell,
@@ -26,28 +26,28 @@ fn build_helper(
         return KdNode::new_leaf(cell.indices);
     }
 
-    match find_best_split(geometries, cost, &cell) {
+    match find_best_split(geometries, sah, &cell) {
         None => KdNode::new_leaf(cell.indices),
         Some(split) => {
-            if should_terminate(cost, &cell, &split) {
+            if should_terminate(sah, &cell, &split) {
                 KdNode::new_leaf(cell.indices)
             } else {
-                let left = build_helper(geometries, cost, max_depth, depth + 1, split.left);
-                let right = build_helper(geometries, cost, max_depth, depth + 1, split.right);
+                let left = build_helper(geometries, sah, max_depth, depth + 1, split.left);
+                let right = build_helper(geometries, sah, max_depth, depth + 1, split.right);
                 KdNode::new_node(split.plane, left, right)
             }
         }
     }
 }
 
-pub fn build_kdtree(geometries: &[Geometry], max_depth: u32, cost: &SahCost) -> KdNode {
+pub fn build_kdtree(geometries: &[Geometry], max_depth: u32, sah: &SahCost) -> KdNode {
     if max_depth as usize > MAX_DEPTH {
         panic!(
             "Max depth ({}) must be smaller than hard coded value ({}).",
             max_depth, MAX_DEPTH
         );
     }
-    *build_helper(geometries, cost, max_depth, 1, starting_box(geometries))
+    *build_helper(geometries, sah, max_depth, 1, starting_box(geometries))
 }
 
 #[cfg(test)]
@@ -60,7 +60,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn non_axially_aligned_triangle() {
+    fn two_oriented_triangles() {
         let triangle1 = Triangle {
             v0: Vec3::new(0.0, 0.0, 0.0),
             v1: Vec3::new(1.0, 0.0, 0.0),
@@ -72,12 +72,12 @@ mod tests {
             v2: Vec3::new(2.0, 1.0, 1.0),
         };
         let geometries = [triangle1, triangle2].map(Geometry::from);
-        let cost = SahCost {
+        let sah = SahCost {
             traverse_cost: 0.1,
             intersect_cost: 1.0,
             empty_factor: 0.8,
         };
-        let actual = build_kdtree(&geometries, 7, &cost);
+        let actual = build_kdtree(&geometries, 7, &sah);
 
         let expected = KdNode::new_node(
             Aap::new_x(1.0),
@@ -92,7 +92,7 @@ mod tests {
     }
 
     #[test]
-    fn axially_aligned_triangle() {
+    fn two_axially_aligned_triangles() {
         let triangle1 = Triangle {
             v0: Vec3::new(0.0, 0.0, 0.0),
             v1: Vec3::new(1.0, 0.0, 0.0),
@@ -103,23 +103,128 @@ mod tests {
             v1: Vec3::new(1.0, 0.0, 1.0),
             v2: Vec3::new(1.0, 1.0, 1.0),
         };
-        let triangle3 = Triangle {
-            v0: Vec3::new(0.0, 0.0, 2.0),
-            v1: Vec3::new(1.0, 0.0, 2.0),
-            v2: Vec3::new(1.0, 1.0, 2.0),
-        };
-        let geometries = [triangle1, triangle2, triangle3].map(Geometry::from);
-        let cost = SahCost {
+        let geometries = [triangle1, triangle2].map(Geometry::from);
+        let sah = SahCost {
             traverse_cost: 0.0,
             intersect_cost: 1.0,
             empty_factor: 1.0,
         };
-        let actual = build_kdtree(&geometries, 6, &cost);
+        let actual = build_kdtree(&geometries, 6, &sah);
 
         let expected = KdNode::new_node(
-            Aap::new_z(1.0),
-            KdNode::new_leaf(vec![0, 1]),
-            KdNode::new_leaf(vec![2, 1]),
+            Aap::new_z(0.0),
+            KdNode::new_leaf(vec![0]),
+            KdNode::new_node(Aap::new_z(1.0), KdNode::empty(), KdNode::new_leaf(vec![1])),
+        );
+        assert_eq!(
+            actual, *expected,
+            "\n   actual: {}\n expected: {}",
+            actual, *expected
+        );
+    }
+
+    #[test]
+    fn one_cube() {
+        let triangles = [
+            // Front
+            Triangle {
+                v0: Vec3::new(0.0, 0.0, 0.0),
+                v1: Vec3::new(1.0, 0.0, 0.0),
+                v2: Vec3::new(1.0, 1.0, 0.0),
+            },
+            Triangle {
+                v0: Vec3::new(0.0, 0.0, 0.0),
+                v1: Vec3::new(0.0, 1.0, 0.0),
+                v2: Vec3::new(1.0, 1.0, 0.0),
+            },
+            // Back
+            Triangle {
+                v0: Vec3::new(0.0, 0.0, 1.0),
+                v1: Vec3::new(1.0, 0.0, 1.0),
+                v2: Vec3::new(1.0, 1.0, 1.0),
+            },
+            Triangle {
+                v0: Vec3::new(0.0, 0.0, 1.0),
+                v1: Vec3::new(0.0, 1.0, 1.0),
+                v2: Vec3::new(1.0, 1.0, 1.0),
+            },
+            // Bottom
+            Triangle {
+                v0: Vec3::new(0.0, 0.0, 0.0),
+                v1: Vec3::new(1.0, 0.0, 0.0),
+                v2: Vec3::new(1.0, 0.0, 1.0),
+            },
+            Triangle {
+                v0: Vec3::new(0.0, 0.0, 0.0),
+                v1: Vec3::new(0.0, 0.0, 1.0),
+                v2: Vec3::new(1.0, 0.0, 1.0),
+            },
+            // Top
+            Triangle {
+                v0: Vec3::new(0.0, 1.0, 0.0),
+                v1: Vec3::new(1.0, 1.0, 0.0),
+                v2: Vec3::new(1.0, 1.0, 1.0),
+            },
+            Triangle {
+                v0: Vec3::new(0.0, 1.0, 0.0),
+                v1: Vec3::new(0.0, 1.0, 1.0),
+                v2: Vec3::new(1.0, 1.0, 1.0),
+            },
+            // Right
+            Triangle {
+                v0: Vec3::new(0.0, 0.0, 0.0),
+                v1: Vec3::new(0.0, 0.0, 1.0),
+                v2: Vec3::new(0.0, 1.0, 1.0),
+            },
+            Triangle {
+                v0: Vec3::new(0.0, 0.0, 0.0),
+                v1: Vec3::new(0.0, 1.0, 0.0),
+                v2: Vec3::new(0.0, 1.0, 1.0),
+            },
+            // Left
+            Triangle {
+                v0: Vec3::new(1.0, 0.0, 0.0),
+                v1: Vec3::new(1.0, 1.0, 0.0),
+                v2: Vec3::new(1.0, 1.0, 1.0),
+            },
+            Triangle {
+                v0: Vec3::new(1.0, 0.0, 0.0),
+                v1: Vec3::new(1.0, 0.0, 1.0),
+                v2: Vec3::new(1.0, 1.0, 1.0),
+            },
+        ];
+        let geometries = triangles.map(Geometry::from);
+        let sah = SahCost {
+            traverse_cost: 0.0,
+            intersect_cost: 1.0,
+            empty_factor: 1.0,
+        };
+        let actual = build_kdtree(&geometries, 10, &sah);
+
+        let expected = KdNode::new_node(
+            Aap::new_x(0.0),
+            KdNode::new_leaf(vec![8, 9]),
+            KdNode::new_node(
+                Aap::new_x(1.0),
+                KdNode::new_node(
+                    Aap::new_y(0.0),
+                    KdNode::new_leaf(vec![4, 5]),
+                    KdNode::new_node(
+                        Aap::new_y(1.0),
+                        KdNode::new_node(
+                            Aap::new_z(0.0),
+                            KdNode::new_leaf(vec![0, 1]),
+                            KdNode::new_node(
+                                Aap::new_z(1.0),
+                                KdNode::empty(),
+                                KdNode::new_leaf(vec![2, 3]),
+                            ),
+                        ),
+                        KdNode::new_leaf(vec![6, 7]),
+                    ),
+                ),
+                KdNode::new_leaf(vec![10, 11]),
+            ),
         );
         assert_eq!(
             actual, *expected,

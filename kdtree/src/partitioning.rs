@@ -44,7 +44,8 @@ pub(crate) fn split_and_partition_clipped_geometries(
     plane: Aap,
 ) -> KdPartitioning {
     let (left_aabb, right_aabb) = parent_aabb.split(&plane);
-    let (left_indices, middle_indices, right_indices) = partition_clipped_geometries(clipped, &plane);
+    let (left_indices, middle_indices, right_indices) =
+        partition_clipped_geometries(clipped, &plane);
     KdPartitioning {
         plane,
         parent_aabb,

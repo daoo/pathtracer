@@ -12,10 +12,16 @@ pub struct SahCost {
 }
 
 impl SahCost {
-    fn calculate(&self, probability: (f32, f32), counts: (usize, usize)) -> f32 {
+    fn calculate(
+        &self,
+        volume: (f32, f32),
+        probability: (f32, f32),
+        counts: (usize, usize),
+    ) -> f32 {
         debug_assert!((0.0..=1.0).contains(&probability.0) && (0.0..=1.0).contains(&probability.1));
         debug_assert!(probability.0 > 0.0 || probability.1 > 0.0);
-        let empty_factor = if counts.0 == 0 || counts.1 == 0 {
+        // TODO: if empty side is flat, apply no empty factor
+        let empty_factor = if counts.0 == 0 && volume.0 > 0.01 || counts.1 == 0 && volume.1 > 0.01 {
             self.empty_factor
         } else {
             1.0
@@ -24,25 +30,13 @@ impl SahCost {
             * (probability.0 * counts.0 as f32 + probability.1 * counts.1 as f32);
         empty_factor * (self.traverse_cost + intersect_cost)
     }
-
-    fn calculate_for_split(&self, partitioning: &KdPartitioning) -> f32 {
-        let surface_area = partitioning.parent_aabb.surface_area();
-        let probability_left = partitioning.left_aabb.surface_area() / surface_area;
-        let probability_right = partitioning.right_aabb.surface_area() / surface_area;
-        let probability = (probability_left, probability_right);
-        let counts = (
-            partitioning.left_indices.len() + partitioning.middle_indices.len(),
-            partitioning.right_indices.len() + partitioning.middle_indices.len(),
-        );
-        self.calculate(probability, counts)
-    }
 }
 
 impl Default for SahCost {
     fn default() -> Self {
         SahCost {
-            traverse_cost: 2.0,
-            intersect_cost: 1.0,
+            traverse_cost: 1.0,
+            intersect_cost: 2.0,
             empty_factor: 0.8,
         }
     }
@@ -55,27 +49,82 @@ pub(crate) struct KdSplit {
     pub(crate) right: KdCell,
 }
 
-fn calculate_cost(cost: &SahCost, partitioning: KdPartitioning) -> Option<(KdSplit, f32)> {
-    // TODO: Place planes to the left or to the right depending on what gives best cost.
-    if (partitioning.left_aabb.volume() == 0.0 || partitioning.right_aabb.volume() == 0.0)
-        && partitioning.middle_indices.is_empty()
-    {
-        return None;
-    }
-    let cost = cost.calculate_for_split(&partitioning);
-    let mut left_indices = partitioning.left_indices;
-    let mut right_indices = partitioning.right_indices;
-    left_indices.extend(&partitioning.middle_indices);
-    right_indices.extend(partitioning.middle_indices);
+fn select_best_partitioning(sah: &SahCost, partitioning: KdPartitioning) -> Option<(KdSplit, f32)> {
+    let volume = (
+        partitioning.left_aabb.volume(),
+        partitioning.right_aabb.volume(),
+    );
+    let parent_surface_area = partitioning.parent_aabb.surface_area();
+    let probability = (
+        partitioning.left_aabb.surface_area() / parent_surface_area,
+        partitioning.right_aabb.surface_area() / parent_surface_area,
+    );
+    let (cost, left_indices, right_indices) = if partitioning.middle_indices.is_empty() {
+        let counts = (
+            partitioning.left_indices.len(),
+            partitioning.right_indices.len(),
+        );
+        if counts.0 == 0 && volume.0 <= 0.01 || counts.1 == 0 && volume.1 <= 0.01 {
+            return None;
+        }
+        let cost = sah.calculate(volume, probability, counts);
+        (cost, partitioning.left_indices, partitioning.right_indices)
+    } else if volume.0 <= 0.01 {
+        let counts = (
+            partitioning.left_indices.len() + partitioning.middle_indices.len(),
+            partitioning.right_indices.len(),
+        );
+        if counts.0 == 0 && volume.0 <= 0.01 || counts.1 == 0 && volume.1 <= 0.01 {
+            return None;
+        }
+        let cost = sah.calculate(volume, probability, counts);
+        let mut left_indices = partitioning.left_indices;
+        left_indices.extend(partitioning.middle_indices);
+        (cost, left_indices, partitioning.right_indices)
+    } else if volume.1 <= 0.01 {
+        let counts = (
+            partitioning.left_indices.len(),
+            partitioning.right_indices.len() + partitioning.middle_indices.len(),
+        );
+        if counts.0 == 0 && volume.0 <= 0.01 || counts.1 == 0 && volume.1 <= 0.01 {
+            return None;
+        }
+        let cost = sah.calculate(volume, probability, counts);
+        let mut right_indices = partitioning.right_indices;
+        right_indices.extend(partitioning.middle_indices);
+        (cost, partitioning.left_indices, right_indices)
+    } else {
+        let counts_middle_left = (
+            partitioning.left_indices.len() + partitioning.middle_indices.len(),
+            partitioning.right_indices.len(),
+        );
+        let counts_middle_right = (
+            partitioning.left_indices.len(),
+            partitioning.right_indices.len() + partitioning.middle_indices.len(),
+        );
+        let cost = (
+            sah.calculate(volume, probability, counts_middle_left),
+            sah.calculate(volume, probability, counts_middle_right),
+        );
+        if cost.0 <= cost.1 {
+            let mut left_indices = partitioning.left_indices;
+            left_indices.extend(partitioning.middle_indices);
+            (cost.0, left_indices, partitioning.right_indices)
+        } else {
+            let mut right_indices = partitioning.right_indices;
+            right_indices.extend(partitioning.middle_indices);
+            (cost.1, partitioning.left_indices, right_indices)
+        }
+    };
+    let plane = partitioning.plane;
     let left = KdCell::new(partitioning.left_aabb, left_indices);
     let right = KdCell::new(partitioning.right_aabb, right_indices);
-    let plane = partitioning.plane;
     Some((KdSplit { plane, left, right }, cost))
 }
 
 pub(crate) fn find_best_split(
     geometries: &[Geometry],
-    cost: &SahCost,
+    sah: &SahCost,
     cell: &KdCell,
 ) -> Option<KdSplit> {
     debug_assert!(
@@ -96,8 +145,8 @@ pub(crate) fn find_best_split(
         splits
             .into_iter()
             .filter_map(|plane| {
-                calculate_cost(
-                    cost,
+                select_best_partitioning(
+                    sah,
                     split_and_partition_clipped_geometries(&clipped, cell.boundary.clone(), plane),
                 )
             })
@@ -107,8 +156,8 @@ pub(crate) fn find_best_split(
         splits
             .into_par_iter()
             .filter_map(|plane| {
-                calculate_cost(
-                    cost,
+                select_best_partitioning(
+                    sah,
                     split_and_partition_clipped_geometries(&clipped, cell.boundary.clone(), plane),
                 )
             })
@@ -118,12 +167,13 @@ pub(crate) fn find_best_split(
 }
 
 pub(crate) fn should_terminate(cost: &SahCost, cell: &KdCell, split: &KdSplit) -> bool {
+    let volume = (split.left.boundary.volume(), split.right.boundary.volume());
     let surface_area = cell.boundary.surface_area();
     let probability_left = split.left.boundary.surface_area() / surface_area;
     let probability_right = split.right.boundary.surface_area() / surface_area;
     let probability = (probability_left, probability_right);
     let counts = (split.left.indices.len(), split.right.indices.len());
-    let split_cost = cost.calculate(probability, counts);
+    let split_cost = cost.calculate(volume, probability, counts);
     let intersect_cost = cost.intersect_cost * cell.indices.len() as f32;
     split_cost >= intersect_cost
 }
