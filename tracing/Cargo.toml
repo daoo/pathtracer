@@ -11,5 +11,5 @@ assert_approx_eq = "1.1.0"
 geometry = { version = "1.0.0", path = "../geometry" }
 glam = "0.28.0"
 kdtree = { version = "1.0.0", path = "../kdtree" }
-rand = { version = "0.8.5", default-features = false, features = ["small_rng", "std"] }
+rand = { version = "0.8.5", default-features = false, features = ["std", "small_rng"] }
 scene = { version = "1.0.0", path = "../scene" }
