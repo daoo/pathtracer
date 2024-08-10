@@ -1,8 +1,8 @@
 use glam::{Vec2, Vec3};
 use rand::{rngs::SmallRng, Rng};
 use scene::material::{
-    BlendMaterial, DiffuseReflectiveMaterial, FresnelBlendMaterial, MaterialSample,
-    SpecularReflectiveMaterial, SpecularRefractiveMaterial,
+    BlendMaterial, DiffuseReflectiveMaterial, FresnelBlendMaterial, SpecularReflectiveMaterial,
+    SpecularRefractiveMaterial,
 };
 
 use crate::sampling::cosine_sample_hemisphere;
@@ -69,6 +69,13 @@ impl OutgoingRay {
             uv: self.uv,
         }
     }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct MaterialSample {
+    pub pdf: f32,
+    pub brdf: Vec3,
+    pub wo: Vec3,
 }
 
 pub trait Material {

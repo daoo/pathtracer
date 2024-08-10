@@ -1,13 +1,6 @@
 use glam::Vec3;
 use image::Rgb32FImage;
 
-#[derive(Debug, PartialEq)]
-pub struct MaterialSample {
-    pub pdf: f32,
-    pub brdf: Vec3,
-    pub wo: Vec3,
-}
-
 #[derive(Clone, Debug)]
 pub struct DiffuseReflectiveMaterial {
     pub reflectance: Vec3,
