@@ -9,7 +9,7 @@ use rand::{rngs::SmallRng, SeedableRng};
 use scene::{camera::Pinhole, Scene};
 use std::ops::RangeInclusive;
 use tracing::{
-    material::{IncomingRay, Material},
+    material::{material_sample, IncomingRay},
     sampling::{sample_light, uniform_sample_unit_square},
 };
 
@@ -88,10 +88,11 @@ impl RayBouncer {
             return Some(checked.clone());
         }
 
-        let sample = self
-            .scene
-            .get_material(intersection_index)
-            .sample(&IncomingRay { wi, n, uv }, &mut rng);
+        let sample = material_sample(
+            self.scene.get_material(intersection_index),
+            &IncomingRay { wi, n, uv },
+            &mut rng,
+        );
         let next_ray = Ray::new(
             if sample.wo.dot(n) >= 0.0 {
                 point_above

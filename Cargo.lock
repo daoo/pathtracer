@@ -646,6 +646,7 @@ dependencies = [
  "assert_approx_eq",
  "geometry",
  "glam",
+ "image",
  "kdtree",
  "rand",
  "scene",

@@ -1,5 +1,6 @@
 use geometry::{geometry::Geometry, intersection::RayIntersection, triangle::Triangle};
 use glam::{Vec2, Vec3};
+use material::Material;
 use std::{collections::BTreeMap, fs::File, io::BufReader, path::Path};
 use wavefront::{mtl, obj};
 
@@ -7,14 +8,7 @@ pub mod camera;
 pub mod light;
 pub mod material;
 
-use crate::{
-    camera::Camera,
-    light::SphericalLight,
-    material::{
-        BlendMaterial, DiffuseReflectiveMaterial, FresnelBlendMaterial, MaterialModel,
-        SpecularReflectiveMaterial, SpecularRefractiveMaterial,
-    },
-};
+use crate::{camera::Camera, light::SphericalLight};
 
 #[derive(Clone, Debug, PartialEq)]
 struct TriangleNormals {
@@ -51,50 +45,33 @@ struct TriangleProperties {
 pub struct Scene {
     pub geometries: Vec<Geometry>,
     properties: Vec<TriangleProperties>,
-    materials: Vec<MaterialModel>,
+    materials: Vec<Material>,
     pub cameras: Vec<Camera>,
     pub lights: Vec<SphericalLight>,
     pub environment: Vec3,
 }
 
-fn blend_from_mtl(image_directory: &Path, material: &mtl::Material) -> MaterialModel {
+fn blend_from_mtl(image_directory: &Path, material: &mtl::Material) -> Material {
     let texture = (!material.diffuse_map.is_empty()).then(|| {
         image::open(image_directory.join(&material.diffuse_map))
             .unwrap()
             .to_rgb32f()
     });
-    let reflection = DiffuseReflectiveMaterial {
-        reflectance: material.diffuse_reflection.into(),
-        texture,
-    };
-    let refraction = SpecularRefractiveMaterial {
+    Material {
+        diffuse_reflectance: material.diffuse_reflection.into(),
+        diffuse_texture_reflectance: texture,
+        specular_reflectance: material.specular_reflection.into(),
         index_of_refraction: material.index_of_refraction,
-    };
-    let specular = SpecularReflectiveMaterial {
-        reflectance: material.specular_reflection.into(),
-    };
-    let transparency_blend = BlendMaterial {
-        first: refraction,
-        second: reflection,
-        factor: material.transparency,
-    };
-    let fresnel_blend = FresnelBlendMaterial {
-        reflection: specular,
-        refraction: transparency_blend.clone(),
-        r0: material.reflection_0_degrees,
-    };
-    let material = BlendMaterial {
-        first: fresnel_blend,
-        second: transparency_blend,
-        factor: material.reflection_90_degrees,
-    };
-    material
+        reflection_0_degrees: material.reflection_0_degrees,
+        reflection_90_degrees: material.reflection_90_degrees,
+        transparency: material.transparency,
+    }
 }
 
 fn materials_from_mtl<'m>(
     image_directory: &Path,
     mtl: &'m mtl::Mtl,
-) -> BTreeMap<&'m str, MaterialModel> {
+) -> BTreeMap<&'m str, Material> {
     mtl.materials
         .iter()
         .map(|m| (m.name.as_str(), blend_from_mtl(image_directory, m)))
@@ -205,7 +182,7 @@ impl Scene {
     }
 
     #[inline]
-    pub fn get_material(&self, index: u32) -> &MaterialModel {
+    pub fn get_material(&self, index: u32) -> &Material {
         &self.materials[self.properties[index as usize].material_index]
     }
 

@@ -2,7 +2,7 @@ use std::ops::RangeInclusive;
 
 use crate::{
     image_buffer::ImageBuffer,
-    material::{Material, OutgoingRay},
+    material::{material_brdf, OutgoingRay},
 };
 use geometry::ray::Ray;
 use glam::{UVec2, Vec2, Vec3};
@@ -52,10 +52,10 @@ impl Raytracer {
                 }
                 let wo = direction.normalize();
                 let radiance = light.emitted(point);
-                let brdf = self
-                    .scene
-                    .get_material(intersection_index)
-                    .brdf(&OutgoingRay { wi, n, wo, uv });
+                let brdf = material_brdf(
+                    self.scene.get_material(intersection_index),
+                    &OutgoingRay { wi, n, wo, uv },
+                );
                 brdf * radiance * wo.dot(n).abs()
             })
             .sum()
