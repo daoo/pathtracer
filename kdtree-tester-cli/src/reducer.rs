@@ -1,11 +1,10 @@
 use std::{
     fs::File,
     io::{BufReader, BufWriter, Write},
+    path::PathBuf,
     time::Instant,
 };
 
-use clap::Parser;
-use kdtree_tester::checked_intersection::CheckedIntersection;
 use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 
 use geometry::{geometry::Geometry, intersection::RayIntersection, ray::Ray, triangle::Triangle};
@@ -14,6 +13,8 @@ use kdtree::{
     KdNode, MAX_DEPTH,
 };
 use wavefront::obj;
+
+use crate::checked_intersection::CheckedIntersection;
 
 fn build_test_tree(geometries: &[Geometry]) -> KdNode {
     build_kdtree(geometries, MAX_DEPTH as u32, &SahCost::default())
@@ -101,29 +102,7 @@ fn reduce_tree(
     (geometries, tree)
 }
 
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Args {
-    /// Wavefront OBJ input path
-    #[arg(short = 'i', long, required = true)]
-    input: std::path::PathBuf,
-
-    /// Output reduced kd-tree JSON data path
-    #[arg(short = 'o', long, required = true)]
-    output: std::path::PathBuf,
-
-    /// Output ray fail binary data path
-    #[arg(short = 'f', long)]
-    fail: Option<std::path::PathBuf>,
-
-    /// Seed for random generator used to shuffle input geometry
-    #[arg(short = 's', long, required = true)]
-    seed: u64,
-}
-
-fn main() {
-    let args = Args::parse();
-
+pub(crate) fn kdtree_reduce(input: PathBuf, output: PathBuf, fail: Option<PathBuf>, seed: u64) {
     let intersection = CheckedIntersection {
         ray: Ray::new(
             [3.897963, 0.24242611, -4.203691].into(),
@@ -146,14 +125,14 @@ fn main() {
             },
         )),
     };
-    eprintln!("Seed: {}", args.seed);
+    eprintln!("Seed: {}", seed);
     eprintln!("Testing with failed intersection:");
     eprintln!("  {:?}", &intersection.ray);
     eprintln!("  Expected: {:?}", &intersection.reference);
     eprintln!("    Actual: {:?}", &intersection.kdtree);
 
-    eprintln!("Loading {}...", args.input.display());
-    let obj = obj::obj(&mut BufReader::new(File::open(&args.input).unwrap()));
+    eprintln!("Loading {}...", input.display());
+    let obj = obj::obj(&mut BufReader::new(File::open(&input).unwrap()));
     eprintln!("  Chunks: {}", obj.chunks.len());
     eprintln!("  Vertices: {}", obj.vertices.len());
     eprintln!("  Normals: {}", obj.normals.len());
@@ -182,7 +161,7 @@ fn main() {
         .collect::<Vec<_>>();
     eprintln!("  Geometries: {}", geometries.len());
 
-    if let Some(path) = args.fail {
+    if let Some(path) = fail {
         eprintln!("Writing test ray to {:?}...", path);
         let file = File::create(path).unwrap();
         let mut buf = BufWriter::new(file);
@@ -190,11 +169,11 @@ fn main() {
     }
 
     eprintln!("Reducing tree...");
-    let (geometries, tree) = reduce_tree(args.seed, intersection, geometries);
+    let (geometries, tree) = reduce_tree(seed, intersection, geometries);
 
-    eprintln!("Writing reduced tree to {:?}...", args.output);
+    eprintln!("Writing reduced tree to {:?}...", output);
     write_tree_json(
-        &mut BufWriter::new(File::create(args.output).unwrap()),
+        &mut BufWriter::new(File::create(output).unwrap()),
         &geometries,
         &tree,
     )

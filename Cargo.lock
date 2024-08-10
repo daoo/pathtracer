@@ -293,7 +293,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "kdtree-tester"
+name = "kdtree-tester-cli"
 version = "0.1.0"
 dependencies = [
  "clap",
