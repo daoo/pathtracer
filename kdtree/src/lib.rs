@@ -8,7 +8,6 @@ pub mod build;
 mod cell;
 pub mod format;
 pub mod intersection;
-mod partitioning;
 pub mod sah;
 
 pub const MAX_DEPTH: usize = 20;

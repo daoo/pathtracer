@@ -1,9 +1,42 @@
-use crate::{
-    cell::KdCell,
-    partitioning::{split_and_partition_clipped_geometries, KdPartitioning},
-};
-use geometry::{aap::Aap, geometry::Geometry};
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use std::cmp::Ordering;
+
+use crate::cell::KdCell;
+use geometry::{aabb::Aabb, aap::Aap, axis::Axis, geometry::Geometry};
+
+#[derive(Debug, PartialEq)]
+enum Side {
+    Left,
+    Right,
+}
+
+#[derive(Debug)]
+struct SahSplit {
+    plane: Aap,
+    side: Side,
+    cost: f32,
+}
+
+impl SahSplit {
+    fn new_left(plane: Aap, cost: f32) -> Self {
+        Self {
+            plane,
+            side: Side::Left,
+            cost,
+        }
+    }
+
+    fn new_right(plane: Aap, cost: f32) -> Self {
+        Self {
+            plane,
+            side: Side::Right,
+            cost,
+        }
+    }
+
+    fn total_cmp(&self, other: &Self) -> Ordering {
+        f32::total_cmp(&self.cost, &other.cost)
+    }
+}
 
 pub struct SahCost {
     pub traverse_cost: f32,
@@ -34,6 +67,46 @@ impl SahCost {
             * (probability.0 * counts.0 as f32 + probability.1 * counts.1 as f32);
         empty_factor * (self.traverse_cost + intersect_cost)
     }
+
+    fn split_cost_with_planar(
+        &self,
+        boundary: &Aabb,
+        plane: Aap,
+        counts: (usize, usize, usize),
+    ) -> Option<SahSplit> {
+        if boundary.volume() == 0.0 || counts.0 + counts.1 + counts.2 == 0 {
+            return None;
+        }
+        let (left, right) = boundary.split(&plane);
+        let surface_area = boundary.surface_area();
+        let volume = (left.volume(), right.volume());
+        let probability = (
+            left.surface_area() / surface_area,
+            right.surface_area() / surface_area,
+        );
+        if left.volume() > 0.0 && right.volume() > 0.0 {
+            let l = self.split_cost(volume, probability, (counts.0 + counts.1, counts.2));
+            let r = self.split_cost(volume, probability, (counts.0, counts.2 + counts.1));
+            [
+                SahSplit::new_left(plane.clone(), l),
+                SahSplit::new_right(plane, r),
+            ]
+            .into_iter()
+            .min_by(SahSplit::total_cmp)
+        } else if left.volume() == 0.0 && counts.0 + counts.1 > 0 {
+            Some(SahSplit::new_left(
+                plane,
+                self.split_cost(volume, probability, (counts.0 + counts.1, counts.2)),
+            ))
+        } else if right.volume() == 0.0 && counts.1 + counts.2 > 0 {
+            Some(SahSplit::new_right(
+                plane,
+                self.split_cost(volume, probability, (counts.0, counts.1 + counts.2)),
+            ))
+        } else {
+            None
+        }
+    }
 }
 
 impl Default for SahCost {
@@ -53,77 +126,139 @@ pub(crate) struct KdSplit {
     pub(crate) right: KdCell,
 }
 
-fn select_best_partitioning(sah: &SahCost, partitioning: KdPartitioning) -> Option<(KdSplit, f32)> {
-    let volume = (
-        partitioning.left_aabb.volume(),
-        partitioning.right_aabb.volume(),
-    );
-    let parent_surface_area = partitioning.parent_aabb.surface_area();
-    let probability = (
-        partitioning.left_aabb.surface_area() / parent_surface_area,
-        partitioning.right_aabb.surface_area() / parent_surface_area,
-    );
-    let (cost, left_indices, right_indices) = if partitioning.middle_indices.is_empty() {
-        let counts = (
-            partitioning.left_indices.len(),
-            partitioning.right_indices.len(),
-        );
-        if counts.0 == 0 && volume.0 <= 0.01 || counts.1 == 0 && volume.1 <= 0.01 {
-            return None;
+#[derive(Debug, PartialEq, PartialOrd, Eq, Ord)]
+enum EventKind {
+    End,
+    Planar,
+    Start,
+}
+
+#[derive(Debug, PartialEq)]
+struct Event {
+    distance: f32,
+    kind: EventKind,
+}
+
+impl Event {
+    fn new_end(distance: f32) -> Self {
+        Self {
+            distance,
+            kind: EventKind::End,
         }
-        let cost = sah.split_cost(volume, probability, counts);
-        (cost, partitioning.left_indices, partitioning.right_indices)
-    } else if volume.0 <= 0.01 {
-        let counts = (
-            partitioning.left_indices.len() + partitioning.middle_indices.len(),
-            partitioning.right_indices.len(),
-        );
-        if counts.0 == 0 && volume.0 <= 0.01 || counts.1 == 0 && volume.1 <= 0.01 {
-            return None;
+    }
+
+    fn new_planar(distance: f32) -> Self {
+        Self {
+            distance,
+            kind: EventKind::Planar,
         }
-        let cost = sah.split_cost(volume, probability, counts);
-        let mut left_indices = partitioning.left_indices;
-        left_indices.extend(partitioning.middle_indices);
-        (cost, left_indices, partitioning.right_indices)
-    } else if volume.1 <= 0.01 {
-        let counts = (
-            partitioning.left_indices.len(),
-            partitioning.right_indices.len() + partitioning.middle_indices.len(),
-        );
-        if counts.0 == 0 && volume.0 <= 0.01 || counts.1 == 0 && volume.1 <= 0.01 {
-            return None;
+    }
+
+    fn new_start(distance: f32) -> Self {
+        Self {
+            distance,
+            kind: EventKind::Start,
         }
-        let cost = sah.split_cost(volume, probability, counts);
-        let mut right_indices = partitioning.right_indices;
-        right_indices.extend(partitioning.middle_indices);
-        (cost, partitioning.left_indices, right_indices)
-    } else {
-        let counts_middle_left = (
-            partitioning.left_indices.len() + partitioning.middle_indices.len(),
-            partitioning.right_indices.len(),
-        );
-        let counts_middle_right = (
-            partitioning.left_indices.len(),
-            partitioning.right_indices.len() + partitioning.middle_indices.len(),
-        );
-        let cost = (
-            sah.split_cost(volume, probability, counts_middle_left),
-            sah.split_cost(volume, probability, counts_middle_right),
-        );
-        if cost.0 <= cost.1 {
-            let mut left_indices = partitioning.left_indices;
-            left_indices.extend(partitioning.middle_indices);
-            (cost.0, left_indices, partitioning.right_indices)
+    }
+}
+
+fn generate_event_list(clipped: &[(u32, Aabb)], axis: Axis) -> Vec<Event> {
+    let mut events: Vec<Event> = Vec::with_capacity(clipped.len() * 2);
+    for c in clipped {
+        if c.1.min()[axis] == c.1.max()[axis] {
+            events.push(Event::new_planar(c.1.min()[axis]));
         } else {
-            let mut right_indices = partitioning.right_indices;
-            right_indices.extend(partitioning.middle_indices);
-            (cost.1, partitioning.left_indices, right_indices)
+            events.push(Event::new_end(c.1.max()[axis]));
+            events.push(Event::new_start(c.1.min()[axis]));
         }
-    };
-    let plane = partitioning.plane;
-    let left = KdCell::new(partitioning.left_aabb, left_indices);
-    let right = KdCell::new(partitioning.right_aabb, right_indices);
-    Some((KdSplit { plane, left, right }, cost))
+    }
+    events.sort_unstable_by(|a, b| {
+        f32::total_cmp(&a.distance, &b.distance).then(a.kind.cmp(&b.kind))
+    });
+    events
+}
+
+fn sweep_plane_axis(
+    sah: &SahCost,
+    boundary: &Aabb,
+    clipped: &[(u32, Aabb)],
+    axis: Axis,
+) -> Option<SahSplit> {
+    let events = generate_event_list(clipped, axis);
+    let mut best_cost: Option<SahSplit> = None;
+    let mut n_left = 0;
+    let mut n_right = clipped.len();
+    let mut i = 0;
+    while i < events.len() {
+        let p = Aap {
+            axis,
+            distance: events[i].distance,
+        };
+
+        let p_end = events[i..]
+            .iter()
+            .take_while(|e| e.distance == p.distance && e.kind == EventKind::End)
+            .count();
+        i += p_end;
+        let p_planar = events[i..]
+            .iter()
+            .take_while(|e| e.distance == p.distance && e.kind == EventKind::Planar)
+            .count();
+        i += p_planar;
+        let p_start = events[i..]
+            .iter()
+            .take_while(|e| e.distance == p.distance && e.kind == EventKind::Start)
+            .count();
+        i += p_start;
+
+        n_right -= p_planar;
+        n_right -= p_end;
+        let cost = sah.split_cost_with_planar(boundary, p, (n_left, p_planar, n_right));
+        best_cost = [best_cost, cost]
+            .into_iter()
+            .flatten()
+            .min_by(SahSplit::total_cmp);
+        n_left += p_start;
+        n_left += p_planar;
+    }
+    best_cost
+}
+
+fn sweep_plane(sah: &SahCost, boundary: &Aabb, clipped: &[(u32, Aabb)]) -> Option<SahSplit> {
+    [Axis::X, Axis::Y, Axis::Z]
+        .into_iter()
+        .filter_map(|axis| sweep_plane_axis(sah, boundary, clipped, axis))
+        .min_by(SahSplit::total_cmp)
+}
+
+fn repartition(boundary: &Aabb, clipped: &[(u32, Aabb)], best: SahSplit) -> KdSplit {
+    let plane = best.plane;
+    let mut left_indices: Vec<u32> = Vec::with_capacity(clipped.len());
+    let mut right_indices: Vec<u32> = Vec::with_capacity(clipped.len());
+    for (index, boundary) in clipped {
+        let planar = boundary.min()[plane.axis] == plane.distance
+            && boundary.max()[plane.axis] == plane.distance;
+        let left = boundary.min()[plane.axis] < plane.distance;
+        let right = boundary.max()[plane.axis] > plane.distance;
+        if left {
+            left_indices.push(*index);
+        }
+        if planar {
+            match best.side {
+                Side::Left => left_indices.push(*index),
+                Side::Right => right_indices.push(*index),
+            }
+        }
+        if right {
+            right_indices.push(*index);
+        }
+    }
+    let (left_aabb, right_aabb) = boundary.split(&plane);
+    KdSplit {
+        plane,
+        left: KdCell::new(left_aabb, left_indices),
+        right: KdCell::new(right_aabb, right_indices),
+    }
 }
 
 pub(crate) fn find_best_split(
@@ -137,32 +272,8 @@ pub(crate) fn find_best_split(
     );
 
     let clipped = cell.clip_geometries(geometries);
-    let mut splits = clipped
-        .iter()
-        .flat_map(|(_, aabb)| aabb.sides())
-        .collect::<Vec<_>>();
-    splits.sort_unstable_by(Aap::total_cmp);
-    splits.dedup();
-
-    let select_best = |plane| {
-        select_best_partitioning(
-            sah,
-            split_and_partition_clipped_geometries(&clipped, cell.boundary.clone(), plane),
-        )
-    };
-    let min_by_snd = |a: (_, f32), b: (_, f32)| if a.1 <= b.1 { a } else { b };
-    if splits.len() <= 100 {
-        splits
-            .into_iter()
-            .filter_map(select_best)
-            .reduce(min_by_snd)
-    } else {
-        splits
-            .into_par_iter()
-            .filter_map(select_best)
-            .reduce_with(min_by_snd)
-    }
-    .map(|a| a.0)
+    sweep_plane(sah, &cell.boundary, &clipped)
+        .map(|best| repartition(&cell.boundary, &clipped, best))
 }
 
 pub(crate) fn should_terminate(sah: &SahCost, cell: &KdCell, split: &KdSplit) -> bool {
@@ -175,4 +286,52 @@ pub(crate) fn should_terminate(sah: &SahCost, cell: &KdCell, split: &KdSplit) ->
     let split_cost = sah.split_cost(volume, probability, counts);
     let intersect_cost = sah.leaf_cost(cell.indices.len());
     split_cost >= intersect_cost
+}
+
+#[cfg(test)]
+mod tests {
+    use glam::Vec3;
+
+    use super::*;
+
+    #[test]
+    fn generate_event_list_single_triangle() {
+        let triangle = Aabb::from_extents(Vec3::ZERO, Vec3::ONE);
+        let clipped = [(0, triangle)];
+
+        let actual = generate_event_list(&clipped, Axis::X);
+
+        let expected = vec![Event::new_start(0.0), Event::new_end(1.0)];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn generate_event_list_planar_triangle() {
+        let triangle = Aabb::from_extents(Vec3::ZERO, Vec3::new(0.0, 1.0, 1.0));
+        let clipped = [(0, triangle)];
+
+        let actual = generate_event_list(&clipped, Axis::X);
+
+        let expected = vec![Event::new_planar(0.0)];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn generate_event_list_multiple_overlapping_triangles() {
+        let triangle1 = Aabb::from_extents(Vec3::ZERO, Vec3::ONE);
+        let triangle2 = Aabb::from_extents(Vec3::ONE, Vec3::new(2.0, 2.0, 2.0));
+        let triangle3 = Aabb::from_extents(Vec3::ONE, Vec3::new(1.0, 2.0, 2.0));
+        let clipped = [(0, triangle1), (1, triangle2), (2, triangle3)];
+
+        let actual = generate_event_list(&clipped, Axis::X);
+
+        let expected = vec![
+            Event::new_start(0.0),
+            Event::new_end(1.0),
+            Event::new_planar(1.0),
+            Event::new_start(1.0),
+            Event::new_end(2.0),
+        ];
+        assert_eq!(actual, expected);
+    }
 }
