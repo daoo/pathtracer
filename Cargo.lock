@@ -283,7 +283,6 @@ dependencies = [
  "arrayvec",
  "geometry",
  "glam",
- "rayon",
  "textwrap",
 ]
 
