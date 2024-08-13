@@ -14,13 +14,12 @@ pub(crate) fn kdtree_ray_tester(
     output: Option<PathBuf>,
     size: Size,
     bounces: u32,
-    max_depth: u32,
     sah: SahCost,
 ) {
     let scene = Scene::read_obj_file_with_print_logging(&input);
 
     println!("Building kdtree...");
-    let kdtree = build_kdtree(&scene.geometries, max_depth, &sah);
+    let kdtree = build_kdtree(&scene.geometries, &sah);
 
     println!("Testing up to {} rays...", size.x * size.y * bounces);
     let camera = Pinhole::new(scene.cameras[0].clone(), size.as_uvec2());

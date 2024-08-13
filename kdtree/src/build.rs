@@ -15,14 +15,8 @@ fn starting_box(geometries: &[Geometry]) -> KdCell {
     )
 }
 
-fn build_helper(
-    geometries: &[Geometry],
-    sah: &SahCost,
-    max_depth: u32,
-    depth: u32,
-    cell: KdCell,
-) -> Box<KdNode> {
-    if depth >= max_depth || cell.indices.is_empty() {
+fn build_helper(geometries: &[Geometry], sah: &SahCost, depth: u32, cell: KdCell) -> Box<KdNode> {
+    if depth as usize >= MAX_DEPTH || cell.indices.is_empty() {
         return KdNode::new_leaf(cell.indices);
     }
 
@@ -32,22 +26,16 @@ fn build_helper(
             if should_terminate(sah, &cell, &split) {
                 KdNode::new_leaf(cell.indices)
             } else {
-                let left = build_helper(geometries, sah, max_depth, depth + 1, split.left);
-                let right = build_helper(geometries, sah, max_depth, depth + 1, split.right);
+                let left = build_helper(geometries, sah, depth + 1, split.left);
+                let right = build_helper(geometries, sah, depth + 1, split.right);
                 KdNode::new_node(split.plane, left, right)
             }
         }
     }
 }
 
-pub fn build_kdtree(geometries: &[Geometry], max_depth: u32, sah: &SahCost) -> KdNode {
-    if max_depth as usize > MAX_DEPTH {
-        panic!(
-            "Max depth ({}) must be smaller than hard coded value ({}).",
-            max_depth, MAX_DEPTH
-        );
-    }
-    *build_helper(geometries, sah, max_depth, 1, starting_box(geometries))
+pub fn build_kdtree(geometries: &[Geometry], sah: &SahCost) -> KdNode {
+    *build_helper(geometries, sah, 1, starting_box(geometries))
 }
 
 #[cfg(test)]
@@ -77,7 +65,7 @@ mod tests {
             intersect_cost: 1.0,
             empty_factor: 0.8,
         };
-        let actual = build_kdtree(&geometries, 7, &sah);
+        let actual = build_kdtree(&geometries, &sah);
 
         let expected = KdNode::new_node(
             Aap::new_x(1.0),
@@ -109,7 +97,7 @@ mod tests {
             intersect_cost: 1.0,
             empty_factor: 1.0,
         };
-        let actual = build_kdtree(&geometries, 6, &sah);
+        let actual = build_kdtree(&geometries, &sah);
 
         let expected = KdNode::new_node(
             Aap::new_z(0.0),
@@ -199,7 +187,7 @@ mod tests {
             intersect_cost: 1.0,
             empty_factor: 1.0,
         };
-        let actual = build_kdtree(&geometries, 10, &sah);
+        let actual = build_kdtree(&geometries, &sah);
 
         let expected = KdNode::new_node(
             Aap::new_x(0.0),

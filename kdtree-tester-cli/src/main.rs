@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use kdtree::{sah::SahCost, MAX_DEPTH};
+use kdtree::sah::SahCost;
 use ray_tester::kdtree_ray_tester;
 use reducer::kdtree_reduce;
 use size::Size;
@@ -35,9 +35,6 @@ enum Commands {
         #[arg(short, long, default_value_t = 10)]
         bounces: u32,
 
-        /// Maximum kd-tree depth
-        #[arg(long, default_value_t = MAX_DEPTH as u32)]
-        max_depth: u32,
         /// SAH kd-tree traverse cost
         #[arg(long, default_value_t = SahCost::default().traverse_cost)]
         traverse_cost: f32,
@@ -76,7 +73,6 @@ fn main() {
             output,
             size,
             bounces,
-            max_depth,
             traverse_cost,
             intersect_cost,
             empty_factor,
@@ -85,7 +81,6 @@ fn main() {
             output,
             size,
             bounces,
-            max_depth,
             SahCost {
                 traverse_cost,
                 intersect_cost,

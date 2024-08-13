@@ -6,7 +6,7 @@ use kdtree::{
     build::build_kdtree,
     format::{write_node_pretty, write_tree_dot, write_tree_json, write_tree_rust},
     sah::SahCost,
-    KdNode, MAX_DEPTH,
+    KdNode,
 };
 use std::{
     fs::File,
@@ -33,9 +33,6 @@ struct Args {
     #[arg(short = 'd', long, default_value_t = false)]
     dot: bool,
 
-    /// Maximum kd-tree depth
-    #[arg(long, default_value_t = MAX_DEPTH as u32)]
-    max_depth: u32,
     /// SAH kd-tree traverse cost
     #[arg(long, default_value_t = SahCost::default().traverse_cost)]
     traverse_cost: f32,
@@ -190,7 +187,6 @@ fn main() {
     eprintln!("  Geometries: {}", geometries.len());
 
     eprintln!("Building kdtree...");
-    eprintln!("  Max depth: {:?}", args.max_depth);
     eprintln!("  Traverse cost: {:?}", args.traverse_cost);
     eprintln!("  Intersect cost: {:?}", args.intersect_cost);
     eprintln!("  Empty factor: {:?}", args.empty_factor);
@@ -201,7 +197,7 @@ fn main() {
         intersect_cost: args.intersect_cost,
         empty_factor: args.empty_factor,
     };
-    let kdtree = build_kdtree(&geometries, args.max_depth, &cost);
+    let kdtree = build_kdtree(&geometries, &cost);
     let duration = Instant::now().duration_since(start_time);
     let duration = Duration::new(duration.as_secs() as i64, duration.as_nanos() as i32);
 

@@ -1,7 +1,7 @@
 use clap::Parser;
 use glam::UVec2;
 use image::{ImageFormat, RgbImage};
-use kdtree::{build::build_kdtree, sah::SahCost, MAX_DEPTH};
+use kdtree::{build::build_kdtree, sah::SahCost};
 use rand::{rngs::SmallRng, SeedableRng};
 use scene::{camera::Pinhole, Scene};
 use std::{
@@ -72,9 +72,6 @@ struct Args {
     #[arg(short, long, default_value_t = 1)]
     threads: u32,
 
-    /// Maximum kd-tree depth
-    #[arg(long, default_value_t = MAX_DEPTH as u32)]
-    max_depth: u32,
     /// SAH kd-tree traverse cost
     #[arg(long, default_value_t = SahCost::default().traverse_cost)]
     traverse_cost: f32,
@@ -163,7 +160,6 @@ fn main() {
     println!("Building kdtree...");
     let kdtree = build_kdtree(
         &scene.geometries,
-        args.max_depth,
         &SahCost {
             traverse_cost: args.traverse_cost,
             intersect_cost: args.intersect_cost,

@@ -10,14 +10,14 @@ use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 use geometry::{geometry::Geometry, intersection::RayIntersection, ray::Ray, triangle::Triangle};
 use kdtree::{
     build::build_kdtree, format::write_tree_json, intersection::KdIntersection, sah::SahCost,
-    KdNode, MAX_DEPTH,
+    KdNode,
 };
 use wavefront::obj;
 
 use crate::checked_intersection::CheckedIntersection;
 
 fn build_test_tree(geometries: &[Geometry]) -> KdNode {
-    build_kdtree(geometries, MAX_DEPTH as u32, &SahCost::default())
+    build_kdtree(geometries, &SahCost::default())
 }
 
 fn verify_removal(
