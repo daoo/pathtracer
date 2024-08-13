@@ -10,7 +10,7 @@ pub mod format;
 pub mod intersection;
 pub mod sah;
 
-pub const MAX_DEPTH: usize = 20;
+pub const MAX_DEPTH: usize = 25;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum KdNode {
