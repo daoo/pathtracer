@@ -1,9 +1,6 @@
 use std::{
     ops::Add,
-    sync::{
-        mpsc::{self, Receiver, Sender},
-        Arc,
-    },
+    sync::mpsc::{self, Receiver, Sender},
     thread::JoinHandle,
     time,
 };
@@ -64,10 +61,10 @@ fn render_subdivided(pathtracer: &Pathtracer, pinhole: &Pinhole, sub_size: UVec2
 }
 
 fn worker_loop(
-    pathtracer: Arc<Pathtracer>,
+    pathtracer: &Pathtracer,
     start_pinhole: Pinhole,
-    rx: Receiver<Pinhole>,
-    tx: Sender<RenderResult>,
+    rx: &Receiver<Pinhole>,
+    tx: &Sender<RenderResult>,
 ) {
     let mut pinhole = start_pinhole;
     let mut iteration = 0;
@@ -90,12 +87,12 @@ fn worker_loop(
                 UVec2::new(64, 64 * pinhole.size.y / pinhole.size.x),
             );
             let (duration, buffer) =
-                measure(|| render_subdivided(&pathtracer, &pinhole_small, pinhole_small.size / 3));
+                measure(|| render_subdivided(pathtracer, &pinhole_small, pinhole_small.size / 3));
             let _ = tx.send(RenderResult::new(1, duration, buffer));
             iteration = 1;
         } else {
             let (duration, buffer) =
-                measure(|| render_subdivided(&pathtracer, &pinhole, pinhole.size / 4));
+                measure(|| render_subdivided(pathtracer, &pinhole, pinhole.size / 4));
             combined_buffer += buffer;
             let _ = tx.send(RenderResult::new(
                 iteration,
@@ -119,7 +116,7 @@ impl Worker {
         let (pinhole_tx, pinhole_rx) = mpsc::channel::<Pinhole>();
         let thread = std::thread::Builder::new()
             .name("Pathtracer Worker".to_string())
-            .spawn(move || worker_loop(Arc::new(pathtracer), pinhole, pinhole_rx, result_tx))
+            .spawn(move || worker_loop(&pathtracer, pinhole, &pinhole_rx, &result_tx))
             .unwrap();
         Self {
             thread,

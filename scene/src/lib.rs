@@ -114,12 +114,11 @@ impl Scene {
             .iter()
             .flat_map(|chunk| {
                 chunk.faces.iter().map(|face| {
-                    if face.points.len() != 3 {
-                        panic!(
-                            "Only tringular faces supported but found {} vertices.",
-                            face.points.len()
-                        );
-                    }
+                    assert!(
+                        face.points.len() == 3,
+                        "Only tringular faces supported but found {} vertices.",
+                        face.points.len()
+                    );
                     let geometry = Geometry::from(Triangle {
                         v0: obj.index_vertex(&face.points[0]).into(),
                         v1: obj.index_vertex(&face.points[1]).into(),

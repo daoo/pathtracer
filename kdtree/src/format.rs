@@ -129,15 +129,15 @@ where
     Ok(())
 }
 
-pub fn write_node_dot<W>(write: &mut W, path: String, node: &KdNode) -> Result<(), io::Error>
+pub fn write_node_dot<W>(write: &mut W, path: &str, node: &KdNode) -> Result<(), io::Error>
 where
     W: io::Write,
 {
     match node {
         KdNode::Leaf(indices) => {
-            let formatted = format!("{:?}", indices);
+            let formatted = format!("{indices:?}");
             let wrapped = textwrap::fill(formatted.as_str(), 60);
-            writeln!(write, "  {} [label={:?}];", path, wrapped)?;
+            writeln!(write, "  {path} [label={wrapped:?}];")?;
         }
         KdNode::Node { plane, left, right } => {
             writeln!(
@@ -145,12 +145,12 @@ where
                 "  {} [label=\"{:?} {}\"];",
                 path, plane.axis, plane.distance
             )?;
-            let left_path = path.clone() + "l";
-            let right_path = path.clone() + "r";
+            let left_path = path.to_string() + "l";
+            let right_path = path.to_string() + "r";
             writeln!(write, "  {} -> {};", &path, left_path)?;
             writeln!(write, "  {} -> {};", &path, right_path)?;
-            write_node_dot(write, left_path, left)?;
-            write_node_dot(write, right_path, right)?;
+            write_node_dot(write, &left_path, left)?;
+            write_node_dot(write, &right_path, right)?;
         }
     }
     Ok(())
@@ -163,7 +163,7 @@ where
     writeln!(write, "digraph {{")?;
     writeln!(write, "  rankdir=\"LR\";")?;
     writeln!(write, "  node [shape=\"box\"];")?;
-    write_node_dot(write, "t".to_string(), tree)?;
+    write_node_dot(write, "t", tree)?;
     writeln!(write, "}}")?;
     Ok(())
 }

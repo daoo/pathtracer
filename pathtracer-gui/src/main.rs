@@ -1,5 +1,6 @@
 use clap::Parser;
 use kdtree::{build::build_kdtree, sah::SahCost};
+use miniquad::conf::Conf;
 use scene::Scene;
 use stage::Stage;
 use tracing::pathtracer::Pathtracer;
@@ -43,7 +44,7 @@ fn main() {
         kdtree,
     };
 
-    miniquad::start(Default::default(), move || {
+    miniquad::start(Conf::default(), move || {
         let camera = pathtracer.scene.cameras[0].clone();
         Box::new(Stage::new(pathtracer, camera))
     });

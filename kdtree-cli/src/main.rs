@@ -49,7 +49,7 @@ fn node_cost(
     cost_intersect: f32,
     empty_factor: f32,
     scene_surface_area: f32,
-    boundary: Aabb,
+    boundary: &Aabb,
     node: &KdNode,
 ) -> f32 {
     match node {
@@ -64,7 +64,7 @@ fn node_cost(
                 cost_intersect,
                 empty_factor,
                 scene_surface_area,
-                left_aabb,
+                &left_aabb,
                 left,
             );
             let right_cost = node_cost(
@@ -72,7 +72,7 @@ fn node_cost(
                 cost_intersect,
                 empty_factor,
                 scene_surface_area,
-                right_aabb,
+                &right_aabb,
                 right,
             );
             let node_cost = cost_traverse + split_cost + left_cost + right_cost;
@@ -99,7 +99,7 @@ fn tree_cost(
         cost_intersect,
         empty_factor,
         bounding_box.surface_area(),
-        bounding_box,
+        &bounding_box,
         node,
     )
 }
@@ -114,7 +114,7 @@ struct Statistics {
 
 impl Statistics {
     fn compute(mut vec: Vec<usize>) -> Self {
-        vec.sort();
+        vec.sort_unstable();
         let median = if vec.len() == 1 {
             vec[0] as f32
         } else if vec.len() % 2 == 0 {
@@ -169,12 +169,11 @@ fn main() {
         .iter()
         .flat_map(|chunk| {
             chunk.faces.iter().map(|face| {
-                if face.points.len() != 3 {
-                    panic!(
-                        "Only tringular faces supported but found {} vertices.",
-                        face.points.len()
-                    );
-                }
+                assert!(
+                    face.points.len() == 3,
+                    "Only tringular faces supported but found {} vertices.",
+                    face.points.len()
+                );
                 Triangle {
                     v0: obj.index_vertex(&face.points[0]).into(),
                     v1: obj.index_vertex(&face.points[1]).into(),
@@ -211,8 +210,8 @@ fn main() {
     let stats = statistics(&geometries, &kdtree);
     eprintln!("Done...");
     eprintln!("Tree statistics:");
-    eprintln!("  Build time: {:.3}", duration);
-    eprintln!("  SAH cost: {:.3}", cost);
+    eprintln!("  Build time: {duration:.3}");
+    eprintln!("  SAH cost: {cost:.3}");
     eprintln!("  Geometries: {}", stats.geometries);
     eprintln!("  Node count: {}", stats.node_count);
     eprintln!("  Leaf count: {}", stats.leaf_count);

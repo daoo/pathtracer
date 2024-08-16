@@ -76,7 +76,7 @@ impl Pathtracer {
                 let radiance = light.emitted(point);
                 let brdf = material_brdf(
                     self.scene.get_material(intersection_index),
-                    &OutgoingRay { wi, n, wo, uv },
+                    &OutgoingRay { wi, n, uv, wo },
                 );
                 brdf * radiance * wo.dot(n).abs()
             })
@@ -136,7 +136,7 @@ impl Pathtracer {
         )
     }
 
-    fn sample_ray_for_pixel(&self, pinhole: &Pinhole, rng: &mut SmallRng, pixel: UVec2) -> Ray {
+    fn sample_ray_for_pixel(pinhole: &Pinhole, rng: &mut SmallRng, pixel: UVec2) -> Ray {
         debug_assert!(pixel.x < pinhole.size.x && pixel.y < pinhole.size.y);
         let pixel_center = pixel.as_vec2() + uniform_sample_unit_square(rng);
         pinhole.ray(pixel_center / pinhole.size.as_vec2())
@@ -150,7 +150,7 @@ impl Pathtracer {
         rng: &mut SmallRng,
     ) -> Vec3 {
         let ray_logger = ray_logger.with_pixel(pixel.x as u16, pixel.y as u16);
-        let ray = self.sample_ray_for_pixel(pinhole, rng, pixel);
+        let ray = Self::sample_ray_for_pixel(pinhole, rng, pixel);
         self.trace_ray_defaults(ray_logger, rng, &ray)
     }
 

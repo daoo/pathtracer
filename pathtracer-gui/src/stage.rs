@@ -3,8 +3,8 @@ use std::time::Instant;
 use glam::{Mat3, UVec2, Vec3};
 use miniquad::{
     Bindings, BufferLayout, BufferSource, BufferType, BufferUsage, EventHandler, GlContext,
-    KeyCode, Pipeline, PipelineParams, RenderingBackend, ShaderSource, TextureId, VertexAttribute,
-    VertexFormat,
+    KeyCode, PassAction, Pipeline, PipelineParams, RenderingBackend, ShaderSource, TextureId,
+    VertexAttribute, VertexFormat,
 };
 use scene::camera::{Camera, Pinhole};
 use tracing::pathtracer::Pathtracer;
@@ -159,13 +159,16 @@ impl Stage {
     }
 
     fn update_texture(&mut self) {
-        while let Some(result) = self.worker.as_ref().and_then(|worker| worker.try_receive()) {
+        while let Some(result) = self.worker.as_ref().and_then(Worker::try_receive) {
             eprintln!(
                 "Received {:?} @ {} rendered in {:?}.",
                 result.buffer.size, result.iterations, result.duration,
             );
             let texture_size = self.ctx.texture_size(self.texture).into();
-            if result.buffer.size != texture_size {
+            if result.buffer.size == texture_size {
+                self.ctx
+                    .texture_update(self.texture, &result.buffer.to_rgb8(result.iterations));
+            } else {
                 self.ctx.delete_texture(self.texture);
                 let width = result.buffer.size.x;
                 let height = result.buffer.size.y;
@@ -179,9 +182,6 @@ impl Stage {
                     },
                 );
                 self.bindings.images = vec![self.texture];
-            } else {
-                self.ctx
-                    .texture_update(self.texture, &result.buffer.to_rgb8(result.iterations))
             }
         }
     }
@@ -230,7 +230,7 @@ impl EventHandler for Stage {
     }
 
     fn draw(&mut self) {
-        self.ctx.begin_default_pass(Default::default());
+        self.ctx.begin_default_pass(PassAction::default());
 
         self.ctx.apply_pipeline(&self.pipeline);
         self.ctx.apply_bindings(&self.bindings);
@@ -248,9 +248,9 @@ impl EventHandler for Stage {
 }
 
 mod shader {
-    use miniquad::*;
+    use miniquad::{ShaderMeta, UniformBlockLayout};
 
-    pub const VERTEX: &str = r#"#version 100
+    pub const VERTEX: &str = r"#version 100
     attribute vec2 in_pos;
     attribute vec2 in_uv;
 
@@ -259,16 +259,16 @@ mod shader {
     void main() {
         gl_Position = vec4(in_pos, 0, 1);
         texcoord = in_uv;
-    }"#;
+    }";
 
-    pub const FRAGMENT: &str = r#"#version 100
+    pub const FRAGMENT: &str = r"#version 100
     varying lowp vec2 texcoord;
 
     uniform sampler2D tex;
 
     void main() {
         gl_FragColor = texture2D(tex, texcoord);
-    }"#;
+    }";
 
     pub fn meta() -> ShaderMeta {
         ShaderMeta {

@@ -94,7 +94,7 @@ impl KdNode {
                 KdNode::Leaf(indices) => {
                     match intersect_closest_geometry(
                         geometries,
-                        indices.iter().cloned(),
+                        indices.iter().copied(),
                         ray,
                         t1..=t2,
                     ) {

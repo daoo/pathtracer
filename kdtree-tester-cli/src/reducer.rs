@@ -61,13 +61,10 @@ fn reduce_tree(
     geometries[2..].shuffle(&mut SmallRng::seed_from_u64(seed));
     let mut try_index: usize = 2;
     let mut try_count = geometries.len() - try_index;
-    eprintln!(
-        "Kept {} with {} geometries left to check.",
-        try_index, try_count
-    );
+    eprintln!("Kept {try_index} with {try_count} geometries left to check.");
     while try_index < geometries.len() {
         try_count = try_count.clamp(1, geometries.len() - try_index);
-        eprint!("  Trying to remove {: <5}", try_count);
+        eprint!("  Trying to remove {try_count: <5}");
         let time_before = Instant::now();
         let reduced = try_removing(
             &intersection.ray,
@@ -76,26 +73,20 @@ fn reduce_tree(
             try_index,
             try_count,
         );
-        let duration = Instant::now().duration_since(time_before).as_micros() as f64 / 1000.0;
+        let duration = Instant::now().duration_since(time_before).as_secs_f64();
         if let Some(reduced) = reduced {
             geometries = reduced;
             try_count = geometries.len() - try_index;
-            eprintln!(" Time: {: <8.3} ms. Success!", duration);
-            eprintln!(
-                "Kept {} with {} geometries left to check.",
-                try_index, try_count,
-            );
+            eprintln!(" Time: {duration: <8.3} ms. Success!");
+            eprintln!("Kept {try_index} with {try_count} geometries left to check.");
         } else if try_count > 1 {
             try_count /= 2;
-            eprintln!(" Time: {: <8.3} ms. Fail!", duration);
+            eprintln!(" Time: {duration: <8.3} ms. Fail!");
         } else {
             try_index += 1;
             try_count = geometries.len() - try_index;
-            eprintln!(" Time: {: <8.3} ms. Fail! Keeping 1 geometry.", duration);
-            eprintln!(
-                "Kept {} with {} geometries left to check.",
-                try_index, try_count
-            );
+            eprintln!(" Time: {duration: <8.3} ms. Fail! Keeping 1 geometry.");
+            eprintln!("Kept {try_index} with {try_count} geometries left to check.");
         }
     }
     let tree = build_test_tree(&geometries);
@@ -125,14 +116,14 @@ pub(crate) fn kdtree_reduce(input: PathBuf, output: PathBuf, fail: Option<PathBu
             },
         )),
     };
-    eprintln!("Seed: {}", seed);
+    eprintln!("Seed: {seed}");
     eprintln!("Testing with failed intersection:");
     eprintln!("  {:?}", &intersection.ray);
     eprintln!("  Expected: {:?}", &intersection.reference);
     eprintln!("    Actual: {:?}", &intersection.kdtree);
 
     eprintln!("Loading {}...", input.display());
-    let obj = obj::obj(&mut BufReader::new(File::open(&input).unwrap()));
+    let obj = obj::obj(&mut BufReader::new(File::open(input).unwrap()));
     eprintln!("  Chunks: {}", obj.chunks.len());
     eprintln!("  Vertices: {}", obj.vertices.len());
     eprintln!("  Normals: {}", obj.normals.len());
@@ -144,12 +135,11 @@ pub(crate) fn kdtree_reduce(input: PathBuf, output: PathBuf, fail: Option<PathBu
         .iter()
         .flat_map(|chunk| {
             chunk.faces.iter().map(|face| {
-                if face.points.len() != 3 {
-                    panic!(
-                        "Only tringular faces supported but found {} vertices.",
-                        face.points.len()
-                    );
-                }
+                assert!(
+                    face.points.len() == 3,
+                    "Only tringular faces supported but found {} vertices.",
+                    face.points.len()
+                );
                 Triangle {
                     v0: obj.index_vertex(&face.points[0]).into(),
                     v1: obj.index_vertex(&face.points[1]).into(),
@@ -162,7 +152,7 @@ pub(crate) fn kdtree_reduce(input: PathBuf, output: PathBuf, fail: Option<PathBu
     eprintln!("  Geometries: {}", geometries.len());
 
     if let Some(path) = fail {
-        eprintln!("Writing test ray to {:?}...", path);
+        eprintln!("Writing test ray to {path:?}...");
         let file = File::create(path).unwrap();
         let mut buf = BufWriter::new(file);
         buf.write_all(&intersection.as_bytes(1)).unwrap();
@@ -171,7 +161,7 @@ pub(crate) fn kdtree_reduce(input: PathBuf, output: PathBuf, fail: Option<PathBu
     eprintln!("Reducing tree...");
     let (geometries, tree) = reduce_tree(seed, intersection, geometries);
 
-    eprintln!("Writing reduced tree to {:?}...", output);
+    eprintln!("Writing reduced tree to {output:?}...");
     write_tree_json(
         &mut BufWriter::new(File::create(output).unwrap()),
         &geometries,

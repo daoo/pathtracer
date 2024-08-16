@@ -57,7 +57,7 @@ pub(crate) fn kdtree_ray_tester(
     println!("Found {} fails", fails.len());
 
     if let Some(path) = output {
-        println!("Writing failed rays to {:?}...", path);
+        println!("Writing failed rays to {path:?}...");
         let mut logger = BufWriter::new(File::create(path).unwrap());
         fails.iter().enumerate().for_each(|(i, fail)| {
             logger.write_all(&fail.as_bytes(i as u16)).unwrap();
