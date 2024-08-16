@@ -27,13 +27,17 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Array
     };
 
     let mut output = ArrayVec::<Vec3, 8>::new();
-    output.push(*v1);
-    output.push(*v2);
-    output.push(*v0);
+    unsafe {
+        output.push_unchecked(*v1);
+        output.push_unchecked(*v2);
+        output.push_unchecked(*v0);
+    }
 
     let push_unique = |o: &mut ArrayVec<Vec3, 8>, p: Vec3| {
         if !o.contains(&p) {
-            o.push(p);
+            unsafe {
+                o.push_unchecked(p);
+            }
         }
     };
 
@@ -41,7 +45,17 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Array
         if output.is_empty() {
             return output;
         }
-        let input = output.clone();
+        // Default implementation of clone() for arrayvec uses extend which causes unnecessary
+        // stack usage and potential calls to panic.
+        //
+        // I tried to put this into a separate function but that trips up the optimizer, generating
+        // much worse code (empirically 20% slower).
+        let mut input = ArrayVec::<Vec3, 8>::new();
+        for x in &output {
+            unsafe {
+                input.push_unchecked(*x);
+            }
+        }
         output.clear();
         let points_iter = input.iter().cycle().skip(input.len() - 1).zip(input.iter());
         for (a, b) in points_iter {
