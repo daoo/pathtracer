@@ -12,7 +12,7 @@ pub mod sah;
 
 pub const MAX_DEPTH: usize = 25;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum KdNode {
     Leaf(Vec<u32>),
     Node {
@@ -27,11 +27,11 @@ impl KdNode {
         Box::new(Self::Leaf(Vec::new()))
     }
 
-    pub fn new_leaf(indices: Vec<u32>) -> Box<Self> {
+    pub(crate) fn new_leaf(indices: Vec<u32>) -> Box<Self> {
         Box::new(Self::Leaf(indices))
     }
 
-    pub fn new_node(plane: Aap, left: Box<Self>, right: Box<Self>) -> Box<Self> {
+    pub(crate) fn new_node(plane: Aap, left: Box<Self>, right: Box<Self>) -> Box<Self> {
         debug_assert!(
             !(left.is_empty() && right.is_empty()),
             "kd-node with both children empty worsens performance"
@@ -50,7 +50,7 @@ impl KdNode {
     pub fn merge_empty_leafs(node: Box<KdNode>) -> Option<Box<KdNode>> {
         match *node {
             node if node.is_empty() => None,
-            KdNode::Leaf(_) => Some(node.clone()),
+            KdNode::Leaf(_) => Some(node),
             KdNode::Node { plane, left, right } => {
                 let left = KdNode::merge_empty_leafs(left);
                 let right = KdNode::merge_empty_leafs(right);
