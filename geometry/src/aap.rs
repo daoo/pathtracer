@@ -47,6 +47,12 @@ impl Aap {
     }
 
     #[inline]
+    pub fn intersect_ray_unchecked(&self, ray: &Ray) -> f32 {
+        let denom = ray.direction[self.axis];
+        (self.distance - ray.origin[self.axis]) / denom
+    }
+
+    #[inline]
     pub fn intersect_ray(&self, ray: &Ray) -> Option<f32> {
         let denom = ray.direction[self.axis];
         if denom == 0.0 {
@@ -74,6 +80,27 @@ impl Aap {
                 self.distance,
             ),
         })
+    }
+
+    pub fn intersect_ray_point_unchecked(&self, ray: &Ray) -> Vec3 {
+        let t = self.intersect_ray_unchecked(ray);
+        match self.axis {
+            Axis::X => Vec3::new(
+                self.distance,
+                ray.origin.y + t * ray.direction.y,
+                ray.origin.z + t * ray.direction.z,
+            ),
+            Axis::Y => Vec3::new(
+                ray.origin.x + t * ray.direction.x,
+                self.distance,
+                ray.origin.z + t * ray.direction.z,
+            ),
+            Axis::Z => Vec3::new(
+                ray.origin.x + t * ray.direction.x,
+                ray.origin.y + t * ray.direction.y,
+                self.distance,
+            ),
+        }
     }
 }
 
