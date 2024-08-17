@@ -61,15 +61,16 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Array
         for (a, b) in points_iter {
             let ray = Ray::between(*a, *b);
             // When a and b are on different sides of the clip plane it is safe to assume that the
-            // denominator in the division in the intersection calculation is non-zero.
-            let point = clip_plane.1.intersect_ray_point_unchecked(&ray);
+            // denominator in the division in the intersection calculation is non-zero. Hence the
+            // unchecked unwraps below.
+            let intersecting = clip_plane.1.intersect_ray_point(&ray);
             if is_inside(&clip_plane, *b) {
                 if !is_inside(&clip_plane, *a) {
-                    push_unique(&mut output, point);
+                    push_unique(&mut output, unsafe { intersecting.unwrap_unchecked() });
                 }
                 push_unique(&mut output, *b);
             } else if is_inside(&clip_plane, *a) {
-                push_unique(&mut output, point);
+                push_unique(&mut output, unsafe { intersecting.unwrap_unchecked() });
             }
         }
     }
