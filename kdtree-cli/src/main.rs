@@ -199,6 +199,7 @@ fn main() {
     let kdtree = build_kdtree(&geometries, &cost);
     let duration = Instant::now().duration_since(start_time);
     let duration = Duration::new(duration.as_secs() as i64, duration.as_nanos() as i32);
+    eprintln!("Done in {duration:.3}...");
 
     let cost = tree_cost(
         &geometries,
@@ -208,9 +209,7 @@ fn main() {
         args.empty_factor,
     );
     let stats = statistics(&geometries, &kdtree);
-    eprintln!("Done...");
     eprintln!("Tree statistics:");
-    eprintln!("  Build time: {duration:.3}");
     eprintln!("  SAH cost: {cost:.3}");
     eprintln!("  Geometries: {}", stats.geometries);
     eprintln!("  Node count: {}", stats.node_count);

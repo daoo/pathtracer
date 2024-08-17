@@ -65,10 +65,8 @@ impl KdNode {
     }
 
     #[inline]
-    pub fn iter_nodes(&self) -> KdTreeNodeIter {
-        KdTreeNodeIter {
-            stack: vec![(1, self)],
-        }
+    pub fn iter_nodes(&self) -> KdNodeIter {
+        KdNodeIter::new(self)
     }
 
     #[inline]
@@ -152,13 +150,25 @@ impl Display for KdNode {
     }
 }
 
-pub struct KdTreeNodeIter<'a> {
-    pub(crate) stack: Vec<(usize, &'a KdNode)>,
+pub struct KdNodeIter<'a> {
+    pub(crate) stack: ArrayVec<(usize, &'a KdNode), MAX_DEPTH>,
 }
 
-impl<'a> Iterator for KdTreeNodeIter<'a> {
+impl<'a> KdNodeIter<'a> {
+    #[inline]
+    fn new(node: &'a KdNode) -> Self {
+        let mut stack = ArrayVec::<(usize, &'a KdNode), MAX_DEPTH>::new();
+        unsafe {
+            stack.push_unchecked((1, node));
+        }
+        Self { stack }
+    }
+}
+
+impl<'a> Iterator for KdNodeIter<'a> {
     type Item = (usize, &'a KdNode);
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((depth, node)) = self.stack.pop() {
             match node {
