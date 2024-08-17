@@ -119,8 +119,9 @@ impl KdNode {
                         } else if t < t1 {
                             node = far;
                         } else {
-                            let result = stack.try_push((far, t, t2));
-                            debug_assert!(result.is_ok());
+                            unsafe {
+                                stack.push_unchecked((far, t, t2));
+                            }
                             node = near;
                             t2 = t;
                         }
