@@ -84,7 +84,7 @@ impl SahCost {
             left.surface_area() / surface_area,
             right.surface_area() / surface_area,
         );
-        if left.volume() > 0.0 && right.volume() > 0.0 {
+        if volume.0 > 0.0 && volume.1 > 0.0 {
             let l = self.split_cost(volume, probability, (counts.0 + counts.1, counts.2));
             let r = self.split_cost(volume, probability, (counts.0, counts.2 + counts.1));
             [
@@ -93,12 +93,12 @@ impl SahCost {
             ]
             .into_iter()
             .min_by(SahSplit::total_cmp)
-        } else if left.volume() == 0.0 && counts.0 + counts.1 > 0 {
+        } else if volume.0 == 0.0 && counts.0 + counts.1 > 0 {
             Some(SahSplit::new_left(
                 plane,
                 self.split_cost(volume, probability, (counts.0 + counts.1, counts.2)),
             ))
-        } else if right.volume() == 0.0 && counts.1 + counts.2 > 0 {
+        } else if volume.1 == 0.0 && counts.1 + counts.2 > 0 {
             Some(SahSplit::new_right(
                 plane,
                 self.split_cost(volume, probability, (counts.0, counts.1 + counts.2)),
@@ -180,7 +180,7 @@ fn generate_event_list(clipped: &[(u32, Aabb)], axis: Axis) -> Vec<Event> {
 
 fn sweep_plane_axis(
     sah: &SahCost,
-    boundary: &Aabb,
+    cell: &KdCell,
     clipped: &[(u32, Aabb)],
     axis: Axis,
 ) -> Option<SahSplit> {
@@ -213,7 +213,7 @@ fn sweep_plane_axis(
 
         n_right -= p_planar;
         n_right -= p_end;
-        let cost = sah.split_cost_with_planar(boundary, p, (n_left, p_planar, n_right));
+        let cost = sah.split_cost_with_planar(&cell.boundary, p, (n_left, p_planar, n_right));
         best_cost = [best_cost, cost]
             .into_iter()
             .flatten()
@@ -224,14 +224,14 @@ fn sweep_plane_axis(
     best_cost
 }
 
-fn sweep_plane(sah: &SahCost, boundary: &Aabb, clipped: &[(u32, Aabb)]) -> Option<SahSplit> {
+fn sweep_plane(sah: &SahCost, cell: &KdCell, clipped: &[(u32, Aabb)]) -> Option<SahSplit> {
     [Axis::X, Axis::Y, Axis::Z]
         .into_iter()
-        .filter_map(|axis| sweep_plane_axis(sah, boundary, clipped, axis))
+        .filter_map(|axis| sweep_plane_axis(sah, cell, clipped, axis))
         .min_by(SahSplit::total_cmp)
 }
 
-fn repartition(boundary: &Aabb, clipped: &[(u32, Aabb)], best: SahSplit) -> KdSplit {
+fn repartition(cell: &KdCell, clipped: &[(u32, Aabb)], best: SahSplit) -> KdSplit {
     let plane = best.plane;
     let mut left_indices: Vec<u32> = Vec::with_capacity(clipped.len());
     let mut right_indices: Vec<u32> = Vec::with_capacity(clipped.len());
@@ -253,7 +253,7 @@ fn repartition(boundary: &Aabb, clipped: &[(u32, Aabb)], best: SahSplit) -> KdSp
             right_indices.push(*index);
         }
     }
-    let (left_aabb, right_aabb) = boundary.split(&plane);
+    let (left_aabb, right_aabb) = cell.boundary.split(&plane);
     KdSplit {
         plane,
         left: KdCell::new(left_aabb, left_indices),
@@ -272,8 +272,7 @@ pub(crate) fn find_best_split(
     );
 
     let clipped = cell.clip_geometries(geometries);
-    sweep_plane(sah, &cell.boundary, &clipped)
-        .map(|best| repartition(&cell.boundary, &clipped, best))
+    sweep_plane(sah, cell, &clipped).map(|best| repartition(cell, &clipped, best))
 }
 
 pub(crate) fn should_terminate(sah: &SahCost, cell: &KdCell, split: &KdSplit) -> bool {

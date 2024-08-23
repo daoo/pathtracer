@@ -1,5 +1,3 @@
-use std::ops::RangeInclusive;
-
 use crate::{
     image_buffer::ImageBuffer,
     material::{material_brdf, material_sample, IncomingRay, OutgoingRay},
@@ -8,7 +6,7 @@ use crate::{
 };
 use geometry::ray::Ray;
 use glam::{UVec2, Vec3};
-use kdtree::{intersection::KdIntersection, KdNode};
+use kdtree::KdNode;
 use rand::rngs::SmallRng;
 use scene::{camera::Pinhole, Scene};
 
@@ -19,14 +17,6 @@ pub struct Pathtracer {
 }
 
 impl Pathtracer {
-    fn intersect(&self, ray: &Ray, t_range: RangeInclusive<f32>) -> Option<KdIntersection> {
-        self.kdtree.intersect(&self.scene.geometries, ray, t_range)
-    }
-
-    fn intersect_any(&self, ray: &Ray, t_range: RangeInclusive<f32>) -> bool {
-        self.intersect(ray, t_range).is_some()
-    }
-
     fn trace_ray(
         &self,
         mut ray_logger: RayLoggerWithIterationAndPixel,
@@ -40,7 +30,9 @@ impl Pathtracer {
             return accumulated_radiance;
         }
 
-        let intersection = self.intersect(ray, 0.0..=f32::MAX);
+        let intersection = self
+            .kdtree
+            .intersect(&self.scene.geometries, ray, 0.0..=f32::MAX);
         if intersection.is_none() {
             ray_logger.log_infinite(ray, accumulated_bounces).unwrap();
             return accumulated_radiance + accumulated_transport * self.scene.environment;
@@ -69,7 +61,10 @@ impl Pathtracer {
             .iter()
             .map(|light| {
                 let shadow_ray = Ray::between(point_above, sample_light(light, rng));
-                if self.intersect_any(&shadow_ray, 0.0..=1.0) {
+                let intersection =
+                    self.kdtree
+                        .intersect(&self.scene.geometries, &shadow_ray, 0.0..=1.0);
+                if intersection.is_some() {
                     return Vec3::ZERO;
                 }
                 let wo = shadow_ray.direction.normalize();
@@ -89,26 +84,23 @@ impl Pathtracer {
             &IncomingRay { wi, n, uv },
             rng,
         );
-        let next_ray = Ray::new(
-            if sample.wo.dot(n) >= 0.0 {
-                point_above
-            } else {
-                point_below
-            },
-            sample.wo,
-        );
-
         if sample.pdf <= 0.01 {
             return accumulated_radiance;
         }
 
-        let cosine_term = sample.wo.dot(n).abs();
+        let cosine_term = sample.wo.dot(n);
         let accumulated_transport =
-            accumulated_transport * sample.brdf * (cosine_term / sample.pdf);
-
-        if accumulated_transport.length() <= 0.01 {
+            accumulated_transport * sample.brdf * (cosine_term.abs() / sample.pdf);
+        if accumulated_transport.length_squared() <= 1.0e-4 {
             return accumulated_radiance;
         }
+
+        let next_start_point = if cosine_term >= 0.0 {
+            point_above
+        } else {
+            point_below
+        };
+        let next_ray = Ray::new(next_start_point, sample.wo);
 
         self.trace_ray(
             ray_logger,

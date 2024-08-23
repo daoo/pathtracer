@@ -10,8 +10,9 @@ pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> Vec3 {
     let z = rng.gen_range(-1.0..1.0);
     let a = rng.gen_range(0.0..std::f32::consts::TAU);
     let r = (1.0f32 - z * z).sqrt();
-    let x = r * a.cos();
-    let y = r * a.sin();
+    let (a_sin, a_cos) = a.sin_cos();
+    let x = r * a_cos;
+    let y = r * a_sin;
     Vec3::new(x, y, z)
 }
 
@@ -24,8 +25,8 @@ pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> Vec3 {
 // }
 
 fn concentric_sample_unit_disk(rng: &mut SmallRng) -> Vec2 {
-    let x = rng.gen_range(-1.0..=1.0);
-    let y = rng.gen_range(-1.0..=1.0);
+    let x = rng.gen_range(-1.0f32..=1.0f32);
+    let y = rng.gen_range(-1.0f32..=1.0f32);
     if x == 0.0 && y == 0.0 {
         return Vec2::ZERO;
     }
@@ -37,8 +38,8 @@ fn concentric_sample_unit_disk(rng: &mut SmallRng) -> Vec2 {
         (x, y) => (-y, 6.0 - x / y),
     };
 
-    let theta = theta * std::f32::consts::FRAC_PI_4;
-    Vec2::new(r * theta.cos(), r * theta.sin())
+    let (theta_sin, theta_cos) = (theta * std::f32::consts::FRAC_PI_4).sin_cos();
+    Vec2::new(r * theta_cos, r * theta_sin)
 }
 
 pub fn cosine_sample_hemisphere(rng: &mut SmallRng) -> Vec3 {

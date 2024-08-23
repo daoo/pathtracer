@@ -1,4 +1,4 @@
-use geometry::{aabb::Aabb, geometry::Geometry};
+use geometry::{aabb::Aabb, bound::geometries_bounding_box, geometry::Geometry};
 
 #[derive(Debug)]
 pub(crate) struct KdCell {
@@ -7,7 +7,7 @@ pub(crate) struct KdCell {
 }
 
 impl KdCell {
-    pub fn new(boundary: Aabb, indices: Vec<u32>) -> Self {
+    pub(crate) fn new(boundary: Aabb, indices: Vec<u32>) -> Self {
         debug_assert!(
             boundary.surface_area() != 0.0,
             "empty kd-cell cannot intersect a ray"
@@ -28,5 +28,12 @@ impl KdCell {
                     .map(|aabb| (*i, aabb))
             })
             .collect::<Vec<_>>()
+    }
+
+    pub(crate) fn generate_initial(geometries: &[Geometry]) -> Self {
+        KdCell::new(
+            geometries_bounding_box(geometries),
+            (0u32..geometries.len() as u32).collect(),
+        )
     }
 }

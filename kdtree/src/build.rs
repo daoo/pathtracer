@@ -1,4 +1,4 @@
-use geometry::{bound::geometries_bounding_box, geometry::Geometry};
+use geometry::geometry::Geometry;
 
 use crate::{
     cell::KdCell,
@@ -7,13 +7,6 @@ use crate::{
 };
 
 use super::KdNode;
-
-fn starting_box(geometries: &[Geometry]) -> KdCell {
-    KdCell::new(
-        geometries_bounding_box(geometries),
-        (0u32..geometries.len() as u32).collect(),
-    )
-}
 
 fn build_helper(geometries: &[Geometry], sah: &SahCost, depth: u32, cell: KdCell) -> Box<KdNode> {
     if depth as usize >= MAX_DEPTH || cell.indices.is_empty() {
@@ -35,7 +28,7 @@ fn build_helper(geometries: &[Geometry], sah: &SahCost, depth: u32, cell: KdCell
 }
 
 pub fn build_kdtree(geometries: &[Geometry], sah: &SahCost) -> KdNode {
-    *build_helper(geometries, sah, 1, starting_box(geometries))
+    *build_helper(geometries, sah, 1, KdCell::generate_initial(geometries))
 }
 
 #[cfg(test)]

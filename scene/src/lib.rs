@@ -18,6 +18,7 @@ struct TriangleNormals {
 }
 
 impl TriangleNormals {
+    #[inline]
     fn lerp(&self, u: f32, v: f32) -> Vec3 {
         ((1.0 - (u + v)) * self.n0 + u * self.n1 + v * self.n2).normalize()
     }
@@ -31,6 +32,7 @@ struct TriangleTexcoords {
 }
 
 impl TriangleTexcoords {
+    #[inline]
     fn lerp(&self, u: f32, v: f32) -> Vec2 {
         (1.0 - (u + v)) * self.uv0 + u * self.uv1 + v * self.uv2
     }
