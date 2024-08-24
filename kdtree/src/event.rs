@@ -1,6 +1,6 @@
-use std::cmp::Ordering;
-
 use geometry::{aabb::Aabb, axis::Axis};
+use glam::Vec3;
+use std::cmp::Ordering;
 
 #[derive(Debug, PartialEq, PartialOrd, Eq, Ord)]
 pub(crate) enum EventKind {
@@ -38,27 +38,41 @@ impl Event {
     }
 
     fn total_cmp(&self, other: &Self) -> Ordering {
-        f32::total_cmp(&self.distance, &other.distance).then(self.kind.cmp(&other.kind))
+        let cmp_distance = f32::total_cmp(&self.distance, &other.distance);
+        let cmp_kind = self.kind.cmp(&other.kind);
+        cmp_distance.then(cmp_kind)
     }
 }
 
-pub(crate) fn generate_event_list(clipped: &[(u32, Aabb)], axis: Axis) -> Vec<Event> {
-    let mut events: Vec<Event> = Vec::with_capacity(clipped.len() * 2);
-    for c in clipped {
-        if c.1.min()[axis] == c.1.max()[axis] {
-            events.push(Event::new_planar(c.1.min()[axis]));
-        } else {
-            events.push(Event::new_end(c.1.max()[axis]));
-            events.push(Event::new_start(c.1.min()[axis]));
-        }
+fn extend_vec_with_events(vec: &mut Vec<Event>, min: &Vec3, max: &Vec3, axis: Axis) {
+    if min[axis] == max[axis] {
+        vec.push(Event::new_planar(min[axis]));
+    } else {
+        vec.push(Event::new_start(min[axis]));
+        vec.push(Event::new_end(max[axis]));
     }
-    events.sort_unstable_by(Event::total_cmp);
+}
+
+pub(crate) fn generate_event_list(clipped: &[(u32, Aabb)]) -> [(Axis, Vec<Event>); 3] {
+    let mut events = [
+        (Axis::X, Vec::with_capacity(clipped.len() * 2)),
+        (Axis::Y, Vec::with_capacity(clipped.len() * 2)),
+        (Axis::Z, Vec::with_capacity(clipped.len() * 2)),
+    ];
+    for (_, boundary) in clipped {
+        let (min, max) = (&boundary.min(), &boundary.max());
+        extend_vec_with_events(&mut events[0].1, min, max, Axis::X);
+        extend_vec_with_events(&mut events[1].1, min, max, Axis::Y);
+        extend_vec_with_events(&mut events[2].1, min, max, Axis::Z);
+    }
+    events[0].1.sort_unstable_by(Event::total_cmp);
+    events[1].1.sort_unstable_by(Event::total_cmp);
+    events[2].1.sort_unstable_by(Event::total_cmp);
     events
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::event::Event;
     use glam::Vec3;
 
     use super::*;
@@ -68,9 +82,13 @@ mod tests {
         let triangle = Aabb::from_extents(Vec3::ZERO, Vec3::ONE);
         let clipped = [(0, triangle)];
 
-        let actual = generate_event_list(&clipped, Axis::X);
+        let actual = generate_event_list(&clipped);
 
-        let expected = vec![Event::new_start(0.0), Event::new_end(1.0)];
+        let expected = [
+            (Axis::X, vec![Event::new_start(0.0), Event::new_end(1.0)]),
+            (Axis::Y, vec![Event::new_start(0.0), Event::new_end(1.0)]),
+            (Axis::Z, vec![Event::new_start(0.0), Event::new_end(1.0)]),
+        ];
         assert_eq!(actual, expected);
     }
 
@@ -79,9 +97,13 @@ mod tests {
         let triangle = Aabb::from_extents(Vec3::ZERO, Vec3::new(0.0, 1.0, 1.0));
         let clipped = [(0, triangle)];
 
-        let actual = generate_event_list(&clipped, Axis::X);
+        let actual = generate_event_list(&clipped);
 
-        let expected = vec![Event::new_planar(0.0)];
+        let expected = [
+            (Axis::X, vec![Event::new_planar(0.0)]),
+            (Axis::Y, vec![Event::new_start(0.0), Event::new_end(1.0)]),
+            (Axis::Z, vec![Event::new_start(0.0), Event::new_end(1.0)]),
+        ];
         assert_eq!(actual, expected);
     }
 
@@ -92,14 +114,41 @@ mod tests {
         let triangle3 = Aabb::from_extents(Vec3::ONE, Vec3::new(1.0, 2.0, 2.0));
         let clipped = [(0, triangle1), (1, triangle2), (2, triangle3)];
 
-        let actual = generate_event_list(&clipped, Axis::X);
+        let actual = generate_event_list(&clipped);
 
-        let expected = vec![
-            Event::new_start(0.0),
-            Event::new_end(1.0),
-            Event::new_planar(1.0),
-            Event::new_start(1.0),
-            Event::new_end(2.0),
+        let expected = [
+            (
+                Axis::X,
+                vec![
+                    Event::new_start(0.0),
+                    Event::new_end(1.0),
+                    Event::new_planar(1.0),
+                    Event::new_start(1.0),
+                    Event::new_end(2.0),
+                ],
+            ),
+            (
+                Axis::Y,
+                vec![
+                    Event::new_start(0.0),
+                    Event::new_end(1.0),
+                    Event::new_start(1.0),
+                    Event::new_start(1.0),
+                    Event::new_end(2.0),
+                    Event::new_end(2.0),
+                ],
+            ),
+            (
+                Axis::Z,
+                vec![
+                    Event::new_start(0.0),
+                    Event::new_end(1.0),
+                    Event::new_start(1.0),
+                    Event::new_start(1.0),
+                    Event::new_end(2.0),
+                    Event::new_end(2.0),
+                ],
+            ),
         ];
         assert_eq!(actual, expected);
     }
