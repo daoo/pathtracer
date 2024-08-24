@@ -2,29 +2,44 @@ use geometry::geometry::Geometry;
 
 use crate::{
     cell::KdCell,
-    sah::{find_best_split, SahCost},
+    sah::{find_best_split, EventSide, SahCost},
     MAX_DEPTH,
 };
 
 use super::KdNode;
 
-fn build_helper(geometries: &[Geometry], sah: &SahCost, depth: u32, cell: KdCell) -> Box<KdNode> {
+fn build_helper(
+    geometries: &[Geometry],
+    sah: &SahCost,
+    depth: u32,
+    cell: KdCell,
+    sides: &mut [EventSide],
+) -> Box<KdNode> {
+    let _ = sides;
     if depth as usize >= MAX_DEPTH || cell.indices.is_empty() {
         return KdNode::new_leaf(cell.indices);
     }
 
-    match find_best_split(geometries, sah, &cell) {
+    match find_best_split(geometries, sah, &cell, sides) {
         None => KdNode::new_leaf(cell.indices),
         Some(split) => {
-            let left = build_helper(geometries, sah, depth + 1, split.left);
-            let right = build_helper(geometries, sah, depth + 1, split.right);
+            let left = build_helper(geometries, sah, depth + 1, split.left, sides);
+            let right = build_helper(geometries, sah, depth + 1, split.right, sides);
             KdNode::new_node(split.plane, left, right)
         }
     }
 }
 
 pub fn build_kdtree(geometries: &[Geometry], sah: &SahCost) -> KdNode {
-    *build_helper(geometries, sah, 1, KdCell::generate_initial(geometries))
+    *build_helper(
+        geometries,
+        sah,
+        1,
+        KdCell::generate_initial(geometries),
+        &mut (0..geometries.len())
+            .map(|_| EventSide::Both)
+            .collect::<Vec<_>>(),
+    )
 }
 
 #[cfg(test)]

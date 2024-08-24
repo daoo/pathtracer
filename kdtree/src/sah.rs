@@ -1,8 +1,9 @@
 use crate::{
     cell::KdCell,
-    event::{generate_event_list, EventKind},
+    event::{extend_vec_with_events, Event, EventKind},
 };
 use geometry::{aabb::Aabb, aap::Aap, axis::Axis, geometry::Geometry};
+use itertools::Itertools;
 
 #[derive(Debug, PartialEq)]
 enum Side {
@@ -142,13 +143,13 @@ pub(crate) struct KdSplit {
 fn sweep_plane(
     sah: &SahCost,
     boundary: &Aabb,
-    clipped: &[(u32, Aabb)],
+    count: usize,
     axis: Axis,
+    events: &[Event],
 ) -> Option<SahSplit> {
-    let events = generate_event_list(clipped, axis);
     let mut best_cost: Option<SahSplit> = None;
     let mut n_left = 0;
-    let mut n_right = clipped.len();
+    let mut n_right = count;
     let mut i = 0;
     while i < events.len() {
         let p = Aap {
@@ -182,27 +183,135 @@ fn sweep_plane(
     best_cost
 }
 
-fn repartition(cell: &KdCell, clipped: &[(u32, Aabb)], best: SahSplit) -> KdSplit {
-    let plane = best.plane;
-    let mut left_indices: Vec<u32> = Vec::with_capacity(clipped.len());
-    let mut right_indices: Vec<u32> = Vec::with_capacity(clipped.len());
-    for (index, boundary) in clipped {
-        let planar = boundary.min()[plane.axis] == plane.distance
-            && boundary.max()[plane.axis] == plane.distance;
-        let left = boundary.min()[plane.axis] < plane.distance;
-        let right = boundary.max()[plane.axis] > plane.distance;
-        if left || planar && best.side == Side::Left {
-            left_indices.push(*index);
+#[derive(Debug, PartialEq)]
+pub(crate) enum EventSide {
+    Both,
+    LeftOnly,
+    RightOnly,
+}
+
+fn update_geometry_side(
+    indices: &[u32],
+    events: &(Vec<Event>, Vec<Event>, Vec<Event>),
+    best: &SahSplit,
+    sides: &mut [EventSide],
+) {
+    indices
+        .iter()
+        .for_each(|i| unsafe { *sides.get_unchecked_mut(*i as usize) = EventSide::Both });
+    events[best.plane.axis].iter().for_each(|e| {
+        let side = unsafe { sides.get_unchecked_mut(e.index as usize) };
+        if e.kind == EventKind::End && e.distance <= best.plane.distance {
+            *side = EventSide::LeftOnly;
+        } else if e.kind == EventKind::Start && e.distance >= best.plane.distance {
+            *side = EventSide::RightOnly;
+        } else if e.kind == EventKind::Planar {
+            if e.distance < best.plane.distance
+                || (e.distance == best.plane.distance && best.side == Side::Left)
+            {
+                *side = EventSide::LeftOnly;
+            } else if e.distance > best.plane.distance
+                || (e.distance == best.plane.distance && best.side == Side::Right)
+            {
+                *side = EventSide::RightOnly;
+            }
         }
-        if right || planar && best.side == Side::Right {
-            right_indices.push(*index);
+    })
+}
+
+fn repartition(
+    geometries: &[Geometry],
+    cell: &KdCell,
+    best: SahSplit,
+    sides: &mut [EventSide],
+) -> KdSplit {
+    update_geometry_side(&cell.indices, &cell.events, &best, sides);
+
+    let (left_aabb, right_aabb) = cell.boundary.split(&best.plane);
+
+    let partition_events = |events: &Vec<Event>| {
+        let mut left = Vec::with_capacity(events.len());
+        let mut right = Vec::with_capacity(events.len());
+        for event in events {
+            let side = unsafe { sides.get_unchecked(event.index as usize) };
+            match side {
+                EventSide::Both => (),
+                EventSide::LeftOnly => left.push(event.clone()),
+                EventSide::RightOnly => right.push(event.clone()),
+            }
+        }
+        (left, right)
+    };
+    let partitioned_events_x = partition_events(&cell.events.0);
+    let partitioned_events_y = partition_events(&cell.events.1);
+    let partitioned_events_z = partition_events(&cell.events.2);
+
+    let mut events_left_both = (
+        Vec::with_capacity(cell.events.0.len()),
+        Vec::with_capacity(cell.events.1.len()),
+        Vec::with_capacity(cell.events.2.len()),
+    );
+    let mut events_right_both = (
+        Vec::with_capacity(cell.events.0.len()),
+        Vec::with_capacity(cell.events.1.len()),
+        Vec::with_capacity(cell.events.2.len()),
+    );
+    let mut left_indices = Vec::with_capacity(cell.indices.len());
+    let mut right_indices = Vec::with_capacity(cell.indices.len());
+    for index in &cell.indices {
+        let side = unsafe { sides.get_unchecked(*index as usize) };
+        match side {
+            EventSide::Both => {
+                let geometry = unsafe { geometries.get_unchecked(*index as usize) };
+                if let Some(clipped) = geometry.clip_aabb(&left_aabb) {
+                    extend_vec_with_events(
+                        &mut events_left_both,
+                        *index,
+                        &clipped.min(),
+                        &clipped.max(),
+                    );
+                    left_indices.push(*index);
+                }
+                if let Some(clipped) = geometry.clip_aabb(&right_aabb) {
+                    extend_vec_with_events(
+                        &mut events_right_both,
+                        *index,
+                        &clipped.min(),
+                        &clipped.max(),
+                    );
+                    right_indices.push(*index);
+                }
+            }
+            EventSide::LeftOnly => left_indices.push(*index),
+            EventSide::RightOnly => right_indices.push(*index),
         }
     }
-    let (left_aabb, right_aabb) = cell.boundary.split(&plane);
+
+    events_left_both.0.sort_unstable_by(Event::total_cmp);
+    events_left_both.1.sort_unstable_by(Event::total_cmp);
+    events_left_both.2.sort_unstable_by(Event::total_cmp);
+    events_right_both.0.sort_unstable_by(Event::total_cmp);
+    events_right_both.1.sort_unstable_by(Event::total_cmp);
+    events_right_both.2.sort_unstable_by(Event::total_cmp);
+
+    let merge_events =
+        |a: Vec<Event>, b: Vec<Event>| a.into_iter().merge_by(b, Event::le).collect::<Vec<_>>();
+
+    let left_events = (
+        merge_events(partitioned_events_x.0, events_left_both.0),
+        merge_events(partitioned_events_y.0, events_left_both.1),
+        merge_events(partitioned_events_z.0, events_left_both.2),
+    );
+    let right_events = (
+        merge_events(partitioned_events_x.1, events_right_both.0),
+        merge_events(partitioned_events_y.1, events_right_both.1),
+        merge_events(partitioned_events_z.1, events_right_both.2),
+    );
+
     KdSplit {
-        plane,
-        left: KdCell::new(left_aabb, left_indices),
-        right: KdCell::new(right_aabb, right_indices),
+        plane: best.plane,
+        left: KdCell::new(left_aabb, left_indices, left_events),
+        right: KdCell::new(right_aabb, right_indices, right_events),
     }
 }
 
@@ -210,15 +319,134 @@ pub(crate) fn find_best_split(
     geometries: &[Geometry],
     sah: &SahCost,
     cell: &KdCell,
+    sides: &mut [EventSide],
 ) -> Option<KdSplit> {
     debug_assert!(
         !cell.indices.is_empty(),
         "splitting a kd-cell with no geometries only worsens performance"
     );
 
-    let clipped = cell.clip_geometries(geometries);
-    let x = sweep_plane(sah, &cell.boundary, &clipped, Axis::X);
-    let y = sweep_plane(sah, &cell.boundary, &clipped, Axis::Y);
-    let z = sweep_plane(sah, &cell.boundary, &clipped, Axis::Z);
-    SahSplit::zip_min(x, SahSplit::zip_min(y, z)).map(|best| repartition(cell, &clipped, best))
+    let x = sweep_plane(
+        sah,
+        &cell.boundary,
+        cell.indices.len(),
+        Axis::X,
+        &cell.events.0,
+    );
+    let y = sweep_plane(
+        sah,
+        &cell.boundary,
+        cell.indices.len(),
+        Axis::Y,
+        &cell.events.1,
+    );
+    let z = sweep_plane(
+        sah,
+        &cell.boundary,
+        cell.indices.len(),
+        Axis::Z,
+        &cell.events.2,
+    );
+    SahSplit::zip_min(x, SahSplit::zip_min(y, z))
+        .map(|best| repartition(geometries, cell, best, sides))
+}
+
+#[cfg(test)]
+mod tests {
+    use geometry::triangle::Triangle;
+    use glam::Vec3;
+
+    use crate::event::generate_event_list;
+
+    use super::*;
+
+    #[test]
+    fn update_geometry_side_left_only() {
+        let geometries = [Triangle {
+            v0: Vec3::new(0.0, 0.0, 0.0),
+            v1: Vec3::new(1.0, 0.0, 0.0),
+            v2: Vec3::new(1.0, 1.0, 0.0),
+        }]
+        .map(Geometry::from);
+        let events = generate_event_list(&geometries);
+        let best = SahSplit::new_left(Aap::new_x(1.0), 1.0);
+
+        let mut actual = [EventSide::Both];
+        update_geometry_side(&[0], &events, &best, &mut actual);
+
+        let expected = [EventSide::LeftOnly];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn update_geometry_side_right_only() {
+        let geometries = [Triangle {
+            v0: Vec3::new(0.0, 0.0, 0.0),
+            v1: Vec3::new(1.0, 0.0, 0.0),
+            v2: Vec3::new(1.0, 1.0, 0.0),
+        }]
+        .map(Geometry::from);
+        let events = generate_event_list(&geometries);
+        let best = SahSplit::new_left(Aap::new_x(0.0), 1.0);
+
+        let mut actual = [EventSide::Both];
+        update_geometry_side(&[0], &events, &best, &mut actual);
+
+        let expected = [EventSide::RightOnly];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn update_geometry_side_both() {
+        let geometries = [Triangle {
+            v0: Vec3::new(0.0, 0.0, 0.0),
+            v1: Vec3::new(1.0, 0.0, 0.0),
+            v2: Vec3::new(1.0, 1.0, 0.0),
+        }]
+        .map(Geometry::from);
+        let events = generate_event_list(&geometries);
+        let best = SahSplit::new_left(Aap::new_x(0.5), 1.0);
+
+        let mut actual = [EventSide::Both];
+        update_geometry_side(&[0], &events, &best, &mut actual);
+
+        let expected = [EventSide::Both];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn update_geometry_side_planar_best_left() {
+        let geometries = [Triangle {
+            v0: Vec3::new(0.0, 0.0, 0.0),
+            v1: Vec3::new(1.0, 0.0, 0.0),
+            v2: Vec3::new(1.0, 1.0, 0.0),
+        }]
+        .map(Geometry::from);
+        let events = generate_event_list(&geometries);
+        let best = SahSplit::new_left(Aap::new_z(0.0), 1.0);
+
+        let mut actual = [EventSide::Both];
+        update_geometry_side(&[0], &events, &best, &mut actual);
+
+        let expected = [EventSide::LeftOnly];
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn update_geometry_side_planar_best_right() {
+        let geometries = [Triangle {
+            v0: Vec3::new(0.0, 0.0, 0.0),
+            v1: Vec3::new(1.0, 0.0, 0.0),
+            v2: Vec3::new(1.0, 1.0, 0.0),
+        }]
+        .map(Geometry::from);
+        let events = generate_event_list(&geometries);
+        let best = SahSplit::new_right(Aap::new_z(0.0), 1.0);
+
+        let mut actual = [EventSide::Both];
+        update_geometry_side(&[0], &events, &best, &mut actual);
+
+        let expected = [EventSide::RightOnly];
+        assert_eq!(actual, expected);
+    }
 }

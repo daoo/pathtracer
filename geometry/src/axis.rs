@@ -43,17 +43,29 @@ impl Axis {
     }
 }
 
+impl<T> std::ops::Index<Axis> for (T, T, T) {
+    type Output = T;
+    #[inline]
+    fn index(&self, idx: Axis) -> &Self::Output {
+        match idx {
+            Axis::X => &self.0,
+            Axis::Y => &self.1,
+            Axis::Z => &self.2,
+        }
+    }
+}
+
 impl std::ops::Index<Axis> for Vec3 {
     type Output = f32;
     #[inline]
-    fn index(&self, idx: Axis) -> &f32 {
+    fn index(&self, idx: Axis) -> &Self::Output {
         &self[idx as usize]
     }
 }
 
 impl std::ops::IndexMut<Axis> for Vec3 {
     #[inline]
-    fn index_mut(&mut self, idx: Axis) -> &mut f32 {
+    fn index_mut(&mut self, idx: Axis) -> &mut Self::Output {
         &mut self[idx as usize]
     }
 }
