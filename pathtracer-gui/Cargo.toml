@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.8", features = ["derive"] }
-glam = "0.28.0"
+glam = "0.29.0"
 kdtree = { version = "1.0.0", path = "../kdtree" }
 miniquad = "0.4.2"
 rand = { version = "0.8.5", default-features = false, features = ["std", "small_rng"] }

@@ -5,6 +5,6 @@ edition = "2021"
 
 [dependencies]
 geometry = { version = "1.0.0", path = "../geometry" }
-glam = "0.28.0"
+glam = "0.29.0"
 image = { version = "0.25.1", default-features = false, features = ["jpeg", "png"] }
 wavefront = { version = "1.0.0", path = "../wavefront" }
