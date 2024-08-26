@@ -6,6 +6,7 @@ use intersection::{intersect_closest_geometry, KdIntersection};
 
 pub mod build;
 mod cell;
+mod event;
 pub mod format;
 pub mod intersection;
 pub mod sah;

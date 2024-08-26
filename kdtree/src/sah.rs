@@ -1,6 +1,9 @@
 use std::cmp::Ordering;
 
-use crate::cell::KdCell;
+use crate::{
+    cell::KdCell,
+    event::{generate_event_list, EventKind},
+};
 use geometry::{aabb::Aabb, aap::Aap, axis::Axis, geometry::Geometry};
 
 #[derive(Debug, PartialEq)]
@@ -126,58 +129,6 @@ pub(crate) struct KdSplit {
     pub(crate) right: KdCell,
 }
 
-#[derive(Debug, PartialEq, PartialOrd, Eq, Ord)]
-enum EventKind {
-    End,
-    Planar,
-    Start,
-}
-
-#[derive(Debug, PartialEq)]
-struct Event {
-    distance: f32,
-    kind: EventKind,
-}
-
-impl Event {
-    fn new_end(distance: f32) -> Self {
-        Self {
-            distance,
-            kind: EventKind::End,
-        }
-    }
-
-    fn new_planar(distance: f32) -> Self {
-        Self {
-            distance,
-            kind: EventKind::Planar,
-        }
-    }
-
-    fn new_start(distance: f32) -> Self {
-        Self {
-            distance,
-            kind: EventKind::Start,
-        }
-    }
-}
-
-fn generate_event_list(clipped: &[(u32, Aabb)], axis: Axis) -> Vec<Event> {
-    let mut events: Vec<Event> = Vec::with_capacity(clipped.len() * 2);
-    for c in clipped {
-        if c.1.min()[axis] == c.1.max()[axis] {
-            events.push(Event::new_planar(c.1.min()[axis]));
-        } else {
-            events.push(Event::new_end(c.1.max()[axis]));
-            events.push(Event::new_start(c.1.min()[axis]));
-        }
-    }
-    events.sort_unstable_by(|a, b| {
-        f32::total_cmp(&a.distance, &b.distance).then(a.kind.cmp(&b.kind))
-    });
-    events
-}
-
 fn sweep_plane_axis(
     sah: &SahCost,
     cell: &KdCell,
@@ -285,52 +236,4 @@ pub(crate) fn should_terminate(sah: &SahCost, cell: &KdCell, split: &KdSplit) ->
     let split_cost = sah.split_cost(volume, probability, counts);
     let intersect_cost = sah.leaf_cost(cell.indices.len());
     split_cost >= intersect_cost
-}
-
-#[cfg(test)]
-mod tests {
-    use glam::Vec3;
-
-    use super::*;
-
-    #[test]
-    fn generate_event_list_single_triangle() {
-        let triangle = Aabb::from_extents(Vec3::ZERO, Vec3::ONE);
-        let clipped = [(0, triangle)];
-
-        let actual = generate_event_list(&clipped, Axis::X);
-
-        let expected = vec![Event::new_start(0.0), Event::new_end(1.0)];
-        assert_eq!(actual, expected);
-    }
-
-    #[test]
-    fn generate_event_list_planar_triangle() {
-        let triangle = Aabb::from_extents(Vec3::ZERO, Vec3::new(0.0, 1.0, 1.0));
-        let clipped = [(0, triangle)];
-
-        let actual = generate_event_list(&clipped, Axis::X);
-
-        let expected = vec![Event::new_planar(0.0)];
-        assert_eq!(actual, expected);
-    }
-
-    #[test]
-    fn generate_event_list_multiple_overlapping_triangles() {
-        let triangle1 = Aabb::from_extents(Vec3::ZERO, Vec3::ONE);
-        let triangle2 = Aabb::from_extents(Vec3::ONE, Vec3::new(2.0, 2.0, 2.0));
-        let triangle3 = Aabb::from_extents(Vec3::ONE, Vec3::new(1.0, 2.0, 2.0));
-        let clipped = [(0, triangle1), (1, triangle2), (2, triangle3)];
-
-        let actual = generate_event_list(&clipped, Axis::X);
-
-        let expected = vec![
-            Event::new_start(0.0),
-            Event::new_end(1.0),
-            Event::new_planar(1.0),
-            Event::new_start(1.0),
-            Event::new_end(2.0),
-        ];
-        assert_eq!(actual, expected);
-    }
 }
