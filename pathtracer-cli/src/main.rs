@@ -209,7 +209,7 @@ fn main() {
         let duration = Instant::now().duration_since(start_time);
         println!(
             "Total time: {:.2}",
-            time::Duration::new(duration.as_secs() as i64, duration.subsec_nanos() as i32)
+            time::Duration::try_from(duration).unwrap()
         );
 
         println!("Writing {}...", args.output.display());
