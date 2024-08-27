@@ -41,6 +41,15 @@ impl SahSplit {
             other
         }
     }
+
+    fn zip_min(a: Option<SahSplit>, b: Option<SahSplit>) -> Option<SahSplit> {
+        match (a, b) {
+            (None, None) => None,
+            (Some(a), None) => Some(a),
+            (None, Some(b)) => Some(b),
+            (Some(a), Some(b)) => Some(a.min(b)),
+        }
+    }
 }
 
 pub struct SahCost {
@@ -92,12 +101,11 @@ impl SahCost {
         if volume.0 > 0.0 && volume.1 > 0.0 {
             let l = self.split_cost(volume, probability, (counts.0 + counts.1, counts.2));
             let r = self.split_cost(volume, probability, (counts.0, counts.2 + counts.1));
-            [
-                SahSplit::new_left(plane.clone(), l),
-                SahSplit::new_right(plane, r),
-            ]
-            .into_iter()
-            .reduce(SahSplit::min)
+            if l <= r {
+                Some(SahSplit::new_left(plane, l))
+            } else {
+                Some(SahSplit::new_right(plane, r))
+            }
         } else if volume.0 == 0.0 && counts.0 + counts.1 > 0 {
             Some(SahSplit::new_left(
                 plane,
@@ -167,10 +175,7 @@ fn sweep_plane_axis(
         n_right -= p_planar;
         n_right -= p_end;
         let cost = sah.split_cost_with_planar(&cell.boundary, p, (n_left, p_planar, n_right));
-        best_cost = [best_cost, cost]
-            .into_iter()
-            .flatten()
-            .reduce(SahSplit::min);
+        best_cost = SahSplit::zip_min(best_cost, cost);
         n_left += p_start;
         n_left += p_planar;
     }
@@ -178,10 +183,13 @@ fn sweep_plane_axis(
 }
 
 fn sweep_plane(sah: &SahCost, cell: &KdCell, clipped: &[(u32, Aabb)]) -> Option<SahSplit> {
-    [Axis::X, Axis::Y, Axis::Z]
-        .into_iter()
-        .filter_map(|axis| sweep_plane_axis(sah, cell, clipped, axis))
-        .reduce(SahSplit::min)
+    SahSplit::zip_min(
+        sweep_plane_axis(sah, cell, clipped, Axis::X),
+        SahSplit::zip_min(
+            sweep_plane_axis(sah, cell, clipped, Axis::Y),
+            sweep_plane_axis(sah, cell, clipped, Axis::Z),
+        ),
+    )
 }
 
 fn repartition(cell: &KdCell, clipped: &[(u32, Aabb)], best: SahSplit) -> KdSplit {
