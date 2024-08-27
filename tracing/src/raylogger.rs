@@ -44,6 +44,10 @@ impl RayLoggerWriter {
         pixel_y: u16,
         bounces: u8,
     ) -> Result<(), Error> {
+        if !cfg!(feature = "ray_logging") {
+            return Ok(());
+        }
+
         if let Self::File(buf) = self {
             let mut bytes = [0u8; 32];
             bytes[0..2].copy_from_slice(&iteration.to_le_bytes());
@@ -89,9 +93,6 @@ pub struct RayLoggerWithIterationAndPixel<'a> {
 
 impl RayLoggerWithIterationAndPixel<'_> {
     pub fn log_infinite(&mut self, ray: &Ray, bounces: u8) -> Result<(), Error> {
-        if !cfg!(feature = "ray_logging") {
-            return Ok(());
-        }
         self.writer.write(
             ray,
             true,
@@ -103,9 +104,6 @@ impl RayLoggerWithIterationAndPixel<'_> {
     }
 
     pub fn log_finite(&mut self, ray: &Ray, bounces: u8) -> Result<(), Error> {
-        if !cfg!(feature = "ray_logging") {
-            return Ok(());
-        }
         self.writer.write(
             ray,
             false,
