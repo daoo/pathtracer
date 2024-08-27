@@ -56,6 +56,18 @@ impl ImageBuffer {
             [p.x as u8, p.y as u8, p.z as u8, u8::MAX]
         })
     }
+
+    #[inline]
+    pub fn coordinates(&self) -> impl Iterator<Item = UVec2> {
+        let size_x = self.size.x;
+        let size_y = self.size.y;
+        (0..size_y).flat_map(move |y| (0..size_x).map(move |x| UVec2::new(x, y)))
+    }
+
+    #[inline]
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (UVec2, &mut Vec3)> {
+        self.coordinates().zip(self.pixels.iter_mut())
+    }
 }
 
 impl Index<UVec2> for ImageBuffer {

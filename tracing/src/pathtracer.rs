@@ -125,11 +125,8 @@ impl Pathtracer {
         rng: &mut SmallRng,
         buffer: &mut ImageBuffer,
     ) {
-        for y in 0..buffer.size.y {
-            for x in 0..buffer.size.x {
-                let pixel = UVec2::new(x, y);
-                buffer[pixel] += self.render_pixel(pinhole, pixel, ray_logger, rng);
-            }
+        for (pixel, value) in buffer.iter_mut() {
+            *value += self.render_pixel(pinhole, pixel, ray_logger, rng);
         }
     }
 
