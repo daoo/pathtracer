@@ -21,111 +21,83 @@ impl Pathtracer {
         &self,
         mut ray_logger: RayLoggerWithIterationAndPixel,
         rng: &mut SmallRng,
-        accumulated_radiance: Vec3,
-        accumulated_transport: Vec3,
-        accumulated_bounces: u8,
-        ray: &Ray,
+        mut ray: Ray,
     ) -> Vec3 {
-        if accumulated_bounces >= self.max_bounces {
-            return accumulated_radiance;
+        let mut accumulated_radiance = Vec3::ZERO;
+        let mut accumulated_transport = Vec3::ONE;
+        for bounce in 1..=self.max_bounces {
+            let intersection = self
+                .kdtree
+                .intersect(&self.scene.geometries, &ray, 0.0..=f32::MAX);
+            if intersection.is_none() {
+                ray_logger.log_infinite(&ray, bounce).unwrap();
+                return accumulated_radiance + accumulated_transport * self.scene.environment;
+            }
+            let intersection = intersection.unwrap();
+            let intersection_index = intersection.index;
+            let intersection = intersection.intersection;
+
+            ray_logger
+                .log_finite(&ray.extended(intersection.t), bounce)
+                .unwrap();
+
+            let wi = -ray.direction;
+            let n = self.scene.get_normal(intersection_index, &intersection);
+            let uv = self.scene.get_texcoord(intersection_index, &intersection);
+
+            // TODO: How to chose offset?
+            let offset = 0.00001 * n;
+            let point = ray.param(intersection.t);
+            let point_above = point + offset;
+            let point_below = point - offset;
+
+            let incoming_radiance: Vec3 = self
+                .scene
+                .lights
+                .iter()
+                .map(|light| {
+                    let shadow_ray = Ray::between(point_above, sample_light(light, rng));
+                    let intersection =
+                        self.kdtree
+                            .intersect(&self.scene.geometries, &shadow_ray, 0.0..=1.0);
+                    if intersection.is_some() {
+                        return Vec3::ZERO;
+                    }
+                    let wo = shadow_ray.direction.normalize();
+                    let radiance = light.emitted(point);
+                    let brdf = material_brdf(
+                        self.scene.get_material(intersection_index),
+                        &OutgoingRay { wi, n, uv, wo },
+                    );
+                    brdf * radiance * wo.dot(n).abs()
+                })
+                .sum();
+
+            accumulated_radiance += accumulated_transport * incoming_radiance;
+
+            let sample = material_sample(
+                self.scene.get_material(intersection_index),
+                &IncomingRay { wi, n, uv },
+                rng,
+            );
+            if sample.pdf <= 0.01 {
+                return accumulated_radiance;
+            }
+
+            let cosine_term = sample.wo.dot(n);
+            accumulated_transport *= sample.brdf * (cosine_term.abs() / sample.pdf);
+            if accumulated_transport.length_squared() <= 1.0e-4 {
+                return accumulated_radiance;
+            }
+
+            let next_start_point = if cosine_term >= 0.0 {
+                point_above
+            } else {
+                point_below
+            };
+            ray = Ray::new(next_start_point, sample.wo);
         }
-
-        let intersection = self
-            .kdtree
-            .intersect(&self.scene.geometries, ray, 0.0..=f32::MAX);
-        if intersection.is_none() {
-            ray_logger.log_infinite(ray, accumulated_bounces).unwrap();
-            return accumulated_radiance + accumulated_transport * self.scene.environment;
-        }
-        let intersection = intersection.unwrap();
-        let intersection_index = intersection.index;
-        let intersection = intersection.intersection;
-
-        ray_logger
-            .log_finite(&ray.extended(intersection.t), accumulated_bounces)
-            .unwrap();
-
-        let wi = -ray.direction;
-        let n = self.scene.get_normal(intersection_index, &intersection);
-        let uv = self.scene.get_texcoord(intersection_index, &intersection);
-
-        // TODO: How to chose offset?
-        let offset = 0.00001 * n;
-        let point = ray.param(intersection.t);
-        let point_above = point + offset;
-        let point_below = point - offset;
-
-        let incoming_radiance: Vec3 = self
-            .scene
-            .lights
-            .iter()
-            .map(|light| {
-                let shadow_ray = Ray::between(point_above, sample_light(light, rng));
-                let intersection =
-                    self.kdtree
-                        .intersect(&self.scene.geometries, &shadow_ray, 0.0..=1.0);
-                if intersection.is_some() {
-                    return Vec3::ZERO;
-                }
-                let wo = shadow_ray.direction.normalize();
-                let radiance = light.emitted(point);
-                let brdf = material_brdf(
-                    self.scene.get_material(intersection_index),
-                    &OutgoingRay { wi, n, uv, wo },
-                );
-                brdf * radiance * wo.dot(n).abs()
-            })
-            .sum();
-
-        let accumulated_radiance = accumulated_radiance + accumulated_transport * incoming_radiance;
-
-        let sample = material_sample(
-            self.scene.get_material(intersection_index),
-            &IncomingRay { wi, n, uv },
-            rng,
-        );
-        if sample.pdf <= 0.01 {
-            return accumulated_radiance;
-        }
-
-        let cosine_term = sample.wo.dot(n);
-        let accumulated_transport =
-            accumulated_transport * sample.brdf * (cosine_term.abs() / sample.pdf);
-        if accumulated_transport.length_squared() <= 1.0e-4 {
-            return accumulated_radiance;
-        }
-
-        let next_start_point = if cosine_term >= 0.0 {
-            point_above
-        } else {
-            point_below
-        };
-        let next_ray = Ray::new(next_start_point, sample.wo);
-
-        self.trace_ray(
-            ray_logger,
-            rng,
-            accumulated_radiance,
-            accumulated_transport,
-            accumulated_bounces + 1,
-            &next_ray,
-        )
-    }
-
-    fn trace_ray_defaults(
-        &self,
-        ray_logger: RayLoggerWithIterationAndPixel,
-        rng: &mut SmallRng,
-        ray: &Ray,
-    ) -> Vec3 {
-        self.trace_ray(
-            ray_logger,
-            rng,
-            Vec3::ZERO,
-            Vec3::new(1.0, 1.0, 1.0),
-            0,
-            ray,
-        )
+        accumulated_radiance
     }
 
     fn sample_ray_for_pixel(pinhole: &Pinhole, rng: &mut SmallRng, pixel: UVec2) -> Ray {
@@ -143,7 +115,7 @@ impl Pathtracer {
     ) -> Vec3 {
         let ray_logger = ray_logger.with_pixel(pixel.x as u16, pixel.y as u16);
         let ray = Self::sample_ray_for_pixel(pinhole, rng, pixel);
-        self.trace_ray_defaults(ray_logger, rng, &ray)
+        self.trace_ray(ray_logger, rng, ray)
     }
 
     pub fn render_mut(
