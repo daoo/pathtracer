@@ -44,6 +44,7 @@ impl Pathtracer {
             let wi = -ray.direction;
             let n = self.scene.get_normal(intersection_index, &intersection);
             let uv = self.scene.get_texcoord(intersection_index, &intersection);
+            let material = self.scene.get_material(intersection_index);
 
             // TODO: How to chose offset?
             let offset = 0.00001 * n;
@@ -65,21 +66,14 @@ impl Pathtracer {
                     }
                     let wo = shadow_ray.direction.normalize();
                     let radiance = light.emitted(point);
-                    let brdf = material_brdf(
-                        self.scene.get_material(intersection_index),
-                        &OutgoingRay { wi, n, uv, wo },
-                    );
+                    let brdf = material_brdf(material, &OutgoingRay { wi, n, uv, wo });
                     brdf * radiance * wo.dot(n).abs()
                 })
                 .sum();
 
             accumulated_radiance += accumulated_transport * incoming_radiance;
 
-            let sample = material_sample(
-                self.scene.get_material(intersection_index),
-                &IncomingRay { wi, n, uv },
-                rng,
-            );
+            let sample = material_sample(material, &IncomingRay { wi, n, uv }, rng);
             if sample.pdf <= 0.01 {
                 return accumulated_radiance;
             }
