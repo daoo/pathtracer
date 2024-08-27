@@ -5,7 +5,7 @@ use glam::{UVec2, Vec3};
 #[derive(Clone)]
 pub struct ImageBuffer {
     pub size: UVec2,
-    pub pixels: Vec<Vec3>,
+    pixels: Vec<Vec3>,
 }
 
 fn gamma_correct(x: Vec3) -> Vec3 {
@@ -24,17 +24,6 @@ impl ImageBuffer {
     #[inline]
     fn index(&self, idx: UVec2) -> usize {
         (self.size.x * idx.y + idx.x) as usize
-    }
-
-    #[inline]
-    pub fn add_at(mut self, at: UVec2, rhs: &Self) -> Self {
-        debug_assert!(at.x + rhs.size.x <= self.size.x && at.y + rhs.size.y <= self.size.y);
-        for y in 0..rhs.size.y {
-            for x in 0..rhs.size.x {
-                self[UVec2::new(at.x + x, at.y + y)] += rhs[UVec2::new(x, y)];
-            }
-        }
-        self
     }
 
     pub fn to_rgb8(self, iterations: u16) -> Vec<u8> {
@@ -111,7 +100,7 @@ impl AddAssign for ImageBuffer {
         debug_assert!(self.size.x == rhs.size.x && self.size.y == rhs.size.y);
         self.pixels
             .iter_mut()
-            .zip(rhs.pixels.iter())
-            .for_each(|(a, b)| *a += *b);
+            .zip(rhs.pixels.into_iter())
+            .for_each(|(a, b)| *a += b);
     }
 }
