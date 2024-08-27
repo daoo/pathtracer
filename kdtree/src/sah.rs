@@ -1,5 +1,3 @@
-use std::cmp::Ordering;
-
 use crate::{
     cell::KdCell,
     event::{generate_event_list, EventKind},
@@ -36,8 +34,12 @@ impl SahSplit {
         }
     }
 
-    fn total_cmp(&self, other: &Self) -> Ordering {
-        f32::total_cmp(&self.cost, &other.cost)
+    fn min(self, other: Self) -> Self {
+        if self.cost <= other.cost {
+            self
+        } else {
+            other
+        }
     }
 }
 
@@ -95,7 +97,7 @@ impl SahCost {
                 SahSplit::new_right(plane, r),
             ]
             .into_iter()
-            .min_by(SahSplit::total_cmp)
+            .reduce(SahSplit::min)
         } else if volume.0 == 0.0 && counts.0 + counts.1 > 0 {
             Some(SahSplit::new_left(
                 plane,
@@ -168,7 +170,7 @@ fn sweep_plane_axis(
         best_cost = [best_cost, cost]
             .into_iter()
             .flatten()
-            .min_by(SahSplit::total_cmp);
+            .reduce(SahSplit::min);
         n_left += p_start;
         n_left += p_planar;
     }
@@ -179,7 +181,7 @@ fn sweep_plane(sah: &SahCost, cell: &KdCell, clipped: &[(u32, Aabb)]) -> Option<
     [Axis::X, Axis::Y, Axis::Z]
         .into_iter()
         .filter_map(|axis| sweep_plane_axis(sah, cell, clipped, axis))
-        .min_by(SahSplit::total_cmp)
+        .reduce(SahSplit::min)
 }
 
 fn repartition(cell: &KdCell, clipped: &[(u32, Aabb)], best: SahSplit) -> KdSplit {

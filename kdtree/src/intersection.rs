@@ -1,4 +1,4 @@
-use std::{cmp, ops::RangeInclusive};
+use std::ops::RangeInclusive;
 
 use geometry::{geometry::Geometry, intersection::RayIntersection, ray::Ray};
 
@@ -18,8 +18,12 @@ impl KdIntersection {
     }
 
     #[inline]
-    pub fn cmp_by_ray_param(&self, other: &Self) -> cmp::Ordering {
-        f32::total_cmp(&self.intersection.t, &other.intersection.t)
+    pub fn min(self, other: Self) -> Self {
+        if self.intersection.t <= other.intersection.t {
+            self
+        } else {
+            other
+        }
     }
 }
 
@@ -39,5 +43,5 @@ pub fn intersect_closest_geometry(
                 })
             })
         })
-        .min_by(KdIntersection::cmp_by_ray_param)
+        .reduce(KdIntersection::min)
 }

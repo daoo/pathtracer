@@ -40,12 +40,6 @@ impl Aap {
         self.axis.as_vector3(self.distance)
     }
 
-    pub fn total_cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.axis
-            .cmp(&other.axis)
-            .then(f32::total_cmp(&self.distance, &other.distance))
-    }
-
     #[inline]
     pub fn intersect_ray(&self, ray: &Ray) -> Option<f32> {
         let denom = ray.direction[self.axis];
