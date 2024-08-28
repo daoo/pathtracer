@@ -1,5 +1,5 @@
 use glam::{Vec2, Vec3};
-use image::Rgb32FImage;
+use image::{GenericImageView, Rgb32FImage};
 use rand::{rngs::SmallRng, Rng};
 use scene::material::Material;
 
@@ -84,7 +84,7 @@ fn diffuse_reflective_brdf(
     if let Some(texture) = &texture {
         let px = (texture.width() as f32 * outgoing.uv.x).floor();
         let py = (texture.height() as f32 * outgoing.uv.y).floor();
-        let reflectance: Vec3 = texture[(px as u32, py as u32)].0.into();
+        let reflectance = Vec3::from(unsafe { texture.unsafe_get_pixel(px as u32, py as u32).0 });
         reflectance * std::f32::consts::FRAC_1_PI
     } else {
         reflectance * std::f32::consts::FRAC_1_PI
