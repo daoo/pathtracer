@@ -53,21 +53,21 @@ fn extend_vec_with_events(vec: &mut Vec<Event>, min: &Vec3, max: &Vec3, axis: Ax
     }
 }
 
-pub(crate) fn generate_event_list(clipped: &[(u32, Aabb)]) -> [(Axis, Vec<Event>); 3] {
+pub(crate) fn generate_event_list(clipped: &[(u32, Aabb)]) -> [Vec<Event>; 3] {
     let mut events = [
-        (Axis::X, Vec::with_capacity(clipped.len() * 2)),
-        (Axis::Y, Vec::with_capacity(clipped.len() * 2)),
-        (Axis::Z, Vec::with_capacity(clipped.len() * 2)),
+        Vec::with_capacity(clipped.len() * 2),
+        Vec::with_capacity(clipped.len() * 2),
+        Vec::with_capacity(clipped.len() * 2),
     ];
     for (_, boundary) in clipped {
         let (min, max) = (&boundary.min(), &boundary.max());
-        extend_vec_with_events(&mut events[0].1, min, max, Axis::X);
-        extend_vec_with_events(&mut events[1].1, min, max, Axis::Y);
-        extend_vec_with_events(&mut events[2].1, min, max, Axis::Z);
+        extend_vec_with_events(&mut events[0], min, max, Axis::X);
+        extend_vec_with_events(&mut events[1], min, max, Axis::Y);
+        extend_vec_with_events(&mut events[2], min, max, Axis::Z);
     }
-    events[0].1.sort_unstable_by(Event::total_cmp);
-    events[1].1.sort_unstable_by(Event::total_cmp);
-    events[2].1.sort_unstable_by(Event::total_cmp);
+    events[0].sort_unstable_by(Event::total_cmp);
+    events[1].sort_unstable_by(Event::total_cmp);
+    events[2].sort_unstable_by(Event::total_cmp);
     events
 }
 
@@ -85,9 +85,9 @@ mod tests {
         let actual = generate_event_list(&clipped);
 
         let expected = [
-            (Axis::X, vec![Event::new_start(0.0), Event::new_end(1.0)]),
-            (Axis::Y, vec![Event::new_start(0.0), Event::new_end(1.0)]),
-            (Axis::Z, vec![Event::new_start(0.0), Event::new_end(1.0)]),
+            vec![Event::new_start(0.0), Event::new_end(1.0)],
+            vec![Event::new_start(0.0), Event::new_end(1.0)],
+            vec![Event::new_start(0.0), Event::new_end(1.0)],
         ];
         assert_eq!(actual, expected);
     }
@@ -100,9 +100,9 @@ mod tests {
         let actual = generate_event_list(&clipped);
 
         let expected = [
-            (Axis::X, vec![Event::new_planar(0.0)]),
-            (Axis::Y, vec![Event::new_start(0.0), Event::new_end(1.0)]),
-            (Axis::Z, vec![Event::new_start(0.0), Event::new_end(1.0)]),
+            vec![Event::new_planar(0.0)],
+            vec![Event::new_start(0.0), Event::new_end(1.0)],
+            vec![Event::new_start(0.0), Event::new_end(1.0)],
         ];
         assert_eq!(actual, expected);
     }
@@ -117,38 +117,29 @@ mod tests {
         let actual = generate_event_list(&clipped);
 
         let expected = [
-            (
-                Axis::X,
-                vec![
-                    Event::new_start(0.0),
-                    Event::new_end(1.0),
-                    Event::new_planar(1.0),
-                    Event::new_start(1.0),
-                    Event::new_end(2.0),
-                ],
-            ),
-            (
-                Axis::Y,
-                vec![
-                    Event::new_start(0.0),
-                    Event::new_end(1.0),
-                    Event::new_start(1.0),
-                    Event::new_start(1.0),
-                    Event::new_end(2.0),
-                    Event::new_end(2.0),
-                ],
-            ),
-            (
-                Axis::Z,
-                vec![
-                    Event::new_start(0.0),
-                    Event::new_end(1.0),
-                    Event::new_start(1.0),
-                    Event::new_start(1.0),
-                    Event::new_end(2.0),
-                    Event::new_end(2.0),
-                ],
-            ),
+            vec![
+                Event::new_start(0.0),
+                Event::new_end(1.0),
+                Event::new_planar(1.0),
+                Event::new_start(1.0),
+                Event::new_end(2.0),
+            ],
+            vec![
+                Event::new_start(0.0),
+                Event::new_end(1.0),
+                Event::new_start(1.0),
+                Event::new_start(1.0),
+                Event::new_end(2.0),
+                Event::new_end(2.0),
+            ],
+            vec![
+                Event::new_start(0.0),
+                Event::new_end(1.0),
+                Event::new_start(1.0),
+                Event::new_start(1.0),
+                Event::new_end(2.0),
+                Event::new_end(2.0),
+            ],
         ];
         assert_eq!(actual, expected);
     }

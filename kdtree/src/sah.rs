@@ -2,7 +2,7 @@ use crate::{
     cell::KdCell,
     event::{generate_event_list, EventKind},
 };
-use geometry::{aabb::Aabb, aap::Aap, geometry::Geometry};
+use geometry::{aabb::Aabb, aap::Aap, axis::Axis, geometry::Geometry};
 
 #[derive(Debug, PartialEq)]
 enum Side {
@@ -142,7 +142,7 @@ pub(crate) struct KdSplit {
 fn sweep_plane(sah: &SahCost, cell: &KdCell, clipped: &[(u32, Aabb)]) -> Option<SahSplit> {
     let events = generate_event_list(clipped);
     let mut best_cost: Option<SahSplit> = None;
-    for (axis, events) in events {
+    for (axis, events) in [Axis::X, Axis::Y, Axis::Z].into_iter().zip(events) {
         let mut n_left = 0;
         let mut n_right = clipped.len();
         let mut i = 0;
