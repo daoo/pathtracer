@@ -141,7 +141,7 @@ pub(crate) struct KdSplit {
 
 fn sweep_plane(
     sah: &SahCost,
-    cell: &KdCell,
+    boundary: &Aabb,
     clipped: &[(u32, Aabb)],
     axis: Axis,
 ) -> Option<SahSplit> {
@@ -174,7 +174,7 @@ fn sweep_plane(
 
         n_right -= p_planar;
         n_right -= p_end;
-        let cost = sah.split_cost_with_planar(&cell.boundary, p, (n_left, p_planar, n_right));
+        let cost = sah.split_cost_with_planar(boundary, p, (n_left, p_planar, n_right));
         best_cost = SahSplit::zip_min(best_cost, cost);
         n_left += p_start;
         n_left += p_planar;
@@ -191,16 +191,10 @@ fn repartition(cell: &KdCell, clipped: &[(u32, Aabb)], best: SahSplit) -> KdSpli
             && boundary.max()[plane.axis] == plane.distance;
         let left = boundary.min()[plane.axis] < plane.distance;
         let right = boundary.max()[plane.axis] > plane.distance;
-        if left {
+        if left || planar && best.side == Side::Left {
             left_indices.push(*index);
         }
-        if planar {
-            match best.side {
-                Side::Left => left_indices.push(*index),
-                Side::Right => right_indices.push(*index),
-            }
-        }
-        if right {
+        if right || planar && best.side == Side::Right {
             right_indices.push(*index);
         }
     }
@@ -223,8 +217,8 @@ pub(crate) fn find_best_split(
     );
 
     let clipped = cell.clip_geometries(geometries);
-    let x = sweep_plane(sah, cell, &clipped, Axis::X);
-    let y = sweep_plane(sah, cell, &clipped, Axis::Y);
-    let z = sweep_plane(sah, cell, &clipped, Axis::Z);
+    let x = sweep_plane(sah, &cell.boundary, &clipped, Axis::X);
+    let y = sweep_plane(sah, &cell.boundary, &clipped, Axis::Y);
+    let z = sweep_plane(sah, &cell.boundary, &clipped, Axis::Z);
     SahSplit::zip_min(x, SahSplit::zip_min(y, z)).map(|best| repartition(cell, &clipped, best))
 }

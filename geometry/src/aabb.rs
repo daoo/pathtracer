@@ -44,12 +44,12 @@ impl Aabb {
         self.max - self.min
     }
 
-    pub fn min(&self) -> Vec3 {
-        self.min
+    pub fn min(&self) -> &Vec3 {
+        &self.min
     }
 
-    pub fn max(&self) -> Vec3 {
-        self.max
+    pub fn max(&self) -> &Vec3 {
+        &self.max
     }
 
     pub fn surface_area(&self) -> f32 {
