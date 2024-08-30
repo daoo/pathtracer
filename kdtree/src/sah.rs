@@ -267,8 +267,8 @@ fn repartition(
                     extend_vec_with_events(
                         &mut events_left_both,
                         *index,
-                        &clipped.min(),
-                        &clipped.max(),
+                        clipped.min(),
+                        clipped.max(),
                     );
                     left_indices.push(*index);
                 }
@@ -276,8 +276,8 @@ fn repartition(
                     extend_vec_with_events(
                         &mut events_right_both,
                         *index,
-                        &clipped.min(),
-                        &clipped.max(),
+                        clipped.min(),
+                        clipped.max(),
                     );
                     right_indices.push(*index);
                 }

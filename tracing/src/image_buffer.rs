@@ -100,7 +100,7 @@ impl AddAssign for ImageBuffer {
         debug_assert!(self.size.x == rhs.size.x && self.size.y == rhs.size.y);
         self.pixels
             .iter_mut()
-            .zip(rhs.pixels.into_iter())
+            .zip(rhs.pixels)
             .for_each(|(a, b)| *a += b);
     }
 }
