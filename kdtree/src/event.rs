@@ -53,21 +53,13 @@ fn extend_vec_with_events(vec: &mut Vec<Event>, min: &Vec3, max: &Vec3, axis: Ax
     }
 }
 
-pub(crate) fn generate_event_list(clipped: &[(u32, Aabb)]) -> [Vec<Event>; 3] {
-    let mut events = [
-        Vec::with_capacity(clipped.len() * 2),
-        Vec::with_capacity(clipped.len() * 2),
-        Vec::with_capacity(clipped.len() * 2),
-    ];
+pub(crate) fn generate_event_list(clipped: &[(u32, Aabb)], axis: Axis) -> Vec<Event> {
+    let mut events = Vec::with_capacity(clipped.len() * 2);
     for (_, boundary) in clipped {
         let (min, max) = (&boundary.min(), &boundary.max());
-        extend_vec_with_events(&mut events[0], min, max, Axis::X);
-        extend_vec_with_events(&mut events[1], min, max, Axis::Y);
-        extend_vec_with_events(&mut events[2], min, max, Axis::Z);
+        extend_vec_with_events(&mut events, min, max, axis);
     }
-    events[0].sort_unstable_by(Event::total_cmp);
-    events[1].sort_unstable_by(Event::total_cmp);
-    events[2].sort_unstable_by(Event::total_cmp);
+    events.sort_unstable_by(Event::total_cmp);
     events
 }
 
@@ -82,7 +74,11 @@ mod tests {
         let triangle = Aabb::from_extents(Vec3::ZERO, Vec3::ONE);
         let clipped = [(0, triangle)];
 
-        let actual = generate_event_list(&clipped);
+        let actual = [
+            generate_event_list(&clipped, Axis::X),
+            generate_event_list(&clipped, Axis::Y),
+            generate_event_list(&clipped, Axis::Z),
+        ];
 
         let expected = [
             vec![Event::new_start(0.0), Event::new_end(1.0)],
@@ -97,7 +93,11 @@ mod tests {
         let triangle = Aabb::from_extents(Vec3::ZERO, Vec3::new(0.0, 1.0, 1.0));
         let clipped = [(0, triangle)];
 
-        let actual = generate_event_list(&clipped);
+        let actual = [
+            generate_event_list(&clipped, Axis::X),
+            generate_event_list(&clipped, Axis::Y),
+            generate_event_list(&clipped, Axis::Z),
+        ];
 
         let expected = [
             vec![Event::new_planar(0.0)],
@@ -114,7 +114,11 @@ mod tests {
         let triangle3 = Aabb::from_extents(Vec3::ONE, Vec3::new(1.0, 2.0, 2.0));
         let clipped = [(0, triangle1), (1, triangle2), (2, triangle3)];
 
-        let actual = generate_event_list(&clipped);
+        let actual = [
+            generate_event_list(&clipped, Axis::X),
+            generate_event_list(&clipped, Axis::Y),
+            generate_event_list(&clipped, Axis::Z),
+        ];
 
         let expected = [
             vec![

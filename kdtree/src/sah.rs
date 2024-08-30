@@ -139,42 +139,45 @@ pub(crate) struct KdSplit {
     pub(crate) right: KdCell,
 }
 
-fn sweep_plane(sah: &SahCost, cell: &KdCell, clipped: &[(u32, Aabb)]) -> Option<SahSplit> {
-    let events = generate_event_list(clipped);
+fn sweep_plane(
+    sah: &SahCost,
+    cell: &KdCell,
+    clipped: &[(u32, Aabb)],
+    axis: Axis,
+) -> Option<SahSplit> {
+    let events = generate_event_list(clipped, axis);
     let mut best_cost: Option<SahSplit> = None;
-    for (axis, events) in [Axis::X, Axis::Y, Axis::Z].into_iter().zip(events) {
-        let mut n_left = 0;
-        let mut n_right = clipped.len();
-        let mut i = 0;
-        while i < events.len() {
-            let p = Aap {
-                axis,
-                distance: events[i].distance,
-            };
+    let mut n_left = 0;
+    let mut n_right = clipped.len();
+    let mut i = 0;
+    while i < events.len() {
+        let p = Aap {
+            axis,
+            distance: events[i].distance,
+        };
 
-            let p_end = events[i..]
-                .iter()
-                .take_while(|e| e.distance == p.distance && e.kind == EventKind::End)
-                .count();
-            i += p_end;
-            let p_planar = events[i..]
-                .iter()
-                .take_while(|e| e.distance == p.distance && e.kind == EventKind::Planar)
-                .count();
-            i += p_planar;
-            let p_start = events[i..]
-                .iter()
-                .take_while(|e| e.distance == p.distance && e.kind == EventKind::Start)
-                .count();
-            i += p_start;
+        let p_end = events[i..]
+            .iter()
+            .take_while(|e| e.distance == p.distance && e.kind == EventKind::End)
+            .count();
+        i += p_end;
+        let p_planar = events[i..]
+            .iter()
+            .take_while(|e| e.distance == p.distance && e.kind == EventKind::Planar)
+            .count();
+        i += p_planar;
+        let p_start = events[i..]
+            .iter()
+            .take_while(|e| e.distance == p.distance && e.kind == EventKind::Start)
+            .count();
+        i += p_start;
 
-            n_right -= p_planar;
-            n_right -= p_end;
-            let cost = sah.split_cost_with_planar(&cell.boundary, p, (n_left, p_planar, n_right));
-            best_cost = SahSplit::zip_min(best_cost, cost);
-            n_left += p_start;
-            n_left += p_planar;
-        }
+        n_right -= p_planar;
+        n_right -= p_end;
+        let cost = sah.split_cost_with_planar(&cell.boundary, p, (n_left, p_planar, n_right));
+        best_cost = SahSplit::zip_min(best_cost, cost);
+        n_left += p_start;
+        n_left += p_planar;
     }
     best_cost
 }
@@ -220,5 +223,8 @@ pub(crate) fn find_best_split(
     );
 
     let clipped = cell.clip_geometries(geometries);
-    sweep_plane(sah, cell, &clipped).map(|best| repartition(cell, &clipped, best))
+    let x = sweep_plane(sah, cell, &clipped, Axis::X);
+    let y = sweep_plane(sah, cell, &clipped, Axis::Y);
+    let z = sweep_plane(sah, cell, &clipped, Axis::Z);
+    SahSplit::zip_min(x, SahSplit::zip_min(y, z)).map(|best| repartition(cell, &clipped, best))
 }
