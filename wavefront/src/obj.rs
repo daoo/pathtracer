@@ -1,10 +1,9 @@
 use nom::{
     bytes::complete::tag_no_case,
-    character::complete::{char, i32, multispace0, multispace1},
+    character::complete::{char, i32, space0, space1},
     combinator::{opt, rest},
     multi::separated_list0,
     number::complete::float,
-    sequence::Tuple,
     IResult,
 };
 use std::{cmp::Ordering, io::BufRead, path::PathBuf};
@@ -60,11 +59,11 @@ impl Obj {
     }
 }
 
-fn index_wavefront_vec<T: Default + Clone>(v: &[T], i: i32) -> T {
+fn index_wavefront_vec<T: Default + Copy>(v: &[T], i: i32) -> T {
     match i.cmp(&0) {
         Ordering::Equal => Default::default(),
-        Ordering::Less => v[((v.len() as i32) + i) as usize].clone(),
-        Ordering::Greater => v[(i - 1) as usize].clone(),
+        Ordering::Less => v[((v.len() as i32) + i) as usize],
+        Ordering::Greater => v[(i - 1) as usize],
     }
 }
 
@@ -74,17 +73,23 @@ fn tagged<'a, O>(
     input: &'a str,
 ) -> IResult<&'a str, O> {
     let (input, _) = tag_no_case(name)(input)?;
-    let (input, _) = multispace0(input)?;
+    let (input, _) = space0(input)?;
     data(input)
 }
 
 fn vec2(input: &str) -> IResult<&str, [f32; 2]> {
-    let (input, (x, _, y)) = (float, multispace0, float).parse(input)?;
+    let (input, x) = float(input)?;
+    let (input, _) = space0(input)?;
+    let (input, y) = float(input)?;
     Ok((input, [x, y]))
 }
 
 fn vec3(input: &str) -> IResult<&str, [f32; 3]> {
-    let (input, (x, _, y, _, z)) = (float, multispace0, float, multispace0, float).parse(input)?;
+    let (input, x) = float(input)?;
+    let (input, _) = space0(input)?;
+    let (input, y) = float(input)?;
+    let (input, _) = space0(input)?;
+    let (input, z) = float(input)?;
     Ok((input, [x, y, z]))
 }
 
@@ -93,13 +98,16 @@ fn i32_or_zero(input: &str) -> IResult<&str, i32> {
 }
 
 fn point(input: &str) -> IResult<&str, Point> {
-    (i32, char('/'), i32_or_zero, char('/'), i32_or_zero)
-        .parse(input)
-        .map(|(input, (v, _, t, _, n))| (input, Point { v, t, n }))
+    let (input, v) = i32(input)?;
+    let (input, _) = char('/')(input)?;
+    let (input, t) = i32_or_zero(input)?;
+    let (input, _) = char('/')(input)?;
+    let (input, n) = i32_or_zero(input)?;
+    Ok((input, Point { v, t, n }))
 }
 
 fn face(input: &str) -> IResult<&str, Face> {
-    separated_list0(multispace1, point)(input).map(|(input, points)| (input, Face { points }))
+    separated_list0(space1, point)(input).map(|(input, points)| (input, Face { points }))
 }
 
 pub fn obj<R>(input: &mut R) -> Obj
@@ -123,7 +131,7 @@ where
         if let Ok((_, x)) = tagged("mtllib", rest, trimmed) {
             mtl_lib = PathBuf::from(x);
         } else if let Ok((_, x)) = tagged("usemtl", rest, trimmed) {
-            chunks.push(Chunk::new(x.to_string()));
+            chunks.push(Chunk::new(x.to_owned()));
         } else if let Ok((_, x)) = tagged("v", vec3, trimmed) {
             vertices.push(x);
         } else if let Ok((_, x)) = tagged("vn", vec3, trimmed) {

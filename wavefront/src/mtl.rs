@@ -1,6 +1,6 @@
 use nom::{
-    bytes::complete::tag, character::complete::multispace0, combinator::rest,
-    number::complete::float, sequence::Tuple, IResult,
+    bytes::complete::tag, character::complete::space0, combinator::rest, number::complete::float,
+    IResult,
 };
 use std::io::BufRead;
 
@@ -62,12 +62,16 @@ fn tagged<'a, O>(
     input: &'a str,
 ) -> IResult<&'a str, O> {
     let (input, _) = tag(name)(input)?;
-    let (input, _) = multispace0(input)?;
+    let (input, _) = space0(input)?;
     data(input)
 }
 
 fn vec3(input: &str) -> IResult<&str, [f32; 3]> {
-    let (input, (x, _, y, _, z)) = (float, multispace0, float, multispace0, float).parse(input)?;
+    let (input, x) = float(input)?;
+    let (input, _) = space0(input)?;
+    let (input, y) = float(input)?;
+    let (input, _) = space0(input)?;
+    let (input, z) = float(input)?;
     Ok((input, [x, y, z]))
 }
 
@@ -108,7 +112,7 @@ where
         } else if let Ok((_, x)) = tagged("camerafov", float, trimmed) {
             cameras.last_mut().unwrap().fov = x;
         } else if let Ok((_, name)) = tagged("newmtl", rest, trimmed) {
-            materials.push(Material::new(name.to_string()));
+            materials.push(Material::new(name.to_owned()));
         } else if let Ok((_, _)) = tagged("illum", float, trimmed) {
             // TODO: not supported
         } else if let Ok((_, _)) = tagged("Ka", float, trimmed) {
@@ -116,7 +120,7 @@ where
         } else if let Ok((_, x)) = tagged("Kd", vec3, trimmed) {
             materials.last_mut().unwrap().diffuse_reflection = x;
         } else if let Ok((_, x)) = tagged("map_Kd", rest, trimmed) {
-            materials.last_mut().unwrap().diffuse_map = x.to_string();
+            materials.last_mut().unwrap().diffuse_map = x.to_owned();
         } else if let Ok((_, x)) = tagged("Ks", vec3, trimmed) {
             materials.last_mut().unwrap().specular_reflection = x;
         } else if let Ok((_, _)) = tagged("Ns", float, trimmed) {
