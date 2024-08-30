@@ -88,7 +88,8 @@ impl SahCost {
         plane: Aap,
         counts: (usize, usize, usize),
     ) -> Option<SahSplit> {
-        if boundary.volume() == 0.0 || counts.0 + counts.1 + counts.2 == 0 {
+        let count = counts.0 + counts.1 + counts.2;
+        if boundary.volume() == 0.0 || count == 0 {
             return None;
         }
         let (left, right) = boundary.split(&plane);
@@ -98,24 +99,23 @@ impl SahCost {
             left.surface_area() / surface_area,
             right.surface_area() / surface_area,
         );
+        let intersect_cost = self.leaf_cost(count);
         if volume.0 > 0.0 && volume.1 > 0.0 {
             let l = self.split_cost(volume, probability, (counts.0 + counts.1, counts.2));
             let r = self.split_cost(volume, probability, (counts.0, counts.2 + counts.1));
-            if l <= r {
-                Some(SahSplit::new_left(plane, l))
-            } else {
-                Some(SahSplit::new_right(plane, r))
-            }
+            (l < intersect_cost || r < intersect_cost).then(|| {
+                if l <= r {
+                    SahSplit::new_left(plane, l)
+                } else {
+                    SahSplit::new_right(plane, r)
+                }
+            })
         } else if volume.0 == 0.0 && counts.0 + counts.1 > 0 {
-            Some(SahSplit::new_left(
-                plane,
-                self.split_cost(volume, probability, (counts.0 + counts.1, counts.2)),
-            ))
+            let split_cost = self.split_cost(volume, probability, (counts.0 + counts.1, counts.2));
+            (split_cost < intersect_cost).then(|| SahSplit::new_left(plane, split_cost))
         } else if volume.1 == 0.0 && counts.1 + counts.2 > 0 {
-            Some(SahSplit::new_right(
-                plane,
-                self.split_cost(volume, probability, (counts.0, counts.1 + counts.2)),
-            ))
+            let split_cost = self.split_cost(volume, probability, (counts.0, counts.1 + counts.2));
+            (split_cost < intersect_cost).then(|| SahSplit::new_right(plane, split_cost))
         } else {
             None
         }
@@ -126,7 +126,7 @@ impl Default for SahCost {
     fn default() -> Self {
         SahCost {
             traverse_cost: 1.0,
-            intersect_cost: 2.0,
+            intersect_cost: 1.5,
             empty_factor: 0.8,
         }
     }
@@ -221,16 +221,4 @@ pub(crate) fn find_best_split(
 
     let clipped = cell.clip_geometries(geometries);
     sweep_plane(sah, cell, &clipped).map(|best| repartition(cell, &clipped, best))
-}
-
-pub(crate) fn should_terminate(sah: &SahCost, cell: &KdCell, split: &KdSplit) -> bool {
-    let volume = (split.left.boundary.volume(), split.right.boundary.volume());
-    let surface_area = cell.boundary.surface_area();
-    let probability_left = split.left.boundary.surface_area() / surface_area;
-    let probability_right = split.right.boundary.surface_area() / surface_area;
-    let probability = (probability_left, probability_right);
-    let counts = (split.left.indices.len(), split.right.indices.len());
-    let split_cost = sah.split_cost(volume, probability, counts);
-    let intersect_cost = sah.leaf_cost(cell.indices.len());
-    split_cost >= intersect_cost
 }

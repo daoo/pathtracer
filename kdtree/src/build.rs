@@ -2,7 +2,7 @@ use geometry::geometry::Geometry;
 
 use crate::{
     cell::KdCell,
-    sah::{find_best_split, should_terminate, SahCost},
+    sah::{find_best_split, SahCost},
     MAX_DEPTH,
 };
 
@@ -16,13 +16,9 @@ fn build_helper(geometries: &[Geometry], sah: &SahCost, depth: u32, cell: KdCell
     match find_best_split(geometries, sah, &cell) {
         None => KdNode::new_leaf(cell.indices),
         Some(split) => {
-            if should_terminate(sah, &cell, &split) {
-                KdNode::new_leaf(cell.indices)
-            } else {
-                let left = build_helper(geometries, sah, depth + 1, split.left);
-                let right = build_helper(geometries, sah, depth + 1, split.right);
-                KdNode::new_node(split.plane, left, right)
-            }
+            let left = build_helper(geometries, sah, depth + 1, split.left);
+            let right = build_helper(geometries, sah, depth + 1, split.right);
+            KdNode::new_node(split.plane, left, right)
         }
     }
 }
