@@ -6,7 +6,7 @@ use crate::{aabb::Aabb, aap::Aap, ray::Ray};
 /// Clip Triangle against AABB.
 ///
 /// Implements the Sutherland-Hodgman algorithm.
-pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> ArrayVec<Vec3, 8> {
+pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> ArrayVec<Vec3, 9> {
     let aabb_min = aabb.min();
     let aabb_max = aabb.max();
     let clip_planes = [
@@ -26,14 +26,14 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Array
         }
     };
 
-    let mut output = ArrayVec::<Vec3, 8>::new();
+    let mut output = ArrayVec::<Vec3, 9>::new();
     unsafe {
         output.push_unchecked(*v1);
         output.push_unchecked(*v2);
         output.push_unchecked(*v0);
     }
 
-    let push_unique = |o: &mut ArrayVec<Vec3, 8>, p: Vec3| {
+    let push_unique = |o: &mut ArrayVec<Vec3, 9>, p: Vec3| {
         if !o.contains(&p) {
             unsafe {
                 o.push_unchecked(p);
@@ -50,7 +50,7 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Array
         //
         // I tried to put this into a separate function but that trips up the optimizer, generating
         // much worse code (empirically 20% slower).
-        let mut input = ArrayVec::<Vec3, 8>::new();
+        let mut input = ArrayVec::<Vec3, 9>::new();
         for x in &output {
             unsafe {
                 input.push_unchecked(*x);
@@ -241,24 +241,23 @@ mod tests {
 
     #[test]
     fn clip_maximum_array_vec_capacity() {
-        let v0 = Vec3::new(-1.630846, 1.597002, -6.346155);
-        let v1 = Vec3::new(-1.630858, 1.59699, -6.807356);
-        let v2 = Vec3::new(-1.47169, 1.537329, -6.807351);
-        let aabb = Aabb::from_extents(
-            Vec3::new(-1.639749, 1.5598166, -6.807353),
-            Vec3::new(-1.531684, 1.5970019, -6.3492346),
-        );
+        let v0 = Vec3::new(1.8820591, 1.8356464, -0.024532795);
+        let v1 = Vec3::new(0.6663188, 0.14820933, 0.0025525093);
+        let v2 = Vec3::new(-0.74280226, -0.56288826, 1.474189);
+        let aabb = Aabb::from_extents(Vec3::ZERO, Vec3::ONE);
 
         let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
 
         let expected = [
-            Vec3::new(-1.630846, 1.5970019, -6.3492346),
-            Vec3::new(-1.6308461, 1.5970019, -6.3507214),
-            Vec3::new(-1.630858, 1.59699, -6.807353),
-            Vec3::new(-1.5316842, 1.5598166, -6.807353),
-            Vec3::new(-1.531684, 1.5598166, -6.8061028),
-            Vec3::new(-1.531684, 1.5598228, -6.633503),
-            Vec3::new(-1.6297833, 1.5966036, -6.3492346),
+            Vec3::new(1.0, 1.0, 0.44480032),
+            Vec3::new(1.0, 0.61557496, 0.0),
+            Vec3::new(0.78088975, 0.30723286, 0.0),
+            Vec3::new(0.6663188, 0.14820933, 0.0025525093),
+            Vec3::new(0.37262508, 0.0, 0.3092759),
+            Vec3::new(0.0, 0.0, 0.9160062),
+            Vec3::new(0.0, 0.07259283, 1.0),
+            Vec3::new(0.08769246, 0.19599774, 1.0),
+            Vec3::new(0.9675606, 1.0, 0.49762005),
         ];
         assert_eq!(actual.as_slice(), expected);
     }
