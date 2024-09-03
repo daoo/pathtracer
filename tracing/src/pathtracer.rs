@@ -47,6 +47,8 @@ impl Pathtracer {
             let material = self.scene.get_material(intersection_index);
 
             // TODO: How to chose offset?
+            // In PBRT the offset is chosen based on the surface normal, surface intersection
+            // calculation error, sampled incoming direction and then rounded up to the next float.
             let offset = 0.00001 * n;
             let point = ray.param(intersection.t);
             let point_above = point + offset;
@@ -57,6 +59,7 @@ impl Pathtracer {
                 .lights
                 .iter()
                 .map(|light| {
+                    // TODO: Offset should depend on incoming direction, not only surface normal.
                     let shadow_ray = Ray::between(point_above, sample_light(light, rng));
                     let intersection =
                         self.kdtree
