@@ -29,17 +29,21 @@ impl Pathtracer {
             let intersection = self
                 .kdtree
                 .intersect(&self.scene.geometries, &ray, 0.0..=f32::MAX);
+            ray_logger
+                .log_ray(
+                    &intersection
+                        .as_ref()
+                        .map_or(ray.clone(), |isect| ray.extended(isect.intersection.t)),
+                    bounce,
+                    intersection.is_some(),
+                )
+                .unwrap();
             if intersection.is_none() {
-                ray_logger.log_infinite(&ray, bounce).unwrap();
                 return accumulated_radiance + accumulated_transport * self.scene.environment;
             }
             let intersection = intersection.unwrap();
             let intersection_index = intersection.index;
             let intersection = intersection.intersection;
-
-            ray_logger
-                .log_finite(&ray.extended(intersection.t), bounce)
-                .unwrap();
 
             let wi = -ray.direction;
             let n = self.scene.get_normal(intersection_index, &intersection);
@@ -64,6 +68,9 @@ impl Pathtracer {
                     let intersection =
                         self.kdtree
                             .intersect(&self.scene.geometries, &shadow_ray, 0.0..=1.0);
+                    ray_logger
+                        .log_shadow(&shadow_ray, bounce, intersection.is_some())
+                        .unwrap();
                     if intersection.is_some() {
                         return Vec3::ZERO;
                     }

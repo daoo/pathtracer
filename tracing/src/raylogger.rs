@@ -38,7 +38,8 @@ impl RayLoggerWriter {
     fn write(
         &mut self,
         ray: &Ray,
-        infinite: bool,
+        shadow: u8,
+        intersect: u8,
         iteration: u16,
         pixel_x: u16,
         pixel_y: u16,
@@ -49,18 +50,19 @@ impl RayLoggerWriter {
         }
 
         if let Self::File(buf) = self {
-            let mut bytes = [0u8; 32];
+            let mut bytes = [0u8; 33];
             bytes[0..2].copy_from_slice(&iteration.to_le_bytes());
             bytes[2..4].copy_from_slice(&pixel_x.to_le_bytes());
             bytes[4..6].copy_from_slice(&pixel_y.to_le_bytes());
             bytes[6..7].copy_from_slice(&bounces.to_le_bytes());
-            bytes[7..8].copy_from_slice(&(infinite as u8).to_le_bytes());
-            bytes[8..12].copy_from_slice(&ray.origin.x.to_le_bytes());
-            bytes[12..16].copy_from_slice(&ray.origin.y.to_le_bytes());
-            bytes[16..20].copy_from_slice(&ray.origin.z.to_le_bytes());
-            bytes[20..24].copy_from_slice(&ray.direction.x.to_le_bytes());
-            bytes[24..28].copy_from_slice(&ray.direction.y.to_le_bytes());
-            bytes[28..32].copy_from_slice(&ray.direction.z.to_le_bytes());
+            bytes[7..8].copy_from_slice(&shadow.to_le_bytes());
+            bytes[8..9].copy_from_slice(&intersect.to_le_bytes());
+            bytes[9..13].copy_from_slice(&ray.origin.x.to_le_bytes());
+            bytes[13..17].copy_from_slice(&ray.origin.y.to_le_bytes());
+            bytes[17..21].copy_from_slice(&ray.origin.z.to_le_bytes());
+            bytes[21..25].copy_from_slice(&ray.direction.x.to_le_bytes());
+            bytes[25..29].copy_from_slice(&ray.direction.y.to_le_bytes());
+            bytes[29..33].copy_from_slice(&ray.direction.z.to_le_bytes());
             buf.write_all(&bytes)
         } else {
             Ok(())
@@ -92,10 +94,12 @@ pub struct RayLoggerWithIterationAndPixel<'a> {
 }
 
 impl RayLoggerWithIterationAndPixel<'_> {
-    pub fn log_infinite(&mut self, ray: &Ray, bounces: u8) -> Result<(), Error> {
+    pub fn log_ray(&mut self, ray: &Ray, bounces: u8, intersect: bool) -> Result<(), Error> {
+        let shadow = false;
         self.writer.write(
             ray,
-            true,
+            shadow as u8,
+            intersect as u8,
             self.iteration,
             self.pixel_x,
             self.pixel_y,
@@ -103,10 +107,12 @@ impl RayLoggerWithIterationAndPixel<'_> {
         )
     }
 
-    pub fn log_finite(&mut self, ray: &Ray, bounces: u8) -> Result<(), Error> {
+    pub fn log_shadow(&mut self, ray: &Ray, bounces: u8, intersect: bool) -> Result<(), Error> {
+        let shadow = true;
         self.writer.write(
             ray,
-            false,
+            shadow as u8,
+            intersect as u8,
             self.iteration,
             self.pixel_x,
             self.pixel_y,
