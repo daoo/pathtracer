@@ -30,7 +30,7 @@ fn main() {
 
     println!("Building kdtree...");
     let kdtree = build_kdtree(
-        &scene.geometries,
+        scene.geometries(),
         &SahCost {
             traverse_cost: args.traverse_cost,
             intersect_cost: args.intersect_cost,
@@ -45,7 +45,7 @@ fn main() {
     };
 
     miniquad::start(Conf::default(), move || {
-        let camera = pathtracer.scene.cameras[0].clone();
+        let camera = pathtracer.scene.cameras()[0].clone();
         Box::new(Stage::new(pathtracer, camera))
     });
 }

@@ -45,12 +45,12 @@ struct TriangleProperties {
 }
 
 pub struct Scene {
-    pub geometries: Vec<Geometry>,
+    geometries: Vec<Geometry>,
     properties: Vec<TriangleProperties>,
     materials: Vec<Material>,
-    pub cameras: Vec<Camera>,
-    pub lights: Vec<SphericalLight>,
-    pub environment: Vec3,
+    cameras: Vec<Camera>,
+    lights: Vec<SphericalLight>,
+    environment: Vec3,
 }
 
 fn blend_from_mtl(image_directory: &Path, material: &mtl::Material) -> Material {
@@ -180,6 +180,26 @@ impl Scene {
         let scene = Scene::from_wavefront(mtl_path.parent().unwrap(), &obj, &mtl);
         println!("  Geometries: {}", scene.geometries.len());
         scene
+    }
+
+    #[inline]
+    pub fn geometries(&self) -> &[Geometry] {
+        &self.geometries
+    }
+
+    #[inline]
+    pub fn cameras(&self) -> &[Camera] {
+        &self.cameras
+    }
+
+    #[inline]
+    pub fn lights(&self) -> &[SphericalLight] {
+        &self.lights
+    }
+
+    #[inline]
+    pub fn environment(&self) -> Vec3 {
+        self.environment
     }
 
     #[inline]

@@ -19,10 +19,10 @@ pub(crate) fn kdtree_ray_tester(
     let scene = Scene::read_obj_file_with_print_logging(&input);
 
     println!("Building kdtree...");
-    let kdtree = build_kdtree(&scene.geometries, &sah);
+    let kdtree = build_kdtree(scene.geometries(), &sah);
 
     println!("Testing up to {} rays...", size.x * size.y * bounces);
-    let camera = Pinhole::new(scene.cameras[0].clone(), size.as_uvec2());
+    let camera = Pinhole::new(scene.cameras()[0].clone(), size.as_uvec2());
     let bouncer = RayBouncer {
         scene,
         kdtree,

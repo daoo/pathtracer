@@ -28,7 +28,7 @@ impl Pathtracer {
         for bounce in 1..=self.max_bounces {
             let intersection = self
                 .kdtree
-                .intersect(&self.scene.geometries, &ray, 0.0..=f32::MAX);
+                .intersect(self.scene.geometries(), &ray, 0.0..=f32::MAX);
             ray_logger
                 .log_ray(
                     &intersection
@@ -39,7 +39,7 @@ impl Pathtracer {
                 )
                 .unwrap();
             if intersection.is_none() {
-                return accumulated_radiance + accumulated_transport * self.scene.environment;
+                return accumulated_radiance + accumulated_transport * self.scene.environment();
             }
             let intersection = intersection.unwrap();
             let intersection_index = intersection.index;
@@ -60,14 +60,14 @@ impl Pathtracer {
 
             let incoming_radiance: Vec3 = self
                 .scene
-                .lights
+                .lights()
                 .iter()
                 .map(|light| {
                     // TODO: Offset should depend on incoming direction, not only surface normal.
                     let shadow_ray = Ray::between(point_above, sample_light(light, rng));
                     let intersection =
                         self.kdtree
-                            .intersect(&self.scene.geometries, &shadow_ray, 0.0..=1.0);
+                            .intersect(self.scene.geometries(), &shadow_ray, 0.0..=1.0);
                     ray_logger
                         .log_shadow(&shadow_ray, bounce, intersection.is_some())
                         .unwrap();

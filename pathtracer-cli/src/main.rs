@@ -159,7 +159,7 @@ fn main() {
 
     println!("Building kdtree...");
     let kdtree = build_kdtree(
-        &scene.geometries,
+        scene.geometries(),
         &SahCost {
             traverse_cost: args.traverse_cost,
             intersect_cost: args.intersect_cost,
@@ -172,7 +172,7 @@ fn main() {
         "Rendering {} px image with {} thread(s) and {} total iteration(s)...",
         args.size, args.threads, total_iterations,
     );
-    let camera = Pinhole::new(scene.cameras[0].clone(), args.size.as_uvec2());
+    let camera = Pinhole::new(scene.cameras()[0].clone(), args.size.as_uvec2());
     let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,
         scene,

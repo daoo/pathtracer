@@ -27,8 +27,8 @@ impl RayBouncer {
         ray: &Ray,
         t_range: RangeInclusive<f32>,
     ) -> Option<KdIntersection> {
-        let indices = 0u32..self.scene.geometries.len() as u32;
-        intersect_closest_geometry(&self.scene.geometries, indices, ray, t_range)
+        let indices = 0u32..self.scene.geometries().len() as u32;
+        intersect_closest_geometry(self.scene.geometries(), indices, ray, t_range)
     }
 
     fn checked_ray_intersect(
@@ -38,7 +38,7 @@ impl RayBouncer {
     ) -> CheckedIntersection {
         let kdtree = self
             .kdtree
-            .intersect(&self.scene.geometries, ray, t_range.clone());
+            .intersect(self.scene.geometries(), ray, t_range.clone());
         let reference = self.reference_ray_intersect(ray, t_range);
         CheckedIntersection {
             ray: ray.clone(),
@@ -76,7 +76,7 @@ impl RayBouncer {
 
         let incoming_fails = self
             .scene
-            .lights
+            .lights()
             .iter()
             .filter_map(|light| {
                 let shadow_ray = Ray::between(point_above, sample_light(light, &mut rng));
