@@ -1,4 +1,4 @@
-use geometry::{geometry::Geometry, intersection::RayIntersection, triangle::Triangle};
+use geometry::{geometry::Geometry, intersection::GeometryIntersection, triangle::Triangle};
 use glam::{Vec2, Vec3};
 use material::Material;
 use std::{collections::BTreeMap, fs::File, io::BufReader, path::Path};
@@ -108,6 +108,13 @@ fn collect_lights(mtl: &mtl::Mtl) -> Vec<SphericalLight> {
         .collect()
 }
 
+pub struct SceneIntersection<'a> {
+    pub inner: GeometryIntersection,
+    pub material: &'a Material,
+    pub normal: Vec3,
+    pub texcoord: Vec2,
+}
+
 impl Scene {
     pub fn from_wavefront(image_directory: &Path, obj: &obj::Obj, mtl: &mtl::Mtl) -> Scene {
         let materials = materials_from_mtl(image_directory, mtl);
@@ -203,21 +210,16 @@ impl Scene {
     }
 
     #[inline]
-    pub fn get_material(&self, index: u32) -> &Material {
-        &self.materials[self.properties[index as usize].material_index]
-    }
-
-    #[inline]
-    pub fn get_normal(&self, index: u32, intersection: &RayIntersection) -> Vec3 {
-        self.properties[index as usize]
-            .normals
-            .lerp(intersection.u, intersection.v)
-    }
-
-    #[inline]
-    pub fn get_texcoord(&self, index: u32, intersection: &RayIntersection) -> Vec2 {
-        self.properties[index as usize]
-            .texcoords
-            .lerp(intersection.u, intersection.v)
+    pub fn lookup_intersection(&self, inner: GeometryIntersection) -> SceneIntersection<'_> {
+        let properties = &self.properties[inner.index as usize];
+        let normal = properties.normals.lerp(inner.inner.u, inner.inner.v);
+        let texcoord = properties.texcoords.lerp(inner.inner.u, inner.inner.v);
+        let material = &self.materials[properties.material_index];
+        SceneIntersection {
+            inner,
+            material,
+            normal,
+            texcoord,
+        }
     }
 }

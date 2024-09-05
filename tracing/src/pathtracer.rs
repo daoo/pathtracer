@@ -41,20 +41,18 @@ impl Pathtracer {
             if intersection.is_none() {
                 return accumulated_radiance + accumulated_transport * self.scene.environment();
             }
-            let intersection = intersection.unwrap();
-            let intersection_index = intersection.index;
-            let intersection = intersection.inner;
+            let intersection = self.scene.lookup_intersection(intersection.unwrap());
 
             let wi = -ray.direction;
-            let n = self.scene.get_normal(intersection_index, &intersection);
-            let uv = self.scene.get_texcoord(intersection_index, &intersection);
-            let material = self.scene.get_material(intersection_index);
+            let n = intersection.normal;
+            let uv = intersection.texcoord;
+            let material = intersection.material;
 
             // TODO: How to chose offset?
             // In PBRT the offset is chosen based on the surface normal, surface intersection
             // calculation error, sampled incoming direction and then rounded up to the next float.
             let offset = 0.00001 * n;
-            let point = ray.param(intersection.t);
+            let point = ray.param(intersection.inner.inner.t);
             let point_above = point + offset;
             let point_below = point - offset;
 
