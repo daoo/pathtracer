@@ -9,6 +9,10 @@ pub struct Sphere {
 }
 
 impl Sphere {
+    pub fn new(center: Vec3, radius: f32) -> Self {
+        Sphere { center, radius }
+    }
+
     pub fn min(&self) -> Vec3 {
         Vec3::new(
             self.center.x - self.radius,
@@ -25,6 +29,11 @@ impl Sphere {
         )
     }
 
+    pub fn normal(&self, point: &Vec3) -> Vec3 {
+        debug_assert!((point - self.center).length() == self.radius);
+        (point - self.center).normalize()
+    }
+
     pub fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
         let p = ray.origin - self.center;
         let a = ray.direction.dot(ray.direction);
@@ -36,7 +45,6 @@ impl Sphere {
         }
         let t1 = (-b - discriminant.sqrt()) / (2.0 * a);
         let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
-        dbg!(t1, t2);
         let t = if t1 <= t2 { t1 } else { t2 };
         Some(RayIntersection { t, u: 0.0, v: 0.0 })
     }

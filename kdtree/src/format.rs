@@ -14,6 +14,7 @@ where
             .map(|t| match t {
                 Geometry::Triangle(t) => t.as_arrays(),
                 Geometry::AxiallyAlignedTriangle(t) => t.as_arrays(),
+                Geometry::Sphere(_) => todo!(),
             })
             .collect::<Vec<_>>()
     )
