@@ -1,10 +1,10 @@
 use crate::checked_intersection::CheckedIntersection;
-use geometry::ray::Ray;
-use glam::{UVec2, Vec2};
-use kdtree::{
-    intersection::{intersect_closest_geometry, KdIntersection},
-    KdNode,
+use geometry::{
+    intersection::{intersect_closest_geometry, GeometryIntersection},
+    ray::Ray,
 };
+use glam::{UVec2, Vec2};
+use kdtree::KdNode;
 use rand::{rngs::SmallRng, SeedableRng};
 use scene::{camera::Pinhole, Scene};
 use std::ops::RangeInclusive;
@@ -26,7 +26,7 @@ impl RayBouncer {
         &self,
         ray: &Ray,
         t_range: RangeInclusive<f32>,
-    ) -> Option<KdIntersection> {
+    ) -> Option<GeometryIntersection> {
         let indices = 0u32..self.scene.geometries().len() as u32;
         intersect_closest_geometry(self.scene.geometries(), indices, ray, t_range)
     }
@@ -63,7 +63,7 @@ impl RayBouncer {
         };
         let intersection = intersection.reference?;
         let intersection_index = intersection.index;
-        let intersection = intersection.intersection;
+        let intersection = intersection.inner;
 
         let wi = -ray.direction;
         let n = self.scene.get_normal(intersection_index, &intersection);

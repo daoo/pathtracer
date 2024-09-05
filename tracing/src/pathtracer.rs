@@ -33,7 +33,7 @@ impl Pathtracer {
                 .log_ray(
                     &intersection
                         .as_ref()
-                        .map_or(ray.clone(), |isect| ray.extended(isect.intersection.t)),
+                        .map_or(ray.clone(), |isect| ray.extended(isect.inner.t)),
                     bounce,
                     intersection.is_some(),
                 )
@@ -43,7 +43,7 @@ impl Pathtracer {
             }
             let intersection = intersection.unwrap();
             let intersection_index = intersection.index;
-            let intersection = intersection.intersection;
+            let intersection = intersection.inner;
 
             let wi = -ray.direction;
             let n = self.scene.get_normal(intersection_index, &intersection);

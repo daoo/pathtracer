@@ -7,11 +7,13 @@ use std::{
 
 use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 
-use geometry::{geometry::Geometry, intersection::RayIntersection, ray::Ray, triangle::Triangle};
-use kdtree::{
-    build::build_kdtree, format::write_tree_json, intersection::KdIntersection, sah::SahCost,
-    KdNode,
+use geometry::{
+    geometry::Geometry,
+    intersection::{GeometryIntersection, RayIntersection},
+    ray::Ray,
+    triangle::Triangle,
 };
+use kdtree::{build::build_kdtree, format::write_tree_json, sah::SahCost, KdNode};
 use wavefront::obj;
 
 use crate::checked_intersection::CheckedIntersection;
@@ -28,7 +30,7 @@ fn verify_removal(
 ) -> bool {
     let intersection = tree.intersect(geometries, ray, 0.0..=f32::MAX).unwrap();
     let same_geometry = geometries[intersection.index as usize] == actual.0;
-    let same_intersection = intersection.intersection == actual.1;
+    let same_intersection = intersection.inner == actual.1;
     same_geometry && same_intersection
 }
 
@@ -53,7 +55,7 @@ fn reduce_tree(
 ) -> (Vec<Geometry>, KdNode) {
     let actual = (
         geometries[intersection.kdtree.as_ref().unwrap().index as usize].clone(),
-        intersection.kdtree.as_ref().unwrap().intersection.clone(),
+        intersection.kdtree.as_ref().unwrap().inner.clone(),
     );
     let mut geometries = geometries;
     geometries.swap(0, intersection.reference.unwrap().index as usize);
@@ -99,7 +101,7 @@ pub(crate) fn kdtree_reduce(input: PathBuf, output: PathBuf, fail: Option<PathBu
             [3.897963, 0.24242611, -4.203691].into(),
             [-13.897963, 9.757574, 14.2036915].into(),
         ),
-        reference: Some(KdIntersection::new(
+        reference: Some(GeometryIntersection::new(
             7589,
             RayIntersection {
                 t: 0.0004729527,
@@ -107,7 +109,7 @@ pub(crate) fn kdtree_reduce(input: PathBuf, output: PathBuf, fail: Option<PathBu
                 v: 0.47453666,
             },
         )),
-        kdtree: Some(KdIntersection::new(
+        kdtree: Some(GeometryIntersection::new(
             5556,
             RayIntersection {
                 t: 0.05429069,

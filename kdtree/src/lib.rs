@@ -1,14 +1,17 @@
 use std::{fmt::Display, ops::RangeInclusive};
 
 use arrayvec::ArrayVec;
-use geometry::{aap::Aap, geometry::Geometry, ray::Ray};
-use intersection::{intersect_closest_geometry, KdIntersection};
+use geometry::{
+    aap::Aap,
+    geometry::Geometry,
+    intersection::{intersect_closest_geometry, GeometryIntersection},
+    ray::Ray,
+};
 
 pub mod build;
 mod cell;
 mod event;
 pub mod format;
-pub mod intersection;
 pub mod sah;
 
 pub const MAX_DEPTH: usize = 25;
@@ -83,7 +86,7 @@ impl KdNode {
         geometries: &[Geometry],
         ray: &Ray,
         t_range: RangeInclusive<f32>,
-    ) -> Option<KdIntersection> {
+    ) -> Option<GeometryIntersection> {
         let mut node = self;
         let mut t1 = *t_range.start();
         let mut t2 = *t_range.end();
@@ -234,11 +237,17 @@ mod tests {
 
         assert_eq!(
             node.intersect(&geometries, &ray, 0.0..=1.0),
-            Some(KdIntersection::new(0, RayIntersection::new(0.25, 0., 0.5)))
+            Some(GeometryIntersection::new(
+                0,
+                RayIntersection::new(0.25, 0., 0.5)
+            ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray.reverse(), 0.0..=1.0),
-            Some(KdIntersection::new(1, RayIntersection::new(0.25, 0., 0.5)))
+            Some(GeometryIntersection::new(
+                1,
+                RayIntersection::new(0.25, 0., 0.5)
+            ))
         );
     }
 
@@ -265,11 +274,17 @@ mod tests {
 
         assert_eq!(
             node.intersect(&geometries, &ray_triangle0_v0, 0.0..=1.0),
-            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
+            Some(GeometryIntersection::new(
+                0,
+                RayIntersection::new(0.5, 0., 0.)
+            ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray_triangle1_v1, 0.0..=1.0),
-            Some(KdIntersection::new(1, RayIntersection::new(0.5, 1., 0.)))
+            Some(GeometryIntersection::new(
+                1,
+                RayIntersection::new(0.5, 1., 0.)
+            ))
         );
     }
 
@@ -295,11 +310,17 @@ mod tests {
 
         assert_eq!(
             node.intersect(&geometries, &ray, 0.0..=1.0),
-            Some(KdIntersection::new(0, RayIntersection::new(0.25, 0., 0.5)))
+            Some(GeometryIntersection::new(
+                0,
+                RayIntersection::new(0.25, 0., 0.5)
+            ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray.reverse(), 0.0..=1.0),
-            Some(KdIntersection::new(1, RayIntersection::new(0.25, 0., 0.5)))
+            Some(GeometryIntersection::new(
+                1,
+                RayIntersection::new(0.25, 0., 0.5)
+            ))
         );
     }
 
@@ -319,11 +340,17 @@ mod tests {
 
         assert_eq!(
             tree_left.intersect(&geometries, &ray, 0.0..=1.0),
-            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
+            Some(GeometryIntersection::new(
+                0,
+                RayIntersection::new(0.5, 0., 0.)
+            ))
         );
         assert_eq!(
             tree_right.intersect(&geometries, &ray, 0.0..=1.0),
-            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
+            Some(GeometryIntersection::new(
+                0,
+                RayIntersection::new(0.5, 0., 0.)
+            ))
         );
     }
 
@@ -344,11 +371,17 @@ mod tests {
 
         assert_eq!(
             node.intersect(&geometries, &ray, 0.0..=1.0),
-            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
+            Some(GeometryIntersection::new(
+                0,
+                RayIntersection::new(0.5, 0., 0.)
+            ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray.reverse(), 0.0..=1.0),
-            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
+            Some(GeometryIntersection::new(
+                0,
+                RayIntersection::new(0.5, 0., 0.)
+            ))
         );
     }
 
@@ -369,11 +402,17 @@ mod tests {
 
         assert_eq!(
             node.intersect(&geometries, &ray, 0.0..=1.0),
-            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
+            Some(GeometryIntersection::new(
+                0,
+                RayIntersection::new(0.5, 0., 0.)
+            ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray.reverse(), 0.0..=1.0),
-            Some(KdIntersection::new(0, RayIntersection::new(0.5, 0., 0.)))
+            Some(GeometryIntersection::new(
+                0,
+                RayIntersection::new(0.5, 0., 0.)
+            ))
         );
     }
 
@@ -399,7 +438,7 @@ mod tests {
 
         assert_eq!(
             actual,
-            Some(KdIntersection::new(
+            Some(GeometryIntersection::new(
                 0,
                 RayIntersection {
                     t: 4.329569,
@@ -428,7 +467,7 @@ mod tests {
 
         assert_eq!(
             actual,
-            Some(KdIntersection::new(
+            Some(GeometryIntersection::new(
                 0,
                 RayIntersection {
                     t: 0.5687325,

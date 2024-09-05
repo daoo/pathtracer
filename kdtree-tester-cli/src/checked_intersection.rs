@@ -1,11 +1,10 @@
-use geometry::ray::Ray;
-use kdtree::intersection::KdIntersection;
+use geometry::{intersection::GeometryIntersection, ray::Ray};
 
 #[derive(Debug, Clone)]
 pub struct CheckedIntersection {
     pub ray: Ray,
-    pub reference: Option<KdIntersection>,
-    pub kdtree: Option<KdIntersection>,
+    pub reference: Option<GeometryIntersection>,
+    pub kdtree: Option<GeometryIntersection>,
 }
 
 impl CheckedIntersection {
@@ -16,9 +15,9 @@ impl CheckedIntersection {
             (None, None) => true,
             (Some(a), Some(b)) => {
                 a.index == b.index
-                    && (a.intersection.t - b.intersection.t).abs() < T_TOLERANCE
-                    && (a.intersection.u - b.intersection.u).abs() < UV_TOLERANCE
-                    && (a.intersection.v - b.intersection.v).abs() < UV_TOLERANCE
+                    && (a.inner.t - b.inner.t).abs() < T_TOLERANCE
+                    && (a.inner.u - b.inner.u).abs() < UV_TOLERANCE
+                    && (a.inner.v - b.inner.v).abs() < UV_TOLERANCE
             }
             _ => false,
         }
@@ -27,17 +26,15 @@ impl CheckedIntersection {
     pub fn as_bytes(&self, iteration: u16) -> [u8; 50] {
         let mut bytes = [0u8; 50];
         let ray = if let Some(kdtree) = &self.kdtree {
-            &self.ray.extended(kdtree.intersection.t)
+            &self.ray.extended(kdtree.inner.t)
         } else if let Some(reference) = &self.reference {
-            &self.ray.extended(reference.intersection.t)
+            &self.ray.extended(reference.inner.t)
         } else {
             &self.ray
         };
-        let correct_point = self
-            .ray
-            .param(self.reference.as_ref().unwrap().intersection.t);
+        let correct_point = self.ray.param(self.reference.as_ref().unwrap().inner.t);
         let actual_point = if let Some(kdtree) = &self.kdtree {
-            self.ray.param(kdtree.intersection.t)
+            self.ray.param(kdtree.inner.t)
         } else {
             [0.0, 0.0, 0.0].into()
         };
