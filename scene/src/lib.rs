@@ -1,7 +1,7 @@
 use geometry::{geometry::Geometry, intersection::GeometryIntersection, triangle::Triangle};
 use glam::{Vec2, Vec3};
 use material::Material;
-use std::{collections::BTreeMap, fs::File, io::BufReader, path::Path};
+use std::{fs::File, io::BufReader, path::Path};
 use wavefront::{mtl, obj};
 
 pub mod camera;
@@ -53,7 +53,7 @@ pub struct Scene {
     environment: Vec3,
 }
 
-fn blend_from_mtl(image_directory: &Path, material: &mtl::Material) -> Material {
+fn material_from_mtl(image_directory: &Path, material: &mtl::Material) -> Material {
     let texture = (!material.diffuse_map.is_empty()).then(|| {
         image::open(image_directory.join(&material.diffuse_map))
             .unwrap()
@@ -70,14 +70,11 @@ fn blend_from_mtl(image_directory: &Path, material: &mtl::Material) -> Material 
     }
 }
 
-fn materials_from_mtl<'m>(
-    image_directory: &Path,
-    mtl: &'m mtl::Mtl,
-) -> BTreeMap<&'m str, Material> {
+fn materials_from_mtl<'m>(image_directory: &Path, mtl: &'m mtl::Mtl) -> Vec<(&'m str, Material)> {
     mtl.materials
         .iter()
-        .map(|m| (m.name.as_str(), blend_from_mtl(image_directory, m)))
-        .collect::<BTreeMap<_, _>>()
+        .map(|m| (m.name.as_str(), material_from_mtl(image_directory, m)))
+        .collect()
 }
 
 fn collect_cameras(mtl: &mtl::Mtl) -> Vec<Camera> {
@@ -145,10 +142,8 @@ impl Scene {
                     };
                     let material_index = materials
                         .iter()
-                        .enumerate()
-                        .find(|m| m.1 .0 == &chunk.material)
-                        .unwrap()
-                        .0;
+                        .position(|m| m.0 == chunk.material)
+                        .unwrap();
                     let properties = TriangleProperties {
                         normals,
                         texcoords,
