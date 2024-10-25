@@ -4,7 +4,7 @@ use geometry::{
     ray::Ray,
 };
 use glam::{UVec2, Vec2};
-use kdtree::KdNode;
+use kdtree::{IntersectionAccelerator, KdNode};
 use rand::{rngs::SmallRng, SeedableRng};
 use scene::{camera::Pinhole, Scene};
 use std::ops::RangeInclusive;

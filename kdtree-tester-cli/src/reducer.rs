@@ -13,7 +13,9 @@ use geometry::{
     ray::Ray,
     triangle::Triangle,
 };
-use kdtree::{build::build_kdtree, format::write_tree_json, sah::SahCost, KdNode};
+use kdtree::{
+    build::build_kdtree, format::write_tree_json, sah::SahCost, IntersectionAccelerator, KdNode,
+};
 use wavefront::obj;
 
 use crate::checked_intersection::CheckedIntersection;

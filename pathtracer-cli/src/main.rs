@@ -1,7 +1,7 @@
 use clap::Parser;
 use glam::UVec2;
 use image::{ImageFormat, RgbImage};
-use kdtree::{build::build_kdtree, sah::SahCost};
+use kdtree::{build::build_kdtree, sah::SahCost, KdNode};
 use rand::{rngs::SmallRng, SeedableRng};
 use scene::{camera::Pinhole, Scene};
 use std::{
@@ -94,7 +94,7 @@ fn create_ray_logger(thread: u32) -> RayLoggerWriter {
 
 fn worker_thread(
     thread: u32,
-    pathtracer: &Pathtracer,
+    pathtracer: &Pathtracer<KdNode>,
     camera: &Pinhole,
     size: UVec2,
     iterations: u32,
@@ -158,7 +158,7 @@ fn main() {
     let scene = Scene::read_obj_file_with_print_logging(&args.input);
 
     println!("Building kdtree...");
-    let kdtree = build_kdtree(
+    let accelerator = build_kdtree(
         scene.geometries(),
         &SahCost {
             traverse_cost: args.traverse_cost,
@@ -176,7 +176,7 @@ fn main() {
     let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,
         scene,
-        kdtree,
+        accelerator,
     };
 
     thread::scope(|s| {

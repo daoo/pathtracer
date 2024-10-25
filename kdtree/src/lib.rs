@@ -80,8 +80,19 @@ impl KdNode {
             _ => None,
         })
     }
+}
 
-    pub fn intersect(
+pub trait IntersectionAccelerator {
+    fn intersect(
+        &self,
+        geometries: &[Geometry],
+        ray: &Ray,
+        t_range: RangeInclusive<f32>,
+    ) -> Option<GeometryIntersection>;
+}
+
+impl IntersectionAccelerator for KdNode {
+    fn intersect(
         &self,
         geometries: &[Geometry],
         ray: &Ray,

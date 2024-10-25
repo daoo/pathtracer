@@ -29,7 +29,7 @@ fn main() {
     let scene = Scene::read_obj_file_with_print_logging(&args.input);
 
     println!("Building kdtree...");
-    let kdtree = build_kdtree(
+    let accelerator = build_kdtree(
         scene.geometries(),
         &SahCost {
             traverse_cost: args.traverse_cost,
@@ -41,7 +41,7 @@ fn main() {
     let pathtracer = Pathtracer {
         max_bounces: 16,
         scene,
-        kdtree,
+        accelerator,
     };
 
     miniquad::start(Conf::default(), move || {

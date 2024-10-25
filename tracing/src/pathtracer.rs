@@ -6,17 +6,20 @@ use crate::{
 };
 use geometry::ray::Ray;
 use glam::{UVec2, Vec3};
-use kdtree::KdNode;
+use kdtree::IntersectionAccelerator;
 use rand::rngs::SmallRng;
 use scene::{camera::Pinhole, Scene};
 
-pub struct Pathtracer {
+pub struct Pathtracer<Accelerator> {
     pub max_bounces: u8,
     pub scene: Scene,
-    pub kdtree: KdNode,
+    pub accelerator: Accelerator,
 }
 
-impl Pathtracer {
+impl<Accelerator> Pathtracer<Accelerator>
+where
+    Accelerator: IntersectionAccelerator,
+{
     fn trace_ray(
         &self,
         mut ray_logger: RayLoggerWithIterationAndPixel,
@@ -26,9 +29,9 @@ impl Pathtracer {
         let mut accumulated_radiance = Vec3::ZERO;
         let mut accumulated_transport = Vec3::ONE;
         for bounce in 1..=self.max_bounces {
-            let intersection = self
-                .kdtree
-                .intersect(self.scene.geometries(), &ray, 0.0..=f32::MAX);
+            let intersection =
+                self.accelerator
+                    .intersect(self.scene.geometries(), &ray, 0.0..=f32::MAX);
             ray_logger
                 .log_ray(
                     &intersection
@@ -64,7 +67,7 @@ impl Pathtracer {
                     // TODO: Offset should depend on incoming direction, not only surface normal.
                     let shadow_ray = Ray::between(point_above, sample_light(light, rng));
                     let intersection =
-                        self.kdtree
+                        self.accelerator
                             .intersect(self.scene.geometries(), &shadow_ray, 0.0..=1.0);
                     ray_logger
                         .log_shadow(&shadow_ray, bounce, intersection.is_some())

@@ -6,6 +6,7 @@ use std::{
 };
 
 use glam::UVec2;
+use kdtree::KdNode;
 use rand::{rngs::SmallRng, SeedableRng};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use scene::camera::Pinhole;
@@ -32,7 +33,11 @@ impl RenderResult {
     }
 }
 
-fn render_subdivided(pathtracer: &Pathtracer, pinhole: &Pinhole, sub_size: UVec2) -> ImageBuffer {
+fn render_subdivided(
+    pathtracer: &Pathtracer<KdNode>,
+    pinhole: &Pinhole,
+    sub_size: UVec2,
+) -> ImageBuffer {
     let count = pinhole.size / sub_size;
     (0..count.x * count.y)
         .into_par_iter()
@@ -61,7 +66,7 @@ fn render_subdivided(pathtracer: &Pathtracer, pinhole: &Pinhole, sub_size: UVec2
 }
 
 fn worker_loop(
-    pathtracer: &Pathtracer,
+    pathtracer: &Pathtracer<KdNode>,
     start_pinhole: Pinhole,
     rx: &Receiver<Pinhole>,
     tx: &Sender<RenderResult>,
@@ -111,7 +116,7 @@ pub(crate) struct Worker {
 }
 
 impl Worker {
-    pub fn spawn(pathtracer: Pathtracer, pinhole: Pinhole) -> Self {
+    pub fn spawn(pathtracer: Pathtracer<KdNode>, pinhole: Pinhole) -> Self {
         let (result_tx, result_rx) = mpsc::channel::<RenderResult>();
         let (pinhole_tx, pinhole_rx) = mpsc::channel::<Pinhole>();
         let thread = std::thread::Builder::new()
