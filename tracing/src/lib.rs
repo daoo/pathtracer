@@ -4,3 +4,4 @@ pub mod measure;
 pub mod pathtracer;
 pub mod raylogger;
 pub mod sampling;
+pub mod worker;

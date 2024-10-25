@@ -1,5 +1,4 @@
 use std::{
-    ops::Add,
     sync::mpsc::{self, Receiver, Sender},
     thread::JoinHandle,
     time,
@@ -7,14 +6,9 @@ use std::{
 
 use glam::UVec2;
 use kdtree::KdNode;
-use rand::{rngs::SmallRng, SeedableRng};
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use scene::camera::Pinhole;
 use tracing::{
-    image_buffer::ImageBuffer,
-    measure::measure,
-    pathtracer::Pathtracer,
-    raylogger::{RayLoggerWithIteration, RayLoggerWriter},
+    image_buffer::ImageBuffer, measure::measure, pathtracer::Pathtracer, worker::render_subdivided,
 };
 
 pub struct RenderResult {
@@ -31,38 +25,6 @@ impl RenderResult {
             buffer,
         }
     }
-}
-
-fn render_subdivided(
-    pathtracer: &Pathtracer<KdNode>,
-    pinhole: &Pinhole,
-    sub_size: UVec2,
-) -> ImageBuffer {
-    let count = pinhole.size / sub_size;
-    (0..count.x * count.y)
-        .into_par_iter()
-        .fold(
-            || (SmallRng::from_entropy(), ImageBuffer::new(pinhole.size)),
-            |(mut rng, mut buffer), i| {
-                let pixel = UVec2::new(i % count.x * sub_size.x, i / count.x * sub_size.y);
-                let mut ray_logger = RayLoggerWithIteration {
-                    writer: &mut RayLoggerWriter::None(),
-                    iteration: 0,
-                };
-                pathtracer.render_subdivided_mut(
-                    pinhole,
-                    &mut ray_logger,
-                    &mut rng,
-                    &mut buffer,
-                    pixel,
-                    sub_size,
-                );
-                (rng, buffer)
-            },
-        )
-        .map(|(_, buffer)| buffer)
-        .reduce_with(Add::add)
-        .unwrap()
 }
 
 fn worker_loop(

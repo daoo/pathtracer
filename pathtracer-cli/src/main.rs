@@ -1,19 +1,18 @@
 use clap::Parser;
 use glam::UVec2;
 use image::{ImageFormat, RgbImage};
-use kdtree::{build::build_kdtree, sah::SahCost, KdNode};
-use rand::{rngs::SmallRng, SeedableRng};
+use kdtree::{build::build_kdtree, sah::SahCost};
 use scene::{camera::Pinhole, Scene};
 use std::{
     fmt::Display,
     io::Write,
     ops::Add,
     str::FromStr,
-    sync::mpsc::{self, Receiver, Sender},
+    sync::mpsc::{self, Receiver},
     thread,
     time::{Duration, Instant},
 };
-use tracing::{image_buffer::ImageBuffer, pathtracer::Pathtracer, raylogger::RayLoggerWriter};
+use tracing::{pathtracer::Pathtracer, worker::render_iterations};
 
 #[derive(Clone, Copy, Debug)]
 struct Size {
@@ -81,41 +80,6 @@ struct Args {
     /// SAH kd-tree empty factor
     #[arg(long, default_value_t = SahCost::default().empty_factor)]
     empty_factor: f32,
-}
-
-fn create_ray_logger(thread: u32) -> RayLoggerWriter {
-    if cfg!(feature = "ray_logging") {
-        let path = format!("./tmp/raylog{thread}.bin");
-        RayLoggerWriter::create(path).unwrap()
-    } else {
-        RayLoggerWriter::None()
-    }
-}
-
-fn worker_thread(
-    thread: u32,
-    pathtracer: &Pathtracer<KdNode>,
-    camera: &Pinhole,
-    size: UVec2,
-    iterations: u32,
-    tx: &Sender<Duration>,
-) -> ImageBuffer {
-    let mut rng = SmallRng::from_entropy();
-    let mut buffer = ImageBuffer::new(size);
-    let mut ray_logger = create_ray_logger(thread);
-    for iteration in 0..iterations {
-        let t1 = Instant::now();
-        pathtracer.render_mut(
-            camera,
-            &mut ray_logger.with_iteration(iteration as u16),
-            &mut rng,
-            &mut buffer,
-        );
-        let t2 = Instant::now();
-        let duration = t2 - t1;
-        tx.send(duration).unwrap();
-    }
-    buffer
 }
 
 fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
@@ -188,7 +152,7 @@ fn main() {
                 let pathtracer = &pathtracer;
                 let camera = &camera;
                 s.spawn(move || {
-                    worker_thread(
+                    render_iterations(
                         i,
                         pathtracer,
                         camera,
