@@ -1,20 +1,19 @@
 use clap::Parser;
 use geometry::geometry::from_wavefront;
 use glam::{UVec2, Vec3};
-use image::{ImageFormat, RgbImage};
+use image::ImageFormat;
 use kdtree::{build::build_kdtree, sah::SahCost};
 use std::{
     fmt::Display,
     io::Write,
-    ops::Add,
     str::FromStr,
     sync::mpsc::{self, Receiver},
     thread,
-    time::Duration,
 };
+use time::Duration;
 use tracing::{
-    camera::Pinhole, light::SphericalLight, material::Material, measure, pathtracer::Pathtracer,
-    worker::render_iterations,
+    camera::Pinhole, light::SphericalLight, material::Material, pathtracer::Pathtracer,
+    worker::render_parallel_iterations,
 };
 use wavefront::read_obj_and_mtl_with_print_logging;
 
@@ -92,7 +91,7 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
     let mut completed = 0;
     loop {
         if let Ok(duration) = rx.recv() {
-            let seconds = duration.as_secs_f64();
+            let seconds = duration.as_seconds_f64();
             total += seconds;
             total_squared += seconds * seconds;
             completed += 1;
@@ -143,63 +142,39 @@ fn main() {
     );
     let camera = Pinhole::new(mtl.cameras[0].clone().into(), args.size.as_uvec2());
     let image_directory = mtl_path.parent().unwrap();
+    let materials = mtl
+        .materials
+        .iter()
+        .map(|m| Material::load_from_mtl(image_directory, m))
+        .collect();
+    let lights = mtl.lights.iter().map(SphericalLight::from).collect();
     let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,
         geometries,
         properties,
-        materials: mtl
-            .materials
-            .iter()
-            .map(|m| Material::load_from_mtl(image_directory, m))
-            .collect(),
-        lights: mtl.lights.iter().map(SphericalLight::from).collect(),
+        materials,
+        lights,
         environment: Vec3::new(0.8, 0.8, 0.8),
         accelerator,
     };
 
     thread::scope(|s| {
-        let (duration, buffer) = measure::measure(|| {
-            let (tx, rx) = mpsc::channel();
-            let threads = (0..args.threads)
-                .map(|i| {
-                    let tx = tx.clone();
-                    let pathtracer = &pathtracer;
-                    let camera = &camera;
-                    s.spawn(move || {
-                        render_iterations(
-                            i,
-                            pathtracer,
-                            camera,
-                            args.size.as_uvec2(),
-                            args.iterations_per_thread,
-                            &tx,
-                        )
-                    })
-                })
-                .collect::<Vec<_>>();
-            let printer = s.spawn(move || printer_thread(args.threads, total_iterations, &rx));
-
-            let buffers = threads.into_iter().map(|t| t.join().unwrap());
-            let buffer = buffers.reduce(Add::add).unwrap();
-            drop(tx);
-            printer.join().unwrap();
-
-            buffer
-        });
-        println!(
-            "Total time: {:.2}",
-            time::Duration::try_from(duration).unwrap()
+        let (tx, rx) = mpsc::channel();
+        let printer = s.spawn(move || printer_thread(args.threads, total_iterations, &rx));
+        let (duration, image) = render_parallel_iterations(
+            &pathtracer,
+            camera,
+            args.size.as_uvec2(),
+            args.threads,
+            args.iterations_per_thread,
+            tx,
         );
+        printer.join().unwrap();
+        println!("Total time: {duration:.2}");
 
         println!("Writing {}...", args.output.display());
-
-        RgbImage::from_raw(
-            buffer.size.x,
-            buffer.size.y,
-            buffer.to_rgb8(total_iterations as u16),
-        )
-        .unwrap()
-        .save_with_format(&args.output, ImageFormat::Png)
-        .unwrap();
+        image
+            .save_with_format(&args.output, ImageFormat::Png)
+            .unwrap();
     });
 }

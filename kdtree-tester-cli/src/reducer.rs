@@ -2,7 +2,6 @@ use std::{
     fs::File,
     io::{BufReader, BufWriter, Write},
     path::PathBuf,
-    time::Instant,
 };
 
 use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
@@ -70,7 +69,7 @@ fn reduce_tree(
     while try_index < geometries.len() {
         try_count = try_count.clamp(1, geometries.len() - try_index);
         eprint!("  Trying to remove {try_count: <5}");
-        let (duration, reduced) = measure(|| {
+        let (duration, reduced) = measure::measure(|| {
             try_removing(
                 &intersection.ray,
                 &actual,

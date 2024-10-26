@@ -1,24 +1,24 @@
 use std::{
     sync::mpsc::{self, Receiver, Sender},
     thread::JoinHandle,
-    time,
 };
 
 use glam::UVec2;
 use kdtree::KdNode;
+use time::Duration;
 use tracing::{
     camera::Pinhole, image_buffer::ImageBuffer, measure::measure, pathtracer::Pathtracer,
-    worker::render_subdivided,
+    worker::render_parallel_subdivided,
 };
 
 pub struct RenderResult {
     pub iterations: u16,
-    pub duration: time::Duration,
+    pub duration: Duration,
     pub buffer: ImageBuffer,
 }
 
 impl RenderResult {
-    fn new(iterations: u16, duration: time::Duration, buffer: ImageBuffer) -> Self {
+    fn new(iterations: u16, duration: Duration, buffer: ImageBuffer) -> Self {
         RenderResult {
             iterations,
             duration,
@@ -53,13 +53,14 @@ fn worker_loop(
                 pinhole.camera.clone(),
                 UVec2::new(64, 64 * pinhole.size.y / pinhole.size.x),
             );
-            let (duration, buffer) =
-                measure(|| render_subdivided(pathtracer, &pinhole_small, pinhole_small.size / 3));
+            let (duration, buffer) = measure(|| {
+                render_parallel_subdivided(pathtracer, &pinhole_small, pinhole_small.size / 3)
+            });
             let _ = tx.send(RenderResult::new(1, duration, buffer));
             iteration = 1;
         } else {
             let (duration, buffer) =
-                measure(|| render_subdivided(pathtracer, &pinhole, pinhole.size / 4));
+                measure(|| render_parallel_subdivided(pathtracer, &pinhole, pinhole.size / 4));
             combined_buffer += buffer;
             let _ = tx.send(RenderResult::new(
                 iteration,

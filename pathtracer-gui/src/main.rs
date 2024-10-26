@@ -42,16 +42,18 @@ fn main() {
     );
 
     let image_directory = mtl_path.parent().unwrap();
+    let materials = mtl
+        .materials
+        .iter()
+        .map(|m| Material::load_from_mtl(image_directory, m))
+        .collect();
+    let lights = mtl.lights.iter().map(SphericalLight::from).collect();
     let pathtracer = Pathtracer {
         max_bounces: 16,
         geometries,
         properties,
-        materials: mtl
-            .materials
-            .iter()
-            .map(|m| Material::load_from_mtl(image_directory, m))
-            .collect(),
-        lights: mtl.lights.iter().map(SphericalLight::from).collect(),
+        materials,
+        lights,
         environment: Vec3::new(0.8, 0.8, 0.8),
         accelerator,
     };

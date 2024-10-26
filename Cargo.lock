@@ -435,6 +435,7 @@ dependencies = [
  "miniquad",
  "rand",
  "rayon",
+ "time",
  "tracing",
  "wavefront",
 ]
@@ -637,6 +638,7 @@ dependencies = [
  "kdtree",
  "rand",
  "rayon",
+ "time",
  "wavefront",
 ]
 

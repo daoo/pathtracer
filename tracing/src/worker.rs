@@ -1,5 +1,7 @@
+use image::RgbImage;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use std::{ops::Add, sync::mpsc::Sender, time::Duration};
+use std::{ops::Add, sync::mpsc::Sender, thread};
+use time::Duration;
 
 use glam::UVec2;
 use kdtree::KdNode;
@@ -22,7 +24,7 @@ fn create_ray_logger(thread: u32) -> RayLoggerWriter {
     }
 }
 
-pub fn render_iterations(
+fn render_iterations(
     thread: u32,
     pathtracer: &Pathtracer<KdNode>,
     camera: &Pinhole,
@@ -47,7 +49,7 @@ pub fn render_iterations(
     buffer
 }
 
-pub fn render_subdivided(
+pub fn render_parallel_subdivided(
     pathtracer: &Pathtracer<KdNode>,
     pinhole: &Pinhole,
     sub_size: UVec2,
@@ -77,4 +79,39 @@ pub fn render_subdivided(
         .map(|(_, buffer)| buffer)
         .reduce_with(Add::add)
         .unwrap()
+}
+
+pub fn render_parallel_iterations(
+    pathtracer: &Pathtracer<KdNode>,
+    camera: Pinhole,
+    size: UVec2,
+    threads: u32,
+    iterations_per_thread: u32,
+    tx: Sender<Duration>,
+) -> (Duration, RgbImage) {
+    let total_iterations = threads * iterations_per_thread;
+    thread::scope(|s| {
+        let (duration, buffer) = measure::measure(|| {
+            let threads = (0..threads)
+                .map(|i| {
+                    let tx = &tx;
+                    let pathtracer = &pathtracer;
+                    let camera = &camera;
+                    s.spawn(move || {
+                        render_iterations(i, pathtracer, camera, size, iterations_per_thread, tx)
+                    })
+                })
+                .collect::<Vec<_>>();
+
+            let buffers = threads.into_iter().map(|t| t.join().unwrap());
+            buffers.reduce(Add::add).unwrap()
+        });
+
+        let image = RgbImage::from_raw(
+            buffer.size.x,
+            buffer.size.y,
+            buffer.to_rgb8(total_iterations as u16),
+        );
+        (duration, image.unwrap())
+    })
 }
