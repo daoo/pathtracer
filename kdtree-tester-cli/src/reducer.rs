@@ -16,6 +16,7 @@ use geometry::{
 use kdtree::{
     build::build_kdtree, format::write_tree_json, sah::SahCost, IntersectionAccelerator, KdNode,
 };
+use tracing::measure;
 use wavefront::obj;
 
 use crate::checked_intersection::CheckedIntersection;
@@ -69,15 +70,15 @@ fn reduce_tree(
     while try_index < geometries.len() {
         try_count = try_count.clamp(1, geometries.len() - try_index);
         eprint!("  Trying to remove {try_count: <5}");
-        let time_before = Instant::now();
-        let reduced = try_removing(
-            &intersection.ray,
-            &actual,
-            &geometries,
-            try_index,
-            try_count,
-        );
-        let duration = Instant::now().duration_since(time_before).as_secs_f64();
+        let (duration, reduced) = measure(|| {
+            try_removing(
+                &intersection.ray,
+                &actual,
+                &geometries,
+                try_index,
+                try_count,
+            )
+        });
         if let Some(reduced) = reduced {
             geometries = reduced;
             try_count = geometries.len() - try_index;

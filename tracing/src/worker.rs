@@ -1,9 +1,5 @@
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use std::{
-    ops::Add,
-    sync::mpsc::Sender,
-    time::{Duration, Instant},
-};
+use std::{ops::Add, sync::mpsc::Sender, time::Duration};
 
 use glam::UVec2;
 use kdtree::KdNode;
@@ -12,6 +8,7 @@ use rand::{rngs::SmallRng, SeedableRng};
 use crate::{
     camera::Pinhole,
     image_buffer::ImageBuffer,
+    measure,
     pathtracer::Pathtracer,
     raylogger::{RayLoggerWithIteration, RayLoggerWriter},
 };
@@ -37,15 +34,14 @@ pub fn render_iterations(
     let mut buffer = ImageBuffer::new(size);
     let mut ray_logger = create_ray_logger(thread);
     for iteration in 0..iterations {
-        let t1 = Instant::now();
-        pathtracer.render_mut(
-            camera,
-            &mut ray_logger.with_iteration(iteration as u16),
-            &mut rng,
-            &mut buffer,
-        );
-        let t2 = Instant::now();
-        let duration = t2 - t1;
+        let (duration, _) = measure::measure(|| {
+            pathtracer.render_mut(
+                camera,
+                &mut ray_logger.with_iteration(iteration as u16),
+                &mut rng,
+                &mut buffer,
+            )
+        });
         tx.send(duration).unwrap();
     }
     buffer

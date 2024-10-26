@@ -10,10 +10,10 @@ use std::{
     str::FromStr,
     sync::mpsc::{self, Receiver},
     thread,
-    time::{Duration, Instant},
+    time::Duration,
 };
 use tracing::{
-    camera::Pinhole, light::SphericalLight, material::Material, pathtracer::Pathtracer,
+    camera::Pinhole, light::SphericalLight, material::Material, measure, pathtracer::Pathtracer,
     worker::render_iterations,
 };
 use wavefront::read_obj_and_mtl_with_print_logging;
@@ -158,33 +158,34 @@ fn main() {
     };
 
     thread::scope(|s| {
-        let start_time = Instant::now();
-        let (tx, rx) = mpsc::channel();
-        let threads = (0..args.threads)
-            .map(|i| {
-                let tx = tx.clone();
-                let pathtracer = &pathtracer;
-                let camera = &camera;
-                s.spawn(move || {
-                    render_iterations(
-                        i,
-                        pathtracer,
-                        camera,
-                        args.size.as_uvec2(),
-                        args.iterations_per_thread,
-                        &tx,
-                    )
+        let (duration, buffer) = measure::measure(|| {
+            let (tx, rx) = mpsc::channel();
+            let threads = (0..args.threads)
+                .map(|i| {
+                    let tx = tx.clone();
+                    let pathtracer = &pathtracer;
+                    let camera = &camera;
+                    s.spawn(move || {
+                        render_iterations(
+                            i,
+                            pathtracer,
+                            camera,
+                            args.size.as_uvec2(),
+                            args.iterations_per_thread,
+                            &tx,
+                        )
+                    })
                 })
-            })
-            .collect::<Vec<_>>();
-        let printer = s.spawn(move || printer_thread(args.threads, total_iterations, &rx));
+                .collect::<Vec<_>>();
+            let printer = s.spawn(move || printer_thread(args.threads, total_iterations, &rx));
 
-        let buffers = threads.into_iter().map(|t| t.join().unwrap());
-        let buffer = buffers.reduce(Add::add).unwrap();
-        drop(tx);
-        printer.join().unwrap();
+            let buffers = threads.into_iter().map(|t| t.join().unwrap());
+            let buffer = buffers.reduce(Add::add).unwrap();
+            drop(tx);
+            printer.join().unwrap();
 
-        let duration = Instant::now().duration_since(start_time);
+            buffer
+        });
         println!(
             "Total time: {:.2}",
             time::Duration::try_from(duration).unwrap()
