@@ -3,7 +3,7 @@ use kdtree::{build::build_kdtree, sah::SahCost};
 use miniquad::conf::Conf;
 use scene::Scene;
 use stage::Stage;
-use tracing::{light::SphericalLight, pathtracer::Pathtracer};
+use tracing::{light::SphericalLight, material::Material, pathtracer::Pathtracer};
 use wavefront::read_obj_and_mtl_with_print_logging;
 
 mod stage;
@@ -28,7 +28,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
     let (obj, mtl, mtl_path) = read_obj_and_mtl_with_print_logging(&args.input).unwrap();
-    let scene = Scene::build_with_print_logging(&obj, &mtl, &mtl_path);
+    let scene = Scene::build_with_print_logging(&obj, &mtl);
 
     println!("Building kdtree...");
     let accelerator = build_kdtree(
@@ -40,9 +40,15 @@ fn main() {
         },
     );
 
+    let image_directory = mtl_path.parent().unwrap();
     let pathtracer = Pathtracer {
         max_bounces: 16,
         scene,
+        materials: mtl
+            .materials
+            .iter()
+            .map(|m| Material::load_from_mtl(image_directory, m))
+            .collect(),
         lights: mtl.lights.iter().map(SphericalLight::from).collect(),
         accelerator,
     };

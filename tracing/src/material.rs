@@ -1,7 +1,9 @@
+use std::path::Path;
+
 use glam::{Vec2, Vec3};
 use image::{GenericImageView, Rgb32FImage};
 use rand::{rngs::SmallRng, Rng};
-use scene::material::Material;
+use wavefront::mtl;
 
 use crate::sampling::cosine_sample_hemisphere;
 
@@ -150,54 +152,80 @@ fn mix(x: Vec3, y: Vec3, a: f32) -> Vec3 {
     x * (1.0 - a) + y * a
 }
 
-pub fn material_brdf(material: &Material, outgoing: &OutgoingRay) -> Vec3 {
-    let reflection = diffuse_reflective_brdf(
-        &material.diffuse_texture_reflectance,
-        material.diffuse_reflectance,
-        outgoing,
-    );
-    let transparency_blend = mix(reflection, Vec3::ZERO, material.transparency);
-    let fresnel_blend = mix(
-        transparency_blend,
-        Vec3::ZERO,
-        outgoing
-            .as_incoming()
-            .reflectance(material.reflection_0_degrees),
-    );
-    mix(
-        transparency_blend,
-        fresnel_blend,
-        material.reflection_90_degrees,
-    )
+#[derive(Clone, Debug)]
+pub struct Material {
+    pub diffuse_reflectance: Vec3,
+    pub diffuse_texture_reflectance: Option<Rgb32FImage>,
+    pub specular_reflectance: Vec3,
+    pub index_of_refraction: f32,
+    pub reflection_0_degrees: f32,
+    pub reflection_90_degrees: f32,
+    pub transparency: f32,
 }
 
-pub fn material_sample(
-    material: &Material,
-    incoming: &IncomingRay,
-    rng: &mut SmallRng,
-) -> MaterialSample {
-    if rng.gen::<f32>() < material.reflection_90_degrees {
-        if rng.gen::<f32>() < incoming.reflectance(material.reflection_0_degrees) {
-            specular_reflection_sample(material.specular_reflectance, incoming)
-        } else if rng.gen::<f32>() < material.transparency {
-            specular_refractive_sample(material.index_of_refraction, incoming)
+impl Material {
+    pub fn load_from_mtl(image_directory: &Path, material: &mtl::Material) -> Material {
+        let texture = (!material.diffuse_map.is_empty()).then(|| {
+            image::open(image_directory.join(&material.diffuse_map))
+                .unwrap()
+                .to_rgb32f()
+        });
+        Material {
+            diffuse_reflectance: material.diffuse_reflection.into(),
+            diffuse_texture_reflectance: texture,
+            specular_reflectance: material.specular_reflection.into(),
+            index_of_refraction: material.index_of_refraction,
+            reflection_0_degrees: material.reflection_0_degrees,
+            reflection_90_degrees: material.reflection_90_degrees,
+            transparency: material.transparency,
+        }
+    }
+
+    pub fn brdf(&self, outgoing: &OutgoingRay) -> Vec3 {
+        let reflection = diffuse_reflective_brdf(
+            &self.diffuse_texture_reflectance,
+            self.diffuse_reflectance,
+            outgoing,
+        );
+        let transparency_blend = mix(reflection, Vec3::ZERO, self.transparency);
+        let fresnel_blend = mix(
+            transparency_blend,
+            Vec3::ZERO,
+            outgoing
+                .as_incoming()
+                .reflectance(self.reflection_0_degrees),
+        );
+        mix(
+            transparency_blend,
+            fresnel_blend,
+            self.reflection_90_degrees,
+        )
+    }
+
+    pub fn sample(&self, incoming: &IncomingRay, rng: &mut SmallRng) -> MaterialSample {
+        if rng.gen::<f32>() < self.reflection_90_degrees {
+            if rng.gen::<f32>() < incoming.reflectance(self.reflection_0_degrees) {
+                specular_reflection_sample(self.specular_reflectance, incoming)
+            } else if rng.gen::<f32>() < self.transparency {
+                specular_refractive_sample(self.index_of_refraction, incoming)
+            } else {
+                diffuse_reflection_sample(
+                    &self.diffuse_texture_reflectance,
+                    self.diffuse_reflectance,
+                    incoming,
+                    rng,
+                )
+            }
+        } else if rng.gen::<f32>() < self.transparency {
+            specular_refractive_sample(self.index_of_refraction, incoming)
         } else {
             diffuse_reflection_sample(
-                &material.diffuse_texture_reflectance,
-                material.diffuse_reflectance,
+                &self.diffuse_texture_reflectance,
+                self.diffuse_reflectance,
                 incoming,
                 rng,
             )
         }
-    } else if rng.gen::<f32>() < material.transparency {
-        specular_refractive_sample(material.index_of_refraction, incoming)
-    } else {
-        diffuse_reflection_sample(
-            &material.diffuse_texture_reflectance,
-            material.diffuse_reflectance,
-            incoming,
-            rng,
-        )
     }
 }
 

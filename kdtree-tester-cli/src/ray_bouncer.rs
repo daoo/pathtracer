@@ -11,12 +11,13 @@ use std::ops::RangeInclusive;
 use tracing::{
     camera::Pinhole,
     light::SphericalLight,
-    material::{material_sample, IncomingRay},
+    material::{IncomingRay, Material},
     sampling::uniform_sample_unit_square,
 };
 
 pub struct RayBouncer {
     pub scene: Scene,
+    pub materials: Vec<Material>,
     pub lights: Vec<SphericalLight>,
     pub kdtree: KdNode,
     pub camera: Pinhole,
@@ -64,17 +65,16 @@ impl RayBouncer {
         if !intersection.is_valid() {
             return Some(intersection);
         };
-        let intersection = self
-            .scene
-            .lookup_intersection(intersection.reference.unwrap());
+        let intersection = intersection.reference.unwrap();
+        let properties = self.scene.lookup_intersection(&intersection);
 
         let wi = -ray.direction;
-        let n = intersection.normal;
-        let uv = intersection.texcoord;
-        let material = intersection.material;
+        let n = properties.compute_normal(intersection.inner.u, intersection.inner.v);
+        let uv = properties.compute_texcoord(intersection.inner.u, intersection.inner.v);
+        let material = &self.materials[*properties.material()];
         // TODO: How to chose offset?
         let offset = 0.00001 * n;
-        let point = ray.param(intersection.inner.inner.t);
+        let point = ray.param(intersection.inner.t);
         let point_above = point + offset;
         let point_below = point - offset;
 
@@ -91,7 +91,7 @@ impl RayBouncer {
             return Some(checked.clone());
         }
 
-        let sample = material_sample(material, &IncomingRay { wi, n, uv }, &mut rng);
+        let sample = material.sample(&IncomingRay { wi, n, uv }, &mut rng);
         let next_ray = Ray::new(
             if sample.wo.dot(n) >= 0.0 {
                 point_above

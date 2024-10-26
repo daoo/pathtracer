@@ -2,7 +2,7 @@ use crate::{
     camera::Pinhole,
     image_buffer::ImageBuffer,
     light::SphericalLight,
-    material::{material_brdf, material_sample, IncomingRay, OutgoingRay},
+    material::{IncomingRay, Material, OutgoingRay},
     raylogger::{RayLoggerWithIteration, RayLoggerWithIterationAndPixel},
     sampling::uniform_sample_unit_square,
 };
@@ -15,6 +15,7 @@ use scene::Scene;
 pub struct Pathtracer<Accelerator> {
     pub max_bounces: u8,
     pub scene: Scene,
+    pub materials: Vec<Material>,
     pub lights: Vec<SphericalLight>,
     pub accelerator: Accelerator,
 }
@@ -47,18 +48,19 @@ where
             if intersection.is_none() {
                 return accumulated_radiance + accumulated_transport * self.scene.environment();
             }
-            let intersection = self.scene.lookup_intersection(intersection.unwrap());
+            let intersection = &intersection.unwrap();
+            let properties = self.scene.lookup_intersection(intersection);
 
             let wi = -ray.direction;
-            let n = intersection.normal;
-            let uv = intersection.texcoord;
-            let material = intersection.material;
+            let n = properties.compute_normal(intersection.inner.u, intersection.inner.v);
+            let uv = properties.compute_texcoord(intersection.inner.u, intersection.inner.v);
+            let material = &self.materials[*properties.material()];
 
             // TODO: How to chose offset?
             // In PBRT the offset is chosen based on the surface normal, surface intersection
             // calculation error, sampled incoming direction and then rounded up to the next float.
             let offset = 0.00001 * n;
-            let point = ray.param(intersection.inner.inner.t);
+            let point = ray.param(intersection.inner.t);
             let point_above = point + offset;
             let point_below = point - offset;
 
@@ -79,14 +81,14 @@ where
                     }
                     let wo = shadow_ray.direction.normalize();
                     let radiance = light.emitted(point);
-                    let brdf = material_brdf(material, &OutgoingRay { wi, n, uv, wo });
+                    let brdf = material.brdf(&OutgoingRay { wi, n, uv, wo });
                     brdf * radiance * wo.dot(n).abs()
                 })
                 .sum();
 
             accumulated_radiance += accumulated_transport * incoming_radiance;
 
-            let sample = material_sample(material, &IncomingRay { wi, n, uv }, rng);
+            let sample = material.sample(&IncomingRay { wi, n, uv }, rng);
             if sample.pdf <= 0.01 {
                 return accumulated_radiance;
             }

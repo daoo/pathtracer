@@ -13,7 +13,8 @@ use std::{
     time::{Duration, Instant},
 };
 use tracing::{
-    camera::Pinhole, light::SphericalLight, pathtracer::Pathtracer, worker::render_iterations,
+    camera::Pinhole, light::SphericalLight, material::Material, pathtracer::Pathtracer,
+    worker::render_iterations,
 };
 use wavefront::read_obj_and_mtl_with_print_logging;
 
@@ -123,7 +124,7 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
 fn main() {
     let args = Args::parse();
     let (obj, mtl, mtl_path) = read_obj_and_mtl_with_print_logging(&args.input).unwrap();
-    let scene = Scene::build_with_print_logging(&obj, &mtl, &mtl_path);
+    let scene = Scene::build_with_print_logging(&obj, &mtl);
 
     println!("Building kdtree...");
     let accelerator = build_kdtree(
@@ -141,9 +142,15 @@ fn main() {
         args.size, args.threads, total_iterations,
     );
     let camera = Pinhole::new(mtl.cameras[0].clone().into(), args.size.as_uvec2());
+    let image_directory = mtl_path.parent().unwrap();
     let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,
         scene,
+        materials: mtl
+            .materials
+            .iter()
+            .map(|m| Material::load_from_mtl(image_directory, m))
+            .collect(),
         lights: mtl.lights.iter().map(SphericalLight::from).collect(),
         accelerator,
     };

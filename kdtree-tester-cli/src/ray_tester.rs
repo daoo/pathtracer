@@ -6,7 +6,7 @@ use std::{
     io::{BufWriter, Write},
     path::PathBuf,
 };
-use tracing::{camera::Pinhole, light::SphericalLight};
+use tracing::{camera::Pinhole, light::SphericalLight, material::Material};
 use wavefront::read_obj_and_mtl_with_print_logging;
 
 use crate::{ray_bouncer::RayBouncer, size::Size};
@@ -19,15 +19,21 @@ pub(crate) fn kdtree_ray_tester(
     sah: SahCost,
 ) {
     let (obj, mtl, mtl_path) = read_obj_and_mtl_with_print_logging(&input).unwrap();
-    let scene = Scene::build_with_print_logging(&obj, &mtl, &mtl_path);
+    let scene = Scene::build_with_print_logging(&obj, &mtl);
 
     println!("Building kdtree...");
     let kdtree = build_kdtree(scene.geometries(), &sah);
 
     println!("Testing up to {} rays...", size.x * size.y * bounces);
     let camera = Pinhole::new(mtl.cameras[0].clone().into(), size.as_uvec2());
+    let image_directory = mtl_path.parent().unwrap();
     let bouncer = RayBouncer {
         scene,
+        materials: mtl
+            .materials
+            .iter()
+            .map(|m| Material::load_from_mtl(image_directory, m))
+            .collect(),
         lights: mtl.lights.iter().map(SphericalLight::from).collect(),
         kdtree,
         camera,
