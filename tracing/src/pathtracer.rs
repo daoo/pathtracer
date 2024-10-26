@@ -6,15 +6,18 @@ use crate::{
     raylogger::{RayLoggerWithIteration, RayLoggerWithIterationAndPixel},
     sampling::uniform_sample_unit_square,
 };
-use geometry::ray::Ray;
+use geometry::{
+    geometry::{Geometry, GeometryProperties},
+    ray::Ray,
+};
 use glam::{UVec2, Vec3};
 use kdtree::IntersectionAccelerator;
 use rand::rngs::SmallRng;
-use scene::Scene;
 
 pub struct Pathtracer<Accelerator> {
     pub max_bounces: u8,
-    pub scene: Scene,
+    pub geometries: Vec<Geometry>,
+    pub properties: Vec<GeometryProperties<usize>>,
     pub materials: Vec<Material>,
     pub lights: Vec<SphericalLight>,
     pub environment: Vec3,
@@ -34,9 +37,9 @@ where
         let mut accumulated_radiance = Vec3::ZERO;
         let mut accumulated_transport = Vec3::ONE;
         for bounce in 1..=self.max_bounces {
-            let intersection =
-                self.accelerator
-                    .intersect(self.scene.geometries(), &ray, 0.0..=f32::MAX);
+            let intersection = self
+                .accelerator
+                .intersect(&self.geometries, &ray, 0.0..=f32::MAX);
             ray_logger
                 .log_ray(
                     &intersection
@@ -50,7 +53,7 @@ where
                 return accumulated_radiance + accumulated_transport * self.environment;
             }
             let intersection = &intersection.unwrap();
-            let properties = self.scene.lookup_intersection(intersection);
+            let properties = &self.properties[intersection.index as usize];
 
             let wi = -ray.direction;
             let n = properties.compute_normal(intersection.inner.u, intersection.inner.v);
@@ -73,7 +76,7 @@ where
                     let shadow_ray = Ray::between(point_above, light.sample(rng));
                     let intersection =
                         self.accelerator
-                            .intersect(self.scene.geometries(), &shadow_ray, 0.0..=1.0);
+                            .intersect(&self.geometries, &shadow_ray, 0.0..=1.0);
                     ray_logger
                         .log_shadow(&shadow_ray, bounce, intersection.is_some())
                         .unwrap();

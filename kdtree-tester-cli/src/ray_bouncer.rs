@@ -1,12 +1,12 @@
 use crate::checked_intersection::CheckedIntersection;
 use geometry::{
+    geometry::{Geometry, GeometryProperties},
     intersection::{intersect_closest_geometry, GeometryIntersection},
     ray::Ray,
 };
 use glam::{UVec2, Vec2};
 use kdtree::{IntersectionAccelerator, KdNode};
 use rand::{rngs::SmallRng, SeedableRng};
-use scene::Scene;
 use std::ops::RangeInclusive;
 use tracing::{
     camera::Pinhole,
@@ -16,7 +16,8 @@ use tracing::{
 };
 
 pub struct RayBouncer {
-    pub scene: Scene,
+    pub geometries: Vec<Geometry>,
+    pub properties: Vec<GeometryProperties<usize>>,
     pub materials: Vec<Material>,
     pub lights: Vec<SphericalLight>,
     pub kdtree: KdNode,
@@ -31,8 +32,8 @@ impl RayBouncer {
         ray: &Ray,
         t_range: RangeInclusive<f32>,
     ) -> Option<GeometryIntersection> {
-        let indices = 0u32..self.scene.geometries().len() as u32;
-        intersect_closest_geometry(self.scene.geometries(), indices, ray, t_range)
+        let indices = 0u32..self.geometries.len() as u32;
+        intersect_closest_geometry(&self.geometries, indices, ray, t_range)
     }
 
     fn checked_ray_intersect(
@@ -42,7 +43,7 @@ impl RayBouncer {
     ) -> CheckedIntersection {
         let kdtree = self
             .kdtree
-            .intersect(self.scene.geometries(), ray, t_range.clone());
+            .intersect(&self.geometries, ray, t_range.clone());
         let reference = self.reference_ray_intersect(ray, t_range);
         CheckedIntersection {
             ray: ray.clone(),
@@ -66,7 +67,7 @@ impl RayBouncer {
             return Some(intersection);
         };
         let intersection = intersection.reference.unwrap();
-        let properties = self.scene.lookup_intersection(&intersection);
+        let properties = &self.properties[intersection.index as usize];
 
         let wi = -ray.direction;
         let n = properties.compute_normal(intersection.inner.u, intersection.inner.v);

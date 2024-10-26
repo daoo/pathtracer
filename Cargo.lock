@@ -225,6 +225,7 @@ version = "1.0.0"
 dependencies = [
  "arrayvec",
  "glam",
+ "wavefront",
 ]
 
 [[package]]
@@ -260,8 +261,6 @@ dependencies = [
  "byteorder-lite",
  "num-traits",
  "png",
- "zune-core",
- "zune-jpeg",
 ]
 
 [[package]]
@@ -317,7 +316,6 @@ dependencies = [
  "kdtree",
  "rand",
  "rayon",
- "scene",
  "tracing",
  "wavefront",
 ]
@@ -416,11 +414,11 @@ name = "pathtracer-cli"
 version = "1.0.0"
 dependencies = [
  "clap",
+ "geometry",
  "glam",
  "image",
  "kdtree",
  "rand",
- "scene",
  "time",
  "tracing",
  "wavefront",
@@ -431,12 +429,12 @@ name = "pathtracer-gui"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "geometry",
  "glam",
  "kdtree",
  "miniquad",
  "rand",
  "rayon",
- "scene",
  "tracing",
  "wavefront",
 ]
@@ -535,16 +533,6 @@ checksum = "1465873a3dfdaa8ae7cb14b4383657caab0b3e8a0aa9ae8e04b044854c8dfce2"
 dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
-]
-
-[[package]]
-name = "scene"
-version = "1.0.0"
-dependencies = [
- "geometry",
- "glam",
- "image",
- "wavefront",
 ]
 
 [[package]]
@@ -649,7 +637,6 @@ dependencies = [
  "kdtree",
  "rand",
  "rayon",
- "scene",
  "wavefront",
 ]
 
@@ -811,19 +798,4 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "zune-core"
-version = "0.4.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f423a2c17029964870cfaabb1f13dfab7d092a62a29a89264f4d36990ca414a"
-
-[[package]]
-name = "zune-jpeg"
-version = "0.4.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16099418600b4d8f028622f73ff6e3deaabdff330fb9a2a131dea781ee8b0768"
-dependencies = [
- "zune-core",
 ]

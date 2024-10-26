@@ -1,8 +1,8 @@
 use clap::Parser;
+use geometry::geometry::from_wavefront;
 use glam::Vec3;
 use kdtree::{build::build_kdtree, sah::SahCost};
 use miniquad::conf::Conf;
-use scene::Scene;
 use stage::Stage;
 use tracing::{light::SphericalLight, material::Material, pathtracer::Pathtracer};
 use wavefront::read_obj_and_mtl_with_print_logging;
@@ -29,11 +29,11 @@ struct Args {
 fn main() {
     let args = Args::parse();
     let (obj, mtl, mtl_path) = read_obj_and_mtl_with_print_logging(&args.input).unwrap();
-    let scene = Scene::build_with_print_logging(&obj, &mtl);
+    let (geometries, properties) = from_wavefront(&obj, &mtl);
 
     println!("Building kdtree...");
     let accelerator = build_kdtree(
-        scene.geometries(),
+        &geometries,
         &SahCost {
             traverse_cost: args.traverse_cost,
             intersect_cost: args.intersect_cost,
@@ -44,7 +44,8 @@ fn main() {
     let image_directory = mtl_path.parent().unwrap();
     let pathtracer = Pathtracer {
         max_bounces: 16,
-        scene,
+        geometries,
+        properties,
         materials: mtl
             .materials
             .iter()

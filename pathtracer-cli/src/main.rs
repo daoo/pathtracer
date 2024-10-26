@@ -1,8 +1,8 @@
 use clap::Parser;
+use geometry::geometry::from_wavefront;
 use glam::{UVec2, Vec3};
 use image::{ImageFormat, RgbImage};
 use kdtree::{build::build_kdtree, sah::SahCost};
-use scene::Scene;
 use std::{
     fmt::Display,
     io::Write,
@@ -124,11 +124,11 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
 fn main() {
     let args = Args::parse();
     let (obj, mtl, mtl_path) = read_obj_and_mtl_with_print_logging(&args.input).unwrap();
-    let scene = Scene::build_with_print_logging(&obj, &mtl);
+    let (geometries, properties) = from_wavefront(&obj, &mtl);
 
     println!("Building kdtree...");
     let accelerator = build_kdtree(
-        scene.geometries(),
+        &geometries,
         &SahCost {
             traverse_cost: args.traverse_cost,
             intersect_cost: args.intersect_cost,
@@ -145,7 +145,8 @@ fn main() {
     let image_directory = mtl_path.parent().unwrap();
     let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,
-        scene,
+        geometries,
+        properties,
         materials: mtl
             .materials
             .iter()

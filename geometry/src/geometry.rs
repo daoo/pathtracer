@@ -1,4 +1,5 @@
 use glam::{Vec2, Vec3};
+use wavefront::{mtl, obj};
 
 use crate::{
     aabb::Aabb,
@@ -136,4 +137,47 @@ impl<M> GeometryProperties<M> {
             GeometryProperties::Sphere() => todo!(),
         }
     }
+}
+
+pub fn from_wavefront(
+    obj: &obj::Obj,
+    mtl: &mtl::Mtl,
+) -> (Vec<Geometry>, Vec<GeometryProperties<usize>>) {
+    let materials: Vec<&str> = mtl.materials.iter().map(|m| m.name.as_str()).collect();
+    let (geometries, properties) = obj
+        .chunks
+        .iter()
+        .flat_map(|chunk| {
+            chunk.faces.iter().map(|face| {
+                assert!(
+                    face.points.len() == 3,
+                    "Only tringular faces supported but found {} vertices.",
+                    face.points.len()
+                );
+                let geometry = Geometry::from(Triangle {
+                    v0: obj.index_vertex(&face.points[0]).into(),
+                    v1: obj.index_vertex(&face.points[1]).into(),
+                    v2: obj.index_vertex(&face.points[2]).into(),
+                });
+                let normals = TriangleNormals {
+                    n0: obj.index_normal(&face.points[0]).into(),
+                    n1: obj.index_normal(&face.points[1]).into(),
+                    n2: obj.index_normal(&face.points[2]).into(),
+                };
+                let texcoords = TriangleTexcoords {
+                    uv0: obj.index_texcoord(&face.points[0]).into(),
+                    uv1: obj.index_texcoord(&face.points[1]).into(),
+                    uv2: obj.index_texcoord(&face.points[2]).into(),
+                };
+                let material_index = materials.iter().position(|m| *m == chunk.material).unwrap();
+                let properties = GeometryProperties::<usize>::Triangle {
+                    normals,
+                    texcoords,
+                    material: material_index,
+                };
+                (geometry, properties)
+            })
+        })
+        .unzip();
+    (geometries, properties)
 }
