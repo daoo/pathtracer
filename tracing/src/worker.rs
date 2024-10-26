@@ -4,7 +4,7 @@ use std::{ops::Add, sync::mpsc::Sender, thread};
 use time::Duration;
 
 use glam::UVec2;
-use kdtree::KdNode;
+use kdtree::{IntersectionAccelerator, KdNode};
 use rand::{rngs::SmallRng, SeedableRng};
 
 use crate::{
@@ -24,14 +24,17 @@ fn create_ray_logger(thread: u32) -> RayLoggerWriter {
     }
 }
 
-fn render_iterations(
+fn render_iterations<Accelerator>(
     thread: u32,
-    pathtracer: &Pathtracer<KdNode>,
+    pathtracer: &Pathtracer<Accelerator>,
     camera: &Pinhole,
     size: UVec2,
     iterations: u32,
     tx: &Sender<Duration>,
-) -> ImageBuffer {
+) -> ImageBuffer
+where
+    Accelerator: IntersectionAccelerator,
+{
     let mut rng = SmallRng::from_entropy();
     let mut buffer = ImageBuffer::new(size);
     let mut ray_logger = create_ray_logger(thread);
@@ -81,14 +84,17 @@ pub fn render_parallel_subdivided(
         .unwrap()
 }
 
-pub fn render_parallel_iterations(
-    pathtracer: &Pathtracer<KdNode>,
+pub fn render_parallel_iterations<Accelerator>(
+    pathtracer: &Pathtracer<Accelerator>,
     camera: Pinhole,
     size: UVec2,
     threads: u32,
     iterations_per_thread: u32,
     tx: Sender<Duration>,
-) -> (Duration, RgbImage) {
+) -> (Duration, RgbImage)
+where
+    Accelerator: IntersectionAccelerator + Send + Sync,
+{
     let total_iterations = threads * iterations_per_thread;
     thread::scope(|s| {
         let (duration, buffer) = measure::measure(|| {

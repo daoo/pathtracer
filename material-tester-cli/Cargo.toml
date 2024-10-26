@@ -1,0 +1,13 @@
+[package]
+name = "material-tester-cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.20", features = ["derive"] }
+geometry = { version = "1.0.0", path = "../geometry" }
+glam = "0.29.0"
+image = { version = "0.25.4", default-features = false, features = ["png"] }
+kdtree = { version = "1.0.0", path = "../kdtree" }
+time = "0.3.36"
+tracing = { version = "1.0.0", path = "../tracing" }
