@@ -13,6 +13,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tracing::{pathtracer::Pathtracer, worker::render_iterations};
+use wavefront::read_obj_and_mtl_with_print_logging;
 
 #[derive(Clone, Copy, Debug)]
 struct Size {
@@ -119,7 +120,8 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
 
 fn main() {
     let args = Args::parse();
-    let scene = Scene::read_obj_file_with_print_logging(&args.input);
+    let (obj, mtl, mtl_path) = read_obj_and_mtl_with_print_logging(&args.input).unwrap();
+    let scene = Scene::build_with_print_logging(&obj, &mtl, &mtl_path);
 
     println!("Building kdtree...");
     let accelerator = build_kdtree(

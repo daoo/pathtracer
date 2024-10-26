@@ -5,7 +5,7 @@ use geometry::{
 };
 use glam::{Vec2, Vec3};
 use material::Material;
-use std::{fs::File, io::BufReader, path::Path};
+use std::path::Path;
 use wavefront::{mtl, obj};
 
 pub mod camera;
@@ -133,23 +133,9 @@ impl Scene {
         }
     }
 
-    pub fn read_obj_file_with_print_logging(path: &Path) -> Scene {
-        println!("Loading {}...", path.display());
-        let obj = obj::obj(&mut BufReader::new(File::open(path).unwrap()));
-        println!("  Chunks: {}", obj.chunks.len());
-        println!("  Vertices: {}", obj.vertices.len());
-        println!("  Normals: {}", obj.normals.len());
-        println!("  Texcoords: {}", obj.texcoords.len());
-
-        let mtl_path = path.parent().unwrap().join(&obj.mtl_lib);
-        println!("Loading {}...", mtl_path.display());
-        let mtl = mtl::mtl(&mut BufReader::new(File::open(&mtl_path).unwrap()));
-        println!("  Materials: {}", mtl.materials.len());
-        println!("  Lights: {}", mtl.lights.len());
-        println!("  Cameras: {}", mtl.cameras.len());
-
+    pub fn build_with_print_logging(obj: &obj::Obj, mtl: &mtl::Mtl, mtl_path: &Path) -> Scene {
         println!("Building scene...");
-        let scene = Scene::from_wavefront(mtl_path.parent().unwrap(), &obj, &mtl);
+        let scene = Scene::from_wavefront(mtl_path.parent().unwrap(), obj, mtl);
         println!("  Geometries: {}", scene.geometries.len());
         scene
     }

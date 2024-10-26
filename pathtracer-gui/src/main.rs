@@ -4,6 +4,7 @@ use miniquad::conf::Conf;
 use scene::Scene;
 use stage::Stage;
 use tracing::pathtracer::Pathtracer;
+use wavefront::read_obj_and_mtl_with_print_logging;
 
 mod stage;
 mod worker;
@@ -26,7 +27,8 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
-    let scene = Scene::read_obj_file_with_print_logging(&args.input);
+    let (obj, mtl, mtl_path) = read_obj_and_mtl_with_print_logging(&args.input).unwrap();
+    let scene = Scene::build_with_print_logging(&obj, &mtl, &mtl_path);
 
     println!("Building kdtree...");
     let accelerator = build_kdtree(

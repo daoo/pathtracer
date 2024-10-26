@@ -6,6 +6,7 @@ use std::{
     io::{BufWriter, Write},
     path::PathBuf,
 };
+use wavefront::read_obj_and_mtl_with_print_logging;
 
 use crate::{ray_bouncer::RayBouncer, size::Size};
 
@@ -16,7 +17,8 @@ pub(crate) fn kdtree_ray_tester(
     bounces: u32,
     sah: SahCost,
 ) {
-    let scene = Scene::read_obj_file_with_print_logging(&input);
+    let (obj, mtl, mtl_path) = read_obj_and_mtl_with_print_logging(&input).unwrap();
+    let scene = Scene::build_with_print_logging(&obj, &mtl, &mtl_path);
 
     println!("Building kdtree...");
     let kdtree = build_kdtree(scene.geometries(), &sah);

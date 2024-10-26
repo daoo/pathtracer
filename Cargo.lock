@@ -423,6 +423,7 @@ dependencies = [
  "scene",
  "time",
  "tracing",
+ "wavefront",
 ]
 
 [[package]]
@@ -437,6 +438,7 @@ dependencies = [
  "rayon",
  "scene",
  "tracing",
+ "wavefront",
 ]
 
 [[package]]
