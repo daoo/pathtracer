@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.5.8", features = ["derive"] }
+clap = { version = "4.5.20", features = ["derive"] }
 geometry = { version = "1.0.0", path = "../geometry" }
 glam = "0.29.0"
 kdtree = { version = "1.0.0", path = "../kdtree" }
-miniquad = "0.4.2"
+miniquad = "0.4.6"
 rand = { version = "0.8.5", default-features = false, features = ["std", "small_rng"] }
 rayon = { version = "1.10.0", default-features = false }
 time = "0.3.36"

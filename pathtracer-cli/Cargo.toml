@@ -8,10 +8,10 @@ edition = "2021"
 ray_logging = ["tracing/ray_logging"]
 
 [dependencies]
-clap = { version = "4.5.4", features = ["derive"] }
+clap = { version = "4.5.20", features = ["derive"] }
 geometry = { version = "1.0.0", path = "../geometry" }
 glam = "0.29.0"
-image = { version = "0.25.1", default-features = false, features = ["png"] }
+image = { version = "0.25.4", default-features = false, features = ["png"] }
 kdtree = { version = "1.0.0", path = "../kdtree" }
 rand = { version = "0.8.5", default-features = false, features = ["std", "small_rng"] }
 time = { version = "0.3.36", features = ["formatting"] }
