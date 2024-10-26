@@ -9,7 +9,6 @@ use wavefront::{mtl, obj};
 pub struct Scene {
     geometries: Vec<Geometry>,
     properties: Vec<GeometryProperties<usize>>,
-    environment: Vec3,
 }
 
 pub struct SceneIntersection {
@@ -60,7 +59,6 @@ impl Scene {
         Scene {
             geometries,
             properties,
-            environment: Vec3::new(0.8, 0.8, 0.8),
         }
     }
 
@@ -74,11 +72,6 @@ impl Scene {
     #[inline]
     pub fn geometries(&self) -> &[Geometry] {
         &self.geometries
-    }
-
-    #[inline]
-    pub fn environment(&self) -> Vec3 {
-        self.environment
     }
 
     #[inline]

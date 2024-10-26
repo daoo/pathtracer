@@ -1,4 +1,5 @@
 use clap::Parser;
+use glam::Vec3;
 use kdtree::{build::build_kdtree, sah::SahCost};
 use miniquad::conf::Conf;
 use scene::Scene;
@@ -50,6 +51,7 @@ fn main() {
             .map(|m| Material::load_from_mtl(image_directory, m))
             .collect(),
         lights: mtl.lights.iter().map(SphericalLight::from).collect(),
+        environment: Vec3::new(0.8, 0.8, 0.8),
         accelerator,
     };
 

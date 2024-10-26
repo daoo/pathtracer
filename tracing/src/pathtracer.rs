@@ -17,6 +17,7 @@ pub struct Pathtracer<Accelerator> {
     pub scene: Scene,
     pub materials: Vec<Material>,
     pub lights: Vec<SphericalLight>,
+    pub environment: Vec3,
     pub accelerator: Accelerator,
 }
 
@@ -46,7 +47,7 @@ where
                 )
                 .unwrap();
             if intersection.is_none() {
-                return accumulated_radiance + accumulated_transport * self.scene.environment();
+                return accumulated_radiance + accumulated_transport * self.environment;
             }
             let intersection = &intersection.unwrap();
             let properties = self.scene.lookup_intersection(intersection);

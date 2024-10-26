@@ -1,5 +1,5 @@
 use clap::Parser;
-use glam::UVec2;
+use glam::{UVec2, Vec3};
 use image::{ImageFormat, RgbImage};
 use kdtree::{build::build_kdtree, sah::SahCost};
 use scene::Scene;
@@ -152,6 +152,7 @@ fn main() {
             .map(|m| Material::load_from_mtl(image_directory, m))
             .collect(),
         lights: mtl.lights.iter().map(SphericalLight::from).collect(),
+        environment: Vec3::new(0.8, 0.8, 0.8),
         accelerator,
     };
 
