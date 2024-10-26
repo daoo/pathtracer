@@ -1,4 +1,4 @@
-use glam::Vec3;
+use glam::{Vec2, Vec3};
 
 use crate::{
     aabb::Aabb, aap::Aap, axial_triangle::AxiallyAlignedTriangle, axis::Axis,
@@ -208,6 +208,34 @@ where
             v1: value[1].into(),
             v2: value[2].into(),
         }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TriangleNormals {
+    pub n0: Vec3,
+    pub n1: Vec3,
+    pub n2: Vec3,
+}
+
+impl TriangleNormals {
+    #[inline]
+    pub fn lerp(&self, u: f32, v: f32) -> Vec3 {
+        ((1.0 - (u + v)) * self.n0 + u * self.n1 + v * self.n2).normalize()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TriangleTexcoords {
+    pub uv0: Vec2,
+    pub uv1: Vec2,
+    pub uv2: Vec2,
+}
+
+impl TriangleTexcoords {
+    #[inline]
+    pub fn lerp(&self, u: f32, v: f32) -> Vec2 {
+        (1.0 - (u + v)) * self.uv0 + u * self.uv1 + v * self.uv2
     }
 }
 

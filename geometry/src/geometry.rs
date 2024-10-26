@@ -1,8 +1,12 @@
-use glam::Vec3;
+use glam::{Vec2, Vec3};
 
 use crate::{
-    aabb::Aabb, axial_triangle::AxiallyAlignedTriangle, intersection::RayIntersection, ray::Ray,
-    sphere::Sphere, triangle::Triangle,
+    aabb::Aabb,
+    axial_triangle::AxiallyAlignedTriangle,
+    intersection::RayIntersection,
+    ray::Ray,
+    sphere::Sphere,
+    triangle::{Triangle, TriangleNormals, TriangleTexcoords},
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -64,5 +68,72 @@ impl From<Sphere> for Geometry {
     #[inline]
     fn from(value: Sphere) -> Self {
         Geometry::Sphere(value)
+    }
+}
+
+pub enum GeometryProperties<M> {
+    Triangle {
+        normals: TriangleNormals,
+        texcoords: TriangleTexcoords,
+        material: M,
+    },
+    AxiallyAlignedTriangle {
+        normals: TriangleNormals,
+        texcoords: TriangleTexcoords,
+        material: M,
+    },
+    Sphere(),
+}
+
+impl<M> GeometryProperties<M> {
+    #[inline]
+    pub fn material(&self) -> &M {
+        match self {
+            GeometryProperties::Triangle {
+                normals: _,
+                texcoords: _,
+                material,
+            } => material,
+            GeometryProperties::AxiallyAlignedTriangle {
+                normals: _,
+                texcoords: _,
+                material,
+            } => material,
+            GeometryProperties::Sphere() => todo!(),
+        }
+    }
+
+    #[inline]
+    pub fn compute_normal(&self, u: f32, v: f32) -> Vec3 {
+        match self {
+            GeometryProperties::Triangle {
+                normals,
+                texcoords: _,
+                material: _,
+            } => normals.lerp(u, v),
+            GeometryProperties::AxiallyAlignedTriangle {
+                normals,
+                texcoords: _,
+                material: _,
+            } => normals.lerp(u, v),
+            GeometryProperties::Sphere() => todo!(),
+        }
+    }
+
+    #[inline]
+    pub fn compute_texcoord(&self, u: f32, v: f32) -> Vec2 {
+        match self {
+            GeometryProperties::Triangle {
+                normals: _,
+                texcoords,
+                material: _,
+            } => texcoords.lerp(u, v),
+            GeometryProperties::AxiallyAlignedTriangle {
+                normals: _,
+                texcoords,
+                material: _,
+            } => texcoords.lerp(u, v),
+            GeometryProperties::Sphere() => todo!(),
+        }
     }
 }

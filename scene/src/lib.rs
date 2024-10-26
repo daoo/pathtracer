@@ -1,4 +1,8 @@
-use geometry::{geometry::Geometry, intersection::GeometryIntersection, triangle::Triangle};
+use geometry::{
+    geometry::{Geometry, GeometryProperties},
+    intersection::GeometryIntersection,
+    triangle::{Triangle, TriangleNormals, TriangleTexcoords},
+};
 use glam::{Vec2, Vec3};
 use material::Material;
 use std::{fs::File, io::BufReader, path::Path};
@@ -10,43 +14,9 @@ pub mod material;
 
 use crate::{camera::Camera, light::SphericalLight};
 
-#[derive(Clone, Debug, PartialEq)]
-struct TriangleNormals {
-    n0: Vec3,
-    n1: Vec3,
-    n2: Vec3,
-}
-
-impl TriangleNormals {
-    #[inline]
-    fn lerp(&self, u: f32, v: f32) -> Vec3 {
-        ((1.0 - (u + v)) * self.n0 + u * self.n1 + v * self.n2).normalize()
-    }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-struct TriangleTexcoords {
-    uv0: Vec2,
-    uv1: Vec2,
-    uv2: Vec2,
-}
-
-impl TriangleTexcoords {
-    #[inline]
-    fn lerp(&self, u: f32, v: f32) -> Vec2 {
-        (1.0 - (u + v)) * self.uv0 + u * self.uv1 + v * self.uv2
-    }
-}
-
-struct TriangleProperties {
-    normals: TriangleNormals,
-    texcoords: TriangleTexcoords,
-    material_index: usize,
-}
-
 pub struct Scene {
     geometries: Vec<Geometry>,
-    properties: Vec<TriangleProperties>,
+    properties: Vec<GeometryProperties<usize>>,
     materials: Vec<Material>,
     cameras: Vec<Camera>,
     lights: Vec<SphericalLight>,
@@ -144,10 +114,10 @@ impl Scene {
                         .iter()
                         .position(|m| m.0 == chunk.material)
                         .unwrap();
-                    let properties = TriangleProperties {
+                    let properties = GeometryProperties::<usize>::Triangle {
                         normals,
                         texcoords,
-                        material_index,
+                        material: material_index,
                     };
                     (geometry, properties)
                 })
@@ -207,9 +177,9 @@ impl Scene {
     #[inline]
     pub fn lookup_intersection(&self, inner: GeometryIntersection) -> SceneIntersection<'_> {
         let properties = &self.properties[inner.index as usize];
-        let normal = properties.normals.lerp(inner.inner.u, inner.inner.v);
-        let texcoord = properties.texcoords.lerp(inner.inner.u, inner.inner.v);
-        let material = &self.materials[properties.material_index];
+        let normal = properties.compute_normal(inner.inner.u, inner.inner.v);
+        let texcoord = properties.compute_texcoord(inner.inner.u, inner.inner.v);
+        let material = &self.materials[*properties.material()];
         SceneIntersection {
             inner,
             material,
