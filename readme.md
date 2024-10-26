@@ -14,4 +14,4 @@ A pathtracer written in rust which loads and renders obj files with (custom) mtl
 
 Example command:
 
-    ./target/release/pathtracer -i scenes/cornell.obj -o /tmp/cornell.png -w 1000 -h 1000 -n 128 -t 12
+    ./target/release/pathtracer -i resources/cornell.obj -o /tmp/cornell.png -w 1000 -h 1000 -n 128 -t 12
