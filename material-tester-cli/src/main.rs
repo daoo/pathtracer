@@ -140,7 +140,7 @@ fn main() {
     );
     let pinhole = Pinhole::new(camera, args.size.as_uvec2());
     let geometries = vec![Sphere::new(Vec3::new(0.0, 0.0, 0.0), 1.0).into()];
-    let properties = vec![GeometryProperties::Sphere()];
+    let properties = vec![GeometryProperties::Sphere { material: 0 }];
     let materials = vec![Material {
         diffuse_reflectance: [1.0, 0.0, 0.0].into(),
         diffuse_texture_reflectance: None,
@@ -151,9 +151,9 @@ fn main() {
         transparency: 0.0,
     }];
     let lights = vec![SphericalLight {
-        center: [0.0, 0.0, 0.0].into(),
+        center: [-2.0, -2.0, -2.0].into(),
         intensity: [1.0, 1.0, 1.0].into(),
-        radius: 1.0,
+        radius: 2.0,
     }];
     let accelerator = NoAccelerator {};
     let pathtracer = Pathtracer {

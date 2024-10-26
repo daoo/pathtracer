@@ -83,7 +83,9 @@ pub enum GeometryProperties<M> {
         texcoords: TriangleTexcoords,
         material: M,
     },
-    Sphere(),
+    Sphere {
+        material: M,
+    },
 }
 
 impl<M> GeometryProperties<M> {
@@ -100,7 +102,7 @@ impl<M> GeometryProperties<M> {
                 texcoords: _,
                 material,
             } => material,
-            GeometryProperties::Sphere() => todo!(),
+            GeometryProperties::Sphere { material } => material,
         }
     }
 
@@ -117,7 +119,9 @@ impl<M> GeometryProperties<M> {
                 texcoords: _,
                 material: _,
             } => normals.lerp(u, v),
-            GeometryProperties::Sphere() => todo!(),
+            GeometryProperties::Sphere { material: _ } => {
+                Vec3::new(u.sin() * v.cos(), u.sin() * v.sin(), u.cos())
+            }
         }
     }
 
@@ -134,7 +138,7 @@ impl<M> GeometryProperties<M> {
                 texcoords,
                 material: _,
             } => texcoords.lerp(u, v),
-            GeometryProperties::Sphere() => todo!(),
+            GeometryProperties::Sphere { material: _ } => Vec2::new(u, v),
         }
     }
 }

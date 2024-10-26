@@ -46,7 +46,15 @@ impl Sphere {
         let t1 = (-b - discriminant.sqrt()) / (2.0 * a);
         let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
         let t = if t1 <= t2 { t1 } else { t2 };
-        Some(RayIntersection { t, u: 0.0, v: 0.0 })
+
+        let normal = ray.param(t) - self.center;
+        let theta = normal.x.atan2(normal.y);
+        let phi = (normal.z / self.radius).acos();
+        Some(RayIntersection {
+            t,
+            u: theta,
+            v: phi,
+        })
     }
 }
 
