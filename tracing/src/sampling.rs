@@ -1,6 +1,5 @@
 use glam::{Vec2, Vec3};
 use rand::{rngs::SmallRng, Rng};
-use scene::light::SphericalLight;
 
 pub fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vec2 {
     Vec2::new(rng.gen(), rng.gen())
@@ -46,10 +45,6 @@ pub fn cosine_sample_hemisphere(rng: &mut SmallRng) -> Vec3 {
     let ret = concentric_sample_unit_disk(rng);
     let z = (0.0f32.max(1.0 - ret.x * ret.x - ret.y * ret.y)).sqrt();
     Vec3::new(ret.x, ret.y, z)
-}
-
-pub fn sample_light(light: &SphericalLight, rng: &mut SmallRng) -> Vec3 {
-    light.center + uniform_sample_unit_sphere(rng) * light.radius
 }
 
 #[cfg(test)]

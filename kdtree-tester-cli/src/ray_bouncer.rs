@@ -9,12 +9,14 @@ use rand::{rngs::SmallRng, SeedableRng};
 use scene::{camera::Pinhole, Scene};
 use std::ops::RangeInclusive;
 use tracing::{
+    light::SphericalLight,
     material::{material_sample, IncomingRay},
-    sampling::{sample_light, uniform_sample_unit_square},
+    sampling::uniform_sample_unit_square,
 };
 
 pub struct RayBouncer {
     pub scene: Scene,
+    pub lights: Vec<SphericalLight>,
     pub kdtree: KdNode,
     pub camera: Pinhole,
     pub bounces: u32,
@@ -76,11 +78,10 @@ impl RayBouncer {
         let point_below = point - offset;
 
         let incoming_fails = self
-            .scene
-            .lights()
+            .lights
             .iter()
             .filter_map(|light| {
-                let shadow_ray = Ray::between(point_above, sample_light(light, &mut rng));
+                let shadow_ray = Ray::between(point_above, light.sample(&mut rng));
                 let shadow = self.checked_ray_intersect(&shadow_ray, 0.0..=1.0);
                 (!shadow.is_valid()).then_some(shadow)
             })

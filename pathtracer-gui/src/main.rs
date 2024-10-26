@@ -3,7 +3,7 @@ use kdtree::{build::build_kdtree, sah::SahCost};
 use miniquad::conf::Conf;
 use scene::Scene;
 use stage::Stage;
-use tracing::pathtracer::Pathtracer;
+use tracing::{light::SphericalLight, pathtracer::Pathtracer};
 use wavefront::read_obj_and_mtl_with_print_logging;
 
 mod stage;
@@ -43,6 +43,7 @@ fn main() {
     let pathtracer = Pathtracer {
         max_bounces: 16,
         scene,
+        lights: mtl.lights.iter().map(SphericalLight::from).collect(),
         accelerator,
     };
 

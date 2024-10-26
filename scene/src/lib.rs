@@ -9,17 +9,15 @@ use std::path::Path;
 use wavefront::{mtl, obj};
 
 pub mod camera;
-pub mod light;
 pub mod material;
 
-use crate::{camera::Camera, light::SphericalLight};
+use crate::camera::Camera;
 
 pub struct Scene {
     geometries: Vec<Geometry>,
     properties: Vec<GeometryProperties<usize>>,
     materials: Vec<Material>,
     cameras: Vec<Camera>,
-    lights: Vec<SphericalLight>,
     environment: Vec3,
 }
 
@@ -56,20 +54,6 @@ fn collect_cameras(mtl: &mtl::Mtl) -> Vec<Camera> {
                 camera.target.into(),
                 camera.up.into(),
                 camera.fov,
-            )
-        })
-        .collect()
-}
-
-fn collect_lights(mtl: &mtl::Mtl) -> Vec<SphericalLight> {
-    mtl.lights
-        .iter()
-        .map(|light| {
-            SphericalLight::new(
-                light.position.into(),
-                light.radius,
-                light.color.into(),
-                light.intensity,
             )
         })
         .collect()
@@ -128,7 +112,6 @@ impl Scene {
             properties,
             materials: materials.into_iter().map(|m| m.1).collect(),
             cameras: collect_cameras(mtl),
-            lights: collect_lights(mtl),
             environment: Vec3::new(0.8, 0.8, 0.8),
         }
     }
@@ -148,11 +131,6 @@ impl Scene {
     #[inline]
     pub fn cameras(&self) -> &[Camera] {
         &self.cameras
-    }
-
-    #[inline]
-    pub fn lights(&self) -> &[SphericalLight] {
-        &self.lights
     }
 
     #[inline]

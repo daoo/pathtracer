@@ -1,8 +1,9 @@
 use crate::{
     image_buffer::ImageBuffer,
+    light::SphericalLight,
     material::{material_brdf, material_sample, IncomingRay, OutgoingRay},
     raylogger::{RayLoggerWithIteration, RayLoggerWithIterationAndPixel},
-    sampling::{sample_light, uniform_sample_unit_square},
+    sampling::uniform_sample_unit_square,
 };
 use geometry::ray::Ray;
 use glam::{UVec2, Vec3};
@@ -13,6 +14,7 @@ use scene::{camera::Pinhole, Scene};
 pub struct Pathtracer<Accelerator> {
     pub max_bounces: u8,
     pub scene: Scene,
+    pub lights: Vec<SphericalLight>,
     pub accelerator: Accelerator,
 }
 
@@ -60,12 +62,11 @@ where
             let point_below = point - offset;
 
             let incoming_radiance: Vec3 = self
-                .scene
-                .lights()
+                .lights
                 .iter()
                 .map(|light| {
                     // TODO: Offset should depend on incoming direction, not only surface normal.
-                    let shadow_ray = Ray::between(point_above, sample_light(light, rng));
+                    let shadow_ray = Ray::between(point_above, light.sample(rng));
                     let intersection =
                         self.accelerator
                             .intersect(self.scene.geometries(), &shadow_ray, 0.0..=1.0);

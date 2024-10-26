@@ -1,6 +1,7 @@
 use kdtree::{build::build_kdtree, sah::SahCost};
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 use scene::{camera::Pinhole, Scene};
+use tracing::light::SphericalLight;
 use std::{
     fs::File,
     io::{BufWriter, Write},
@@ -27,6 +28,7 @@ pub(crate) fn kdtree_ray_tester(
     let camera = Pinhole::new(scene.cameras()[0].clone(), size.as_uvec2());
     let bouncer = RayBouncer {
         scene,
+        lights: mtl.lights.iter().map(SphericalLight::from).collect(),
         kdtree,
         camera,
         size: size.as_uvec2(),

@@ -650,6 +650,7 @@ dependencies = [
  "rand",
  "rayon",
  "scene",
+ "wavefront",
 ]
 
 [[package]]

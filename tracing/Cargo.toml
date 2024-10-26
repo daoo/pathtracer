@@ -15,3 +15,4 @@ kdtree = { version = "1.0.0", path = "../kdtree" }
 rand = { version = "0.8.5", default-features = false, features = ["small_rng"] }
 rayon = "1.10.0"
 scene = { version = "1.0.0", path = "../scene" }
+wavefront = { version = "1.0.0", path = "../wavefront" }

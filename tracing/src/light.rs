@@ -1,4 +1,8 @@
 use glam::Vec3;
+use rand::rngs::SmallRng;
+use wavefront::mtl::{self};
+
+use crate::sampling::uniform_sample_unit_sphere;
 
 #[derive(Clone, Debug)]
 pub struct SphericalLight {
@@ -18,5 +22,20 @@ impl SphericalLight {
 
     pub fn emitted(&self, point: Vec3) -> Vec3 {
         self.intensity / (self.center - point).length_squared()
+    }
+
+    pub fn sample(&self, rng: &mut SmallRng) -> Vec3 {
+        self.center + uniform_sample_unit_sphere(rng) * self.radius
+    }
+}
+
+impl From<&mtl::Light> for SphericalLight {
+    fn from(value: &mtl::Light) -> Self {
+        Self::new(
+            value.position.into(),
+            value.radius,
+            value.color.into(),
+            value.intensity,
+        )
     }
 }

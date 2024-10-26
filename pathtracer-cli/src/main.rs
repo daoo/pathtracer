@@ -12,7 +12,7 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
-use tracing::{pathtracer::Pathtracer, worker::render_iterations};
+use tracing::{light::SphericalLight, pathtracer::Pathtracer, worker::render_iterations};
 use wavefront::read_obj_and_mtl_with_print_logging;
 
 #[derive(Clone, Copy, Debug)]
@@ -142,6 +142,7 @@ fn main() {
     let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,
         scene,
+        lights: mtl.lights.iter().map(SphericalLight::from).collect(),
         accelerator,
     };
 

@@ -1,4 +1,5 @@
 pub mod image_buffer;
+pub mod light;
 pub mod material;
 pub mod measure;
 pub mod pathtracer;
