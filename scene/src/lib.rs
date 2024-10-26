@@ -8,16 +8,12 @@ use material::Material;
 use std::path::Path;
 use wavefront::{mtl, obj};
 
-pub mod camera;
 pub mod material;
-
-use crate::camera::Camera;
 
 pub struct Scene {
     geometries: Vec<Geometry>,
     properties: Vec<GeometryProperties<usize>>,
     materials: Vec<Material>,
-    cameras: Vec<Camera>,
     environment: Vec3,
 }
 
@@ -42,20 +38,6 @@ fn materials_from_mtl<'m>(image_directory: &Path, mtl: &'m mtl::Mtl) -> Vec<(&'m
     mtl.materials
         .iter()
         .map(|m| (m.name.as_str(), material_from_mtl(image_directory, m)))
-        .collect()
-}
-
-fn collect_cameras(mtl: &mtl::Mtl) -> Vec<Camera> {
-    mtl.cameras
-        .iter()
-        .map(|camera| {
-            Camera::new(
-                camera.position.into(),
-                camera.target.into(),
-                camera.up.into(),
-                camera.fov,
-            )
-        })
         .collect()
 }
 
@@ -111,7 +93,6 @@ impl Scene {
             geometries,
             properties,
             materials: materials.into_iter().map(|m| m.1).collect(),
-            cameras: collect_cameras(mtl),
             environment: Vec3::new(0.8, 0.8, 0.8),
         }
     }
@@ -126,11 +107,6 @@ impl Scene {
     #[inline]
     pub fn geometries(&self) -> &[Geometry] {
         &self.geometries
-    }
-
-    #[inline]
-    pub fn cameras(&self) -> &[Camera] {
-        &self.cameras
     }
 
     #[inline]

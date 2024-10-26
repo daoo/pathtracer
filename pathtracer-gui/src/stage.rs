@@ -7,8 +7,10 @@ use miniquad::{
     KeyCode, PassAction, Pipeline, PipelineParams, RenderingBackend, ShaderSource, TextureId,
     VertexAttribute, VertexFormat,
 };
-use scene::camera::{Camera, Pinhole};
-use tracing::pathtracer::Pathtracer;
+use tracing::{
+    camera::{Camera, Pinhole},
+    pathtracer::Pathtracer,
+};
 
 use crate::worker::Worker;
 

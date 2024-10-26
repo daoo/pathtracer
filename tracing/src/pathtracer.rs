@@ -1,4 +1,5 @@
 use crate::{
+    camera::Pinhole,
     image_buffer::ImageBuffer,
     light::SphericalLight,
     material::{material_brdf, material_sample, IncomingRay, OutgoingRay},
@@ -9,7 +10,7 @@ use geometry::ray::Ray;
 use glam::{UVec2, Vec3};
 use kdtree::IntersectionAccelerator;
 use rand::rngs::SmallRng;
-use scene::{camera::Pinhole, Scene};
+use scene::Scene;
 
 pub struct Pathtracer<Accelerator> {
     pub max_bounces: u8,

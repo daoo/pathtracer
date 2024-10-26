@@ -6,9 +6,10 @@ use geometry::{
 use glam::{UVec2, Vec2};
 use kdtree::{IntersectionAccelerator, KdNode};
 use rand::{rngs::SmallRng, SeedableRng};
-use scene::{camera::Pinhole, Scene};
+use scene::Scene;
 use std::ops::RangeInclusive;
 use tracing::{
+    camera::Pinhole,
     light::SphericalLight,
     material::{material_sample, IncomingRay},
     sampling::uniform_sample_unit_square,

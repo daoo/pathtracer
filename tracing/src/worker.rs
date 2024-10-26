@@ -8,9 +8,9 @@ use std::{
 use glam::UVec2;
 use kdtree::KdNode;
 use rand::{rngs::SmallRng, SeedableRng};
-use scene::camera::Pinhole;
 
 use crate::{
+    camera::Pinhole,
     image_buffer::ImageBuffer,
     pathtracer::Pathtracer,
     raylogger::{RayLoggerWithIteration, RayLoggerWriter},

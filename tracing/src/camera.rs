@@ -1,5 +1,6 @@
 use geometry::ray::Ray;
 use glam::{UVec2, Vec2, Vec3};
+use wavefront::mtl;
 
 #[derive(Clone, Debug)]
 pub struct Camera {
@@ -30,6 +31,17 @@ impl Camera {
             right: self.right,
             fov_degrees: self.fov_degrees,
         }
+    }
+}
+
+impl From<mtl::Camera> for Camera {
+    fn from(value: mtl::Camera) -> Self {
+        Camera::new(
+            value.position.into(),
+            value.target.into(),
+            value.up.into(),
+            value.fov,
+        )
     }
 }
 

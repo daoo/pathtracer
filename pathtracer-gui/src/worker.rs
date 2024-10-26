@@ -6,9 +6,9 @@ use std::{
 
 use glam::UVec2;
 use kdtree::KdNode;
-use scene::camera::Pinhole;
 use tracing::{
-    image_buffer::ImageBuffer, measure::measure, pathtracer::Pathtracer, worker::render_subdivided,
+    camera::Pinhole, image_buffer::ImageBuffer, measure::measure, pathtracer::Pathtracer,
+    worker::render_subdivided,
 };
 
 pub struct RenderResult {

@@ -2,7 +2,7 @@ use clap::Parser;
 use glam::UVec2;
 use image::{ImageFormat, RgbImage};
 use kdtree::{build::build_kdtree, sah::SahCost};
-use scene::{camera::Pinhole, Scene};
+use scene::Scene;
 use std::{
     fmt::Display,
     io::Write,
@@ -12,7 +12,9 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
-use tracing::{light::SphericalLight, pathtracer::Pathtracer, worker::render_iterations};
+use tracing::{
+    camera::Pinhole, light::SphericalLight, pathtracer::Pathtracer, worker::render_iterations,
+};
 use wavefront::read_obj_and_mtl_with_print_logging;
 
 #[derive(Clone, Copy, Debug)]
@@ -138,7 +140,7 @@ fn main() {
         "Rendering {} px image with {} thread(s) and {} total iteration(s)...",
         args.size, args.threads, total_iterations,
     );
-    let camera = Pinhole::new(scene.cameras()[0].clone(), args.size.as_uvec2());
+    let camera = Pinhole::new(mtl.cameras[0].clone().into(), args.size.as_uvec2());
     let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,
         scene,

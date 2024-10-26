@@ -1,3 +1,4 @@
+pub mod camera;
 pub mod image_buffer;
 pub mod light;
 pub mod material;

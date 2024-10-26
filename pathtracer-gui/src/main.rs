@@ -48,7 +48,6 @@ fn main() {
     };
 
     miniquad::start(Conf::default(), move || {
-        let camera = pathtracer.scene.cameras()[0].clone();
-        Box::new(Stage::new(pathtracer, camera))
+        Box::new(Stage::new(pathtracer, mtl.cameras[0].clone().into()))
     });
 }

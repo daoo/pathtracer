@@ -41,7 +41,7 @@ pub struct Light {
     pub intensity: f32,
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, PartialEq, Clone)]
 pub struct Camera {
     pub position: [f32; 3],
     pub target: [f32; 3],
