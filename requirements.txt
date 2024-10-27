@@ -2,5 +2,5 @@ matplotlib
 numpy
 pandas
 pyright
-rerun-sdk
+rerun-sdk>=0.19
 ruff

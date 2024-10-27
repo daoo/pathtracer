@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-import rerun
 import sys
-import visualize_fails
-import visualize_kdtree
-import visualize_rays
-import visualize_triangles
 
 
 def parse_rectangle(s):
@@ -20,6 +15,12 @@ def parse_rectangle(s):
 
 
 def program(args):
+    import rerun
+    import visualize_fails
+    import visualize_kdtree
+    import visualize_rays
+    import visualize_triangles
+
     rerun.init("pathtracer")
     rerun.connect(args.server)
     rerun.log("world", rerun.ViewCoordinates.RIGHT_HAND_Y_UP, static=True)
@@ -67,7 +68,9 @@ def main():
         description="Visualize pathtracer data with rerun.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("-s", "--server", default=None, help="Rerun server ip:port to connect to")
+    parser.add_argument(
+        "-s", "--server", default=None, help="Rerun server ip:port to connect to"
+    )
 
     parser.add_argument("-t", "--triangles", help="kdtree.json file path")
     parser.add_argument("-f", "--ray-fails", help="rayfails.bin file path")
