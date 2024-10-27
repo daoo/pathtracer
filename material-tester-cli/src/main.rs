@@ -133,28 +133,43 @@ fn main() {
         args.size, args.threads, total_iterations,
     );
     let camera = Camera::new(
-        [-2.0, 0.0, 0.0].into(),
+        [-10.0, 0.0, 0.0].into(),
         [0.0, 0.0, 0.0].into(),
         [0.0, 0.0, 1.0].into(),
-        90.0,
+        20.0,
     );
     let pinhole = Pinhole::new(camera, args.size.as_uvec2());
-    let geometries = vec![Sphere::new(Vec3::new(0.0, 0.0, 0.0), 1.0).into()];
-    let properties = vec![GeometryProperties::Sphere { material: 0 }];
-    let materials = vec![Material {
+    let geometries = vec![
+        Sphere::new(Vec3::new(0.0, -1.0, -1.0), 0.45).into(),
+        Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.45).into(),
+        Sphere::new(Vec3::new(0.0, 1.0, -1.0), 0.45).into(),
+        Sphere::new(Vec3::new(0.0, -1.0, 0.0), 0.45).into(),
+        Sphere::new(Vec3::new(0.0, 0.0, 0.0), 0.45).into(),
+        Sphere::new(Vec3::new(0.0, 1.0, 0.0), 0.45).into(),
+        Sphere::new(Vec3::new(0.0, -1.0, 1.0), 0.45).into(),
+        Sphere::new(Vec3::new(0.0, 0.0, 1.0), 0.45).into(),
+        Sphere::new(Vec3::new(0.0, 1.0, 1.0), 0.45).into(),
+    ];
+    let properties = (0..geometries.len())
+        .map(|i| GeometryProperties::Sphere { material: i })
+        .collect();
+    let material = |t| Material {
         diffuse_reflectance: [1.0, 0.0, 0.0].into(),
         diffuse_texture_reflectance: None,
-        specular_reflectance: [0.0, 0.0, 0.0].into(),
+        specular_reflectance: [1.0, t, 0.1].into(),
         index_of_refraction: 0.0,
-        reflection_0_degrees: 0.0,
-        reflection_90_degrees: 0.0,
+        reflection_0_degrees: 1.0,
+        reflection_90_degrees: 1.0,
         transparency: 0.0,
-    }];
-    let lights = vec![SphericalLight {
-        center: [-2.0, 0.0, 0.0].into(),
-        intensity: [10.0, 10.0, 10.0].into(),
-        radius: 0.1,
-    }];
+    };
+    let materials = (0..geometries.len())
+        .map(|i| material(i as f32 * 1.0 / (geometries.len() - 1) as f32))
+        .collect();
+    let lights = vec![SphericalLight::new(
+        Vec3::new(-10.0, -5.0, 1.0) * 100.0,
+        0.1,
+        Vec3::ONE * 100.0 * 100.0f32.powi(2),
+    )];
     let accelerator = NoAccelerator {};
     let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,

@@ -7,15 +7,15 @@ use crate::sampling::uniform_sample_unit_sphere;
 #[derive(Clone, Debug)]
 pub struct SphericalLight {
     pub center: Vec3,
-    pub intensity: Vec3,
     pub radius: f32,
+    pub intensity: Vec3,
 }
 
 impl SphericalLight {
-    pub fn new(center: Vec3, radius: f32, color: Vec3, intensity: f32) -> SphericalLight {
+    pub fn new(center: Vec3, radius: f32, intensity: Vec3) -> SphericalLight {
         SphericalLight {
             center,
-            intensity: color * intensity,
+            intensity,
             radius,
         }
     }
@@ -34,8 +34,7 @@ impl From<&mtl::Light> for SphericalLight {
         Self::new(
             value.position.into(),
             value.radius,
-            value.color.into(),
-            value.intensity,
+            Vec3::from(value.color) * value.intensity,
         )
     }
 }
