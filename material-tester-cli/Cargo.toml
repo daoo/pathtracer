@@ -3,6 +3,9 @@ name = "material-tester-cli"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+ray_logging = ["tracing/ray_logging"]
+
 [dependencies]
 clap = { version = "4.5.20", features = ["derive"] }
 geometry = { version = "1.0.0", path = "../geometry" }

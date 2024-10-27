@@ -151,9 +151,9 @@ fn main() {
         transparency: 0.0,
     }];
     let lights = vec![SphericalLight {
-        center: [-2.0, -2.0, -2.0].into(),
-        intensity: [1.0, 1.0, 1.0].into(),
-        radius: 2.0,
+        center: [-2.0, 0.0, 0.0].into(),
+        intensity: [10.0, 10.0, 10.0].into(),
+        radius: 0.1,
     }];
     let accelerator = NoAccelerator {};
     let pathtracer = Pathtracer {

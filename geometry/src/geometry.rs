@@ -120,7 +120,7 @@ impl<M> GeometryProperties<M> {
                 material: _,
             } => normals.lerp(u, v),
             GeometryProperties::Sphere { material: _ } => {
-                Vec3::new(u.sin() * v.cos(), u.sin() * v.sin(), u.cos())
+                Sphere::new(Vec3::ZERO, 1.0).normal_parametric(u, v)
             }
         }
     }
