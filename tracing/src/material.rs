@@ -45,7 +45,7 @@ impl IncomingRay {
     }
 
     fn reflectance(&self, r0: f32) -> f32 {
-        r0 + (1.0 - r0) * (1.0 - self.wi.dot(self.n).abs()).powf(5.0)
+        r0 + (1.0 - r0) * (1.0 - self.wi.dot(self.n).abs()).powi(5)
     }
 }
 
@@ -78,14 +78,10 @@ pub struct MaterialSample {
     pub wo: Vec3,
 }
 
-fn diffuse_reflective_brdf(
-    texture: &Option<Rgb32FImage>,
-    reflectance: Vec3,
-    outgoing: &OutgoingRay,
-) -> Vec3 {
+fn diffuse_reflective_brdf(texture: &Option<Rgb32FImage>, reflectance: Vec3, uv: Vec2) -> Vec3 {
     if let Some(texture) = &texture {
-        let px = (texture.width() as f32 * outgoing.uv.x).floor();
-        let py = (texture.height() as f32 * outgoing.uv.y).floor();
+        let px = (texture.width() as f32 * uv.x).floor();
+        let py = (texture.height() as f32 * uv.y).floor();
         let reflectance = Vec3::from(unsafe { texture.unsafe_get_pixel(px as u32, py as u32).0 });
         reflectance * std::f32::consts::FRAC_1_PI
     } else {
@@ -106,7 +102,7 @@ fn diffuse_reflection_sample(
     let wo = (s.x * tangent + s.y * bitangent + s.z * incoming.n).normalize();
     MaterialSample {
         pdf: 1.0,
-        brdf: diffuse_reflective_brdf(texture, reflectance, &incoming.with_wo(wo)),
+        brdf: diffuse_reflective_brdf(texture, reflectance, incoming.uv),
         wo,
     }
 }
@@ -185,7 +181,7 @@ impl Material {
         let reflection = diffuse_reflective_brdf(
             &self.diffuse_texture_reflectance,
             self.diffuse_reflectance,
-            outgoing,
+            outgoing.uv,
         );
         let transparency_blend = mix(reflection, Vec3::ZERO, self.transparency);
         let fresnel_blend = mix(
