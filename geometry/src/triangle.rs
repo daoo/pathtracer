@@ -124,7 +124,12 @@ impl Triangle {
         }
 
         let t = inv_det * base2.dot(s_cross_base1);
-        Some(RayIntersection { t, u, v })
+        Some(RayIntersection {
+            t,
+            u,
+            v,
+            normal: Vec3::ZERO,
+        })
     }
 
     /// Check for overlap using the Separating Axis Theorem.
@@ -281,7 +286,8 @@ mod tests {
             Some(RayIntersection {
                 t: 0.5,
                 u: 0.5,
-                v: 0.5
+                v: 0.5,
+                normal: Vec3::ZERO,
             })
         );
     }
@@ -303,7 +309,8 @@ mod tests {
             Some(RayIntersection {
                 t: 0.5,
                 u: 0.,
-                v: 0.
+                v: 0.,
+                normal: Vec3::ZERO,
             })
         );
     }
@@ -325,7 +332,8 @@ mod tests {
             Some(RayIntersection {
                 t: 0.5,
                 u: 1.,
-                v: 0.
+                v: 0.,
+                normal: Vec3::ZERO,
             })
         );
     }
@@ -347,7 +355,8 @@ mod tests {
             Some(RayIntersection {
                 t: 0.5,
                 u: 0.,
-                v: 1.
+                v: 1.,
+                normal: Vec3::ZERO,
             })
         );
     }
@@ -370,7 +379,8 @@ mod tests {
             Some(RayIntersection {
                 t: 0.5,
                 u: 0.5,
-                v: 0.
+                v: 0.,
+                normal: Vec3::ZERO,
             })
         );
     }
@@ -393,7 +403,8 @@ mod tests {
             Some(RayIntersection {
                 t: 0.5,
                 u: 0.5,
-                v: 0.5
+                v: 0.5,
+                normal: Vec3::ZERO,
             })
         );
     }
@@ -416,7 +427,8 @@ mod tests {
             Some(RayIntersection {
                 t: 0.5,
                 u: 0.,
-                v: 0.5
+                v: 0.5,
+                normal: Vec3::ZERO,
             })
         );
     }
@@ -468,7 +480,8 @@ mod tests {
             Some(RayIntersection {
                 t: 0.5,
                 u: 0.5,
-                v: 0.
+                v: 0.,
+                normal: Vec3::ZERO,
             })
         );
     }
@@ -492,7 +505,8 @@ mod tests {
             Some(RayIntersection {
                 t: 0.5,
                 u: 0.5,
-                v: 0.0
+                v: 0.0,
+                normal: Vec3::ZERO,
             })
         );
         assert_eq!(
@@ -500,7 +514,8 @@ mod tests {
             Some(RayIntersection {
                 t: 0.5,
                 u: 0.0,
-                v: 0.5
+                v: 0.5,
+                normal: Vec3::ZERO,
             })
         );
     }

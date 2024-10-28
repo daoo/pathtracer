@@ -22,6 +22,7 @@ impl PointIntersection {
             t,
             u: self.u,
             v: self.v,
+            normal: Vec3::ZERO,
         }
     }
 }
@@ -51,12 +52,18 @@ pub struct RayIntersection {
     pub t: f32,
     pub u: f32,
     pub v: f32,
+    pub normal: Vec3,
 }
 
 impl RayIntersection {
     #[inline]
     pub fn new(t: f32, u: f32, v: f32) -> Self {
-        RayIntersection { t, u, v }
+        RayIntersection {
+            t,
+            u,
+            v,
+            normal: Vec3::ZERO,
+        }
     }
 
     #[inline]
@@ -67,6 +74,13 @@ impl RayIntersection {
     #[inline]
     pub fn ray(&self, ray: &Ray) -> Ray {
         ray.extended(self.t)
+    }
+}
+
+impl From<&GeometryIntersection> for RayIntersection {
+    #[inline]
+    fn from(value: &GeometryIntersection) -> Self {
+        value.inner.clone()
     }
 }
 

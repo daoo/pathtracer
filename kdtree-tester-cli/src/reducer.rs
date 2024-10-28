@@ -4,6 +4,7 @@ use std::{
     path::PathBuf,
 };
 
+use glam::Vec3;
 use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
 
 use geometry::{
@@ -109,6 +110,7 @@ pub(crate) fn kdtree_reduce(input: PathBuf, output: PathBuf, fail: Option<PathBu
                 t: 0.0004729527,
                 u: 0.09395919,
                 v: 0.47453666,
+                normal: Vec3::ZERO,
             },
         )),
         kdtree: Some(GeometryIntersection::new(
@@ -117,6 +119,7 @@ pub(crate) fn kdtree_reduce(input: PathBuf, output: PathBuf, fail: Option<PathBu
                 t: 0.05429069,
                 u: 0.2189177,
                 v: 0.74337834,
+                normal: Vec3::ZERO,
             },
         )),
     };

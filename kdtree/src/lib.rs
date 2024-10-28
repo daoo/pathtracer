@@ -454,7 +454,8 @@ mod tests {
                 RayIntersection {
                     t: 4.329569,
                     u: 0.35612673,
-                    v: 0.32146382
+                    v: 0.32146382,
+                    normal: Vec3::ZERO,
                 }
             ))
         );
@@ -483,7 +484,8 @@ mod tests {
                 RayIntersection {
                     t: 0.5687325,
                     u: 0.66772085,
-                    v: 0.24024889
+                    v: 0.24024889,
+                    normal: Vec3::ZERO,
                 }
             ))
         );

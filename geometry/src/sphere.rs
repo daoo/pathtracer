@@ -51,13 +51,12 @@ impl Sphere {
         let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
         let t = if t1 <= t2 { t1 } else { t2 };
 
-        let normal = ray.param(t) - self.center;
-        let theta = normal.y.atan2(normal.x);
-        let phi = (normal.z / self.radius).acos();
+        let normal = (p + t * ray.direction) / self.radius;
         Some(RayIntersection {
             t,
-            u: theta,
-            v: phi,
+            u: 0.0,
+            v: 0.0,
+            normal,
         })
     }
 }
@@ -80,8 +79,9 @@ mod tests {
             actual,
             Some(RayIntersection {
                 t: 0.0,
-                u: std::f32::consts::PI,
-                v: std::f32::consts::FRAC_PI_2,
+                u: 0.0,
+                v: 0.0,
+                normal: Vec3::new(-1.0, 0.0, 0.0),
             })
         );
     }
@@ -100,8 +100,9 @@ mod tests {
             actual,
             Some(RayIntersection {
                 t: 0.21132487,
-                u: -2.3561945,
-                v: 2.186276
+                u: 0.0,
+                v: 0.0,
+                normal: Vec3::new(-0.57735026, -0.57735026, -0.57735026),
             })
         );
     }
@@ -120,8 +121,9 @@ mod tests {
             actual,
             Some(RayIntersection {
                 t: 0.5,
-                u: std::f32::consts::FRAC_PI_2,
-                v: std::f32::consts::FRAC_PI_2
+                u: 0.0,
+                v: 0.0,
+                normal: Vec3::new(0.0, 1.0, 0.0),
             })
         );
     }
@@ -137,47 +139,5 @@ mod tests {
         let actual = sphere.intersect_ray(&ray);
 
         assert_eq!(actual, None);
-    }
-
-    #[test]
-    fn normal_parameteric_origo_sphere_intersected_along_x_axis() {
-        let sphere = Sphere {
-            center: Vec3::ZERO,
-            radius: 1.0,
-        };
-        let ray = Ray::between(Vec3::new(2.0, 0.0, 0.0), Vec3::new(-2.0, 0.0, 0.0));
-        let intersection = sphere.intersect_ray(&ray).unwrap();
-
-        let actual = sphere.normal_parametric(intersection.u, intersection.v);
-
-        assert_eq!(actual, Vec3::new(1.0, 0.0, -4.371139e-8));
-    }
-
-    #[test]
-    fn normal_parameteric_origo_sphere_intersected_along_y_axis() {
-        let sphere = Sphere {
-            center: Vec3::ZERO,
-            radius: 1.0,
-        };
-        let ray = Ray::between(Vec3::new(0.0, 2.0, 0.0), Vec3::new(0.0, -2.0, 0.0));
-        let intersection = sphere.intersect_ray(&ray).unwrap();
-
-        let actual = sphere.normal_parametric(intersection.u, intersection.v);
-
-        assert_eq!(actual, Vec3::new(-4.371139e-8, 1.0, -4.371139e-8));
-    }
-
-    #[test]
-    fn normal_parameteric_origo_sphere_intersected_along_z_axis() {
-        let sphere = Sphere {
-            center: Vec3::ZERO,
-            radius: 1.0,
-        };
-        let ray = Ray::between(Vec3::new(0.0, 0.0, 2.0), Vec3::new(0.0, 0.0, -2.0));
-        let intersection = sphere.intersect_ray(&ray).unwrap();
-
-        let actual = sphere.normal_parametric(intersection.u, intersection.v);
-
-        assert_eq!(actual, Vec3::new(0.0, 0.0, 1.0));
     }
 }

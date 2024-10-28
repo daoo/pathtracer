@@ -4,7 +4,7 @@ use wavefront::{mtl, obj};
 use crate::{
     aabb::Aabb,
     axial_triangle::AxiallyAlignedTriangle,
-    intersection::{PointIntersection, RayIntersection},
+    intersection::RayIntersection,
     ray::Ray,
     sphere::Sphere,
     triangle::{Triangle, TriangleNormals, TriangleTexcoords},
@@ -72,6 +72,7 @@ impl From<Sphere> for Geometry {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum GeometryProperties<M> {
     Triangle {
         normals: TriangleNormals,
@@ -85,6 +86,7 @@ pub enum GeometryProperties<M> {
     },
     Sphere {
         material: M,
+        radius: f32,
     },
 }
 
@@ -102,16 +104,19 @@ impl<M> GeometryProperties<M> {
                 texcoords: _,
                 material,
             } => material,
-            GeometryProperties::Sphere { material } => material,
+            GeometryProperties::Sphere {
+                material,
+                radius: _,
+            } => material,
         }
     }
 
     #[inline]
     pub fn compute_normal<I>(&self, intersection: I) -> Vec3
     where
-        I: Into<PointIntersection>,
+        I: Into<RayIntersection>,
     {
-        let PointIntersection { u, v } = intersection.into();
+        let RayIntersection { t: _, u, v, normal } = intersection.into();
         match self {
             GeometryProperties::Triangle {
                 normals,
@@ -123,18 +128,19 @@ impl<M> GeometryProperties<M> {
                 texcoords: _,
                 material: _,
             } => normals.lerp(u, v),
-            GeometryProperties::Sphere { material: _ } => {
-                Sphere::new(Vec3::ZERO, 1.0).normal_parametric(u, v)
-            }
+            GeometryProperties::Sphere {
+                material: _,
+                radius: _,
+            } => normal,
         }
     }
 
     #[inline]
     pub fn compute_texcoord<I>(&self, intersection: I) -> Vec2
     where
-        I: Into<PointIntersection>,
+        I: Into<RayIntersection>,
     {
-        let PointIntersection { u, v } = intersection.into();
+        let RayIntersection { t: _, u, v, normal } = intersection.into();
         match self {
             GeometryProperties::Triangle {
                 normals: _,
@@ -146,7 +152,14 @@ impl<M> GeometryProperties<M> {
                 texcoords,
                 material: _,
             } => texcoords.lerp(u, v),
-            GeometryProperties::Sphere { material: _ } => Vec2::new(u, v),
+            GeometryProperties::Sphere {
+                material: _,
+                radius,
+            } => {
+                let theta = normal.y.atan2(normal.x);
+                let phi = (normal.z / radius).acos();
+                Vec2::new(theta, phi)
+            }
         }
     }
 }
@@ -192,4 +205,63 @@ pub fn from_wavefront(
         })
         .unzip();
     (geometries, properties)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn compute_normal_origo_sphere_intersected_along_x_axis() {
+        let sphere = Sphere {
+            center: Vec3::ZERO,
+            radius: 1.0,
+        };
+        let properties = GeometryProperties::Sphere {
+            material: 0,
+            radius: sphere.radius,
+        };
+        let ray = Ray::between(Vec3::new(2.0, 0.0, 0.0), Vec3::new(-2.0, 0.0, 0.0));
+        let intersection = sphere.intersect_ray(&ray).unwrap();
+
+        let actual = properties.compute_normal(intersection);
+
+        assert_eq!(actual, Vec3::new(1.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn compute_normal_origo_sphere_intersected_along_y_axis() {
+        let sphere = Sphere {
+            center: Vec3::ZERO,
+            radius: 1.0,
+        };
+        let properties = GeometryProperties::Sphere {
+            material: 0,
+            radius: sphere.radius,
+        };
+        let ray = Ray::between(Vec3::new(0.0, 2.0, 0.0), Vec3::new(0.0, -2.0, 0.0));
+        let intersection = sphere.intersect_ray(&ray).unwrap();
+
+        let actual = properties.compute_normal(intersection);
+
+        assert_eq!(actual, Vec3::new(0.0, 1.0, 0.0));
+    }
+
+    #[test]
+    fn compute_normal_origo_sphere_intersected_along_z_axis() {
+        let sphere = Sphere {
+            center: Vec3::ZERO,
+            radius: 1.0,
+        };
+        let properties = GeometryProperties::Sphere {
+            material: 0,
+            radius: sphere.radius,
+        };
+        let ray = Ray::between(Vec3::new(0.0, 0.0, 2.0), Vec3::new(0.0, 0.0, -2.0));
+        let intersection = sphere.intersect_ray(&ray).unwrap();
+
+        let actual = properties.compute_normal(intersection);
+
+        assert_eq!(actual, Vec3::new(0.0, 0.0, 1.0));
+    }
 }

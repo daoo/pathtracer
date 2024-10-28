@@ -1,6 +1,8 @@
 use clap::Parser;
 use geometry::{
-    geometry::GeometryProperties, intersection::intersect_closest_geometry, sphere::Sphere,
+    geometry::{Geometry, GeometryProperties},
+    intersection::intersect_closest_geometry,
+    sphere::Sphere,
 };
 use glam::{UVec2, Vec3};
 use image::ImageFormat;
@@ -139,19 +141,24 @@ fn main() {
         20.0,
     );
     let pinhole = Pinhole::new(camera, args.size.as_uvec2());
-    let geometries = vec![
-        Sphere::new(Vec3::new(0.0, -1.0, -1.0), 0.45).into(),
-        Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.45).into(),
-        Sphere::new(Vec3::new(0.0, 1.0, -1.0), 0.45).into(),
-        Sphere::new(Vec3::new(0.0, -1.0, 0.0), 0.45).into(),
-        Sphere::new(Vec3::new(0.0, 0.0, 0.0), 0.45).into(),
-        Sphere::new(Vec3::new(0.0, 1.0, 0.0), 0.45).into(),
-        Sphere::new(Vec3::new(0.0, -1.0, 1.0), 0.45).into(),
-        Sphere::new(Vec3::new(0.0, 0.0, 1.0), 0.45).into(),
-        Sphere::new(Vec3::new(0.0, 1.0, 1.0), 0.45).into(),
+    let spheres = [
+        Sphere::new(Vec3::new(0.0, -1.0, -1.0), 0.45),
+        Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.45),
+        Sphere::new(Vec3::new(0.0, 1.0, -1.0), 0.45),
+        Sphere::new(Vec3::new(0.0, -1.0, 0.0), 0.45),
+        Sphere::new(Vec3::new(0.0, 0.0, 0.0), 0.45),
+        Sphere::new(Vec3::new(0.0, 1.0, 0.0), 0.45),
+        Sphere::new(Vec3::new(0.0, -1.0, 1.0), 0.45),
+        Sphere::new(Vec3::new(0.0, 0.0, 1.0), 0.45),
+        Sphere::new(Vec3::new(0.0, 1.0, 1.0), 0.45),
     ];
-    let properties = (0..geometries.len())
-        .map(|i| GeometryProperties::Sphere { material: i })
+    let properties = spheres
+        .iter()
+        .enumerate()
+        .map(|(i, s)| GeometryProperties::Sphere {
+            material: i,
+            radius: s.radius,
+        })
         .collect();
     let material = |t| Material {
         diffuse_reflectance: [1.0, 0.0, 0.0].into(),
@@ -162,8 +169,8 @@ fn main() {
         reflection_90_degrees: 1.0,
         transparency: 0.0,
     };
-    let materials = (0..geometries.len())
-        .map(|i| material(i as f32 * 1.0 / (geometries.len() - 1) as f32))
+    let materials = (0..spheres.len())
+        .map(|i| material(i as f32 * 1.0 / (spheres.len() - 1) as f32))
         .collect();
     let lights = vec![SphericalLight::new(
         Vec3::new(-10.0, -5.0, 1.0) * 100.0,
@@ -173,7 +180,7 @@ fn main() {
     let accelerator = NoAccelerator {};
     let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,
-        geometries,
+        geometries: spheres.map(Geometry::from).to_vec(),
         properties,
         materials,
         lights,
