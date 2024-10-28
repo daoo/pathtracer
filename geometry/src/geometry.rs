@@ -4,7 +4,7 @@ use wavefront::{mtl, obj};
 use crate::{
     aabb::Aabb,
     axial_triangle::AxiallyAlignedTriangle,
-    intersection::RayIntersection,
+    intersection::{PointIntersection, RayIntersection},
     ray::Ray,
     sphere::Sphere,
     triangle::{Triangle, TriangleNormals, TriangleTexcoords},
@@ -107,7 +107,11 @@ impl<M> GeometryProperties<M> {
     }
 
     #[inline]
-    pub fn compute_normal(&self, u: f32, v: f32) -> Vec3 {
+    pub fn compute_normal<I>(&self, intersection: I) -> Vec3
+    where
+        I: Into<PointIntersection>,
+    {
+        let PointIntersection { u, v } = intersection.into();
         match self {
             GeometryProperties::Triangle {
                 normals,
@@ -126,7 +130,11 @@ impl<M> GeometryProperties<M> {
     }
 
     #[inline]
-    pub fn compute_texcoord(&self, u: f32, v: f32) -> Vec2 {
+    pub fn compute_texcoord<I>(&self, intersection: I) -> Vec2
+    where
+        I: Into<PointIntersection>,
+    {
+        let PointIntersection { u, v } = intersection.into();
         match self {
             GeometryProperties::Triangle {
                 normals: _,

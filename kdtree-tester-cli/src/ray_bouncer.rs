@@ -70,12 +70,12 @@ impl RayBouncer {
         let properties = &self.properties[intersection.index as usize];
 
         let wi = -ray.direction;
-        let n = properties.compute_normal(intersection.inner.u, intersection.inner.v);
-        let uv = properties.compute_texcoord(intersection.inner.u, intersection.inner.v);
+        let n = properties.compute_normal(&intersection);
+        let uv = properties.compute_texcoord(&intersection);
         let material = &self.materials[*properties.material()];
         // TODO: How to chose offset?
         let offset = 0.00001 * n;
-        let point = ray.param(intersection.inner.t);
+        let point = intersection.point(ray);
         let point_above = point + offset;
         let point_below = point - offset;
 

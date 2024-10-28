@@ -1,23 +1,47 @@
 use std::ops::RangeInclusive;
 
+use glam::Vec3;
+
 use crate::{geometry::Geometry, ray::Ray};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PointIntersection {
-    pub u: f32,
-    pub v: f32,
+    pub(crate) u: f32,
+    pub(crate) v: f32,
 }
 
 impl PointIntersection {
-    pub fn new(u: f32, v: f32) -> PointIntersection {
+    #[inline]
+    pub(crate) fn new(u: f32, v: f32) -> PointIntersection {
         PointIntersection { u, v }
     }
 
-    pub fn with_ray_param(&self, t: f32) -> RayIntersection {
+    #[inline]
+    pub(crate) fn with_ray_param(&self, t: f32) -> RayIntersection {
         RayIntersection {
             t,
             u: self.u,
             v: self.v,
+        }
+    }
+}
+
+impl From<&RayIntersection> for PointIntersection {
+    #[inline]
+    fn from(value: &RayIntersection) -> Self {
+        PointIntersection {
+            u: value.u,
+            v: value.v,
+        }
+    }
+}
+
+impl From<&GeometryIntersection> for PointIntersection {
+    #[inline]
+    fn from(value: &GeometryIntersection) -> Self {
+        PointIntersection {
+            u: value.inner.u,
+            v: value.inner.v,
         }
     }
 }
@@ -30,8 +54,19 @@ pub struct RayIntersection {
 }
 
 impl RayIntersection {
+    #[inline]
     pub fn new(t: f32, u: f32, v: f32) -> Self {
         RayIntersection { t, u, v }
+    }
+
+    #[inline]
+    pub fn point(&self, ray: &Ray) -> Vec3 {
+        ray.param(self.t)
+    }
+
+    #[inline]
+    pub fn ray(&self, ray: &Ray) -> Ray {
+        ray.extended(self.t)
     }
 }
 
@@ -54,6 +89,16 @@ impl GeometryIntersection {
         } else {
             other
         }
+    }
+
+    #[inline]
+    pub fn point(&self, ray: &Ray) -> Vec3 {
+        self.inner.point(ray)
+    }
+
+    #[inline]
+    pub fn ray(&self, ray: &Ray) -> Ray {
+        self.inner.ray(ray)
     }
 }
 

@@ -75,7 +75,7 @@ impl AxiallyAlignedTriangle {
             return None;
         }
 
-        Some(PointIntersection { u, v })
+        Some(PointIntersection::new(u, v))
     }
 
     pub fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
