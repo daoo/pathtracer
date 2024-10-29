@@ -117,10 +117,6 @@ fn specular_refractive_sample(index_of_refraction: f32, surface: &Surface) -> Su
     }
 }
 
-fn mix(x: Vec3, y: Vec3, a: f32) -> Vec3 {
-    x * (1.0 - a) + y * a
-}
-
 #[derive(Clone, Debug)]
 pub struct Material {
     pub diffuse_reflectance: Vec3,
@@ -156,17 +152,10 @@ impl Material {
             &self.diffuse_reflectance,
             &surface.uv,
         );
-        let transparency_blend = mix(reflection, Vec3::ZERO, self.transparency);
-        let fresnel_blend = mix(
-            transparency_blend,
-            Vec3::ZERO,
-            surface.reflectance(self.reflection_0_degrees),
-        );
-        mix(
-            transparency_blend,
-            fresnel_blend,
-            self.reflection_90_degrees,
-        )
+        let transparency_blend = reflection * (1.0 - self.transparency);
+        let fresnel_blend =
+            transparency_blend * (1.0 - surface.reflectance(self.reflection_0_degrees));
+        transparency_blend.lerp(fresnel_blend, self.reflection_90_degrees)
     }
 
     pub fn sample(&self, surface: &Surface, rng: &mut SmallRng) -> SurfaceSample {
