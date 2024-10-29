@@ -1,6 +1,7 @@
 use glam::{Vec2, Vec3};
 use rand::{rngs::SmallRng, Rng};
 
+#[inline]
 pub fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vec2 {
     Vec2::new(rng.gen(), rng.gen())
 }
@@ -37,8 +38,7 @@ fn concentric_sample_unit_disk(rng: &mut SmallRng) -> Vec2 {
         (x, y) => (-y, 6.0 - x / y),
     };
 
-    let (theta_sin, theta_cos) = (theta * std::f32::consts::FRAC_PI_4).sin_cos();
-    Vec2::new(r * theta_cos, r * theta_sin)
+    r * Vec2::from((theta * std::f32::consts::FRAC_PI_4).sin_cos())
 }
 
 pub fn cosine_sample_hemisphere(rng: &mut SmallRng) -> Vec3 {
