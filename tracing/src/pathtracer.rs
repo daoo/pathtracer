@@ -2,7 +2,7 @@ use crate::{
     camera::Pinhole,
     image_buffer::ImageBuffer,
     light::SphericalLight,
-    material::{IncomingRay, Material, OutgoingRay},
+    material::{Material, Surface},
     raylogger::{RayLoggerWithIteration, RayLoggerWithIterationAndPixel},
     sampling::uniform_sample_unit_square,
 };
@@ -83,16 +83,16 @@ where
                     if intersection.is_some() {
                         return Vec3::ZERO;
                     }
-                    let wo = shadow_ray.direction.normalize();
                     let radiance = light.emitted(point);
-                    let brdf = material.brdf(&OutgoingRay { wi, n, uv, wo });
+                    let brdf = material.brdf(&Surface { wi, n, uv });
+                    let wo = shadow_ray.direction.normalize();
                     brdf * radiance * wo.dot(n).abs()
                 })
                 .sum();
 
             accumulated_radiance += accumulated_transport * incoming_radiance;
 
-            let sample = material.sample(&IncomingRay { wi, n, uv }, rng);
+            let sample = material.sample(&Surface { wi, n, uv }, rng);
             if sample.pdf <= 0.01 {
                 return accumulated_radiance;
             }

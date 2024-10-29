@@ -20,28 +20,23 @@ fn is_same_sign(a: f32, b: f32) -> bool {
 }
 
 #[derive(Debug)]
-pub struct IncomingRay {
+pub struct Surface {
     pub wi: Vec3,
     pub n: Vec3,
     pub uv: Vec2,
 }
 
-impl IncomingRay {
-    fn with_normal(&self, n: Vec3) -> IncomingRay {
-        IncomingRay {
+impl Surface {
+    fn with_normal(&self, n: Vec3) -> Surface {
+        Surface {
             wi: self.wi,
             n,
             uv: self.uv,
         }
     }
 
-    fn with_wo(&self, wo: Vec3) -> OutgoingRay {
-        OutgoingRay {
-            wi: self.wi,
-            n: self.n,
-            uv: self.uv,
-            wo,
-        }
+    fn is_same_hemisphere(&self, wo: &Vec3) -> bool {
+        is_same_sign(self.wi.dot(self.n), wo.dot(self.n))
     }
 
     fn reflectance(&self, r0: f32) -> f32 {
@@ -49,36 +44,14 @@ impl IncomingRay {
     }
 }
 
-#[derive(Debug)]
-pub struct OutgoingRay {
-    pub wi: Vec3,
-    pub n: Vec3,
-    pub uv: Vec2,
-    pub wo: Vec3,
-}
-
-impl OutgoingRay {
-    fn is_same_hemisphere(&self) -> bool {
-        is_same_sign(self.wi.dot(self.n), self.wo.dot(self.n))
-    }
-
-    fn as_incoming(&self) -> IncomingRay {
-        IncomingRay {
-            wi: self.wi,
-            n: self.n,
-            uv: self.uv,
-        }
-    }
-}
-
 #[derive(Debug, PartialEq)]
-pub struct MaterialSample {
+pub struct SurfaceSample {
     pub pdf: f32,
     pub brdf: Vec3,
     pub wo: Vec3,
 }
 
-fn diffuse_reflective_brdf(texture: &Option<Rgb32FImage>, reflectance: Vec3, uv: Vec2) -> Vec3 {
+fn diffuse_reflective_brdf(texture: &Option<Rgb32FImage>, reflectance: &Vec3, uv: &Vec2) -> Vec3 {
     if let Some(texture) = &texture {
         let px = (texture.width() as f32 * uv.x).floor();
         let py = (texture.height() as f32 * uv.y).floor();
@@ -91,53 +64,53 @@ fn diffuse_reflective_brdf(texture: &Option<Rgb32FImage>, reflectance: Vec3, uv:
 
 fn diffuse_reflection_sample(
     texture: &Option<Rgb32FImage>,
-    reflectance: Vec3,
-    incoming: &IncomingRay,
+    reflectance: &Vec3,
+    surface_normal: &Vec3,
+    uv: &Vec2,
     rng: &mut SmallRng,
-) -> MaterialSample {
-    let tangent = perpendicular(&incoming.n).normalize();
-    let bitangent = incoming.n.cross(tangent);
+) -> SurfaceSample {
+    let tangent = perpendicular(surface_normal).normalize();
+    let bitangent = surface_normal.cross(tangent);
     let s = cosine_sample_hemisphere(rng);
 
-    let wo = (s.x * tangent + s.y * bitangent + s.z * incoming.n).normalize();
-    MaterialSample {
+    let wo = (s.x * tangent + s.y * bitangent + s.z * surface_normal).normalize();
+    SurfaceSample {
         pdf: 1.0,
-        brdf: diffuse_reflective_brdf(texture, reflectance, incoming.uv),
+        brdf: diffuse_reflective_brdf(texture, reflectance, uv),
         wo,
     }
 }
 
-fn specular_reflection_sample(reflectance: Vec3, incoming: &IncomingRay) -> MaterialSample {
-    let wo = (2.0 * incoming.wi.dot(incoming.n).abs() * incoming.n - incoming.wi).normalize();
-    let outgoing = incoming.with_wo(wo);
-    let pdf = if outgoing.is_same_hemisphere() {
-        wo.dot(outgoing.n).abs()
+fn specular_reflection_sample(reflectance: Vec3, surface: &Surface) -> SurfaceSample {
+    let wo = (2.0 * surface.wi.dot(surface.n).abs() * surface.n - surface.wi).normalize();
+    let pdf = if surface.is_same_hemisphere(&wo) {
+        wo.dot(surface.n).abs()
     } else {
         0.0
     };
-    MaterialSample {
+    SurfaceSample {
         pdf,
         brdf: reflectance,
         wo,
     }
 }
 
-fn specular_refractive_sample(index_of_refraction: f32, incoming: &IncomingRay) -> MaterialSample {
-    let (eta, n_refracted) = if (-incoming.wi).dot(incoming.n) < 0.0 {
-        (1.0 / index_of_refraction, incoming.n)
+fn specular_refractive_sample(index_of_refraction: f32, surface: &Surface) -> SurfaceSample {
+    let (eta, n_refracted) = if (-surface.wi).dot(surface.n) < 0.0 {
+        (1.0 / index_of_refraction, surface.n)
     } else {
-        (index_of_refraction, -incoming.n)
+        (index_of_refraction, -surface.n)
     };
 
-    let w = -(-incoming.wi).dot(n_refracted) * eta;
+    let w = -(-surface.wi).dot(n_refracted) * eta;
     let k = 1.0 + (w - eta) * (w + eta);
     if k < 0.0 {
-        return specular_reflection_sample(Vec3::ONE, &incoming.with_normal(n_refracted));
+        return specular_reflection_sample(Vec3::ONE, &surface.with_normal(n_refracted));
     }
 
     let k = k.sqrt();
-    let wo = (-eta * incoming.wi + (w - k) * n_refracted).normalize();
-    MaterialSample {
+    let wo = (-eta * surface.wi + (w - k) * n_refracted).normalize();
+    SurfaceSample {
         pdf: 1.0,
         brdf: Vec3::new(1.0, 1.0, 1.0),
         wo,
@@ -177,19 +150,17 @@ impl Material {
         }
     }
 
-    pub fn brdf(&self, outgoing: &OutgoingRay) -> Vec3 {
+    pub fn brdf(&self, surface: &Surface) -> Vec3 {
         let reflection = diffuse_reflective_brdf(
             &self.diffuse_texture_reflectance,
-            self.diffuse_reflectance,
-            outgoing.uv,
+            &self.diffuse_reflectance,
+            &surface.uv,
         );
         let transparency_blend = mix(reflection, Vec3::ZERO, self.transparency);
         let fresnel_blend = mix(
             transparency_blend,
             Vec3::ZERO,
-            outgoing
-                .as_incoming()
-                .reflectance(self.reflection_0_degrees),
+            surface.reflectance(self.reflection_0_degrees),
         );
         mix(
             transparency_blend,
@@ -198,27 +169,29 @@ impl Material {
         )
     }
 
-    pub fn sample(&self, incoming: &IncomingRay, rng: &mut SmallRng) -> MaterialSample {
+    pub fn sample(&self, surface: &Surface, rng: &mut SmallRng) -> SurfaceSample {
         if rng.gen::<f32>() < self.reflection_90_degrees {
-            if rng.gen::<f32>() < incoming.reflectance(self.reflection_0_degrees) {
-                specular_reflection_sample(self.specular_reflectance, incoming)
+            if rng.gen::<f32>() < surface.reflectance(self.reflection_0_degrees) {
+                specular_reflection_sample(self.specular_reflectance, surface)
             } else if rng.gen::<f32>() < self.transparency {
-                specular_refractive_sample(self.index_of_refraction, incoming)
+                specular_refractive_sample(self.index_of_refraction, surface)
             } else {
                 diffuse_reflection_sample(
                     &self.diffuse_texture_reflectance,
-                    self.diffuse_reflectance,
-                    incoming,
+                    &self.diffuse_reflectance,
+                    &surface.n,
+                    &surface.uv,
                     rng,
                 )
             }
         } else if rng.gen::<f32>() < self.transparency {
-            specular_refractive_sample(self.index_of_refraction, incoming)
+            specular_refractive_sample(self.index_of_refraction, surface)
         } else {
             diffuse_reflection_sample(
                 &self.diffuse_texture_reflectance,
-                self.diffuse_reflectance,
-                incoming,
+                &self.diffuse_reflectance,
+                &surface.n,
+                &surface.uv,
                 rng,
             )
         }
@@ -237,9 +210,9 @@ mod specular_refractive_material_tests {
         let wi = Vec3::new(-1.0, 2.0, 0.0).normalize();
         let n = Vec3::new(0.0, 1.0, 0.0);
         let uv = Vec2::ZERO;
-        let incoming = IncomingRay { wi, n, uv };
+        let surface = Surface { wi, n, uv };
 
-        let actual = specular_refractive_sample(index_of_refraction, &incoming);
+        let actual = specular_refractive_sample(index_of_refraction, &surface);
 
         let n1 = 1.0;
         let n2 = index_of_refraction;
@@ -255,9 +228,9 @@ mod specular_refractive_material_tests {
         let wi = Vec3::new(-1.0, -2.0, 0.0).normalize();
         let n = Vec3::new(0.0, 1.0, 0.0);
         let uv = Vec2::ZERO;
-        let incoming = IncomingRay { wi, n, uv };
+        let surface = Surface { wi, n, uv };
 
-        let actual = specular_refractive_sample(index_of_refraction, &incoming);
+        let actual = specular_refractive_sample(index_of_refraction, &surface);
 
         let n1 = index_of_refraction;
         let n2 = 1.0;

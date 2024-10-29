@@ -9,9 +9,7 @@ use kdtree::{IntersectionAccelerator, KdNode};
 use rand::{rngs::SmallRng, SeedableRng};
 use std::ops::RangeInclusive;
 use tracing::{
-    camera::Pinhole,
-    light::SphericalLight,
-    material::{IncomingRay, Material},
+    camera::Pinhole, light::SphericalLight, material::{Material, Surface},
     sampling::uniform_sample_unit_square,
 };
 
@@ -92,7 +90,7 @@ impl RayBouncer {
             return Some(checked.clone());
         }
 
-        let sample = material.sample(&IncomingRay { wi, n, uv }, &mut rng);
+        let sample = material.sample(&Surface { wi, n, uv }, &mut rng);
         let next_ray = Ray::new(
             if sample.wo.dot(n) >= 0.0 {
                 point_above
