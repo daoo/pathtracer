@@ -17,7 +17,7 @@ use std::{
 use time::Duration;
 use tracing::{
     camera::{Camera, Pinhole},
-    light::{Light, PointLight},
+    light::{DirectionalLight, Light},
     material::Material,
     pathtracer::Pathtracer,
     worker::render_parallel_iterations,
@@ -172,9 +172,13 @@ fn main() {
     let materials = (0..spheres.len())
         .map(|i| material(i as f32 * 1.0 / (spheres.len() - 1) as f32))
         .collect();
-    let lights = [PointLight {
-        center: Vec3::new(-10.0, -5.0, 1.0) * 100.0,
-        intensity: Vec3::ONE * 100.0 * 100.0f32.powi(2),
+    //let lights = [PointLight {
+    //    center: Vec3::new(-10.0, -5.0, 1.0) * 100.0,
+    //    intensity: Vec3::ONE * 100.0 * 100.0f32.powi(2),
+    //}];
+    let lights = [DirectionalLight {
+        direction: Vec3::new(-1.0, -1.0, 1.0),
+        intensity: Vec3::ONE,
     }];
     let accelerator = NoAccelerator {};
     let pathtracer = Pathtracer {

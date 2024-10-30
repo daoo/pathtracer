@@ -83,8 +83,8 @@ impl RayBouncer {
             .lights
             .iter()
             .filter_map(|light| {
-                let shadow_ray = Ray::between(point_above, light.sample(&mut rng));
-                let shadow = self.checked_ray_intersect(&shadow_ray, 0.0..=1.0);
+                let (shadow_ray, t_range) = light.sample_shadow_ray(point_above, &mut rng);
+                let shadow = self.checked_ray_intersect(&shadow_ray, t_range);
                 (!shadow.is_valid()).then_some(shadow)
             })
             .collect::<Vec<_>>();

@@ -73,10 +73,10 @@ where
                 .iter()
                 .map(|light| {
                     // TODO: Offset should depend on incoming direction, not only surface normal.
-                    let shadow_ray = Ray::between(point_above, light.sample(rng));
+                    let (shadow_ray, t_range) = light.sample_shadow_ray(point_above, rng);
                     let intersection =
                         self.accelerator
-                            .intersect(&self.geometries, &shadow_ray, 0.0..=1.0);
+                            .intersect(&self.geometries, &shadow_ray, t_range);
                     ray_logger
                         .log_shadow(&shadow_ray, bounce, intersection.is_some())
                         .unwrap();
