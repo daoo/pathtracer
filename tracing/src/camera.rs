@@ -1,5 +1,5 @@
 use geometry::ray::Ray;
-use glam::{UVec2, Vec2, Vec3};
+use glam::{Quat, UVec2, Vec2, Vec3};
 use wavefront::mtl;
 
 #[derive(Clone, Debug)]
@@ -23,12 +23,25 @@ impl Camera {
         }
     }
 
-    pub fn with_position(&self, position: Vec3) -> Self {
+    pub fn add_translation(&self, right: f32, up: f32, forward: f32) -> Self {
         Camera {
-            position,
+            position: self.position + right * self.right + up * self.up + forward * self.direction,
             direction: self.direction,
             up: self.up,
             right: self.right,
+            fov_degrees: self.fov_degrees,
+        }
+    }
+
+    pub fn add_yaw_pitch_roll(&self, yaw: f32, pitch: f32, roll: f32) -> Camera {
+        let quat_yaw = Quat::from_axis_angle(self.up, yaw);
+        let quat_pitch = Quat::from_axis_angle(self.right, pitch);
+        let quat_roll = Quat::from_axis_angle(self.direction, roll);
+        Camera {
+            position: self.position,
+            direction: (quat_yaw * quat_pitch) * self.direction,
+            up: (quat_pitch * quat_roll) * self.up,
+            right: (quat_yaw * quat_roll) * self.right,
             fov_degrees: self.fov_degrees,
         }
     }

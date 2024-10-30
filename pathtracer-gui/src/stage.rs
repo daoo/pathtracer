@@ -1,6 +1,6 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
-use glam::{Mat3, UVec2, Vec3};
+use glam::{UVec2, Vec3};
 use kdtree::KdNode;
 use miniquad::{
     Bindings, BufferLayout, BufferSource, BufferType, BufferUsage, EventHandler, GlContext,
@@ -30,16 +30,30 @@ struct InputState {
     move_x: (bool, bool),
     move_y: (bool, bool),
     move_z: (bool, bool),
+    rotate_x: (bool, bool),
+    rotate_y: (bool, bool),
+    rotate_z: (bool, bool),
 }
 
 impl InputState {
-    fn translation(&self) -> Vec3 {
+    fn translation(&self, speed: &Vec3, duration: Duration) -> Vec3 {
         let f = |(a, b)| match (a, b) {
             (true, false) => -1.0,
             (false, true) => 1.0,
             _ => 0.0,
         };
-        Vec3::new(f(self.move_x), f(self.move_y), f(self.move_z))
+        let translation = Vec3::new(f(self.move_x), f(self.move_y), f(self.move_z));
+        duration.as_secs_f32() * speed * translation
+    }
+
+    fn rotation(&self, speed: &Vec3, duration: Duration) -> Vec3 {
+        let f = |(a, b)| match (a, b) {
+            (true, false) => -1.0,
+            (false, true) => 1.0,
+            _ => 0.0,
+        };
+        let rotation = Vec3::new(f(self.rotate_x), f(self.rotate_y), f(self.rotate_z));
+        duration.as_secs_f32() * speed * rotation
     }
 }
 
@@ -147,15 +161,20 @@ impl Stage {
 
     fn update_input(&mut self) {
         let now = Instant::now();
-        let delta = now - self.last_update;
-        let translation = self.input.translation();
-        if translation != Vec3::ZERO {
-            const TRANSLATION_SPEED: f32 = 2.0;
-            let distance = delta.as_secs_f32() * TRANSLATION_SPEED;
-            let translation_matrix =
-                Mat3::from_cols(self.camera.right, self.camera.up, self.camera.direction);
-            let position = self.camera.position + translation_matrix * translation * distance;
-            self.camera = self.camera.with_position(position);
+        const TRANSLATION_SPEED: Vec3 = Vec3::new(1.5, 1.5, 1.5);
+        const ROTATION_SPEED: Vec3 = Vec3::new(
+            std::f32::consts::FRAC_PI_4,
+            std::f32::consts::FRAC_PI_4,
+            std::f32::consts::FRAC_PI_4,
+        );
+        let duration = now - self.last_update;
+        let translation = self.input.translation(&TRANSLATION_SPEED, duration);
+        let rotation = self.input.rotation(&ROTATION_SPEED, duration);
+        if translation != Vec3::ZERO || rotation != Vec3::ZERO {
+            self.camera = self
+                .camera
+                .add_translation(translation.x, translation.y, translation.z)
+                .add_yaw_pitch_roll(rotation.x, rotation.y, rotation.z);
             self.send_pinhole();
         }
         self.last_update = now;
@@ -164,7 +183,7 @@ impl Stage {
     fn update_texture(&mut self) {
         while let Some(result) = self.worker.as_ref().and_then(Worker::try_receive) {
             eprintln!(
-                "Received {:?} @ {} rendered in {:?}.",
+                "Received {:?} @ {} rendered in {:.2}.",
                 result.buffer.size, result.iterations, result.duration,
             );
             let texture_size = self.ctx.texture_size(self.texture).into();
@@ -204,6 +223,13 @@ impl EventHandler for Stage {
             KeyCode::Period => self.input.move_y.1 = true,
             KeyCode::O => self.input.move_z.0 = true,
             KeyCode::Comma => self.input.move_z.1 = true,
+
+            KeyCode::N => self.input.rotate_x.0 = true,
+            KeyCode::H => self.input.rotate_x.1 = true,
+            KeyCode::T => self.input.rotate_y.0 = true,
+            KeyCode::C => self.input.rotate_y.1 = true,
+            KeyCode::G => self.input.rotate_z.0 = true,
+            KeyCode::R => self.input.rotate_z.1 = true,
             _ => (),
         }
     }
@@ -216,6 +242,13 @@ impl EventHandler for Stage {
             KeyCode::Period => self.input.move_y.1 = false,
             KeyCode::O => self.input.move_z.0 = false,
             KeyCode::Comma => self.input.move_z.1 = false,
+
+            KeyCode::N => self.input.rotate_x.0 = false,
+            KeyCode::H => self.input.rotate_x.1 = false,
+            KeyCode::T => self.input.rotate_y.0 = false,
+            KeyCode::C => self.input.rotate_y.1 = false,
+            KeyCode::G => self.input.rotate_z.0 = false,
+            KeyCode::R => self.input.rotate_z.1 = false,
             _ => (),
         }
     }
