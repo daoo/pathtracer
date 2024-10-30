@@ -12,7 +12,7 @@ use std::{
 };
 use time::Duration;
 use tracing::{
-    camera::Pinhole, light::SphericalLight, material::Material, pathtracer::Pathtracer,
+    camera::Pinhole, light::Light, material::Material, pathtracer::Pathtracer,
     worker::render_parallel_iterations,
 };
 use wavefront::read_obj_and_mtl_with_print_logging;
@@ -147,7 +147,7 @@ fn main() {
         .iter()
         .map(|m| Material::load_from_mtl(image_directory, m))
         .collect();
-    let lights = mtl.lights.iter().map(SphericalLight::from).collect();
+    let lights = mtl.lights.iter().map(Light::from).collect();
     let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,
         geometries,

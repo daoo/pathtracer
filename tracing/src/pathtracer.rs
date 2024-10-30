@@ -1,7 +1,7 @@
 use crate::{
     camera::Pinhole,
     image_buffer::ImageBuffer,
-    light::SphericalLight,
+    light::Light,
     material::{Material, Surface},
     raylogger::{RayLoggerWithIteration, RayLoggerWithIterationAndPixel},
     sampling::uniform_sample_unit_square,
@@ -19,7 +19,7 @@ pub struct Pathtracer<Accelerator> {
     pub geometries: Vec<Geometry>,
     pub properties: Vec<GeometryProperties<usize>>,
     pub materials: Vec<Material>,
-    pub lights: Vec<SphericalLight>,
+    pub lights: Vec<Light>,
     pub environment: Vec3,
     pub accelerator: Accelerator,
 }
@@ -83,7 +83,7 @@ where
                     if intersection.is_some() {
                         return Vec3::ZERO;
                     }
-                    let radiance = light.emitted(point);
+                    let radiance = light.emitted(&point);
                     let brdf = material.brdf(&Surface { wi, n, uv });
                     let wo = shadow_ray.direction.normalize();
                     brdf * radiance * wo.dot(n).abs()

@@ -9,7 +9,9 @@ use kdtree::{IntersectionAccelerator, KdNode};
 use rand::{rngs::SmallRng, SeedableRng};
 use std::ops::RangeInclusive;
 use tracing::{
-    camera::Pinhole, light::SphericalLight, material::{Material, Surface},
+    camera::Pinhole,
+    light::Light,
+    material::{Material, Surface},
     sampling::uniform_sample_unit_square,
 };
 
@@ -17,7 +19,7 @@ pub struct RayBouncer {
     pub geometries: Vec<Geometry>,
     pub properties: Vec<GeometryProperties<usize>>,
     pub materials: Vec<Material>,
-    pub lights: Vec<SphericalLight>,
+    pub lights: Vec<Light>,
     pub kdtree: KdNode,
     pub camera: Pinhole,
     pub bounces: u32,

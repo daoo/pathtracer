@@ -4,7 +4,7 @@ use glam::Vec3;
 use kdtree::{build::build_kdtree, sah::SahCost};
 use miniquad::conf::Conf;
 use stage::Stage;
-use tracing::{light::SphericalLight, material::Material, pathtracer::Pathtracer};
+use tracing::{light::Light, material::Material, pathtracer::Pathtracer};
 use wavefront::read_obj_and_mtl_with_print_logging;
 
 mod stage;
@@ -47,7 +47,7 @@ fn main() {
         .iter()
         .map(|m| Material::load_from_mtl(image_directory, m))
         .collect();
-    let lights = mtl.lights.iter().map(SphericalLight::from).collect();
+    let lights = mtl.lights.iter().map(Light::from).collect();
     let pathtracer = Pathtracer {
         max_bounces: 16,
         geometries,

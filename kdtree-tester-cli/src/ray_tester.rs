@@ -6,7 +6,7 @@ use std::{
     io::{BufWriter, Write},
     path::PathBuf,
 };
-use tracing::{camera::Pinhole, light::SphericalLight, material::Material};
+use tracing::{camera::Pinhole, light::Light, material::Material};
 use wavefront::read_obj_and_mtl_with_print_logging;
 
 use crate::{ray_bouncer::RayBouncer, size::Size};
@@ -35,7 +35,7 @@ pub(crate) fn kdtree_ray_tester(
             .iter()
             .map(|m| Material::load_from_mtl(image_directory, m))
             .collect(),
-        lights: mtl.lights.iter().map(SphericalLight::from).collect(),
+        lights: mtl.lights.iter().map(Light::from).collect(),
         kdtree,
         camera,
         size: size.as_uvec2(),
