@@ -3,12 +3,12 @@ use rand::{rngs::SmallRng, Rng};
 
 #[inline]
 pub fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vec2 {
-    Vec2::new(rng.gen(), rng.gen())
+    Vec2::new(rng.random(), rng.random())
 }
 
 pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> Vec3 {
-    let z = rng.gen_range(-1.0..1.0);
-    let a = rng.gen_range(0.0..std::f32::consts::TAU);
+    let z = rng.random_range(-1.0..1.0);
+    let a = rng.random_range(0.0..std::f32::consts::TAU);
     let r = (1.0f32 - z * z).sqrt();
     let (a_sin, a_cos) = a.sin_cos();
     let x = r * a_cos;
@@ -25,8 +25,8 @@ pub fn uniform_sample_unit_sphere(rng: &mut SmallRng) -> Vec3 {
 // }
 
 fn concentric_sample_unit_disk(rng: &mut SmallRng) -> Vec2 {
-    let x = rng.gen_range(-1.0f32..=1.0f32);
-    let y = rng.gen_range(-1.0f32..=1.0f32);
+    let x = rng.random_range(-1.0f32..=1.0f32);
+    let y = rng.random_range(-1.0f32..=1.0f32);
     if x == 0.0 && y == 0.0 {
         return Vec2::ZERO;
     }
@@ -54,7 +54,7 @@ mod tests {
 
     #[test]
     fn test_uniform_sample_unit_square() {
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::from_os_rng();
         for _ in 0..1000 {
             let point = uniform_sample_unit_square(&mut rng);
             assert!(point.cmpge(Vec2::new(0.0, 0.0)).all());
@@ -64,7 +64,7 @@ mod tests {
 
     #[test]
     fn test_uniform_sample_unit_sphere() {
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::from_os_rng();
         for _ in 0..1000 {
             let point = uniform_sample_unit_sphere(&mut rng);
             let error = point.length();
@@ -74,7 +74,7 @@ mod tests {
 
     // #[test]
     // fn test_uniform_sample_hemisphere() {
-    //     let mut rng = SmallRng::from_entropy();
+    //     let mut rng = SmallRng::from_os_rng();
     //     for _ in 0..1000 {
     //         let point = uniform_sample_hemisphere(&mut rng);
     //         let error = (point.norm_squared() - 1.0).abs();
@@ -85,7 +85,7 @@ mod tests {
 
     #[test]
     fn test_concentric_sample_disk() {
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::from_os_rng();
         for _ in 0..1000 {
             let point = concentric_sample_unit_disk(&mut rng);
             assert!(point.length_squared() <= 1.0, "{}", point.length_squared());
@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn cosine_cosine_sample_hemisphere() {
-        let mut rng = SmallRng::from_entropy();
+        let mut rng = SmallRng::from_os_rng();
         for _ in 0..1000 {
             let point = cosine_sample_hemisphere(&mut rng);
             let error = (point.length_squared() - 1.0).abs();

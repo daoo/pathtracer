@@ -159,10 +159,10 @@ impl Material {
     }
 
     pub fn sample(&self, surface: &Surface, rng: &mut SmallRng) -> SurfaceSample {
-        if rng.gen::<f32>() < self.reflection_90_degrees {
-            if rng.gen::<f32>() < surface.reflectance(self.reflection_0_degrees) {
+        if rng.random::<f32>() < self.reflection_90_degrees {
+            if rng.random::<f32>() < surface.reflectance(self.reflection_0_degrees) {
                 specular_reflection_sample(self.specular_reflectance, surface)
-            } else if rng.gen::<f32>() < self.transparency {
+            } else if rng.random::<f32>() < self.transparency {
                 specular_refractive_sample(self.index_of_refraction, surface)
             } else {
                 diffuse_reflection_sample(
@@ -173,7 +173,7 @@ impl Material {
                     rng,
                 )
             }
-        } else if rng.gen::<f32>() < self.transparency {
+        } else if rng.random::<f32>() < self.transparency {
             specular_refractive_sample(self.index_of_refraction, surface)
         } else {
             diffuse_reflection_sample(

@@ -4,7 +4,7 @@ use nom::{
     combinator::{opt, rest},
     multi::separated_list0,
     number::complete::float,
-    IResult,
+    IResult, Parser,
 };
 use std::{cmp::Ordering, io::BufRead, path::PathBuf};
 
@@ -94,7 +94,9 @@ fn vec3(input: &str) -> IResult<&str, [f32; 3]> {
 }
 
 fn i32_or_zero(input: &str) -> IResult<&str, i32> {
-    opt(i32)(input).map(|(input, n)| (input, n.unwrap_or(0)))
+    opt(i32)
+        .parse(input)
+        .map(|(input, n)| (input, n.unwrap_or(0)))
 }
 
 fn point(input: &str) -> IResult<&str, Point> {
@@ -107,7 +109,9 @@ fn point(input: &str) -> IResult<&str, Point> {
 }
 
 fn face(input: &str) -> IResult<&str, Face> {
-    separated_list0(space1, point)(input).map(|(input, points)| (input, Face { points }))
+    separated_list0(space1, point)
+        .parse(input)
+        .map(|(input, points)| (input, Face { points }))
 }
 
 pub fn obj<R>(input: &mut R) -> Obj

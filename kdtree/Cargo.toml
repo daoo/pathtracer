@@ -7,5 +7,5 @@ edition = "2021"
 arrayvec = "0.7.6"
 geometry = { version = "1.0.0", path = "../geometry" }
 glam = "0.29.2"
-itertools = "0.13.0"
+itertools = "0.14.0"
 textwrap = "0.16.1"

@@ -35,7 +35,7 @@ fn render_iterations<Accelerator>(
 where
     Accelerator: IntersectionAccelerator,
 {
-    let mut rng = SmallRng::from_entropy();
+    let mut rng = SmallRng::from_os_rng();
     let mut buffer = ImageBuffer::new(size);
     let mut ray_logger = create_ray_logger(thread);
     for iteration in 0..iterations {
@@ -61,7 +61,7 @@ pub fn render_parallel_subdivided(
     (0..count.x * count.y)
         .into_par_iter()
         .fold(
-            || (SmallRng::from_entropy(), ImageBuffer::new(pinhole.size)),
+            || (SmallRng::from_os_rng(), ImageBuffer::new(pinhole.size)),
             |(mut rng, mut buffer), i| {
                 let pixel = UVec2::new(i % count.x * sub_size.x, i / count.x * sub_size.y);
                 let mut ray_logger = RayLoggerWithIteration {
