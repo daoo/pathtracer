@@ -90,23 +90,12 @@ impl AxiallyAlignedTriangle {
     }
 
     pub fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
-        let clipped = clip_triangle_aabb(
+        clip_triangle_aabb(
             &self.plane.add_to(self.v0),
             &self.plane.add_to(self.v1),
             &self.plane.add_to(self.v2),
             aabb,
-        );
-
-        if clipped.len() <= 2 {
-            return None;
-        }
-        let start = (clipped[0], clipped[0]);
-        let (min, max) = clipped
-            .into_iter()
-            .skip(1)
-            .fold(start, |(min, max), b| (min.min(b), max.max(b)));
-
-        Some(Aabb::from_extents(min, max))
+        )
     }
 }
 

@@ -3,10 +3,23 @@ use glam::Vec3;
 
 use crate::{aabb::Aabb, aap::Aap, ray::Ray};
 
+pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Option<Aabb> {
+    let clipped = clip_triangle_aabb_points(v0, v1, v2, aabb);
+    if clipped.len() <= 2 {
+        return None;
+    }
+    let start = (clipped[0], clipped[0]);
+    let (min, max) = clipped
+        .into_iter()
+        .skip(1)
+        .fold(start, |(min, max), b| (min.min(b), max.max(b)));
+    Some(Aabb::from_extents(min, max))
+}
+
 /// Clip Triangle against AABB.
 ///
 /// Implements the Sutherland-Hodgman algorithm.
-pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> ArrayVec<Vec3, 9> {
+fn clip_triangle_aabb_points(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> ArrayVec<Vec3, 9> {
     let aabb_min = aabb.min();
     let aabb_max = aabb.max();
     let clip_planes = [
@@ -90,7 +103,7 @@ mod tests {
         let v2 = Vec3::new(2.0, 2.0, 1.0);
         let aabb = Aabb::from_extents(Vec3::new(0.0, 0.0, 0.0), Vec3::new(3.0, 3.0, 3.0));
 
-        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+        let actual = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
 
         let expected = [v1, v2, v0];
         assert_eq!(actual.as_slice(), expected);
@@ -103,7 +116,7 @@ mod tests {
         let v2 = Vec3::new(2.0, 2.0, 0.0);
         let aabb = Aabb::from_extents(Vec3::new(0.0, 0.0, 0.0), Vec3::new(3.0, 3.0, 3.0));
 
-        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+        let actual = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
 
         let expected = [v1, v2, v0];
         assert_eq!(actual.as_slice(), expected);
@@ -116,7 +129,7 @@ mod tests {
         let v2 = Vec3::new(2.0, 2.0, 0.0);
         let aabb = Aabb::from_extents(Vec3::new(0.0, 0.0, 0.0), Vec3::new(3.0, 3.0, 0.0));
 
-        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+        let actual = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
 
         let expected = [v1, v2, v0];
         assert_eq!(actual.as_slice(), expected);
@@ -129,7 +142,7 @@ mod tests {
         let v2 = Vec3::new(2.0, 2.0, 1.0);
         let aabb = Aabb::from_extents(Vec3::new(0.0, 0.0, 0.0), Vec3::new(3.0, 3.0, 0.0));
 
-        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+        let actual = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
 
         let expected = [Vec3::new(2.0, 1.0, 0.0), Vec3::new(1.5, 1.5, 0.0)];
         assert_eq!(actual.as_slice(), expected);
@@ -142,7 +155,7 @@ mod tests {
         let v2 = Vec3::new(1.0, 2.0, 1.0);
         let aabb = Aabb::from_extents(Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0));
 
-        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+        let actual = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
 
         let expected: &[Vec3] = &[];
         assert_eq!(actual.as_slice(), expected);
@@ -155,7 +168,7 @@ mod tests {
         let v2 = Vec3::new(1.0, -1.0, 1.0);
         let aabb = Aabb::from_extents(Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0));
 
-        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+        let actual = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
 
         let expected: &[Vec3] = &[];
         assert_eq!(actual.as_slice(), expected);
@@ -168,7 +181,7 @@ mod tests {
         let v2 = Vec3::new(6.0, 6.0, 0.0);
         let aabb = Aabb::from_extents(Vec3::new(2.0, -1.0, 0.0), Vec3::new(10.0, 4.0, 0.0));
 
-        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+        let actual = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
 
         let expected = [
             Vec3::new(2.0, 0.0, 0.0),
@@ -188,7 +201,7 @@ mod tests {
         let v2 = Vec3::new(1.0, -1.0, -1.0);
         let aabb = Aabb::from_extents(Vec3::new(-1.5, -1.5012, -1.5), Vec3::new(-0.076, 1.5, 1.0));
 
-        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+        let actual = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
 
         let expected: &[Vec3] = &[];
         let outside = actual
@@ -208,7 +221,7 @@ mod tests {
             Vec3::new(-0.076, 0.075999975, 0.075999975),
         );
 
-        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+        let actual = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
 
         let expected: &[Vec3] = &[];
         let outside = actual
@@ -228,7 +241,7 @@ mod tests {
             Vec3::new(3.901177, 0.274277, -4.089322),
         );
 
-        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+        let actual = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
 
         let expected = [
             Vec3::new(3.901177, 0.2665847, -4.272935),
@@ -246,7 +259,7 @@ mod tests {
         let v2 = Vec3::new(-0.74280226, -0.56288826, 1.474189);
         let aabb = Aabb::from_extents(Vec3::ZERO, Vec3::ONE);
 
-        let actual = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
+        let actual = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
 
         let expected = [
             Vec3::new(1.0, 1.0, 0.44480032),
