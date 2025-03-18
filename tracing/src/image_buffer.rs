@@ -47,7 +47,7 @@ impl ImageBuffer {
     }
 
     #[inline]
-    pub fn coordinates(&self) -> impl Iterator<Item = UVec2> {
+    pub fn coordinates(&self) -> impl Iterator<Item = UVec2> + use<> {
         let size_x = self.size.x;
         let size_y = self.size.y;
         (0..size_y).flat_map(move |y| (0..size_x).map(move |x| UVec2::new(x, y)))

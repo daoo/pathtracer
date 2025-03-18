@@ -2,7 +2,7 @@
 name = "pathtracer-cli"
 description = "Global illumination raytracing CLI."
 version = "1.0.0"
-edition = "2021"
+edition = "2024"
 
 [features]
 ray_logging = ["tracing/ray_logging"]
@@ -10,7 +10,7 @@ ray_logging = ["tracing/ray_logging"]
 [dependencies]
 clap = { version = "4.5.27", features = ["derive"] }
 geometry = { version = "1.0.0", path = "../geometry" }
-glam = "0.29.2"
+glam = "0.30.0"
 image = { version = "0.25.5", default-features = false, features = ["png"] }
 kdtree = { version = "1.0.0", path = "../kdtree" }
 time = { version = "0.3.37", features = ["formatting"] }

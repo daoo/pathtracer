@@ -1,12 +1,12 @@
 [package]
 name = "kdtree-tester-cli"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 clap = { version = "4.5.27", features = ["derive"] }
 geometry = { version = "1.0.0", path = "../geometry" }
-glam = "0.29.2"
+glam = "0.30.0"
 kdtree = { version = "1.0.0", path = "../kdtree" }
 rand = { version = "0.9.0", default-features = false, features = ["small_rng"] }
 rayon = { version = "1.10.0", default-features = false }

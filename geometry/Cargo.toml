@@ -1,9 +1,9 @@
 [package]
 name = "geometry"
 version = "1.0.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 arrayvec = "0.7.6"
-glam = "0.29.2"
+glam = "0.30.0"
 wavefront = { version = "1.0.0", path = "../wavefront" }

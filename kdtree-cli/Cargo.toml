@@ -2,7 +2,7 @@
 name = "kdtree-cli"
 description = "CLI for constructing kd-trees."
 version = "1.0.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 clap = { version = "4.5.27", features = ["derive"] }
