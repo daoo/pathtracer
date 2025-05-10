@@ -17,7 +17,7 @@ use tracing::{
 
 pub struct RayBouncer {
     pub geometries: Vec<Shape>,
-    pub properties: Vec<GeometryProperties<usize>>,
+    pub properties: Vec<GeometryProperties>,
     pub materials: Vec<Material>,
     pub lights: Vec<Light>,
     pub kdtree: KdNode,
@@ -72,7 +72,7 @@ impl RayBouncer {
         let wi = -ray.direction;
         let n = properties.compute_normal(&intersection.inner);
         let uv = properties.compute_texcoord(&intersection.inner);
-        let material = &self.materials[*properties.material()];
+        let material = &self.materials[properties.material()];
         // TODO: How to chose offset?
         let offset = 0.00001 * n;
         let point = intersection.point(ray);

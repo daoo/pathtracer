@@ -14,7 +14,7 @@ use rand::rngs::SmallRng;
 pub struct Pathtracer<Accelerator> {
     pub max_bounces: u8,
     pub geometries: Vec<Shape>,
-    pub properties: Vec<GeometryProperties<usize>>,
+    pub properties: Vec<GeometryProperties>,
     pub materials: Vec<Material>,
     pub lights: Vec<Light>,
     pub environment: Vec3,
@@ -55,7 +55,7 @@ where
             let wi = -ray.direction;
             let n = properties.compute_normal(&intersection.inner);
             let uv = properties.compute_texcoord(&intersection.inner);
-            let material = &self.materials[*properties.material()];
+            let material = &self.materials[properties.material()];
 
             // TODO: How to chose offset?
             // In PBRT the offset is chosen based on the surface normal, surface intersection

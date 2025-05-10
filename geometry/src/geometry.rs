@@ -10,41 +10,41 @@ use crate::{
 };
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum GeometryProperties<M> {
+pub enum GeometryProperties {
     Triangle {
+        material: usize,
         normals: TriangleNormals,
         texcoords: TriangleTexcoords,
-        material: M,
     },
     AxiallyAlignedTriangle {
+        material: usize,
         normals: TriangleNormals,
         texcoords: TriangleTexcoords,
-        material: M,
     },
     Sphere {
-        material: M,
+        material: usize,
         radius: f32,
     },
 }
 
-impl<M> GeometryProperties<M> {
+impl GeometryProperties {
     #[inline]
-    pub fn material(&self) -> &M {
+    pub fn material(&self) -> usize {
         match self {
             GeometryProperties::Triangle {
                 normals: _,
                 texcoords: _,
                 material,
-            } => material,
+            } => *material,
             GeometryProperties::AxiallyAlignedTriangle {
                 normals: _,
                 texcoords: _,
                 material,
-            } => material,
+            } => *material,
             GeometryProperties::Sphere {
                 material,
                 radius: _,
-            } => material,
+            } => *material,
         }
     }
 
@@ -94,10 +94,7 @@ impl<M> GeometryProperties<M> {
     }
 }
 
-pub fn from_wavefront(
-    obj: &obj::Obj,
-    mtl: &mtl::Mtl,
-) -> (Vec<Shape>, Vec<GeometryProperties<usize>>) {
+pub fn from_wavefront(obj: &obj::Obj, mtl: &mtl::Mtl) -> (Vec<Shape>, Vec<GeometryProperties>) {
     let materials: Vec<&str> = mtl.materials.iter().map(|m| m.name.as_str()).collect();
     let (shapes, properties) = obj
         .chunks
@@ -125,7 +122,7 @@ pub fn from_wavefront(
                     uv2: obj.index_texcoord(&face.points[2]).into(),
                 };
                 let material_index = materials.iter().position(|m| *m == chunk.material).unwrap();
-                let properties = GeometryProperties::<usize>::Triangle {
+                let properties = GeometryProperties::Triangle {
                     normals,
                     texcoords,
                     material: material_index,
