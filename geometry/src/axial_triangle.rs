@@ -1,11 +1,7 @@
 use glam::{Vec2, Vec3};
 
 use crate::{
-    aabb::Aabb,
-    aap::Aap,
-    clip::clip_triangle_aabb,
-    intersection::{PointIntersection, RayIntersection},
-    ray::Ray,
+    aabb::Aabb, aap::Aap, clip::clip_triangle_aabb, ray::Ray, triangle::TriangleIntersection,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -54,7 +50,7 @@ impl AxiallyAlignedTriangle {
         ]
     }
 
-    pub fn intersect_point(&self, point: Vec2) -> Option<PointIntersection> {
+    pub fn intersect_point(&self, point: Vec2) -> Option<(f32, f32)> {
         let base1 = self.v1 - self.v0;
         let base2 = self.v2 - self.v0;
         let s = point - self.v0;
@@ -75,10 +71,10 @@ impl AxiallyAlignedTriangle {
             return None;
         }
 
-        Some(PointIntersection::new(u, v))
+        Some((u, v))
     }
 
-    pub fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
+    pub fn intersect_ray(&self, ray: &Ray) -> Option<TriangleIntersection> {
         let axis = self.plane.axis;
         if ray.direction[axis] == 0.0 {
             return None;
@@ -86,7 +82,7 @@ impl AxiallyAlignedTriangle {
         let t = (self.plane.distance - ray.origin[axis]) / ray.direction[axis];
         let point = ray.param(t);
         self.intersect_point(axis.remove_from(point))
-            .map(|intersection| intersection.with_ray_param(t))
+            .map(|(u, v)| TriangleIntersection { t, u, v })
     }
 
     pub fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
@@ -124,7 +120,7 @@ mod tests {
     fn intersect_point_at_v1() {
         assert_eq!(
             TEST_TRIANGLE.intersect_point(Vec2::new(1.0, 0.0)),
-            Some(PointIntersection::new(1.0, 0.0))
+            Some((1.0, 0.0))
         );
     }
 
@@ -132,7 +128,7 @@ mod tests {
     fn intersect_point_at_v2() {
         assert_eq!(
             TEST_TRIANGLE.intersect_point(Vec2::new(0.0, 1.0)),
-            Some(PointIntersection::new(0.0, 1.0))
+            Some((0.0, 1.0))
         );
     }
 
@@ -140,7 +136,7 @@ mod tests {
     fn intersect_point_at_middle_of_edge3() {
         assert_eq!(
             TEST_TRIANGLE.intersect_point(Vec2::new(0.5, 0.5)),
-            Some(PointIntersection::new(0.5, 0.5))
+            Some((0.5, 0.5))
         );
     }
 
@@ -166,13 +162,7 @@ mod tests {
         };
         let point = Vec2::new(0.5, 0.0);
 
-        assert_eq!(
-            positive.intersect_point(point),
-            Some(PointIntersection::new(0.5, 0.0))
-        );
-        assert_eq!(
-            negative.intersect_point(point),
-            Some(PointIntersection::new(0.0, 0.5))
-        );
+        assert_eq!(positive.intersect_point(point), Some((0.5, 0.0)));
+        assert_eq!(negative.intersect_point(point), Some((0.0, 0.5)));
     }
 }

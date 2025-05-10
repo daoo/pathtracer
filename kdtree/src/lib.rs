@@ -3,9 +3,9 @@ use std::{fmt::Display, ops::RangeInclusive};
 use arrayvec::ArrayVec;
 use geometry::{
     aap::Aap,
-    geometry::Geometry,
-    intersection::{intersect_closest_geometry, GeometryIntersection},
+    geometry::{GeometryIntersection, intersect_closest_geometry},
     ray::Ray,
+    shape::Shape,
 };
 
 pub mod build;
@@ -85,7 +85,7 @@ impl KdNode {
 pub trait IntersectionAccelerator {
     fn intersect(
         &self,
-        geometries: &[Geometry],
+        geometries: &[Shape],
         ray: &Ray,
         t_range: RangeInclusive<f32>,
     ) -> Option<GeometryIntersection>;
@@ -94,7 +94,7 @@ pub trait IntersectionAccelerator {
 impl IntersectionAccelerator for KdNode {
     fn intersect(
         &self,
-        geometries: &[Geometry],
+        geometries: &[Shape],
         ray: &Ray,
         t_range: RangeInclusive<f32>,
     ) -> Option<GeometryIntersection> {
@@ -207,9 +207,7 @@ impl<'a> Iterator for KdNodeIter<'a> {
 
 #[cfg(test)]
 mod tests {
-    use geometry::{
-        aap::Aap, axis::Axis, intersection::RayIntersection, ray::Ray, triangle::Triangle,
-    };
+    use geometry::{aap::Aap, axis::Axis, ray::Ray, shape::ShapeIntersection, triangle::Triangle};
     use glam::Vec3;
 
     use super::*;
@@ -250,14 +248,14 @@ mod tests {
             node.intersect(&geometries, &ray, 0.0..=1.0),
             Some(GeometryIntersection::new(
                 0,
-                RayIntersection::new(0.25, 0., 0.5)
+                ShapeIntersection::new_triangle(0.25, 0., 0.5)
             ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray.reverse(), 0.0..=1.0),
             Some(GeometryIntersection::new(
                 1,
-                RayIntersection::new(0.25, 0., 0.5)
+                ShapeIntersection::new_triangle(0.25, 0., 0.5)
             ))
         );
     }
@@ -287,14 +285,14 @@ mod tests {
             node.intersect(&geometries, &ray_triangle0_v0, 0.0..=1.0),
             Some(GeometryIntersection::new(
                 0,
-                RayIntersection::new(0.5, 0., 0.)
+                ShapeIntersection::new_triangle(0.5, 0., 0.)
             ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray_triangle1_v1, 0.0..=1.0),
             Some(GeometryIntersection::new(
                 1,
-                RayIntersection::new(0.5, 1., 0.)
+                ShapeIntersection::new_triangle(0.5, 1., 0.)
             ))
         );
     }
@@ -323,14 +321,14 @@ mod tests {
             node.intersect(&geometries, &ray, 0.0..=1.0),
             Some(GeometryIntersection::new(
                 0,
-                RayIntersection::new(0.25, 0., 0.5)
+                ShapeIntersection::new_triangle(0.25, 0., 0.5)
             ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray.reverse(), 0.0..=1.0),
             Some(GeometryIntersection::new(
                 1,
-                RayIntersection::new(0.25, 0., 0.5)
+                ShapeIntersection::new_triangle(0.25, 0., 0.5)
             ))
         );
     }
@@ -353,14 +351,14 @@ mod tests {
             tree_left.intersect(&geometries, &ray, 0.0..=1.0),
             Some(GeometryIntersection::new(
                 0,
-                RayIntersection::new(0.5, 0., 0.)
+                ShapeIntersection::new_triangle(0.5, 0., 0.)
             ))
         );
         assert_eq!(
             tree_right.intersect(&geometries, &ray, 0.0..=1.0),
             Some(GeometryIntersection::new(
                 0,
-                RayIntersection::new(0.5, 0., 0.)
+                ShapeIntersection::new_triangle(0.5, 0., 0.)
             ))
         );
     }
@@ -384,14 +382,14 @@ mod tests {
             node.intersect(&geometries, &ray, 0.0..=1.0),
             Some(GeometryIntersection::new(
                 0,
-                RayIntersection::new(0.5, 0., 0.)
+                ShapeIntersection::new_triangle(0.5, 0., 0.)
             ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray.reverse(), 0.0..=1.0),
             Some(GeometryIntersection::new(
                 0,
-                RayIntersection::new(0.5, 0., 0.)
+                ShapeIntersection::new_triangle(0.5, 0., 0.)
             ))
         );
     }
@@ -415,14 +413,14 @@ mod tests {
             node.intersect(&geometries, &ray, 0.0..=1.0),
             Some(GeometryIntersection::new(
                 0,
-                RayIntersection::new(0.5, 0., 0.)
+                ShapeIntersection::new_triangle(0.5, 0., 0.)
             ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray.reverse(), 0.0..=1.0),
             Some(GeometryIntersection::new(
                 0,
-                RayIntersection::new(0.5, 0., 0.)
+                ShapeIntersection::new_triangle(0.5, 0., 0.)
             ))
         );
     }
@@ -451,12 +449,7 @@ mod tests {
             actual,
             Some(GeometryIntersection::new(
                 0,
-                RayIntersection {
-                    t: 4.329569,
-                    u: 0.35612673,
-                    v: 0.32146382,
-                    normal: Vec3::ZERO,
-                }
+                ShapeIntersection::new_triangle(4.329569, 0.35612673, 0.32146382)
             ))
         );
     }
@@ -481,12 +474,7 @@ mod tests {
             actual,
             Some(GeometryIntersection::new(
                 0,
-                RayIntersection {
-                    t: 0.5687325,
-                    u: 0.66772085,
-                    v: 0.24024889,
-                    normal: Vec3::ZERO,
-                }
+                ShapeIntersection::new_triangle(0.5687325, 0.66772085, 0.24024889)
             ))
         );
     }

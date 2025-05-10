@@ -1,5 +1,5 @@
-use crate::event::{generate_event_list, Event};
-use geometry::{aabb::Aabb, bound::geometries_bounding_box, geometry::Geometry};
+use crate::event::{Event, generate_event_list};
+use geometry::{aabb::Aabb, bound::geometries_bounding_box, shape::Shape};
 
 #[derive(Debug)]
 pub(crate) struct KdCell {
@@ -29,7 +29,7 @@ impl KdCell {
         }
     }
 
-    pub(crate) fn generate_initial(geometries: &[Geometry]) -> Self {
+    pub(crate) fn generate_initial(geometries: &[Shape]) -> Self {
         KdCell::new(
             geometries_bounding_box(geometries),
             (0u32..geometries.len() as u32).collect(),

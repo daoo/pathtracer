@@ -1,12 +1,10 @@
 use clap::Parser;
-use geometry::{
-    aabb::Aabb, bound::geometries_bounding_box, geometry::Geometry, triangle::Triangle,
-};
+use geometry::{aabb::Aabb, bound::geometries_bounding_box, shape::Shape, triangle::Triangle};
 use kdtree::{
+    KdNode,
     build::build_kdtree,
     format::{write_node_pretty, write_tree_dot, write_tree_json, write_tree_rust},
     sah::SahCost,
-    KdNode,
 };
 use std::{
     fs::File,
@@ -87,7 +85,7 @@ fn node_cost(
 }
 
 fn tree_cost(
-    geometries: &[Geometry],
+    geometries: &[Shape],
     node: &KdNode,
     cost_traverse: f32,
     cost_intersect: f32,
@@ -141,7 +139,7 @@ struct KdTreeStatistics {
     leaf_geometries: Statistics,
 }
 
-fn statistics(geometries: &[Geometry], tree: &KdNode) -> KdTreeStatistics {
+fn statistics(geometries: &[Shape], tree: &KdNode) -> KdTreeStatistics {
     let geometries = geometries.len();
     let node_count = tree.iter_nodes().map(|_| 1).sum();
     let leaf_count = tree.iter_leafs().map(|_| 1).sum();
@@ -182,7 +180,7 @@ fn main() {
                 .into()
             })
         })
-        .collect::<Vec<Geometry>>();
+        .collect::<Vec<Shape>>();
     eprintln!("  Geometries: {}", geometries.len());
 
     eprintln!("Building kdtree...");

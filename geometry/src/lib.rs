@@ -5,7 +5,7 @@ pub mod axis;
 pub mod bound;
 pub mod clip;
 pub mod geometry;
-pub mod intersection;
 pub mod ray;
+pub mod shape;
 pub mod sphere;
 pub mod triangle;

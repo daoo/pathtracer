@@ -1,8 +1,8 @@
 use crate::{
     cell::KdCell,
-    event::{extend_vec_with_events, Event, EventKind},
+    event::{Event, EventKind, extend_vec_with_events},
 };
-use geometry::{aabb::Aabb, aap::Aap, axis::Axis, geometry::Geometry};
+use geometry::{aabb::Aabb, aap::Aap, axis::Axis, shape::Shape};
 use itertools::Itertools;
 
 #[derive(Debug, PartialEq)]
@@ -36,11 +36,7 @@ impl SahSplit {
     }
 
     fn min(self, other: Self) -> Self {
-        if self.cost <= other.cost {
-            self
-        } else {
-            other
-        }
+        if self.cost <= other.cost { self } else { other }
     }
 
     fn zip_min(a: Option<SahSplit>, b: Option<SahSplit>) -> Option<SahSplit> {
@@ -220,7 +216,7 @@ fn update_geometry_side(
 }
 
 fn repartition(
-    geometries: &[Geometry],
+    geometries: &[Shape],
     cell: &KdCell,
     best: SahSplit,
     sides: &mut [EventSide],
@@ -316,7 +312,7 @@ fn repartition(
 }
 
 pub(crate) fn find_best_split(
-    geometries: &[Geometry],
+    geometries: &[Shape],
     sah: &SahCost,
     cell: &KdCell,
     sides: &mut [EventSide],
@@ -367,7 +363,7 @@ mod tests {
             v1: Vec3::new(1.0, 0.0, 0.0),
             v2: Vec3::new(1.0, 1.0, 0.0),
         }]
-        .map(Geometry::from);
+        .map(Shape::from);
         let events = generate_event_list(&geometries);
         let best = SahSplit::new_left(Aap::new_x(1.0), 1.0);
 
@@ -385,7 +381,7 @@ mod tests {
             v1: Vec3::new(1.0, 0.0, 0.0),
             v2: Vec3::new(1.0, 1.0, 0.0),
         }]
-        .map(Geometry::from);
+        .map(Shape::from);
         let events = generate_event_list(&geometries);
         let best = SahSplit::new_left(Aap::new_x(0.0), 1.0);
 
@@ -403,7 +399,7 @@ mod tests {
             v1: Vec3::new(1.0, 0.0, 0.0),
             v2: Vec3::new(1.0, 1.0, 0.0),
         }]
-        .map(Geometry::from);
+        .map(Shape::from);
         let events = generate_event_list(&geometries);
         let best = SahSplit::new_left(Aap::new_x(0.5), 1.0);
 
@@ -421,7 +417,7 @@ mod tests {
             v1: Vec3::new(1.0, 0.0, 0.0),
             v2: Vec3::new(1.0, 1.0, 0.0),
         }]
-        .map(Geometry::from);
+        .map(Shape::from);
         let events = generate_event_list(&geometries);
         let best = SahSplit::new_left(Aap::new_z(0.0), 1.0);
 
@@ -439,7 +435,7 @@ mod tests {
             v1: Vec3::new(1.0, 0.0, 0.0),
             v2: Vec3::new(1.0, 1.0, 0.0),
         }]
-        .map(Geometry::from);
+        .map(Shape::from);
         let events = generate_event_list(&geometries);
         let best = SahSplit::new_right(Aap::new_z(0.0), 1.0);
 

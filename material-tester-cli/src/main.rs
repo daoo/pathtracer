@@ -1,7 +1,7 @@
 use clap::Parser;
 use geometry::{
-    geometry::{Geometry, GeometryProperties},
-    intersection::intersect_closest_geometry,
+    geometry::{GeometryIntersection, GeometryProperties, intersect_closest_geometry},
+    shape::Shape,
     sphere::Sphere,
 };
 use glam::{UVec2, Vec3};
@@ -117,10 +117,10 @@ struct NoAccelerator {}
 impl IntersectionAccelerator for NoAccelerator {
     fn intersect(
         &self,
-        geometries: &[geometry::geometry::Geometry],
+        geometries: &[Shape],
         ray: &geometry::ray::Ray,
         t_range: std::ops::RangeInclusive<f32>,
-    ) -> Option<geometry::intersection::GeometryIntersection> {
+    ) -> Option<GeometryIntersection> {
         let indices = 0u32..geometries.len() as u32;
         intersect_closest_geometry(geometries, indices, ray, t_range)
     }
@@ -183,7 +183,7 @@ fn main() {
     let accelerator = NoAccelerator {};
     let pathtracer = Pathtracer {
         max_bounces: args.max_bounces,
-        geometries: spheres.map(Geometry::from).to_vec(),
+        geometries: spheres.map(Shape::from).to_vec(),
         properties,
         materials,
         lights: lights.map(Light::from).to_vec(),

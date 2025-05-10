@@ -1,15 +1,15 @@
-use geometry::geometry::Geometry;
+use geometry::shape::Shape;
 
 use crate::{
-    cell::KdCell,
-    sah::{find_best_split, EventSide, SahCost},
     MAX_DEPTH,
+    cell::KdCell,
+    sah::{EventSide, SahCost, find_best_split},
 };
 
 use super::KdNode;
 
 fn build_helper(
-    geometries: &[Geometry],
+    geometries: &[Shape],
     sah: &SahCost,
     depth: u32,
     cell: KdCell,
@@ -30,7 +30,7 @@ fn build_helper(
     }
 }
 
-pub fn build_kdtree(geometries: &[Geometry], sah: &SahCost) -> KdNode {
+pub fn build_kdtree(geometries: &[Shape], sah: &SahCost) -> KdNode {
     *build_helper(
         geometries,
         sah,
@@ -47,7 +47,7 @@ mod tests {
     use geometry::{aap::Aap, triangle::Triangle};
     use glam::Vec3;
 
-    use crate::{build::build_kdtree, KdNode};
+    use crate::{KdNode, build::build_kdtree};
 
     use super::*;
 
@@ -63,7 +63,7 @@ mod tests {
             v1: Vec3::new(2.0, 0.0, 0.0),
             v2: Vec3::new(2.0, 1.0, 1.0),
         };
-        let geometries = [triangle1, triangle2].map(Geometry::from);
+        let geometries = [triangle1, triangle2].map(Shape::from);
         let sah = SahCost {
             traverse_cost: 0.1,
             intersect_cost: 1.0,
@@ -95,7 +95,7 @@ mod tests {
             v1: Vec3::new(1.0, 0.0, 1.0),
             v2: Vec3::new(1.0, 1.0, 1.0),
         };
-        let geometries = [triangle1, triangle2].map(Geometry::from);
+        let geometries = [triangle1, triangle2].map(Shape::from);
         let sah = SahCost {
             traverse_cost: 0.0,
             intersect_cost: 1.0,
@@ -185,7 +185,7 @@ mod tests {
                 v2: Vec3::new(1.0, 1.0, 1.0),
             },
         ];
-        let geometries = triangles.map(Geometry::from);
+        let geometries = triangles.map(Shape::from);
         let sah = SahCost {
             traverse_cost: 0.0,
             intersect_cost: 1.0,

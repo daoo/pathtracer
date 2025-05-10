@@ -1,12 +1,12 @@
 use crate::checked_intersection::CheckedIntersection;
 use geometry::{
-    geometry::{Geometry, GeometryProperties},
-    intersection::{intersect_closest_geometry, GeometryIntersection},
+    geometry::{GeometryIntersection, GeometryProperties, intersect_closest_geometry},
     ray::Ray,
+    shape::Shape,
 };
 use glam::{UVec2, Vec2};
 use kdtree::{IntersectionAccelerator, KdNode};
-use rand::{rngs::SmallRng, SeedableRng};
+use rand::{SeedableRng, rngs::SmallRng};
 use std::ops::RangeInclusive;
 use tracing::{
     camera::Pinhole,
@@ -16,7 +16,7 @@ use tracing::{
 };
 
 pub struct RayBouncer {
-    pub geometries: Vec<Geometry>,
+    pub geometries: Vec<Shape>,
     pub properties: Vec<GeometryProperties<usize>>,
     pub materials: Vec<Material>,
     pub lights: Vec<Light>,
@@ -70,8 +70,8 @@ impl RayBouncer {
         let properties = &self.properties[intersection.index as usize];
 
         let wi = -ray.direction;
-        let n = properties.compute_normal(&intersection);
-        let uv = properties.compute_texcoord(&intersection);
+        let n = properties.compute_normal(&intersection.inner);
+        let uv = properties.compute_texcoord(&intersection.inner);
         let material = &self.materials[*properties.material()];
         // TODO: How to chose offset?
         let offset = 0.00001 * n;

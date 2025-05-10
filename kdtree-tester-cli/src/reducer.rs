@@ -4,31 +4,30 @@ use std::{
     path::PathBuf,
 };
 
-use glam::Vec3;
-use rand::{rngs::SmallRng, seq::SliceRandom, SeedableRng};
+use rand::{SeedableRng, rngs::SmallRng, seq::SliceRandom};
 
 use geometry::{
-    geometry::Geometry,
-    intersection::{GeometryIntersection, RayIntersection},
+    geometry::GeometryIntersection,
     ray::Ray,
+    shape::{Shape, ShapeIntersection},
     triangle::Triangle,
 };
 use kdtree::{
-    build::build_kdtree, format::write_tree_json, sah::SahCost, IntersectionAccelerator, KdNode,
+    IntersectionAccelerator, KdNode, build::build_kdtree, format::write_tree_json, sah::SahCost,
 };
 use tracing::measure;
 use wavefront::obj;
 
 use crate::checked_intersection::CheckedIntersection;
 
-fn build_test_tree(geometries: &[Geometry]) -> KdNode {
+fn build_test_tree(geometries: &[Shape]) -> KdNode {
     build_kdtree(geometries, &SahCost::default())
 }
 
 fn verify_removal(
-    geometries: &[Geometry],
+    geometries: &[Shape],
     ray: &Ray,
-    actual: &(Geometry, RayIntersection),
+    actual: &(Shape, ShapeIntersection),
     tree: &KdNode,
 ) -> bool {
     let intersection = tree.intersect(geometries, ray, 0.0..=f32::MAX).unwrap();
@@ -39,11 +38,11 @@ fn verify_removal(
 
 fn try_removing(
     ray: &Ray,
-    actual: &(Geometry, RayIntersection),
-    geometries: &[Geometry],
+    actual: &(Shape, ShapeIntersection),
+    geometries: &[Shape],
     try_index: usize,
     try_count: usize,
-) -> Option<Vec<Geometry>> {
+) -> Option<Vec<Shape>> {
     let mut reduced = Vec::with_capacity(geometries.len() - try_count);
     reduced.extend_from_slice(&geometries[0..try_index]);
     reduced.extend_from_slice(&geometries[try_index + try_count..]);
@@ -54,8 +53,8 @@ fn try_removing(
 fn reduce_tree(
     seed: u64,
     intersection: CheckedIntersection,
-    geometries: Vec<Geometry>,
-) -> (Vec<Geometry>, KdNode) {
+    geometries: Vec<Shape>,
+) -> (Vec<Shape>, KdNode) {
     let actual = (
         geometries[intersection.kdtree.as_ref().unwrap().index as usize].clone(),
         intersection.kdtree.as_ref().unwrap().inner.clone(),
@@ -106,21 +105,11 @@ pub(crate) fn kdtree_reduce(input: PathBuf, output: PathBuf, fail: Option<PathBu
         ),
         reference: Some(GeometryIntersection::new(
             7589,
-            RayIntersection {
-                t: 0.0004729527,
-                u: 0.09395919,
-                v: 0.47453666,
-                normal: Vec3::ZERO,
-            },
+            ShapeIntersection::new_triangle(0.0004729527, 0.09395919, 0.47453666),
         )),
         kdtree: Some(GeometryIntersection::new(
             5556,
-            RayIntersection {
-                t: 0.05429069,
-                u: 0.2189177,
-                v: 0.74337834,
-                normal: Vec3::ZERO,
-            },
+            ShapeIntersection::new_triangle(0.05429069, 0.2189177, 0.74337834),
         )),
     };
     eprintln!("Seed: {seed}");

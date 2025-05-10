@@ -1,6 +1,6 @@
 use glam::Vec3;
 
-use crate::{intersection::RayIntersection, ray::Ray};
+use crate::ray::Ray;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Sphere {
@@ -38,7 +38,7 @@ impl Sphere {
         Vec3::new(phi.sin() * theta.cos(), phi.sin() * theta.sin(), phi.cos())
     }
 
-    pub fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
+    pub fn intersect_ray(&self, ray: &Ray) -> Option<SphereIntersection> {
         let p = ray.origin - self.center;
         let a = ray.direction.dot(ray.direction);
         let b = 2.0 * ray.direction.dot(p);
@@ -52,13 +52,14 @@ impl Sphere {
         let t = if t1 <= t2 { t1 } else { t2 };
 
         let normal = (p + t * ray.direction) / self.radius;
-        Some(RayIntersection {
-            t,
-            u: 0.0,
-            v: 0.0,
-            normal,
-        })
+        Some(SphereIntersection { t, normal })
     }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SphereIntersection {
+    pub t: f32,
+    pub normal: Vec3,
 }
 
 #[cfg(test)]
@@ -77,10 +78,8 @@ mod tests {
 
         assert_eq!(
             actual,
-            Some(RayIntersection {
+            Some(SphereIntersection {
                 t: 0.0,
-                u: 0.0,
-                v: 0.0,
                 normal: Vec3::new(-1.0, 0.0, 0.0),
             })
         );
@@ -98,10 +97,8 @@ mod tests {
 
         assert_eq!(
             actual,
-            Some(RayIntersection {
+            Some(SphereIntersection {
                 t: 0.21132487,
-                u: 0.0,
-                v: 0.0,
                 normal: Vec3::new(-0.57735026, -0.57735026, -0.57735026),
             })
         );
@@ -119,10 +116,8 @@ mod tests {
 
         assert_eq!(
             actual,
-            Some(RayIntersection {
+            Some(SphereIntersection {
                 t: 0.5,
-                u: 0.0,
-                v: 0.0,
                 normal: Vec3::new(0.0, 1.0, 0.0),
             })
         );

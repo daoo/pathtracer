@@ -1,16 +1,16 @@
-use crate::{aabb::Aabb, geometry::Geometry};
+use crate::{aabb::Aabb, shape::Shape};
 
 pub fn combine_bounding_boxes(a: &Aabb, b: &Aabb) -> Aabb {
     Aabb::from_extents(a.min().min(*b.min()), a.max().max(*b.max()))
 }
 
-pub fn geometries_bounding_box(geometries: &[Geometry]) -> Aabb {
-    if geometries.is_empty() {
+pub fn geometries_bounding_box(shape: &[Shape]) -> Aabb {
+    if shape.is_empty() {
         return Aabb::empty();
     }
-    let mut a = geometries[0].min();
-    let mut b = geometries[0].max();
-    for triangle in geometries {
+    let mut a = shape[0].min();
+    let mut b = shape[0].max();
+    for triangle in shape {
         a = a.min(triangle.min());
         b = b.max(triangle.max());
     }

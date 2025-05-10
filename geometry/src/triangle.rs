@@ -2,7 +2,7 @@ use glam::{Vec2, Vec3};
 
 use crate::{
     aabb::Aabb, aap::Aap, axial_triangle::AxiallyAlignedTriangle, axis::Axis,
-    clip::clip_triangle_aabb, intersection::RayIntersection, ray::Ray,
+    clip::clip_triangle_aabb, ray::Ray,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -90,7 +90,7 @@ impl Triangle {
     }
 
     /// Compute triangle-ray intersection using the Möller–Trumbore algorithm.
-    pub fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
+    pub fn intersect_ray(&self, ray: &Ray) -> Option<TriangleIntersection> {
         let base1 = self.base0();
         let base2 = self.base1();
         let ray_cross_base2 = ray.direction.cross(base2);
@@ -114,12 +114,7 @@ impl Triangle {
         }
 
         let t = inv_det * base2.dot(s_cross_base1);
-        Some(RayIntersection {
-            t,
-            u,
-            v,
-            normal: Vec3::ZERO,
-        })
+        Some(TriangleIntersection { t, u, v })
     }
 
     /// Check for overlap using the Separating Axis Theorem.
@@ -189,6 +184,19 @@ impl Triangle {
         }
 
         true
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TriangleIntersection {
+    pub t: f32,
+    pub u: f32,
+    pub v: f32,
+}
+
+impl TriangleIntersection {
+    pub fn new(t: f32, u: f32, v: f32) -> Self {
+        Self { t, u, v }
     }
 }
 
@@ -273,11 +281,10 @@ mod tests {
 
         assert_eq!(
             triangle.intersect_ray(&ray),
-            Some(RayIntersection {
+            Some(TriangleIntersection {
                 t: 0.5,
                 u: 0.5,
                 v: 0.5,
-                normal: Vec3::ZERO,
             })
         );
     }
@@ -296,11 +303,10 @@ mod tests {
 
         assert_eq!(
             triangle.intersect_ray(&ray),
-            Some(RayIntersection {
+            Some(TriangleIntersection {
                 t: 0.5,
                 u: 0.,
                 v: 0.,
-                normal: Vec3::ZERO,
             })
         );
     }
@@ -319,11 +325,10 @@ mod tests {
 
         assert_eq!(
             triangle.intersect_ray(&ray),
-            Some(RayIntersection {
+            Some(TriangleIntersection {
                 t: 0.5,
                 u: 1.,
                 v: 0.,
-                normal: Vec3::ZERO,
             })
         );
     }
@@ -342,11 +347,10 @@ mod tests {
 
         assert_eq!(
             triangle.intersect_ray(&ray),
-            Some(RayIntersection {
+            Some(TriangleIntersection {
                 t: 0.5,
                 u: 0.,
                 v: 1.,
-                normal: Vec3::ZERO,
             })
         );
     }
@@ -366,11 +370,10 @@ mod tests {
 
         assert_eq!(
             triangle.intersect_ray(&ray),
-            Some(RayIntersection {
+            Some(TriangleIntersection {
                 t: 0.5,
                 u: 0.5,
                 v: 0.,
-                normal: Vec3::ZERO,
             })
         );
     }
@@ -390,11 +393,10 @@ mod tests {
 
         assert_eq!(
             triangle.intersect_ray(&ray),
-            Some(RayIntersection {
+            Some(TriangleIntersection {
                 t: 0.5,
                 u: 0.5,
                 v: 0.5,
-                normal: Vec3::ZERO,
             })
         );
     }
@@ -414,11 +416,10 @@ mod tests {
 
         assert_eq!(
             triangle.intersect_ray(&ray),
-            Some(RayIntersection {
+            Some(TriangleIntersection {
                 t: 0.5,
                 u: 0.,
                 v: 0.5,
-                normal: Vec3::ZERO,
             })
         );
     }
@@ -467,11 +468,10 @@ mod tests {
 
         assert_eq!(
             triangle.intersect_ray(&ray),
-            Some(RayIntersection {
+            Some(TriangleIntersection {
                 t: 0.5,
                 u: 0.5,
                 v: 0.,
-                normal: Vec3::ZERO,
             })
         );
     }
@@ -492,20 +492,18 @@ mod tests {
 
         assert_eq!(
             positive.intersect_ray(&ray),
-            Some(RayIntersection {
+            Some(TriangleIntersection {
                 t: 0.5,
                 u: 0.5,
                 v: 0.0,
-                normal: Vec3::ZERO,
             })
         );
         assert_eq!(
             negative.intersect_ray(&ray),
-            Some(RayIntersection {
+            Some(TriangleIntersection {
                 t: 0.5,
                 u: 0.0,
                 v: 0.5,
-                normal: Vec3::ZERO,
             })
         );
     }

@@ -1,76 +1,13 @@
+use std::ops::RangeInclusive;
+
 use glam::{Vec2, Vec3};
 use wavefront::{mtl, obj};
 
 use crate::{
-    aabb::Aabb,
-    axial_triangle::AxiallyAlignedTriangle,
-    intersection::RayIntersection,
     ray::Ray,
-    sphere::Sphere,
+    shape::{Shape, ShapeIntersection},
     triangle::{Triangle, TriangleNormals, TriangleTexcoords},
 };
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum Geometry {
-    Triangle(Triangle),
-    AxiallyAlignedTriangle(AxiallyAlignedTriangle),
-    Sphere(Sphere),
-}
-
-impl Geometry {
-    #[inline]
-    pub fn min(&self) -> Vec3 {
-        match self {
-            Geometry::Triangle(g) => g.min(),
-            Geometry::AxiallyAlignedTriangle(g) => g.min(),
-            Geometry::Sphere(s) => s.min(),
-        }
-    }
-
-    #[inline]
-    pub fn max(&self) -> Vec3 {
-        match self {
-            Geometry::Triangle(g) => g.max(),
-            Geometry::AxiallyAlignedTriangle(g) => g.max(),
-            Geometry::Sphere(s) => s.max(),
-        }
-    }
-
-    #[inline]
-    pub fn intersect_ray(&self, ray: &Ray) -> Option<RayIntersection> {
-        match self {
-            Geometry::Triangle(g) => g.intersect_ray(ray),
-            Geometry::AxiallyAlignedTriangle(g) => g.intersect_ray(ray),
-            Geometry::Sphere(s) => s.intersect_ray(ray),
-        }
-    }
-
-    #[inline]
-    pub fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
-        match self {
-            Geometry::Triangle(g) => g.clip_aabb(aabb),
-            Geometry::AxiallyAlignedTriangle(g) => g.clip_aabb(aabb),
-            Geometry::Sphere(_) => todo!(),
-        }
-    }
-}
-
-impl From<Triangle> for Geometry {
-    #[inline]
-    fn from(value: Triangle) -> Self {
-        value
-            .as_axially_aligned()
-            .map(Geometry::AxiallyAlignedTriangle)
-            .unwrap_or(Geometry::Triangle(value))
-    }
-}
-
-impl From<Sphere> for Geometry {
-    #[inline]
-    fn from(value: Sphere) -> Self {
-        Geometry::Sphere(value)
-    }
-}
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum GeometryProperties<M> {
@@ -112,50 +49,43 @@ impl<M> GeometryProperties<M> {
     }
 
     #[inline]
-    pub fn compute_normal<I>(&self, intersection: I) -> Vec3
-    where
-        I: Into<RayIntersection>,
-    {
-        let RayIntersection { t: _, u, v, normal } = intersection.into();
+    pub fn compute_normal(&self, intersection: &ShapeIntersection) -> Vec3 {
         match self {
             GeometryProperties::Triangle {
                 normals,
                 texcoords: _,
                 material: _,
-            } => normals.lerp(u, v),
+            } => normals.lerp(intersection.u().unwrap(), intersection.v().unwrap()),
             GeometryProperties::AxiallyAlignedTriangle {
                 normals,
                 texcoords: _,
                 material: _,
-            } => normals.lerp(u, v),
+            } => normals.lerp(intersection.u().unwrap(), intersection.v().unwrap()),
             GeometryProperties::Sphere {
                 material: _,
                 radius: _,
-            } => normal,
+            } => intersection.normal().unwrap(),
         }
     }
 
     #[inline]
-    pub fn compute_texcoord<I>(&self, intersection: I) -> Vec2
-    where
-        I: Into<RayIntersection>,
-    {
-        let RayIntersection { t: _, u, v, normal } = intersection.into();
+    pub fn compute_texcoord(&self, intersection: &ShapeIntersection) -> Vec2 {
         match self {
             GeometryProperties::Triangle {
                 normals: _,
                 texcoords,
                 material: _,
-            } => texcoords.lerp(u, v),
+            } => texcoords.lerp(intersection.u().unwrap(), intersection.v().unwrap()),
             GeometryProperties::AxiallyAlignedTriangle {
                 normals: _,
                 texcoords,
                 material: _,
-            } => texcoords.lerp(u, v),
+            } => texcoords.lerp(intersection.u().unwrap(), intersection.v().unwrap()),
             GeometryProperties::Sphere {
                 material: _,
                 radius,
             } => {
+                let normal = intersection.normal().unwrap();
                 let theta = normal.y.atan2(normal.x);
                 let phi = (normal.z / radius).acos();
                 Vec2::new(theta, phi)
@@ -167,9 +97,9 @@ impl<M> GeometryProperties<M> {
 pub fn from_wavefront(
     obj: &obj::Obj,
     mtl: &mtl::Mtl,
-) -> (Vec<Geometry>, Vec<GeometryProperties<usize>>) {
+) -> (Vec<Shape>, Vec<GeometryProperties<usize>>) {
     let materials: Vec<&str> = mtl.materials.iter().map(|m| m.name.as_str()).collect();
-    let (geometries, properties) = obj
+    let (shapes, properties) = obj
         .chunks
         .iter()
         .flat_map(|chunk| {
@@ -179,7 +109,7 @@ pub fn from_wavefront(
                     "Only tringular faces supported but found {} vertices.",
                     face.points.len()
                 );
-                let geometry = Geometry::from(Triangle {
+                let shape = Shape::from(Triangle {
                     v0: obj.index_vertex(&face.points[0]).into(),
                     v1: obj.index_vertex(&face.points[1]).into(),
                     v2: obj.index_vertex(&face.points[2]).into(),
@@ -200,15 +130,67 @@ pub fn from_wavefront(
                     texcoords,
                     material: material_index,
                 };
-                (geometry, properties)
+                (shape, properties)
             })
         })
         .unzip();
-    (geometries, properties)
+    (shapes, properties)
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct GeometryIntersection {
+    pub index: u32,
+    pub inner: ShapeIntersection,
+}
+
+impl GeometryIntersection {
+    #[inline]
+    pub fn new(index: u32, inner: ShapeIntersection) -> Self {
+        GeometryIntersection { index, inner }
+    }
+
+    #[inline]
+    pub fn min(self, other: Self) -> Self {
+        if self.inner.t() <= other.inner.t() {
+            self
+        } else {
+            other
+        }
+    }
+
+    #[inline]
+    pub fn point(&self, ray: &Ray) -> Vec3 {
+        self.inner.point(ray)
+    }
+
+    #[inline]
+    pub fn ray(&self, ray: &Ray) -> Ray {
+        self.inner.ray(ray)
+    }
+}
+
+pub fn intersect_closest_geometry(
+    shapes: &[Shape],
+    indices: impl Iterator<Item = u32>,
+    ray: &Ray,
+    t_range: RangeInclusive<f32>,
+) -> Option<GeometryIntersection> {
+    indices
+        .filter_map(|index| {
+            let geometry = unsafe { shapes.get_unchecked(index as usize) };
+            geometry.intersect_ray(ray).and_then(|intersection| {
+                t_range
+                    .contains(&intersection.t())
+                    .then_some(GeometryIntersection::new(index, intersection))
+            })
+        })
+        .reduce(GeometryIntersection::min)
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::sphere::Sphere;
+
     use super::*;
 
     #[test]
@@ -222,9 +204,9 @@ mod tests {
             radius: sphere.radius,
         };
         let ray = Ray::between(Vec3::new(2.0, 0.0, 0.0), Vec3::new(-2.0, 0.0, 0.0));
-        let intersection = sphere.intersect_ray(&ray).unwrap();
+        let intersection = ShapeIntersection::Sphere(sphere.intersect_ray(&ray).unwrap());
 
-        let actual = properties.compute_normal(intersection);
+        let actual = properties.compute_normal(&intersection);
 
         assert_eq!(actual, Vec3::new(1.0, 0.0, 0.0));
     }
@@ -240,9 +222,9 @@ mod tests {
             radius: sphere.radius,
         };
         let ray = Ray::between(Vec3::new(0.0, 2.0, 0.0), Vec3::new(0.0, -2.0, 0.0));
-        let intersection = sphere.intersect_ray(&ray).unwrap();
+        let intersection = ShapeIntersection::Sphere(sphere.intersect_ray(&ray).unwrap());
 
-        let actual = properties.compute_normal(intersection);
+        let actual = properties.compute_normal(&intersection);
 
         assert_eq!(actual, Vec3::new(0.0, 1.0, 0.0));
     }
@@ -258,9 +240,9 @@ mod tests {
             radius: sphere.radius,
         };
         let ray = Ray::between(Vec3::new(0.0, 0.0, 2.0), Vec3::new(0.0, 0.0, -2.0));
-        let intersection = sphere.intersect_ray(&ray).unwrap();
+        let intersection = ShapeIntersection::Sphere(sphere.intersect_ray(&ray).unwrap());
 
-        let actual = properties.compute_normal(intersection);
+        let actual = properties.compute_normal(&intersection);
 
         assert_eq!(actual, Vec3::new(0.0, 0.0, 1.0));
     }
