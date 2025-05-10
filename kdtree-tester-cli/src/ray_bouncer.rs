@@ -66,16 +66,21 @@ impl RayBouncer {
         if !intersection.is_valid() {
             return Some(intersection);
         };
-        let intersection = intersection.reference.unwrap();
-        let properties = &self.properties[intersection.index as usize];
+        let GeometryIntersection { index, inner } =
+            if let Some(intersection) = intersection.reference {
+                intersection
+            } else {
+                return None;
+            };
+        let properties = &self.properties[index as usize];
 
         let wi = -ray.direction;
-        let n = properties.compute_normal(&intersection.inner);
-        let uv = properties.compute_texcoord(&intersection.inner);
+        let n = properties.compute_normal(&inner);
+        let uv = properties.compute_texcoord(&inner);
         let material = &self.materials[properties.material()];
         // TODO: How to chose offset?
         let offset = 0.00001 * n;
-        let point = intersection.point(ray);
+        let point = inner.point(ray);
         let point_above = point + offset;
         let point_below = point - offset;
 

@@ -154,16 +154,6 @@ impl GeometryIntersection {
             other
         }
     }
-
-    #[inline]
-    pub fn point(&self, ray: &Ray) -> Vec3 {
-        self.inner.point(ray)
-    }
-
-    #[inline]
-    pub fn ray(&self, ray: &Ray) -> Ray {
-        self.inner.ray(ray)
-    }
 }
 
 pub fn intersect_closest_geometry(

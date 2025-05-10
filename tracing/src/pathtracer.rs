@@ -6,7 +6,11 @@ use crate::{
     raylogger::{RayLoggerWithIteration, RayLoggerWithIterationAndPixel},
     sampling::uniform_sample_unit_square,
 };
-use geometry::{geometry::GeometryProperties, ray::Ray, shape::Shape};
+use geometry::{
+    geometry::{GeometryIntersection, GeometryProperties},
+    ray::Ray,
+    shape::Shape,
+};
 use glam::{UVec2, Vec3};
 use kdtree::IntersectionAccelerator;
 use rand::rngs::SmallRng;
@@ -41,27 +45,28 @@ where
                 .log_ray(
                     &intersection
                         .as_ref()
-                        .map_or(ray.clone(), |isect| isect.ray(&ray)),
+                        .map_or(ray.clone(), |isect| isect.inner.ray(&ray)),
                     bounce,
                     intersection.is_some(),
                 )
                 .unwrap();
-            if intersection.is_none() {
+            let GeometryIntersection { index, inner } = if let Some(intersection) = intersection {
+                intersection
+            } else {
                 return accumulated_radiance + accumulated_transport * self.environment;
-            }
-            let intersection = &intersection.unwrap();
-            let properties = &self.properties[intersection.index as usize];
+            };
+            let properties = &self.properties[index as usize];
 
             let wi = -ray.direction;
-            let n = properties.compute_normal(&intersection.inner);
-            let uv = properties.compute_texcoord(&intersection.inner);
+            let n = properties.compute_normal(&inner);
+            let uv = properties.compute_texcoord(&inner);
             let material = &self.materials[properties.material()];
 
             // TODO: How to chose offset?
             // In PBRT the offset is chosen based on the surface normal, surface intersection
             // calculation error, sampled incoming direction and then rounded up to the next float.
             let offset = 0.00001 * n;
-            let point = intersection.point(&ray);
+            let point = inner.point(&ray);
             let point_above = point + offset;
             let point_below = point - offset;
 
