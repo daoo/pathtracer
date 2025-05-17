@@ -51,23 +51,6 @@ impl KdNode {
         }
     }
 
-    pub fn merge_empty_leafs(node: Box<KdNode>) -> Option<Box<KdNode>> {
-        match *node {
-            node if node.is_empty() => None,
-            KdNode::Leaf(_) => Some(node),
-            KdNode::Node { plane, left, right } => {
-                let left = KdNode::merge_empty_leafs(left);
-                let right = KdNode::merge_empty_leafs(right);
-                match (left, right) {
-                    (Some(left), Some(right)) => {
-                        Some(Box::new(KdNode::Node { plane, left, right }))
-                    }
-                    (left, right) => left.or(right),
-                }
-            }
-        }
-    }
-
     #[inline]
     pub fn iter_nodes(&self) -> KdNodeIter {
         KdNodeIter::new(self)
