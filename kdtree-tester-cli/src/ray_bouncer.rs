@@ -66,12 +66,7 @@ impl RayBouncer {
         if !intersection.is_valid() {
             return Some(intersection);
         };
-        let GeometryIntersection { index, inner } =
-            if let Some(intersection) = intersection.reference {
-                intersection
-            } else {
-                return None;
-            };
+        let GeometryIntersection { index, inner } = intersection.reference?;
         let properties = &self.properties[index as usize];
 
         let wi = -ray.direction;
