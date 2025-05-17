@@ -85,6 +85,7 @@ impl AxiallyAlignedTriangle {
             .map(|(u, v)| TriangleIntersection { t, u, v })
     }
 
+    #[inline]
     pub fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
         clip_triangle_aabb(
             &self.plane.add_to(self.v0),

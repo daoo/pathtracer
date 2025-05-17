@@ -27,14 +27,17 @@ pub enum KdNode {
 }
 
 impl KdNode {
+    #[inline]
     pub fn empty() -> Box<Self> {
         Box::new(Self::Leaf(Vec::new()))
     }
 
+    #[inline]
     pub(crate) fn new_leaf(indices: Vec<u32>) -> Box<Self> {
         Box::new(Self::Leaf(indices))
     }
 
+    #[inline]
     pub(crate) fn new_node(plane: Aap, left: Box<Self>, right: Box<Self>) -> Box<Self> {
         debug_assert!(
             !(left.is_empty() && right.is_empty()),
