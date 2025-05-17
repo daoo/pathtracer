@@ -143,6 +143,15 @@ fn sweep_plane(
     axis: Axis,
     events: &[Event],
 ) -> Option<SahSplit> {
+    let advance = |mut i: usize, distance: f32, kind: EventKind| {
+        let mut count = 0;
+        while i < events.len() && events[i].distance == distance && events[i].kind == kind {
+            count += 1;
+            i += 1;
+        }
+        count
+    };
+
     let mut best_cost: Option<SahSplit> = None;
     let mut n_left = 0;
     let mut n_right = count;
@@ -153,20 +162,11 @@ fn sweep_plane(
             distance: events[i].distance,
         };
 
-        let p_end = events[i..]
-            .iter()
-            .take_while(|e| e.distance == p.distance && e.kind == EventKind::End)
-            .count();
+        let p_end = advance(i, p.distance, EventKind::End);
         i += p_end;
-        let p_planar = events[i..]
-            .iter()
-            .take_while(|e| e.distance == p.distance && e.kind == EventKind::Planar)
-            .count();
+        let p_planar = advance(i, p.distance, EventKind::Planar);
         i += p_planar;
-        let p_start = events[i..]
-            .iter()
-            .take_while(|e| e.distance == p.distance && e.kind == EventKind::Start)
-            .count();
+        let p_start = advance(i, p.distance, EventKind::Start);
         i += p_start;
 
         n_right -= p_planar;
