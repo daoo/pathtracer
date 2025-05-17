@@ -3,7 +3,7 @@ use geometry::{aabb::Aabb, bound::geometries_bounding_box, shape::Shape, triangl
 use kdtree::{
     KdNode,
     build::build_kdtree,
-    format::{write_node_pretty, write_tree_dot, write_tree_json, write_tree_rust},
+    format::{write_node_pretty, write_tree_json, write_tree_rust},
     sah::SahCost,
 };
 use std::{
@@ -27,9 +27,6 @@ struct Args {
     /// Output Rust to standard output
     #[arg(short = 'r', long, default_value_t = false)]
     rust: bool,
-    /// Output Graphviz dot to standard output
-    #[arg(short = 'd', long, default_value_t = false)]
-    dot: bool,
 
     /// SAH kd-tree traverse cost
     #[arg(long, default_value_t = SahCost::default().traverse_cost)]
@@ -228,8 +225,6 @@ fn main() {
         write_tree_json(&mut io::stdout().lock(), &geometries, &kdtree).unwrap();
     } else if args.rust {
         write_tree_rust(&mut io::stdout().lock(), &geometries, &kdtree).unwrap();
-    } else if args.dot {
-        write_tree_dot(&mut io::stdout().lock(), &kdtree).unwrap();
     } else {
         write_node_pretty(&mut io::stdout().lock(), &kdtree).unwrap();
     }
