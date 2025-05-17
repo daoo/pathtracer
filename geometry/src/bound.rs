@@ -5,14 +5,15 @@ pub fn combine_bounding_boxes(a: &Aabb, b: &Aabb) -> Aabb {
 }
 
 pub fn geometries_bounding_box(shape: &[Shape]) -> Aabb {
-    if shape.is_empty() {
+    let mut it = shape.iter();
+    let (mut a, mut b) = if let Some(first) = it.next() {
+        (first.min(), first.max())
+    } else {
         return Aabb::empty();
-    }
-    let mut a = shape[0].min();
-    let mut b = shape[0].max();
-    for triangle in shape {
-        a = a.min(triangle.min());
-        b = b.max(triangle.max());
+    };
+    while let Some(s) = it.next() {
+        a = a.min(s.min());
+        b = b.max(s.max());
     }
     Aabb::from_extents(a, b)
 }
