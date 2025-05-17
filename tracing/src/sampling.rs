@@ -1,5 +1,5 @@
 use glam::{Vec2, Vec3};
-use rand::{rngs::SmallRng, Rng};
+use rand::{Rng, rngs::SmallRng};
 
 #[inline]
 pub fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vec2 {

@@ -1,10 +1,10 @@
 use nom::{
+    IResult, Parser,
     bytes::complete::tag_no_case,
     character::complete::{char, i32, space0, space1},
     combinator::{opt, rest},
     multi::separated_list0,
     number::complete::float,
-    IResult, Parser,
 };
 use std::{cmp::Ordering, io::BufRead, path::PathBuf};
 

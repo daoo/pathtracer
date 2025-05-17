@@ -5,7 +5,7 @@ use time::Duration;
 
 use glam::UVec2;
 use kdtree::{IntersectionAccelerator, KdNode};
-use rand::{rngs::SmallRng, SeedableRng};
+use rand::{SeedableRng, rngs::SmallRng};
 
 use crate::{
     camera::Pinhole,

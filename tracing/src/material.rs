@@ -2,7 +2,7 @@ use std::path::Path;
 
 use glam::{Vec2, Vec3};
 use image::{GenericImageView, Rgb32FImage};
-use rand::{rngs::SmallRng, Rng};
+use rand::{Rng, rngs::SmallRng};
 use wavefront::mtl;
 
 use crate::sampling::cosine_sample_hemisphere;

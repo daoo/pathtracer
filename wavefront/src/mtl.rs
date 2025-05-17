@@ -1,6 +1,6 @@
 use nom::{
-    bytes::complete::tag, character::complete::space0, combinator::rest, number::complete::float,
-    IResult,
+    IResult, bytes::complete::tag, character::complete::space0, combinator::rest,
+    number::complete::float,
 };
 use std::io::BufRead;
 
