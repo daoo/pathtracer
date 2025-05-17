@@ -52,7 +52,7 @@ newmtl LeftBox
 	Ks 0.7 0.7 0.7
 	Kd 0.25 0.25 0.805804
 	reflat0deg 0.3
-	reflAt90Deg 1.0
+	reflat90deg 1.0
 	Ni 1.55
 	Tr 0.0
 	specularroughness 0.001
@@ -61,7 +61,7 @@ newmtl RightBox
 	Ks 0.7 0.7 0.7
 	Kd 0.18 0.725 0.725
 	reflat0deg 0.2
-	reflAt90Deg 1.0
+	reflat90deg 1.0
 	Ni 1.55
 	Tr 1.0
 	specularroughness 0.001
