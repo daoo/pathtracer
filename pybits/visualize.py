@@ -22,7 +22,7 @@ def program(args):
     import visualize_triangles
 
     rerun.init("pathtracer")
-    rerun.connect(args.server)
+    rerun.connect_grpc(args.server)
     rerun.log("world", rerun.ViewCoordinates.RIGHT_HAND_Y_UP, static=True)
 
     if args.triangles:
