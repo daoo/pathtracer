@@ -11,7 +11,7 @@ pub fn geometries_bounding_box(shape: &[Shape]) -> Aabb {
     } else {
         return Aabb::empty();
     };
-    while let Some(s) = it.next() {
+    for s in it {
         a = a.min(s.min());
         b = b.max(s.max());
     }
