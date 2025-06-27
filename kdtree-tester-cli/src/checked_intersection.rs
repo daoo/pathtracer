@@ -7,7 +7,7 @@ pub struct CheckedIntersection {
     pub kdtree: Option<GeometryIntersection>,
 }
 
-fn aoeu(a: &ShapeIntersection, b: &ShapeIntersection) -> bool {
+fn almost_equal(a: &ShapeIntersection, b: &ShapeIntersection) -> bool {
     const T_TOLERANCE: f32 = 0.000001;
     const UV_TOLERANCE: f32 = 0.00001;
     const NORMAL_TOLERANCE: f32 = 0.00001;
@@ -31,7 +31,7 @@ impl CheckedIntersection {
     pub fn is_valid(&self) -> bool {
         match (&self.reference, &self.kdtree) {
             (None, None) => true,
-            (Some(a), Some(b)) => a.index == b.index && aoeu(&a.inner, &b.inner),
+            (Some(a), Some(b)) => a.index == b.index && almost_equal(&a.inner, &b.inner),
             _ => false,
         }
     }

@@ -96,9 +96,9 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
             total_squared += seconds * seconds;
             completed += 1;
 
-            let mean = total / completed as f64;
-            let sdev = ((total_squared / completed as f64) - mean * mean).sqrt();
-            let eta = ((iterations - completed) as f64 * mean) / threads as f64;
+            let mean = total / f64::from(completed);
+            let sdev = ((total_squared / f64::from(completed)) - mean * mean).sqrt();
+            let eta = (f64::from(iterations - completed) * mean) / f64::from(threads);
             // ANSI escape codes
             const CSI_ERASE_IN_LINE: &str = "\x1B[1K";
             const CSI_CURSOR_HORIZONTAL_ABSOLUTE: &str = "\x1B[1G";

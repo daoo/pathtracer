@@ -212,7 +212,7 @@ fn update_geometry_side(
                 *side = EventSide::RightOnly;
             }
         }
-    })
+    });
 }
 
 fn repartition(

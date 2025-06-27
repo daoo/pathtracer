@@ -63,7 +63,7 @@ impl KdNode {
     pub fn iter_leafs(&self) -> impl Iterator<Item = (usize, &Vec<u32>)> {
         self.iter_nodes().filter_map(|(depth, node)| match node {
             KdNode::Leaf(indices) => Some((depth, indices)),
-            _ => None,
+            KdNode::Node { .. } => None,
         })
     }
 }

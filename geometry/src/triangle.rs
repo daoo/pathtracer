@@ -44,12 +44,6 @@ impl Triangle {
     }
 
     #[inline]
-    pub fn param(&self, u: f32, v: f32) -> Vec3 {
-        assert!(u >= 0.0 && v >= 0.0 && u + v <= 1.0);
-        self.v0 + u * self.base0() + v * self.base1()
-    }
-
-    #[inline]
     pub fn as_arrays(&self) -> [[f32; 3]; 3] {
         [self.v0.into(), self.v1.into(), self.v2.into()]
     }

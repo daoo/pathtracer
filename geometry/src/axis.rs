@@ -8,16 +8,6 @@ pub enum Axis {
 }
 
 impl Axis {
-    #[inline]
-    pub fn from_u32(n: u32) -> Axis {
-        match n % 3 {
-            0 => Axis::X,
-            1 => Axis::Y,
-            2 => Axis::Z,
-            _ => panic!("Impossible modulo result."),
-        }
-    }
-
     pub fn as_vector3(&self, v: f32) -> Vec3 {
         match self {
             Axis::X => Vec3::new(v, 0.0, 0.0),

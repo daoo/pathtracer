@@ -65,7 +65,7 @@ impl RayBouncer {
         let intersection = self.checked_ray_intersect(ray, 0.0..=f32::MAX);
         if !intersection.is_valid() {
             return Some(intersection);
-        };
+        }
         let GeometryIntersection { index, inner } = intersection.reference?;
         let properties = &self.properties[index as usize];
 
@@ -107,7 +107,7 @@ impl RayBouncer {
 
     pub fn bounce_pixel(&self, pixel: (u32, u32)) -> Option<CheckedIntersection> {
         let (x, y) = pixel;
-        let mut rng = SmallRng::seed_from_u64((y * self.size.y + x) as u64);
+        let mut rng = SmallRng::seed_from_u64(u64::from(y * self.size.y + x));
         let pixel_center = Vec2::new(x as f32, y as f32) + uniform_sample_unit_square(&mut rng);
         let scene_direction = pixel_center / self.size.as_vec2();
         let ray = self.camera.ray(scene_direction);

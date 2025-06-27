@@ -155,10 +155,10 @@ fn statistics(geometries: &[Shape], tree: &KdNode) -> KdTreeStatistics {
     }
 }
 
-fn main() {
+fn main() -> std::io::Result<()> {
     let args = Args::parse();
     eprintln!("Reading {:?}...", &args.input);
-    let obj = obj::obj(&mut BufReader::new(File::open(args.input).unwrap()));
+    let obj = obj::obj(&mut BufReader::new(File::open(args.input)?))?;
     let geometries = obj
         .chunks
         .iter()
@@ -222,10 +222,12 @@ fn main() {
     eprintln!("    Median: {}", stats.leaf_geometries.median);
 
     if args.json {
-        write_tree_json(&mut io::stdout().lock(), &geometries, &kdtree).unwrap();
+        write_tree_json(&mut io::stdout().lock(), &geometries, &kdtree)?;
     } else if args.rust {
-        write_tree_rust(&mut io::stdout().lock(), &geometries, &kdtree).unwrap();
+        write_tree_rust(&mut io::stdout().lock(), &geometries, &kdtree)?;
     } else {
-        write_node_pretty(&mut io::stdout().lock(), &kdtree).unwrap();
+        write_node_pretty(&mut io::stdout().lock(), &kdtree)?;
     }
+
+    Ok(())
 }

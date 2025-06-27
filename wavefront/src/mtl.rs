@@ -75,7 +75,7 @@ fn vec3(input: &str) -> IResult<&str, [f32; 3]> {
     Ok((input, [x, y, z]))
 }
 
-pub fn mtl<R>(input: &mut R) -> Mtl
+pub fn mtl<R>(input: &mut R) -> std::io::Result<Mtl>
 where
     R: BufRead,
 {
@@ -84,7 +84,7 @@ where
     let mut cameras: Vec<Camera> = Vec::new();
 
     let mut line = String::new();
-    while input.read_line(&mut line).unwrap() > 0 {
+    while input.read_line(&mut line)? > 0 {
         let trimmed = line.trim();
         if trimmed.is_empty() || trimmed.starts_with('#') {
             line.clear();
@@ -120,7 +120,7 @@ where
         } else if let Ok((_, x)) = tagged("Kd", vec3, trimmed) {
             materials.last_mut().unwrap().diffuse_reflection = x;
         } else if let Ok((_, x)) = tagged("map_Kd", rest, trimmed) {
-            materials.last_mut().unwrap().diffuse_map = x.to_owned();
+            x.clone_into(&mut materials.last_mut().unwrap().diffuse_map);
         } else if let Ok((_, x)) = tagged("Ks", vec3, trimmed) {
             materials.last_mut().unwrap().specular_reflection = x;
         } else if let Ok((_, _)) = tagged("Ns", float, trimmed) {
@@ -145,11 +145,11 @@ where
         line.clear();
     }
 
-    Mtl {
+    Ok(Mtl {
         materials,
         lights,
         cameras,
-    }
+    })
 }
 
 #[cfg(test)]
@@ -165,7 +165,7 @@ mod tests {
     }
 
     fn mtl_test(str: &str) -> Mtl {
-        mtl(&mut str.as_bytes())
+        mtl(&mut str.as_bytes()).unwrap()
     }
 
     #[test]

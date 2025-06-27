@@ -65,9 +65,8 @@ enum Commands {
     },
 }
 
-fn main() {
-    let args = Cli::parse();
-    match args.command {
+fn main() -> std::io::Result<()> {
+    match Cli::parse().command {
         Commands::Test {
             input,
             output,

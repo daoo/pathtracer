@@ -114,7 +114,7 @@ fn face(input: &str) -> IResult<&str, Face> {
         .map(|(input, points)| (input, Face { points }))
 }
 
-pub fn obj<R>(input: &mut R) -> Obj
+pub fn obj<R>(input: &mut R) -> std::io::Result<Obj>
 where
     R: BufRead,
 {
@@ -125,7 +125,7 @@ where
     let mut texcoords: Vec<[f32; 2]> = Vec::new();
 
     let mut line = String::new();
-    while input.read_line(&mut line).unwrap() > 0 {
+    while input.read_line(&mut line)? > 0 {
         let trimmed = line.trim();
         if trimmed.is_empty() || trimmed.starts_with('#') {
             line.clear();
@@ -156,13 +156,13 @@ where
         line.clear();
     }
 
-    Obj {
+    Ok(Obj {
         mtl_lib,
         vertices,
         normals,
         texcoords,
         chunks,
-    }
+    })
 }
 
 #[cfg(test)]
@@ -170,7 +170,7 @@ mod tests {
     use super::*;
 
     fn obj_test(str: &str) -> Obj {
-        obj(&mut str.as_bytes())
+        obj(&mut str.as_bytes()).unwrap()
     }
 
     #[test]

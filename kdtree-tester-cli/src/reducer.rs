@@ -97,7 +97,12 @@ fn reduce_tree(
     (geometries, tree)
 }
 
-pub(crate) fn kdtree_reduce(input: PathBuf, output: PathBuf, fail: Option<PathBuf>, seed: u64) {
+pub(crate) fn kdtree_reduce(
+    input: PathBuf,
+    output: PathBuf,
+    fail: Option<PathBuf>,
+    seed: u64,
+) -> std::io::Result<()> {
     let intersection = CheckedIntersection {
         ray: Ray::new(
             [3.897963, 0.24242611, -4.203691].into(),
@@ -119,7 +124,7 @@ pub(crate) fn kdtree_reduce(input: PathBuf, output: PathBuf, fail: Option<PathBu
     eprintln!("    Actual: {:?}", &intersection.kdtree);
 
     eprintln!("Loading {}...", input.display());
-    let obj = obj::obj(&mut BufReader::new(File::open(input).unwrap()));
+    let obj = obj::obj(&mut BufReader::new(File::open(input)?))?;
     eprintln!("  Chunks: {}", obj.chunks.len());
     eprintln!("  Vertices: {}", obj.vertices.len());
     eprintln!("  Normals: {}", obj.normals.len());
@@ -148,20 +153,21 @@ pub(crate) fn kdtree_reduce(input: PathBuf, output: PathBuf, fail: Option<PathBu
     eprintln!("  Geometries: {}", geometries.len());
 
     if let Some(path) = fail {
-        eprintln!("Writing test ray to {path:?}...");
-        let file = File::create(path).unwrap();
+        eprintln!("Writing test ray to {}...", path.display());
+        let file = File::create(path)?;
         let mut buf = BufWriter::new(file);
-        buf.write_all(&intersection.as_bytes(1)).unwrap();
+        buf.write_all(&intersection.as_bytes(1))?;
     }
 
     eprintln!("Reducing tree...");
     let (geometries, tree) = reduce_tree(seed, intersection, geometries);
 
-    eprintln!("Writing reduced tree to {output:?}...");
+    eprintln!("Writing reduced tree to {}...", output.display());
     write_tree_json(
-        &mut BufWriter::new(File::create(output).unwrap()),
+        &mut BufWriter::new(File::create(output)?),
         &geometries,
         &tree,
-    )
-    .unwrap();
+    )?;
+
+    Ok(())
 }

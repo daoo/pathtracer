@@ -109,7 +109,7 @@ where
             write_node_json(write, right)?;
             write!(write, "}}")?;
         }
-    };
+    }
 
     Ok(())
 }
