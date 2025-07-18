@@ -5,21 +5,21 @@ use std::cmp::Ordering;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
-pub(crate) enum EventKind {
+pub enum EventKind {
     End,
     Planar,
     Start,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub(crate) struct Event {
+pub struct Event {
     pub(crate) index: u32,
     pub(crate) distance: f32,
     pub(crate) kind: EventKind,
 }
 
 impl Event {
-    pub(crate) fn new_end(index: u32, distance: f32) -> Self {
+    pub(crate) const fn new_end(index: u32, distance: f32) -> Self {
         Self {
             index,
             distance,
@@ -27,7 +27,7 @@ impl Event {
         }
     }
 
-    pub(crate) fn new_planar(index: u32, distance: f32) -> Self {
+    pub(crate) const fn new_planar(index: u32, distance: f32) -> Self {
         Self {
             index,
             distance,
@@ -35,7 +35,7 @@ impl Event {
         }
     }
 
-    pub(crate) fn new_start(index: u32, distance: f32) -> Self {
+    pub(crate) const fn new_start(index: u32, distance: f32) -> Self {
         Self {
             index,
             distance,
@@ -69,7 +69,7 @@ fn extend_vec_with_events_for_axis(
     }
 }
 
-pub(crate) fn extend_vec_with_events(
+pub fn extend_vec_with_events(
     events: &mut (Vec<Event>, Vec<Event>, Vec<Event>),
     index: u32,
     min: &Vec3,
@@ -80,7 +80,7 @@ pub(crate) fn extend_vec_with_events(
     extend_vec_with_events_for_axis(&mut events.2, index, min, max, Axis::Z);
 }
 
-pub(crate) fn generate_event_list(geometries: &[Shape]) -> (Vec<Event>, Vec<Event>, Vec<Event>) {
+pub fn generate_event_list(geometries: &[Shape]) -> (Vec<Event>, Vec<Event>, Vec<Event>) {
     let mut events = (
         Vec::with_capacity(geometries.len() * 2),
         Vec::with_capacity(geometries.len() * 2),

@@ -196,7 +196,7 @@ fn main() {
         let printer = s.spawn(move || printer_thread(args.threads, total_iterations, &rx));
         let (duration, image) = render_parallel_iterations(
             &pathtracer,
-            pinhole,
+            &pinhole,
             args.size.as_uvec2(),
             args.threads,
             args.iterations_per_thread,

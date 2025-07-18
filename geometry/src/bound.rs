@@ -40,7 +40,7 @@ mod tests {
                 v2: Vec3::new(0., 0., 0.),
             },
         ]
-        .map(|t| t.into());
+        .map(Into::into);
 
         let actual = geometries_bounding_box(&triangles);
 

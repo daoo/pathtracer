@@ -28,26 +28,28 @@ pub enum KdNode {
 
 impl KdNode {
     #[inline]
-    pub fn empty() -> Box<Self> {
-        Box::new(Self::Leaf(Vec::new()))
+    pub const fn empty() -> Self {
+        Self::Leaf(Vec::new())
     }
 
     #[inline]
-    pub(crate) fn new_leaf(indices: Vec<u32>) -> Box<Self> {
-        Box::new(Self::Leaf(indices))
+    pub(crate) const fn new_leaf(indices: Vec<u32>) -> Self {
+        Self::Leaf(indices)
     }
 
     #[inline]
-    pub(crate) fn new_node(plane: Aap, left: Box<Self>, right: Box<Self>) -> Box<Self> {
+    pub(crate) fn new_node(plane: Aap, left: Self, right: Self) -> Self {
         debug_assert!(
             !(left.is_empty() && right.is_empty()),
             "kd-node with both children empty worsens performance"
         );
-        Box::new(Self::Node { plane, left, right })
+        let left = Box::new(left);
+        let right = Box::new(right);
+        Self::Node { plane, left, right }
     }
 
     #[inline]
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         match self {
             Self::Leaf(indices) => indices.is_empty(),
             Self::Node { .. } => false,
@@ -62,8 +64,8 @@ impl KdNode {
     #[inline]
     pub fn iter_leafs(&self) -> impl Iterator<Item = (usize, &Vec<u32>)> {
         self.iter_nodes().filter_map(|(depth, node)| match node {
-            KdNode::Leaf(indices) => Some((depth, indices)),
-            KdNode::Node { .. } => None,
+            Self::Leaf(indices) => Some((depth, indices)),
+            Self::Node { .. } => None,
         })
     }
 }
@@ -87,10 +89,10 @@ impl IntersectionAccelerator for KdNode {
         let mut node = self;
         let mut t1 = *t_range.start();
         let mut t2 = *t_range.end();
-        let mut stack: ArrayVec<(&KdNode, f32, f32), MAX_DEPTH> = ArrayVec::new();
+        let mut stack: ArrayVec<(&Self, f32, f32), MAX_DEPTH> = ArrayVec::new();
         loop {
             match node {
-                KdNode::Leaf(indices) => {
+                Self::Leaf(indices) => {
                     match intersect_closest_geometry(
                         geometries,
                         indices.iter().copied(),
@@ -107,7 +109,7 @@ impl IntersectionAccelerator for KdNode {
                         },
                     }
                 }
-                KdNode::Node { plane, left, right } => {
+                Self::Node { plane, left, right } => {
                     let axis = plane.axis;
                     if let Some(t) = plane.intersect_ray(ray) {
                         let (near, far) = if ray.direction[axis] >= 0. {
@@ -140,8 +142,8 @@ impl IntersectionAccelerator for KdNode {
 impl Display for KdNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            KdNode::Leaf(indices) => write!(f, "{indices:?}"),
-            KdNode::Node { plane, left, right } => {
+            Self::Leaf(indices) => write!(f, "{indices:?}"),
+            Self::Node { plane, left, right } => {
                 write!(
                     f,
                     "node({:?}, {}, {}, {})",
@@ -220,14 +222,14 @@ mod tests {
             v2: Vec3::new(2., 2., 1.),
         };
         let geometries = vec![triangle0.into(), triangle1.into()];
-        let node = Box::new(KdNode::Node {
-            plane: Aap {
+        let node = KdNode::new_node(
+            Aap {
                 axis: Axis::X,
                 distance: 1.,
             },
-            left: KdNode::new_leaf(vec![0, 1]),
-            right: KdNode::new_leaf(vec![0, 1]),
-        });
+            KdNode::new_leaf(vec![0, 1]),
+            KdNode::new_leaf(vec![0, 1]),
+        );
         let ray = Ray::between(Vec3::new(1., 1., -2.), Vec3::new(1., 1., 2.));
 
         assert_eq!(

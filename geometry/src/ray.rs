@@ -7,19 +7,19 @@ pub struct Ray {
 }
 
 impl Ray {
-    pub fn new(origin: Vec3, direction: Vec3) -> Ray {
-        Ray { origin, direction }
+    pub const fn new(origin: Vec3, direction: Vec3) -> Self {
+        Self { origin, direction }
     }
 
-    pub fn between(a: Vec3, b: Vec3) -> Ray {
-        Ray {
+    pub fn between(a: Vec3, b: Vec3) -> Self {
+        Self {
             origin: a,
             direction: b - a,
         }
     }
 
-    pub fn extended(&self, t: f32) -> Ray {
-        Ray {
+    pub fn extended(&self, t: f32) -> Self {
+        Self {
             origin: self.origin,
             direction: t * self.direction,
         }
@@ -29,8 +29,8 @@ impl Ray {
         self.origin + t * self.direction
     }
 
-    pub fn reverse(&self) -> Ray {
-        Ray {
+    pub fn reverse(&self) -> Self {
+        Self {
             origin: self.origin + self.direction,
             direction: -self.direction,
         }

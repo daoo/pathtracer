@@ -14,7 +14,7 @@ fn build_helper(
     depth: u32,
     cell: KdCell,
     sides: &mut [EventSide],
-) -> Box<KdNode> {
+) -> KdNode {
     let _ = sides;
     if depth as usize >= MAX_DEPTH || cell.indices.is_empty() {
         return KdNode::new_leaf(cell.indices);
@@ -31,7 +31,7 @@ fn build_helper(
 }
 
 pub fn build_kdtree(geometries: &[Shape], sah: &SahCost) -> KdNode {
-    *build_helper(
+    build_helper(
         geometries,
         sah,
         1,
@@ -77,9 +77,9 @@ mod tests {
             KdNode::new_leaf(vec![1]),
         );
         assert_eq!(
-            actual, *expected,
+            actual, expected,
             "\n   actual: {}\n expected: {}",
-            actual, *expected
+            actual, expected
         );
     }
 
@@ -109,9 +109,9 @@ mod tests {
             KdNode::new_node(Aap::new_z(1.0), KdNode::empty(), KdNode::new_leaf(vec![1])),
         );
         assert_eq!(
-            actual, *expected,
+            actual, expected,
             "\n   actual: {}\n expected: {}",
-            actual, *expected
+            actual, expected
         );
     }
 
@@ -219,9 +219,9 @@ mod tests {
             ),
         );
         assert_eq!(
-            actual, *expected,
+            actual, expected,
             "\n   actual: {}\n expected: {}",
-            actual, *expected
+            actual, expected
         );
     }
 }

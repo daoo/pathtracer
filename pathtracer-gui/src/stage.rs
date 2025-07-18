@@ -57,7 +57,7 @@ impl InputState {
     }
 }
 
-pub(crate) struct Stage {
+pub struct Stage {
     ctx: Box<GlContext>,
 
     pipeline: Pipeline,
@@ -74,7 +74,7 @@ pub(crate) struct Stage {
 }
 
 impl Stage {
-    pub fn new(pathtracer: Pathtracer<KdNode>, camera: Camera) -> Stage {
+    pub fn new(pathtracer: Pathtracer<KdNode>, camera: Camera) -> Self {
         let target_size = UVec2::new(128, 128);
         let pinhole = Pinhole::new(camera.clone(), target_size);
         let worker = Worker::spawn(pathtracer, pinhole);
@@ -138,7 +138,7 @@ impl Stage {
             PipelineParams::default(),
         );
 
-        Stage {
+        Self {
             ctx,
             pipeline,
             bindings,
@@ -151,7 +151,7 @@ impl Stage {
         }
     }
 
-    fn send_pinhole(&mut self) {
+    fn send_pinhole(&self) {
         if let Some(worker) = &self.worker {
             let pinhole = Pinhole::new(self.camera.clone(), self.target_size);
             worker.send(pinhole);
@@ -160,13 +160,13 @@ impl Stage {
     }
 
     fn update_input(&mut self) {
-        let now = Instant::now();
         const TRANSLATION_SPEED: Vec3 = Vec3::new(1.5, 1.5, 1.5);
         const ROTATION_SPEED: Vec3 = Vec3::new(
             std::f32::consts::FRAC_PI_4,
             std::f32::consts::FRAC_PI_4,
             std::f32::consts::FRAC_PI_4,
         );
+        let now = Instant::now();
         let duration = now - self.last_update;
         let translation = self.input.translation(&TRANSLATION_SPEED, duration);
         let rotation = self.input.rotation(&ROTATION_SPEED, duration);

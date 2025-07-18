@@ -22,12 +22,12 @@ impl ImageBuffer {
     }
 
     #[inline]
-    fn index(&self, idx: UVec2) -> usize {
+    const fn index(&self, idx: UVec2) -> usize {
         (self.size.x * idx.y + idx.x) as usize
     }
 
     pub fn to_rgb8(self, iterations: u16) -> Vec<u8> {
-        let iterations_inv = 1.0 / iterations as f32;
+        let iterations_inv = 1.0 / f32::from(iterations);
         self.pixels
             .into_iter()
             .flat_map(|p| -> [u8; 3] {
@@ -39,7 +39,7 @@ impl ImageBuffer {
 
     #[inline]
     pub fn into_rgba_iter(self, iterations: u16) -> impl Iterator<Item = [u8; 4]> {
-        let iterations_inv = 1.0 / iterations as f32;
+        let iterations_inv = 1.0 / f32::from(iterations);
         self.pixels.into_iter().map(move |p| -> [u8; 4] {
             let p = (gamma_correct(p * iterations_inv) * 255.0).round();
             [p.x as u8, p.y as u8, p.z as u8, u8::MAX]

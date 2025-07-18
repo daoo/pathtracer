@@ -79,8 +79,8 @@ impl Triangle {
         };
 
         check_axis(Axis::X)
-            .or(check_axis(Axis::Y))
-            .or(check_axis(Axis::Z))
+            .or_else(|| check_axis(Axis::Y))
+            .or_else(|| check_axis(Axis::Z))
     }
 
     /// Compute triangle-ray intersection using the Möller–Trumbore algorithm.
@@ -189,7 +189,7 @@ pub struct TriangleIntersection {
 }
 
 impl TriangleIntersection {
-    pub fn new(t: f32, u: f32, v: f32) -> Self {
+    pub const fn new(t: f32, u: f32, v: f32) -> Self {
         Self { t, u, v }
     }
 }
@@ -200,7 +200,7 @@ where
 {
     #[inline]
     fn from(value: [T; 3]) -> Self {
-        Triangle {
+        Self {
             v0: value[0].into(),
             v1: value[1].into(),
             v2: value[2].into(),

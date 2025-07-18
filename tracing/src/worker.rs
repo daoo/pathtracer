@@ -20,7 +20,7 @@ fn create_ray_logger(thread: u32) -> RayLoggerWriter {
         let path = format!("./tmp/raylog{thread}.bin");
         RayLoggerWriter::create(path).unwrap()
     } else {
-        RayLoggerWriter::None()
+        RayLoggerWriter::None
     }
 }
 
@@ -39,13 +39,13 @@ where
     let mut buffer = ImageBuffer::new(size);
     let mut ray_logger = create_ray_logger(thread);
     for iteration in 0..iterations {
-        let (duration, _) = measure::measure(|| {
+        let (duration, ()) = measure::measure(|| {
             pathtracer.render_mut(
                 camera,
                 &mut ray_logger.with_iteration(iteration as u16),
                 &mut rng,
                 &mut buffer,
-            )
+            );
         });
         tx.send(duration).unwrap();
     }
@@ -65,7 +65,7 @@ pub fn render_parallel_subdivided(
             |(mut rng, mut buffer), i| {
                 let pixel = UVec2::new(i % count.x * sub_size.x, i / count.x * sub_size.y);
                 let mut ray_logger = RayLoggerWithIteration {
-                    writer: &mut RayLoggerWriter::None(),
+                    writer: &mut RayLoggerWriter::None,
                     iteration: 0,
                 };
                 pathtracer.render_subdivided_mut(
@@ -86,7 +86,7 @@ pub fn render_parallel_subdivided(
 
 pub fn render_parallel_iterations<Accelerator>(
     pathtracer: &Pathtracer<Accelerator>,
-    camera: Pinhole,
+    camera: &Pinhole,
     size: UVec2,
     threads: u32,
     iterations_per_thread: u32,
@@ -96,7 +96,7 @@ where
     Accelerator: IntersectionAccelerator + Send + Sync,
 {
     let total_iterations = threads * iterations_per_thread;
-    thread::scope(|s| {
+    let result = thread::scope(|s| {
         let (duration, buffer) = measure::measure(|| {
             let threads = (0..threads)
                 .map(|i| {
@@ -119,5 +119,7 @@ where
             buffer.to_rgb8(total_iterations as u16),
         );
         (duration, image.unwrap())
-    })
+    });
+    drop(tx);
+    result
 }

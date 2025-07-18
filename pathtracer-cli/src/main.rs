@@ -24,11 +24,11 @@ struct Size {
 }
 
 impl Size {
-    fn new(x: u32, y: u32) -> Self {
-        Size { x, y }
+    const fn new(x: u32, y: u32) -> Self {
+        Self { x, y }
     }
 
-    fn as_uvec2(self) -> UVec2 {
+    const fn as_uvec2(self) -> UVec2 {
         UVec2::new(self.x, self.y)
     }
 }
@@ -38,7 +38,7 @@ impl FromStr for Size {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let pos = s.find('x').expect("Could not parse");
-        Ok(Size {
+        Ok(Self {
             x: s[0..pos].parse()?,
             y: s[pos + 1..].parse()?,
         })
@@ -86,6 +86,10 @@ struct Args {
 }
 
 fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
+    // ANSI escape codes
+    const CSI_ERASE_IN_LINE: &str = "\x1B[1K";
+    const CSI_CURSOR_HORIZONTAL_ABSOLUTE: &str = "\x1B[1G";
+
     let mut total = 0.0;
     let mut total_squared = 0.0;
     let mut completed = 0;
@@ -99,9 +103,6 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
             let mean = total / f64::from(completed);
             let sdev = ((total_squared / f64::from(completed)) - mean * mean).sqrt();
             let eta = (f64::from(iterations - completed) * mean) / f64::from(threads);
-            // ANSI escape codes
-            const CSI_ERASE_IN_LINE: &str = "\x1B[1K";
-            const CSI_CURSOR_HORIZONTAL_ABSOLUTE: &str = "\x1B[1G";
             print!(
                 "{}{}[{}/{}] mean: {:.2}, sdev: {:.2}, eta: {:.2}",
                 CSI_ERASE_IN_LINE,
@@ -163,7 +164,7 @@ fn main() {
         let printer = s.spawn(move || printer_thread(args.threads, total_iterations, &rx));
         let (duration, image) = render_parallel_iterations(
             &pathtracer,
-            camera,
+            &camera,
             args.size.as_uvec2(),
             args.threads,
             args.iterations_per_thread,

@@ -60,15 +60,15 @@ impl From<Triangle> for Shape {
     fn from(value: Triangle) -> Self {
         value
             .as_axially_aligned()
-            .map(Shape::AxiallyAlignedTriangle)
-            .unwrap_or(Shape::Triangle(value))
+            .map(Self::AxiallyAlignedTriangle)
+            .unwrap_or(Self::Triangle(value))
     }
 }
 
 impl From<Sphere> for Shape {
     #[inline]
     fn from(value: Sphere) -> Self {
-        Shape::Sphere(value)
+        Self::Sphere(value)
     }
 }
 
@@ -79,36 +79,36 @@ pub enum ShapeIntersection {
 }
 
 impl ShapeIntersection {
-    pub fn new_triangle(t: f32, u: f32, v: f32) -> Self {
+    pub const fn new_triangle(t: f32, u: f32, v: f32) -> Self {
         Self::Triangle(TriangleIntersection { t, u, v })
     }
 
-    pub fn new_sphere(t: f32, normal: Vec3) -> Self {
+    pub const fn new_sphere(t: f32, normal: Vec3) -> Self {
         Self::Sphere(SphereIntersection { t, normal })
     }
 
-    pub fn t(&self) -> f32 {
+    pub const fn t(&self) -> f32 {
         match self {
             Self::Sphere(i) => i.t,
             Self::Triangle(i) => i.t,
         }
     }
 
-    pub fn u(&self) -> Option<f32> {
+    pub const fn u(&self) -> Option<f32> {
         match self {
             Self::Sphere(_) => None,
             Self::Triangle(i) => Some(i.u),
         }
     }
 
-    pub fn v(&self) -> Option<f32> {
+    pub const fn v(&self) -> Option<f32> {
         match self {
             Self::Sphere(_) => None,
             Self::Triangle(i) => Some(i.v),
         }
     }
 
-    pub fn normal(&self) -> Option<Vec3> {
+    pub const fn normal(&self) -> Option<Vec3> {
         match self {
             Self::Sphere(i) => Some(i.normal),
             Self::Triangle(_) => None,

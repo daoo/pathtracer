@@ -11,32 +11,32 @@ pub struct Aap {
 }
 
 impl Aap {
-    pub fn new_x(distance: f32) -> Aap {
-        Aap {
+    pub const fn new_x(distance: f32) -> Self {
+        Self {
             axis: Axis::X,
             distance,
         }
     }
 
-    pub fn new_y(distance: f32) -> Aap {
-        Aap {
+    pub const fn new_y(distance: f32) -> Self {
+        Self {
             axis: Axis::Y,
             distance,
         }
     }
 
-    pub fn new_z(distance: f32) -> Aap {
-        Aap {
+    pub const fn new_z(distance: f32) -> Self {
+        Self {
             axis: Axis::Z,
             distance,
         }
     }
 
-    pub fn add_to(&self, point: Vec2) -> Vec3 {
+    pub const fn add_to(&self, point: Vec2) -> Vec3 {
         self.axis.add_to(point, self.distance)
     }
 
-    pub fn vector(&self) -> Vec3 {
+    pub const fn vector(&self) -> Vec3 {
         self.axis.as_vector3(self.distance)
     }
 

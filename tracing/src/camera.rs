@@ -12,9 +12,9 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(position: Vec3, target: Vec3, up: Vec3, fov_degrees: f32) -> Camera {
+    pub fn new(position: Vec3, target: Vec3, up: Vec3, fov_degrees: f32) -> Self {
         let direction = (target - position).normalize();
-        Camera {
+        Self {
             position,
             direction,
             up: up.normalize(),
@@ -24,7 +24,7 @@ impl Camera {
     }
 
     pub fn add_translation(&self, right: f32, up: f32, forward: f32) -> Self {
-        Camera {
+        Self {
             position: self.position + right * self.right + up * self.up + forward * self.direction,
             direction: self.direction,
             up: self.up,
@@ -33,11 +33,11 @@ impl Camera {
         }
     }
 
-    pub fn add_yaw_pitch_roll(&self, yaw: f32, pitch: f32, roll: f32) -> Camera {
+    pub fn add_yaw_pitch_roll(&self, yaw: f32, pitch: f32, roll: f32) -> Self {
         let quat_yaw = Quat::from_axis_angle(self.up, yaw);
         let quat_pitch = Quat::from_axis_angle(self.right, pitch);
         let quat_roll = Quat::from_axis_angle(self.direction, roll);
-        Camera {
+        Self {
             position: self.position,
             direction: (quat_yaw * quat_pitch) * self.direction,
             up: (quat_pitch * quat_roll) * self.up,
@@ -49,7 +49,7 @@ impl Camera {
 
 impl From<mtl::Camera> for Camera {
     fn from(value: mtl::Camera) -> Self {
-        Camera::new(
+        Self::new(
             value.position.into(),
             value.target.into(),
             value.up.into(),
@@ -68,14 +68,14 @@ pub struct Pinhole {
 }
 
 impl Pinhole {
-    pub fn new(camera: Camera, size: UVec2) -> Pinhole {
+    pub fn new(camera: Camera, size: UVec2) -> Self {
         let aspect_ratio = size.x as f32 / size.y as f32;
         let half_fov_radians = camera.fov_degrees * std::f32::consts::PI / 360.0;
         let x = camera.right * (half_fov_radians.sin() * aspect_ratio);
         let y = camera.up * half_fov_radians.sin();
         let z = camera.direction * half_fov_radians.cos();
 
-        Pinhole {
+        Self {
             camera,
             size,
             plane: z + y - x,

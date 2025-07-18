@@ -9,8 +9,8 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f32) -> Self {
-        Sphere { center, radius }
+    pub const fn new(center: Vec3, radius: f32) -> Self {
+        Self { center, radius }
     }
 
     pub fn min(&self) -> Vec3 {

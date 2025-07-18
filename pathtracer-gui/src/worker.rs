@@ -18,8 +18,8 @@ pub struct RenderResult {
 }
 
 impl RenderResult {
-    fn new(iterations: u16, duration: Duration, buffer: ImageBuffer) -> Self {
-        RenderResult {
+    const fn new(iterations: u16, duration: Duration, buffer: ImageBuffer) -> Self {
+        Self {
             iterations,
             duration,
             buffer,
@@ -72,7 +72,7 @@ fn worker_loop(
     }
 }
 
-pub(crate) struct Worker {
+pub struct Worker {
     thread: JoinHandle<()>,
     pinhole_tx: Sender<Pinhole>,
     result_rx: Receiver<RenderResult>,

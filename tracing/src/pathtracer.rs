@@ -50,9 +50,7 @@ where
                     intersection.is_some(),
                 )
                 .unwrap();
-            let GeometryIntersection { index, inner } = if let Some(intersection) = intersection {
-                intersection
-            } else {
+            let Some(GeometryIntersection { index, inner }) = intersection else {
                 return accumulated_radiance + accumulated_transport * self.environment;
             };
             let properties = &self.properties[index as usize];

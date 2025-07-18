@@ -7,13 +7,13 @@ use std::{
 use geometry::ray::Ray;
 
 pub enum RayLoggerWriter {
-    None(),
+    None,
     File(BufWriter<File>),
 }
 
 impl RayLoggerWriter {
-    pub fn empty() -> Self {
-        Self::None()
+    pub const fn empty() -> Self {
+        Self::None
     }
 
     pub fn create<P>(path: P) -> Result<Self, Error>
@@ -21,20 +21,21 @@ impl RayLoggerWriter {
         P: AsRef<Path>,
     {
         if !cfg!(feature = "ray_logging") {
-            return Ok(Self::None());
+            return Ok(Self::None);
         }
         let file = File::create(path)?;
         let buf = BufWriter::new(file);
         Ok(Self::File(buf))
     }
 
-    pub fn with_iteration(&mut self, iteration: u16) -> RayLoggerWithIteration<'_> {
+    pub const fn with_iteration(&mut self, iteration: u16) -> RayLoggerWithIteration<'_> {
         RayLoggerWithIteration {
             writer: self,
             iteration,
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn write(
         &mut self,
         ray: &Ray,
@@ -76,7 +77,7 @@ pub struct RayLoggerWithIteration<'a> {
 }
 
 impl RayLoggerWithIteration<'_> {
-    pub fn with_pixel(&mut self, x: u16, y: u16) -> RayLoggerWithIterationAndPixel<'_> {
+    pub const fn with_pixel(&mut self, x: u16, y: u16) -> RayLoggerWithIterationAndPixel<'_> {
         RayLoggerWithIterationAndPixel {
             writer: self.writer,
             iteration: self.iteration,
@@ -98,8 +99,8 @@ impl RayLoggerWithIterationAndPixel<'_> {
         let shadow = false;
         self.writer.write(
             ray,
-            shadow as u8,
-            intersect as u8,
+            u8::from(shadow),
+            u8::from(intersect),
             self.iteration,
             self.pixel_x,
             self.pixel_y,
@@ -111,8 +112,8 @@ impl RayLoggerWithIterationAndPixel<'_> {
         let shadow = true;
         self.writer.write(
             ray,
-            shadow as u8,
-            intersect as u8,
+            u8::from(shadow),
+            u8::from(intersect),
             self.iteration,
             self.pixel_x,
             self.pixel_y,

@@ -18,7 +18,7 @@ impl PointLight {
         self.intensity / (self.center - point).length_squared()
     }
 
-    fn sample(&self) -> (Vec3, RangeInclusive<f32>) {
+    const fn sample(&self) -> (Vec3, RangeInclusive<f32>) {
         (self.center, 0.0..=1.0)
     }
 }
@@ -60,17 +60,17 @@ impl Light {
     #[inline]
     pub fn emitted(&self, point: &Vec3) -> Vec3 {
         match self {
-            Light::PointLight(light) => light.emitted(point),
-            Light::SphericalLight(light) => light.point.emitted(point),
-            Light::DirectionalLight(light) => light.intensity,
+            Self::PointLight(light) => light.emitted(point),
+            Self::SphericalLight(light) => light.point.emitted(point),
+            Self::DirectionalLight(light) => light.intensity,
         }
     }
 
     pub fn sample_shadow_ray(&self, point: Vec3, rng: &mut SmallRng) -> (Ray, RangeInclusive<f32>) {
         let (target, t_range) = match self {
-            Light::PointLight(light) => light.sample(),
-            Light::SphericalLight(light) => light.sample(rng),
-            Light::DirectionalLight(light) => light.sample(point),
+            Self::PointLight(light) => light.sample(),
+            Self::SphericalLight(light) => light.sample(rng),
+            Self::DirectionalLight(light) => light.sample(point),
         };
         (Ray::between(point, target), t_range)
     }

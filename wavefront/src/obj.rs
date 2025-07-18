@@ -8,27 +8,27 @@ use nom::{
 };
 use std::{cmp::Ordering, io::BufRead, path::PathBuf};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Point {
     pub v: i32,
     pub t: i32,
     pub n: i32,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Face {
     pub points: Vec<Point>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Chunk {
     pub faces: Vec<Face>,
     pub material: String,
 }
 
 impl Chunk {
-    pub fn new(material: String) -> Chunk {
-        Chunk {
+    pub const fn new(material: String) -> Self {
+        Self {
             faces: Vec::new(),
             material,
         }

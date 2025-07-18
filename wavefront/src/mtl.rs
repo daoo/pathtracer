@@ -18,8 +18,8 @@ pub struct Material {
 }
 
 impl Material {
-    pub fn new(name: String) -> Material {
-        Material {
+    pub const fn new(name: String) -> Self {
+        Self {
             name,
             diffuse_map: String::new(),
             diffuse_reflection: [0.7, 0.7, 0.7],

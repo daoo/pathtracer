@@ -29,19 +29,19 @@ pub enum GeometryProperties {
 
 impl GeometryProperties {
     #[inline]
-    pub fn material(&self) -> usize {
+    pub const fn material(&self) -> usize {
         match self {
-            GeometryProperties::Triangle {
+            Self::Triangle {
                 normals: _,
                 texcoords: _,
                 material,
-            } => *material,
-            GeometryProperties::AxiallyAlignedTriangle {
+            }
+            | Self::AxiallyAlignedTriangle {
                 normals: _,
                 texcoords: _,
                 material,
-            } => *material,
-            GeometryProperties::Sphere {
+            }
+            | Self::Sphere {
                 material,
                 radius: _,
             } => *material,
@@ -51,17 +51,17 @@ impl GeometryProperties {
     #[inline]
     pub fn compute_normal(&self, intersection: &ShapeIntersection) -> Vec3 {
         match self {
-            GeometryProperties::Triangle {
+            Self::Triangle {
+                normals,
+                texcoords: _,
+                material: _,
+            }
+            | Self::AxiallyAlignedTriangle {
                 normals,
                 texcoords: _,
                 material: _,
             } => normals.lerp(intersection.u().unwrap(), intersection.v().unwrap()),
-            GeometryProperties::AxiallyAlignedTriangle {
-                normals,
-                texcoords: _,
-                material: _,
-            } => normals.lerp(intersection.u().unwrap(), intersection.v().unwrap()),
-            GeometryProperties::Sphere {
+            Self::Sphere {
                 material: _,
                 radius: _,
             } => intersection.normal().unwrap(),
@@ -71,17 +71,17 @@ impl GeometryProperties {
     #[inline]
     pub fn compute_texcoord(&self, intersection: &ShapeIntersection) -> Vec2 {
         match self {
-            GeometryProperties::Triangle {
+            Self::Triangle {
+                normals: _,
+                texcoords,
+                material: _,
+            }
+            | Self::AxiallyAlignedTriangle {
                 normals: _,
                 texcoords,
                 material: _,
             } => texcoords.lerp(intersection.u().unwrap(), intersection.v().unwrap()),
-            GeometryProperties::AxiallyAlignedTriangle {
-                normals: _,
-                texcoords,
-                material: _,
-            } => texcoords.lerp(intersection.u().unwrap(), intersection.v().unwrap()),
-            GeometryProperties::Sphere {
+            Self::Sphere {
                 material: _,
                 radius,
             } => {
@@ -142,8 +142,8 @@ pub struct GeometryIntersection {
 
 impl GeometryIntersection {
     #[inline]
-    pub fn new(index: u32, inner: ShapeIntersection) -> Self {
-        GeometryIntersection { index, inner }
+    pub const fn new(index: u32, inner: ShapeIntersection) -> Self {
+        Self { index, inner }
     }
 
     #[inline]

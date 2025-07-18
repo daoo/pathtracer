@@ -8,27 +8,27 @@ pub enum Axis {
 }
 
 impl Axis {
-    pub fn as_vector3(&self, v: f32) -> Vec3 {
+    pub const fn as_vector3(&self, v: f32) -> Vec3 {
         match self {
-            Axis::X => Vec3::new(v, 0.0, 0.0),
-            Axis::Y => Vec3::new(0.0, v, 0.0),
-            Axis::Z => Vec3::new(0.0, 0.0, v),
+            Self::X => Vec3::new(v, 0.0, 0.0),
+            Self::Y => Vec3::new(0.0, v, 0.0),
+            Self::Z => Vec3::new(0.0, 0.0, v),
         }
     }
 
-    pub fn add_to(&self, v: Vec2, s: f32) -> Vec3 {
+    pub const fn add_to(&self, v: Vec2, s: f32) -> Vec3 {
         match self {
-            Axis::X => Vec3::new(s, v.x, v.y),
-            Axis::Y => Vec3::new(v.x, s, v.y),
-            Axis::Z => Vec3::new(v.x, v.y, s),
+            Self::X => Vec3::new(s, v.x, v.y),
+            Self::Y => Vec3::new(v.x, s, v.y),
+            Self::Z => Vec3::new(v.x, v.y, s),
         }
     }
 
     pub fn remove_from(&self, v: Vec3) -> Vec2 {
         match self {
-            Axis::X => v.yz(),
-            Axis::Y => v.xz(),
-            Axis::Z => v.xy(),
+            Self::X => v.yz(),
+            Self::Y => v.xz(),
+            Self::Z => v.xy(),
         }
     }
 }

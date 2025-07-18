@@ -19,7 +19,7 @@ struct SahSplit {
 }
 
 impl SahSplit {
-    fn new_left(plane: Aap, cost: f32) -> Self {
+    const fn new_left(plane: Aap, cost: f32) -> Self {
         Self {
             plane,
             side: Side::Left,
@@ -27,7 +27,7 @@ impl SahSplit {
         }
     }
 
-    fn new_right(plane: Aap, cost: f32) -> Self {
+    const fn new_right(plane: Aap, cost: f32) -> Self {
         Self {
             plane,
             side: Side::Right,
@@ -39,7 +39,7 @@ impl SahSplit {
         if self.cost <= other.cost { self } else { other }
     }
 
-    fn zip_min(a: Option<SahSplit>, b: Option<SahSplit>) -> Option<SahSplit> {
+    fn zip_min(a: Option<Self>, b: Option<Self>) -> Option<Self> {
         match (a, b) {
             (None, None) => None,
             (Some(a), None) => Some(a),
@@ -121,7 +121,7 @@ impl SahCost {
 
 impl Default for SahCost {
     fn default() -> Self {
-        SahCost {
+        Self {
             traverse_cost: 1.0,
             intersect_cost: 1.5,
             empty_factor: 0.8,

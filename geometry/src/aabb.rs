@@ -9,20 +9,20 @@ pub struct Aabb {
 }
 
 impl Aabb {
-    pub fn from_extents(min: Vec3, max: Vec3) -> Aabb {
+    pub fn from_extents(min: Vec3, max: Vec3) -> Self {
         debug_assert!(min.cmple(max).all());
-        Aabb { min, max }
+        Self { min, max }
     }
 
-    pub fn empty() -> Aabb {
-        Aabb {
+    pub const fn empty() -> Self {
+        Self {
             min: Vec3::ZERO,
             max: Vec3::ZERO,
         }
     }
 
-    pub fn unit() -> Aabb {
-        Aabb {
+    pub const fn unit() -> Self {
+        Self {
             min: Vec3::new(0., 0., 0.),
             max: Vec3::new(1., 1., 1.),
         }
@@ -44,11 +44,11 @@ impl Aabb {
         self.max - self.min
     }
 
-    pub fn min(&self) -> &Vec3 {
+    pub const fn min(&self) -> &Vec3 {
         &self.min
     }
 
-    pub fn max(&self) -> &Vec3 {
+    pub const fn max(&self) -> &Vec3 {
         &self.max
     }
 
@@ -62,15 +62,15 @@ impl Aabb {
         size.x * size.y * size.z
     }
 
-    pub fn enlarge(&self, delta: Vec3) -> Aabb {
+    pub fn enlarge(&self, delta: Vec3) -> Self {
         let half_delta = delta / 2.0;
-        Aabb {
+        Self {
             min: self.min - half_delta,
             max: self.max + half_delta,
         }
     }
 
-    pub fn sides(&self) -> [Aap; 6] {
+    pub const fn sides(&self) -> [Aap; 6] {
         [
             Aap::new_x(self.min.x),
             Aap::new_x(self.max.x),
@@ -82,7 +82,7 @@ impl Aabb {
     }
 
     #[inline]
-    pub fn split(&self, plane: &Aap) -> (Aabb, Aabb) {
+    pub fn split(&self, plane: &Aap) -> (Self, Self) {
         debug_assert!(plane.distance >= self.min[plane.axis]);
         debug_assert!(plane.distance <= self.max[plane.axis]);
 
@@ -92,8 +92,8 @@ impl Aabb {
         let mut new_min = self.min;
         new_min[plane.axis] = plane.distance;
 
-        let fst = Aabb::from_extents(self.min, new_max);
-        let snd = Aabb::from_extents(new_min, self.max);
+        let fst = Self::from_extents(self.min, new_max);
+        let snd = Self::from_extents(new_min, self.max);
         (fst, snd)
     }
 

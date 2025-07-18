@@ -27,8 +27,8 @@ pub struct Surface {
 }
 
 impl Surface {
-    fn with_normal(&self, n: Vec3) -> Surface {
-        Surface {
+    const fn with_normal(&self, n: Vec3) -> Self {
+        Self {
             wi: self.wi,
             n,
             uv: self.uv,
@@ -51,22 +51,24 @@ pub struct SurfaceSample {
     pub wo: Vec3,
 }
 
-fn diffuse_reflective_brdf(texture: &Option<Rgb32FImage>, reflectance: &Vec3, uv: &Vec2) -> Vec3 {
-    if let Some(texture) = &texture {
-        let px = (texture.width() as f32 * uv.x).floor();
-        let py = (texture.height() as f32 * uv.y).floor();
-        let reflectance = Vec3::from(unsafe { texture.unsafe_get_pixel(px as u32, py as u32).0 });
-        reflectance * std::f32::consts::FRAC_1_PI
-    } else {
-        reflectance * std::f32::consts::FRAC_1_PI
-    }
+fn diffuse_reflective_brdf(texture: Option<&Rgb32FImage>, reflectance: &Vec3, uv: Vec2) -> Vec3 {
+    texture.map_or_else(
+        || reflectance * std::f32::consts::FRAC_1_PI,
+        |texture| {
+            let px = (texture.width() as f32 * uv.x).floor();
+            let py = (texture.height() as f32 * uv.y).floor();
+            let reflectance =
+                Vec3::from(unsafe { texture.unsafe_get_pixel(px as u32, py as u32).0 });
+            reflectance * std::f32::consts::FRAC_1_PI
+        },
+    )
 }
 
 fn diffuse_reflection_sample(
-    texture: &Option<Rgb32FImage>,
+    texture: Option<&Rgb32FImage>,
     reflectance: &Vec3,
     surface_normal: &Vec3,
-    uv: &Vec2,
+    uv: Vec2,
     rng: &mut SmallRng,
 ) -> SurfaceSample {
     let tangent = perpendicular(surface_normal).normalize();
@@ -129,13 +131,13 @@ pub struct Material {
 }
 
 impl Material {
-    pub fn load_from_mtl(image_directory: &Path, material: &mtl::Material) -> Material {
+    pub fn load_from_mtl(image_directory: &Path, material: &mtl::Material) -> Self {
         let texture = (!material.diffuse_map.is_empty()).then(|| {
             image::open(image_directory.join(&material.diffuse_map))
                 .unwrap()
                 .to_rgb32f()
         });
-        Material {
+        Self {
             diffuse_reflectance: material.diffuse_reflection.into(),
             diffuse_texture_reflectance: texture,
             specular_reflectance: material.specular_reflection.into(),
@@ -148,9 +150,9 @@ impl Material {
 
     pub fn brdf(&self, surface: &Surface) -> Vec3 {
         let reflection = diffuse_reflective_brdf(
-            &self.diffuse_texture_reflectance,
+            self.diffuse_texture_reflectance.as_ref(),
             &self.diffuse_reflectance,
-            &surface.uv,
+            surface.uv,
         );
         let transparency_blend = reflection * (1.0 - self.transparency);
         let fresnel_blend =
@@ -166,10 +168,10 @@ impl Material {
                 specular_refractive_sample(self.index_of_refraction, surface)
             } else {
                 diffuse_reflection_sample(
-                    &self.diffuse_texture_reflectance,
+                    self.diffuse_texture_reflectance.as_ref(),
                     &self.diffuse_reflectance,
                     &surface.n,
-                    &surface.uv,
+                    surface.uv,
                     rng,
                 )
             }
@@ -177,10 +179,10 @@ impl Material {
             specular_refractive_sample(self.index_of_refraction, surface)
         } else {
             diffuse_reflection_sample(
-                &self.diffuse_texture_reflectance,
+                self.diffuse_texture_reflectance.as_ref(),
                 &self.diffuse_reflectance,
                 &surface.n,
-                &surface.uv,
+                surface.uv,
                 rng,
             )
         }
