@@ -1,7 +1,6 @@
 use std::time::{Duration, Instant};
 
 use glam::{UVec2, Vec3};
-use kdtree::KdNode;
 use miniquad::{
     Bindings, BufferLayout, BufferSource, BufferType, BufferUsage, EventHandler, GlContext,
     KeyCode, PassAction, Pipeline, PipelineParams, RenderingBackend, ShaderSource, TextureId,
@@ -9,6 +8,7 @@ use miniquad::{
 };
 use tracing::{
     camera::{Camera, Pinhole},
+    collections::GeometryCollection,
     pathtracer::Pathtracer,
 };
 
@@ -74,7 +74,10 @@ pub struct Stage {
 }
 
 impl Stage {
-    pub fn new(pathtracer: Pathtracer<KdNode>, camera: Camera) -> Self {
+    pub fn new(
+        pathtracer: Pathtracer<impl GeometryCollection + Send + Sync + 'static>,
+        camera: Camera,
+    ) -> Self {
         let target_size = UVec2::new(128, 128);
         let pinhole = Pinhole::new(camera.clone(), target_size);
         let worker = Worker::spawn(pathtracer, pinhole);

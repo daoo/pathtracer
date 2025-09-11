@@ -7,27 +7,25 @@ use std::{
 use rand::{SeedableRng, rngs::SmallRng, seq::SliceRandom};
 
 use geometry::{
-    geometry::GeometryIntersection,
+    any_triangle::AnyTriangle,
+    geometry::IndexedIntersection,
     ray::Ray,
-    shape::{Shape, ShapeIntersection},
-    triangle::Triangle,
+    triangle::{Triangle, TriangleIntersection},
 };
-use kdtree::{
-    IntersectionAccelerator, KdNode, build::build_kdtree, format::write_tree_json, sah::SahCost,
-};
+use kdtree::{KdNode, build::build_kdtree, format::write_tree_json, sah::SahCost};
 use tracing::measure;
 use wavefront::obj;
 
 use crate::checked_intersection::CheckedIntersection;
 
-fn build_test_tree(geometries: &[Shape]) -> KdNode {
+fn build_test_tree(geometries: &[AnyTriangle]) -> KdNode {
     build_kdtree(geometries, &SahCost::default())
 }
 
 fn verify_removal(
-    geometries: &[Shape],
+    geometries: &[AnyTriangle],
     ray: &Ray,
-    actual: &(Shape, ShapeIntersection),
+    actual: &(AnyTriangle, TriangleIntersection),
     tree: &KdNode,
 ) -> bool {
     let intersection = tree.intersect(geometries, ray, 0.0..=f32::MAX).unwrap();
@@ -38,11 +36,11 @@ fn verify_removal(
 
 fn try_removing(
     ray: &Ray,
-    actual: &(Shape, ShapeIntersection),
-    geometries: &[Shape],
+    actual: &(AnyTriangle, TriangleIntersection),
+    geometries: &[AnyTriangle],
     try_index: usize,
     try_count: usize,
-) -> Option<Vec<Shape>> {
+) -> Option<Vec<AnyTriangle>> {
     let mut reduced = Vec::with_capacity(geometries.len() - try_count);
     reduced.extend_from_slice(&geometries[0..try_index]);
     reduced.extend_from_slice(&geometries[try_index + try_count..]);
@@ -52,9 +50,9 @@ fn try_removing(
 
 fn reduce_tree(
     seed: u64,
-    intersection: CheckedIntersection,
-    geometries: Vec<Shape>,
-) -> (Vec<Shape>, KdNode) {
+    intersection: CheckedIntersection<TriangleIntersection>,
+    geometries: Vec<AnyTriangle>,
+) -> (Vec<AnyTriangle>, KdNode) {
     let actual = (
         geometries[intersection.kdtree.as_ref().unwrap().index as usize].clone(),
         intersection.kdtree.as_ref().unwrap().inner.clone(),
@@ -108,13 +106,13 @@ pub(crate) fn kdtree_reduce(
             [3.897963, 0.24242611, -4.203691].into(),
             [-13.897963, 9.757574, 14.2036915].into(),
         ),
-        reference: Some(GeometryIntersection::new(
+        reference: Some(IndexedIntersection::new(
             7589,
-            ShapeIntersection::new_triangle(0.0004729527, 0.09395919, 0.47453666),
+            TriangleIntersection::new(0.0004729527, 0.09395919, 0.47453666),
         )),
-        kdtree: Some(GeometryIntersection::new(
+        kdtree: Some(IndexedIntersection::new(
             5556,
-            ShapeIntersection::new_triangle(0.05429069, 0.2189177, 0.74337834),
+            TriangleIntersection::new(0.05429069, 0.2189177, 0.74337834),
         )),
     };
     eprintln!("Seed: {seed}");
@@ -141,12 +139,11 @@ pub(crate) fn kdtree_reduce(
                     "Only tringular faces supported but found {} vertices.",
                     face.points.len()
                 );
-                Triangle {
+                AnyTriangle::from(Triangle {
                     v0: obj.index_vertex(&face.points[0]).into(),
                     v1: obj.index_vertex(&face.points[1]).into(),
                     v2: obj.index_vertex(&face.points[2]).into(),
-                }
-                .into()
+                })
             })
         })
         .collect::<Vec<_>>();

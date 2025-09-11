@@ -1,20 +1,19 @@
 use crate::KdNode;
-use geometry::{axis::Axis, shape::Shape};
+use geometry::{any_triangle::AnyTriangle, axis::Axis};
 use std::io::{self};
 
-fn write_triangle_bracketed<W>(write: &mut W, geometries: &[Shape]) -> Result<(), io::Error>
+fn write_triangle_bracketed<W>(write: &mut W, triangles: &[AnyTriangle]) -> Result<(), io::Error>
 where
     W: io::Write,
 {
     write!(
         write,
         "{:?}",
-        geometries
+        triangles
             .iter()
             .map(|t| match t {
-                Shape::Triangle(t) => t.as_arrays(),
-                Shape::AxiallyAlignedTriangle(t) => t.as_arrays(),
-                Shape::Sphere(_) => todo!(),
+                AnyTriangle::Triangle(t) => t.as_arrays(),
+                AnyTriangle::AxiallyAlignedTriangle(t) => t.as_arrays(),
             })
             .collect::<Vec<_>>()
     )
@@ -77,7 +76,7 @@ where
 
 pub fn write_tree_rust<W>(
     write: &mut W,
-    geometries: &[Shape],
+    geometries: &[AnyTriangle],
     tree: &KdNode,
 ) -> Result<(), io::Error>
 where
@@ -116,7 +115,7 @@ where
 
 pub fn write_tree_json<W>(
     write: &mut W,
-    geometries: &[Shape],
+    geometries: &[AnyTriangle],
     tree: &KdNode,
 ) -> Result<(), io::Error>
 where

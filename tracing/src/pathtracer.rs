@@ -1,33 +1,26 @@
 use crate::{
     camera::Pinhole,
+    collections::GeometryCollection,
     image_buffer::ImageBuffer,
     light::Light,
-    material::{Material, Surface},
+    material::Surface,
     raylogger::{RayLoggerWithIteration, RayLoggerWithIterationAndPixel},
     sampling::uniform_sample_unit_square,
 };
-use geometry::{
-    geometry::{GeometryIntersection, GeometryProperties},
-    ray::Ray,
-    shape::Shape,
-};
+use geometry::{geometry::Intersection, ray::Ray};
 use glam::{UVec2, Vec3};
-use kdtree::IntersectionAccelerator;
 use rand::rngs::SmallRng;
 
-pub struct Pathtracer<Accelerator> {
+pub struct Pathtracer<GC> {
     pub max_bounces: u8,
-    pub geometries: Vec<Shape>,
-    pub properties: Vec<GeometryProperties>,
-    pub materials: Vec<Material>,
+    pub geometry_collection: GC,
     pub lights: Vec<Light>,
     pub environment: Vec3,
-    pub accelerator: Accelerator,
 }
 
-impl<Accelerator> Pathtracer<Accelerator>
+impl<GC> Pathtracer<GC>
 where
-    Accelerator: IntersectionAccelerator,
+    GC: GeometryCollection,
 {
     fn trace_ray(
         &self,
@@ -38,33 +31,30 @@ where
         let mut accumulated_radiance = Vec3::ZERO;
         let mut accumulated_transport = Vec3::ONE;
         for bounce in 1..=self.max_bounces {
-            let intersection = self
-                .accelerator
-                .intersect(&self.geometries, &ray, 0.0..=f32::MAX);
+            let intersection = self.geometry_collection.intersect(&ray, 0.0..=f32::MAX);
             ray_logger
                 .log_ray(
                     &intersection
                         .as_ref()
-                        .map_or(ray.clone(), |isect| isect.inner.ray(&ray)),
+                        .map_or(ray.clone(), |isect| ray.extended(isect.inner.t())),
                     bounce,
                     intersection.is_some(),
                 )
                 .unwrap();
-            let Some(GeometryIntersection { index, inner }) = intersection else {
+            let Some(intersection) = intersection else {
                 return accumulated_radiance + accumulated_transport * self.environment;
             };
-            let properties = &self.properties[index as usize];
 
             let wi = -ray.direction;
-            let n = properties.compute_normal(&inner);
-            let uv = properties.compute_texcoord(&inner);
-            let material = &self.materials[properties.material()];
+            let n = self.geometry_collection.compute_normal(&intersection);
+            let uv = self.geometry_collection.compute_texcoord(&intersection);
+            let material = self.geometry_collection.material(&intersection);
 
             // TODO: How to chose offset?
             // In PBRT the offset is chosen based on the surface normal, surface intersection
             // calculation error, sampled incoming direction and then rounded up to the next float.
             let offset = 0.00001 * n;
-            let point = inner.point(&ray);
+            let point = ray.param(intersection.inner.t());
             let point_above = point + offset;
             let point_below = point - offset;
 
@@ -74,9 +64,7 @@ where
                 .map(|light| {
                     // TODO: Offset should depend on incoming direction, not only surface normal.
                     let (shadow_ray, t_range) = light.sample_shadow_ray(point_above, rng);
-                    let intersection =
-                        self.accelerator
-                            .intersect(&self.geometries, &shadow_ray, t_range);
+                    let intersection = self.geometry_collection.intersect(&shadow_ray, t_range);
                     ray_logger
                         .log_shadow(&shadow_ray, bounce, intersection.is_some())
                         .unwrap();

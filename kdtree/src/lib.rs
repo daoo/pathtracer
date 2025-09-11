@@ -3,9 +3,8 @@ use std::{fmt::Display, ops::RangeInclusive};
 use arrayvec::ArrayVec;
 use geometry::{
     aap::Aap,
-    geometry::{GeometryIntersection, intersect_closest_geometry},
+    geometry::{Geometry, IndexedIntersection, intersect_closest_geometry},
     ray::Ray,
-    shape::Shape,
 };
 
 pub mod build;
@@ -57,7 +56,7 @@ impl KdNode {
     }
 
     #[inline]
-    pub fn iter_nodes(&self) -> KdNodeIter {
+    pub fn iter_nodes(&self) -> KdNodeIter<'_> {
         KdNodeIter::new(self)
     }
 
@@ -70,22 +69,16 @@ impl KdNode {
     }
 }
 
-pub trait IntersectionAccelerator {
-    fn intersect(
+impl KdNode {
+    pub fn intersect<G>(
         &self,
-        geometries: &[Shape],
+        geometries: &[G],
         ray: &Ray,
         t_range: RangeInclusive<f32>,
-    ) -> Option<GeometryIntersection>;
-}
-
-impl IntersectionAccelerator for KdNode {
-    fn intersect(
-        &self,
-        geometries: &[Shape],
-        ray: &Ray,
-        t_range: RangeInclusive<f32>,
-    ) -> Option<GeometryIntersection> {
+    ) -> Option<IndexedIntersection<G::Intersection>>
+    where
+        G: Geometry,
+    {
         let mut node = self;
         let mut t1 = *t_range.start();
         let mut t2 = *t_range.end();
@@ -195,14 +188,20 @@ impl<'a> Iterator for KdNodeIter<'a> {
 
 #[cfg(test)]
 mod tests {
-    use geometry::{aap::Aap, axis::Axis, ray::Ray, shape::ShapeIntersection, triangle::Triangle};
+    use geometry::{
+        aap::Aap,
+        any_triangle::AnyTriangle,
+        axis::Axis,
+        ray::Ray,
+        triangle::{Triangle, TriangleIntersection},
+    };
     use glam::Vec3;
 
     use super::*;
 
     #[test]
     fn intersect_empty_node() {
-        let geometries = vec![];
+        let geometries: [Triangle; 0] = [];
         let node = KdNode::empty();
         let ray = Ray::between(Vec3::new(0., 0., 0.), Vec3::new(1., 1., 1.));
 
@@ -221,7 +220,7 @@ mod tests {
             v1: Vec3::new(2., 0., 1.),
             v2: Vec3::new(2., 2., 1.),
         };
-        let geometries = vec![triangle0.into(), triangle1.into()];
+        let geometries = [triangle0, triangle1];
         let node = KdNode::new_node(
             Aap {
                 axis: Axis::X,
@@ -234,16 +233,16 @@ mod tests {
 
         assert_eq!(
             node.intersect(&geometries, &ray, 0.0..=1.0),
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 0,
-                ShapeIntersection::new_triangle(0.25, 0., 0.5)
+                TriangleIntersection::new(0.25, 0., 0.5)
             ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray.reverse(), 0.0..=1.0),
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 1,
-                ShapeIntersection::new_triangle(0.25, 0., 0.5)
+                TriangleIntersection::new(0.25, 0., 0.5)
             ))
         );
     }
@@ -260,7 +259,7 @@ mod tests {
             v1: Vec3::new(2., 0., 0.),
             v2: Vec3::new(2., 1., 0.),
         };
-        let geometries = vec![triangle0.into(), triangle1.into()];
+        let geometries = [triangle0, triangle1];
         let node = KdNode::new_node(
             Aap::new_x(1.0),
             KdNode::new_leaf(vec![0]),
@@ -271,16 +270,16 @@ mod tests {
 
         assert_eq!(
             node.intersect(&geometries, &ray_triangle0_v0, 0.0..=1.0),
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 0,
-                ShapeIntersection::new_triangle(0.5, 0., 0.)
+                TriangleIntersection::new(0.5, 0., 0.)
             ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray_triangle1_v1, 0.0..=1.0),
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 1,
-                ShapeIntersection::new_triangle(0.5, 1., 0.)
+                TriangleIntersection::new(0.5, 1., 0.)
             ))
         );
     }
@@ -297,7 +296,7 @@ mod tests {
             v1: Vec3::new(2., 1., -1.),
             v2: Vec3::new(2., 1., 1.),
         };
-        let geometries = vec![triangle0.into(), triangle1.into()];
+        let geometries = [triangle0, triangle1];
         let node = KdNode::new_node(
             Aap::new_x(1.0),
             KdNode::new_leaf(vec![0]),
@@ -307,16 +306,16 @@ mod tests {
 
         assert_eq!(
             node.intersect(&geometries, &ray, 0.0..=1.0),
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 0,
-                ShapeIntersection::new_triangle(0.25, 0., 0.5)
+                TriangleIntersection::new(0.25, 0., 0.5)
             ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray.reverse(), 0.0..=1.0),
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 1,
-                ShapeIntersection::new_triangle(0.25, 0., 0.5)
+                TriangleIntersection::new(0.25, 0., 0.5)
             ))
         );
     }
@@ -328,7 +327,7 @@ mod tests {
             v1: Vec3::new(1., 0., 1.),
             v2: Vec3::new(0., 1., 1.),
         };
-        let geometries = vec![triangle.into()];
+        let geometries = [triangle];
         let tree_left =
             KdNode::new_node(Aap::new_z(1.0), KdNode::new_leaf(vec![0]), KdNode::empty());
         let tree_right =
@@ -337,16 +336,16 @@ mod tests {
 
         assert_eq!(
             tree_left.intersect(&geometries, &ray, 0.0..=1.0),
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 0,
-                ShapeIntersection::new_triangle(0.5, 0., 0.)
+                TriangleIntersection::new(0.5, 0., 0.)
             ))
         );
         assert_eq!(
             tree_right.intersect(&geometries, &ray, 0.0..=1.0),
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 0,
-                ShapeIntersection::new_triangle(0.5, 0., 0.)
+                TriangleIntersection::new(0.5, 0., 0.)
             ))
         );
     }
@@ -358,7 +357,7 @@ mod tests {
             v1: Vec3::new(1., 0., 1.),
             v2: Vec3::new(0., 1., 1.),
         };
-        let geometries = vec![triangle.into()];
+        let geometries = [triangle];
         let node = KdNode::new_node(
             Aap::new_z(1.0),
             KdNode::new_node(Aap::new_z(1.0), KdNode::new_leaf(vec![0]), KdNode::empty()),
@@ -368,16 +367,16 @@ mod tests {
 
         assert_eq!(
             node.intersect(&geometries, &ray, 0.0..=1.0),
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 0,
-                ShapeIntersection::new_triangle(0.5, 0., 0.)
+                TriangleIntersection::new(0.5, 0., 0.)
             ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray.reverse(), 0.0..=1.0),
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 0,
-                ShapeIntersection::new_triangle(0.5, 0., 0.)
+                TriangleIntersection::new(0.5, 0., 0.)
             ))
         );
     }
@@ -389,7 +388,7 @@ mod tests {
             v1: Vec3::new(1., 0., 1.),
             v2: Vec3::new(0., 1., 1.),
         };
-        let geometries = vec![triangle.into()];
+        let geometries = [triangle];
         let node = KdNode::new_node(
             Aap::new_z(1.0),
             KdNode::empty(),
@@ -399,16 +398,16 @@ mod tests {
 
         assert_eq!(
             node.intersect(&geometries, &ray, 0.0..=1.0),
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 0,
-                ShapeIntersection::new_triangle(0.5, 0., 0.)
+                TriangleIntersection::new(0.5, 0., 0.)
             ))
         );
         assert_eq!(
             node.intersect(&geometries, &ray.reverse(), 0.0..=1.0),
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 0,
-                ShapeIntersection::new_triangle(0.5, 0., 0.)
+                TriangleIntersection::new(0.5, 0., 0.)
             ))
         );
     }
@@ -420,7 +419,7 @@ mod tests {
             v1: Vec3::new(-1.0, 1.0, -1.0),
             v2: Vec3::new(1.0, -1.0, -1.0),
         };
-        let geometries = vec![triangle.into()];
+        let geometries = [triangle];
         let node = KdNode::new_node(
             Aap::new_z(-1.0),
             KdNode::empty(),
@@ -435,21 +434,21 @@ mod tests {
 
         assert_eq!(
             actual,
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 0,
-                ShapeIntersection::new_triangle(4.329569, 0.35612673, 0.32146382)
+                TriangleIntersection::new(4.329569, 0.35612673, 0.32146382)
             ))
         );
     }
 
     #[test]
     fn intersect_rounding_error_example() {
-        let triangle = Triangle {
+        let triangle = AnyTriangle::from(Triangle {
             v0: Vec3::new(-1.0, -1.0, 1.0),
             v1: Vec3::new(-1.0, -1.0, -1.0),
             v2: Vec3::new(-1.0, 1.0, 1.0),
-        };
-        let geometries = vec![triangle.into()];
+        });
+        let geometries = [triangle];
         let node = KdNode::new_node(Aap::new_x(-1.0), KdNode::empty(), KdNode::new_leaf(vec![0]));
         let ray = Ray::new(
             Vec3::new(-0.5170438, -0.4394186, -0.045965273),
@@ -460,9 +459,9 @@ mod tests {
 
         assert_eq!(
             actual,
-            Some(GeometryIntersection::new(
+            Some(IndexedIntersection::new(
                 0,
-                ShapeIntersection::new_triangle(0.5687325, 0.66772085, 0.24024889)
+                TriangleIntersection::new(0.5687325, 0.66772085, 0.24024889)
             ))
         );
     }

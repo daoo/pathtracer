@@ -1,4 +1,3 @@
-use geometry::geometry::from_wavefront;
 use kdtree::{build::build_kdtree, sah::SahCost};
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 use std::{
@@ -6,7 +5,7 @@ use std::{
     io::{BufWriter, Write},
     path::PathBuf,
 };
-use tracing::{camera::Pinhole, light::Light, material::Material};
+use tracing::{camera::Pinhole, light::Light, material::Material, properties::from_wavefront};
 use wavefront::read_obj_and_mtl_with_print_logging;
 
 use crate::{ray_bouncer::RayBouncer, size::Size};

@@ -4,11 +4,10 @@ use std::{
 };
 
 use glam::UVec2;
-use kdtree::KdNode;
 use time::Duration;
 use tracing::{
-    camera::Pinhole, image_buffer::ImageBuffer, measure::measure, pathtracer::Pathtracer,
-    worker::render_parallel_subdivided,
+    camera::Pinhole, collections::GeometryCollection, image_buffer::ImageBuffer, measure::measure,
+    pathtracer::Pathtracer, worker::render_parallel_subdivided,
 };
 
 pub struct RenderResult {
@@ -28,10 +27,10 @@ impl RenderResult {
 }
 
 fn worker_loop(
-    pathtracer: &Pathtracer<KdNode>,
+    pathtracer: Pathtracer<impl GeometryCollection + Send + Sync>,
     start_pinhole: Pinhole,
-    rx: &Receiver<Pinhole>,
-    tx: &Sender<RenderResult>,
+    rx: Receiver<Pinhole>,
+    tx: Sender<RenderResult>,
 ) {
     let mut pinhole = start_pinhole;
     let mut iteration = 0;
@@ -54,13 +53,13 @@ fn worker_loop(
                 UVec2::new(64, 64 * pinhole.size.y / pinhole.size.x),
             );
             let (duration, buffer) = measure(|| {
-                render_parallel_subdivided(pathtracer, &pinhole_small, pinhole_small.size / 3)
+                render_parallel_subdivided(&pathtracer, &pinhole_small, pinhole_small.size / 3)
             });
             let _ = tx.send(RenderResult::new(1, duration, buffer));
             iteration = 1;
         } else {
             let (duration, buffer) =
-                measure(|| render_parallel_subdivided(pathtracer, &pinhole, pinhole.size / 4));
+                measure(|| render_parallel_subdivided(&pathtracer, &pinhole, pinhole.size / 4));
             combined_buffer += buffer;
             let _ = tx.send(RenderResult::new(
                 iteration,
@@ -79,12 +78,15 @@ pub struct Worker {
 }
 
 impl Worker {
-    pub fn spawn(pathtracer: Pathtracer<KdNode>, pinhole: Pinhole) -> Self {
+    pub fn spawn(
+        pathtracer: Pathtracer<impl GeometryCollection + Send + Sync + 'static>,
+        pinhole: Pinhole,
+    ) -> Self {
         let (result_tx, result_rx) = mpsc::channel::<RenderResult>();
         let (pinhole_tx, pinhole_rx) = mpsc::channel::<Pinhole>();
         let thread = std::thread::Builder::new()
             .name("Pathtracer Worker".to_string())
-            .spawn(move || worker_loop(&pathtracer, pinhole, &pinhole_rx, &result_tx))
+            .spawn(move || worker_loop(pathtracer, pinhole, pinhole_rx, result_tx))
             .unwrap();
         Self {
             thread,

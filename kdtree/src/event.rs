@@ -1,5 +1,5 @@
 use geometry::axis::Axis;
-use geometry::shape::Shape;
+use geometry::geometry::Geometry;
 use glam::Vec3;
 use std::cmp::Ordering;
 use std::fmt::Debug;
@@ -80,7 +80,7 @@ pub fn extend_vec_with_events(
     extend_vec_with_events_for_axis(&mut events.2, index, min, max, Axis::Z);
 }
 
-pub fn generate_event_list(geometries: &[Shape]) -> (Vec<Event>, Vec<Event>, Vec<Event>) {
+pub fn generate_event_list(geometries: &[impl Geometry]) -> (Vec<Event>, Vec<Event>, Vec<Event>) {
     let mut events = (
         Vec::with_capacity(geometries.len() * 2),
         Vec::with_capacity(geometries.len() * 2),
@@ -109,7 +109,7 @@ mod tests {
             v1: Vec3::new(1.0, 1.0, 0.0),
             v2: Vec3::new(1.0, 1.0, 1.0),
         };
-        let geometries = [triangle].map(Shape::from);
+        let geometries = [triangle];
 
         let actual = generate_event_list(&geometries);
 
@@ -128,7 +128,7 @@ mod tests {
             v1: Vec3::new(0.0, 1.0, 0.0),
             v2: Vec3::new(0.0, 1.0, 1.0),
         };
-        let geometries = [triangle].map(Shape::from);
+        let geometries = [triangle];
 
         let actual = generate_event_list(&geometries);
 
@@ -157,7 +157,7 @@ mod tests {
             v1: Vec3::new(2.0, 2.0, 1.0),
             v2: Vec3::new(2.0, 2.0, 2.0),
         };
-        let geometries = [triangle1, triangle2, triangle3].map(Shape::from);
+        let geometries = [triangle1, triangle2, triangle3];
 
         let actual = generate_event_list(&geometries);
 

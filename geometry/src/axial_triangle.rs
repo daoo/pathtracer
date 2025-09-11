@@ -1,8 +1,6 @@
 use glam::{Vec2, Vec3};
 
-use crate::{
-    aabb::Aabb, aap::Aap, clip::clip_triangle_aabb, ray::Ray, triangle::TriangleIntersection,
-};
+use crate::{aap::Aap, ray::Ray, triangle::TriangleIntersection};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct AxiallyAlignedTriangle {
@@ -83,16 +81,6 @@ impl AxiallyAlignedTriangle {
         let point = ray.param(t);
         self.intersect_point(axis.remove_from(point))
             .map(|(u, v)| TriangleIntersection { t, u, v })
-    }
-
-    #[inline]
-    pub fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
-        clip_triangle_aabb(
-            &self.plane.add_to(self.v0),
-            &self.plane.add_to(self.v1),
-            &self.plane.add_to(self.v2),
-            aabb,
-        )
     }
 }
 

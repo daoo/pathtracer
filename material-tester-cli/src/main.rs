@@ -1,12 +1,7 @@
 use clap::Parser;
-use geometry::{
-    geometry::{GeometryIntersection, GeometryProperties, intersect_closest_geometry},
-    shape::Shape,
-    sphere::Sphere,
-};
+use geometry::sphere::Sphere;
 use glam::{UVec2, Vec3};
 use image::ImageFormat;
-use kdtree::IntersectionAccelerator;
 use std::{
     fmt::Display,
     io::Write,
@@ -17,9 +12,11 @@ use std::{
 use time::Duration;
 use tracing::{
     camera::{Camera, Pinhole},
+    collections::SphereCollection,
     light::{DirectionalLight, Light},
     material::Material,
     pathtracer::Pathtracer,
+    properties::SphereProperties,
     worker::render_parallel_iterations,
 };
 
@@ -112,20 +109,6 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
     }
 }
 
-struct NoAccelerator {}
-
-impl IntersectionAccelerator for NoAccelerator {
-    fn intersect(
-        &self,
-        geometries: &[Shape],
-        ray: &geometry::ray::Ray,
-        t_range: std::ops::RangeInclusive<f32>,
-    ) -> Option<GeometryIntersection> {
-        let indices = 0u32..geometries.len() as u32;
-        intersect_closest_geometry(geometries, indices, ray, t_range)
-    }
-}
-
 fn main() {
     let args = Args::parse();
 
@@ -151,11 +134,12 @@ fn main() {
         Sphere::new(Vec3::new(0.0, -1.0, 1.0), 0.45),
         Sphere::new(Vec3::new(0.0, 0.0, 1.0), 0.45),
         Sphere::new(Vec3::new(0.0, 1.0, 1.0), 0.45),
-    ];
-    let properties = spheres
+    ]
+    .to_vec();
+    let properties: Vec<SphereProperties> = spheres
         .iter()
         .enumerate()
-        .map(|(i, s)| GeometryProperties::Sphere {
+        .map(|(i, s)| SphereProperties {
             material: i,
             radius: s.radius,
         })
@@ -180,15 +164,16 @@ fn main() {
         direction: Vec3::new(-1.0, -1.0, 1.0),
         intensity: Vec3::ONE,
     }];
-    let accelerator = NoAccelerator {};
-    let pathtracer = Pathtracer {
-        max_bounces: args.max_bounces,
-        geometries: spheres.map(Shape::from).to_vec(),
+    let geometry_collection = SphereCollection {
+        spheres,
         properties,
         materials,
+    };
+    let pathtracer = Pathtracer {
+        max_bounces: args.max_bounces,
+        geometry_collection,
         lights: lights.map(Light::from).to_vec(),
         environment: Vec3::new(0.8, 0.8, 0.8),
-        accelerator,
     };
 
     thread::scope(|s| {

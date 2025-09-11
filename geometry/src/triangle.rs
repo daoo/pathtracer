@@ -1,9 +1,6 @@
 use glam::{Vec2, Vec3};
 
-use crate::{
-    aabb::Aabb, aap::Aap, axial_triangle::AxiallyAlignedTriangle, axis::Axis,
-    clip::clip_triangle_aabb, ray::Ray,
-};
+use crate::{aabb::Aabb, aap::Aap, axial_triangle::AxiallyAlignedTriangle, axis::Axis, ray::Ray};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Triangle {
@@ -56,10 +53,6 @@ impl Triangle {
     #[inline]
     pub fn max(&self) -> Vec3 {
         self.v0.max(self.v1.max(self.v2))
-    }
-
-    pub fn clip_aabb(&self, aabb: &Aabb) -> Option<Aabb> {
-        clip_triangle_aabb(&self.v0, &self.v1, &self.v2, aabb)
     }
 
     #[inline]

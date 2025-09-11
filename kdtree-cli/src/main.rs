@@ -1,5 +1,8 @@
 use clap::Parser;
-use geometry::{aabb::Aabb, bound::geometries_bounding_box, shape::Shape, triangle::Triangle};
+use geometry::{
+    aabb::Aabb, any_triangle::AnyTriangle, bound::geometries_bounding_box, geometry::Geometry,
+    triangle::Triangle,
+};
 use kdtree::{
     KdNode,
     build::build_kdtree,
@@ -82,7 +85,7 @@ fn node_cost(
 }
 
 fn tree_cost(
-    geometries: &[Shape],
+    geometries: &[impl Geometry],
     node: &KdNode,
     cost_traverse: f32,
     cost_intersect: f32,
@@ -136,7 +139,7 @@ struct KdTreeStatistics {
     leaf_geometries: Statistics,
 }
 
-fn statistics(geometries: &[Shape], tree: &KdNode) -> KdTreeStatistics {
+fn statistics(geometries: &[impl Geometry], tree: &KdNode) -> KdTreeStatistics {
     let geometries = geometries.len();
     let node_count = tree.iter_nodes().map(|_| 1).sum();
     let leaf_count = tree.iter_leafs().map(|_| 1).sum();
@@ -169,15 +172,14 @@ fn main() -> std::io::Result<()> {
                     "Only tringular faces supported but found {} vertices.",
                     face.points.len()
                 );
-                Triangle {
+                AnyTriangle::from(Triangle {
                     v0: obj.index_vertex(&face.points[0]).into(),
                     v1: obj.index_vertex(&face.points[1]).into(),
                     v2: obj.index_vertex(&face.points[2]).into(),
-                }
-                .into()
+                })
             })
         })
-        .collect::<Vec<Shape>>();
+        .collect::<Vec<_>>();
     eprintln!("  Geometries: {}", geometries.len());
 
     eprintln!("Building kdtree...");

@@ -1,5 +1,4 @@
 use clap::Parser;
-use geometry::geometry::from_wavefront;
 use glam::{UVec2, Vec3};
 use image::ImageFormat;
 use kdtree::{build::build_kdtree, sah::SahCost};
@@ -12,8 +11,8 @@ use std::{
 };
 use time::Duration;
 use tracing::{
-    camera::Pinhole, light::Light, material::Material, pathtracer::Pathtracer,
-    worker::render_parallel_iterations,
+    camera::Pinhole, collections::TriangleCollection, light::Light, material::Material,
+    pathtracer::Pathtracer, properties::from_wavefront, worker::render_parallel_iterations,
 };
 use wavefront::read_obj_and_mtl_with_print_logging;
 
@@ -124,11 +123,11 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
 fn main() {
     let args = Args::parse();
     let (obj, mtl, mtl_path) = read_obj_and_mtl_with_print_logging(&args.input).unwrap();
-    let (geometries, properties) = from_wavefront(&obj, &mtl);
+    let (triangles, properties) = from_wavefront(&obj, &mtl);
 
     println!("Building kdtree...");
-    let accelerator = build_kdtree(
-        &geometries,
+    let kdtree = build_kdtree(
+        &triangles,
         &SahCost {
             traverse_cost: args.traverse_cost,
             intersect_cost: args.intersect_cost,
@@ -149,14 +148,17 @@ fn main() {
         .map(|m| Material::load_from_mtl(image_directory, m))
         .collect();
     let lights = mtl.lights.iter().map(Light::from).collect();
-    let pathtracer = Pathtracer {
-        max_bounces: args.max_bounces,
-        geometries,
+    let geometry_collection = TriangleCollection {
+        triangles,
         properties,
         materials,
+        kdtree,
+    };
+    let pathtracer = Pathtracer {
+        max_bounces: args.max_bounces,
+        geometry_collection,
         lights,
         environment: Vec3::new(0.8, 0.8, 0.8),
-        accelerator,
     };
 
     thread::scope(|s| {

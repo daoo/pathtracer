@@ -1,10 +1,10 @@
-use crate::{aabb::Aabb, shape::Shape};
+use crate::{aabb::Aabb, geometry::Geometry};
 
 pub fn combine_bounding_boxes(a: &Aabb, b: &Aabb) -> Aabb {
     Aabb::from_extents(a.min().min(*b.min()), a.max().max(*b.max()))
 }
 
-pub fn geometries_bounding_box(shape: &[Shape]) -> Aabb {
+pub fn geometries_bounding_box(shape: &[impl Geometry]) -> Aabb {
     let mut it = shape.iter();
     let (mut a, mut b) = if let Some(first) = it.next() {
         (first.min(), first.max())
@@ -39,8 +39,7 @@ mod tests {
                 v1: Vec3::new(-1., -1., -1.),
                 v2: Vec3::new(0., 0., 0.),
             },
-        ]
-        .map(Into::into);
+        ];
 
         let actual = geometries_bounding_box(&triangles);
 

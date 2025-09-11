@@ -1,4 +1,4 @@
-use geometry::shape::Shape;
+use geometry::geometry::Geometry;
 
 use crate::{
     MAX_DEPTH,
@@ -9,7 +9,7 @@ use crate::{
 use super::KdNode;
 
 fn build_helper(
-    geometries: &[Shape],
+    geometries: &[impl Geometry],
     sah: &SahCost,
     depth: u32,
     cell: KdCell,
@@ -30,7 +30,7 @@ fn build_helper(
     }
 }
 
-pub fn build_kdtree(geometries: &[Shape], sah: &SahCost) -> KdNode {
+pub fn build_kdtree(geometries: &[impl Geometry], sah: &SahCost) -> KdNode {
     build_helper(
         geometries,
         sah,
@@ -63,7 +63,7 @@ mod tests {
             v1: Vec3::new(2.0, 0.0, 0.0),
             v2: Vec3::new(2.0, 1.0, 1.0),
         };
-        let geometries = [triangle1, triangle2].map(Shape::from);
+        let geometries = [triangle1, triangle2];
         let sah = SahCost {
             traverse_cost: 0.1,
             intersect_cost: 1.0,
@@ -95,7 +95,7 @@ mod tests {
             v1: Vec3::new(1.0, 0.0, 1.0),
             v2: Vec3::new(1.0, 1.0, 1.0),
         };
-        let geometries = [triangle1, triangle2].map(Shape::from);
+        let geometries = [triangle1, triangle2];
         let sah = SahCost {
             traverse_cost: 0.0,
             intersect_cost: 1.0,
@@ -185,13 +185,12 @@ mod tests {
                 v2: Vec3::new(1.0, 1.0, 1.0),
             },
         ];
-        let geometries = triangles.map(Shape::from);
         let sah = SahCost {
             traverse_cost: 0.0,
             intersect_cost: 1.0,
             empty_factor: 1.0,
         };
-        let actual = build_kdtree(&geometries, &sah);
+        let actual = build_kdtree(&triangles, &sah);
 
         let expected = KdNode::new_node(
             Aap::new_x(0.0),
