@@ -39,6 +39,7 @@ pub struct TriangleCollection {
 impl GeometryCollection for TriangleCollection {
     type Intersection = TriangleIntersection;
 
+    #[inline]
     fn intersect(
         &self,
         ray: &Ray,
@@ -47,14 +48,17 @@ impl GeometryCollection for TriangleCollection {
         self.kdtree.intersect(&self.triangles, ray, t_range)
     }
 
+    #[inline]
     fn compute_normal(&self, intersection: &IndexedIntersection<Self::Intersection>) -> Vec3 {
         self.properties[intersection.index as usize].compute_normal(&intersection.inner)
     }
 
+    #[inline]
     fn compute_texcoord(&self, intersection: &IndexedIntersection<Self::Intersection>) -> Vec2 {
         self.properties[intersection.index as usize].compute_texcoord(&intersection.inner)
     }
 
+    #[inline]
     fn material(&self, intersection: &IndexedIntersection<Self::Intersection>) -> &Material {
         &self.materials[self.properties[intersection.index as usize].material]
     }
@@ -69,6 +73,7 @@ pub struct SphereCollection {
 impl GeometryCollection for SphereCollection {
     type Intersection = SphereIntersection;
 
+    #[inline]
     fn intersect(
         &self,
         ray: &Ray,
@@ -82,14 +87,17 @@ impl GeometryCollection for SphereCollection {
         )
     }
 
+    #[inline]
     fn compute_normal(&self, intersection: &IndexedIntersection<Self::Intersection>) -> Vec3 {
         self.properties[intersection.index as usize].compute_normal(&intersection.inner)
     }
 
+    #[inline]
     fn compute_texcoord(&self, intersection: &IndexedIntersection<Self::Intersection>) -> Vec2 {
         self.properties[intersection.index as usize].compute_texcoord(&intersection.inner)
     }
 
+    #[inline]
     fn material(&self, intersection: &IndexedIntersection<Self::Intersection>) -> &Material {
         &self.materials[self.properties[intersection.index as usize].material]
     }

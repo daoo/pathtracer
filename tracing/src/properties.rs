@@ -32,10 +32,12 @@ impl TriangleProperties {
 }
 
 impl SphereProperties {
+    #[inline]
     pub fn compute_normal(&self, intersection: &SphereIntersection) -> Vec3 {
         intersection.normal
     }
 
+    #[inline]
     pub fn compute_texcoord(&self, intersection: &SphereIntersection) -> Vec2 {
         let normal = intersection.normal;
         let theta = normal.y.atan2(normal.x);
