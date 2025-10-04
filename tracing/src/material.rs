@@ -8,10 +8,15 @@ use wavefront::mtl;
 use crate::sampling::cosine_sample_hemisphere;
 
 fn perpendicular(v: &Vec3) -> Vec3 {
-    if v.x.abs() < v.y.abs() {
-        Vec3::new(0., -v.z, v.y)
+    let vx = v.x.abs();
+    let vy = v.y.abs();
+    let vz = v.z.abs();
+    if vx < vy && vx < vz {
+        Vec3::new(0.0, -v.z, v.y)
+    } else if vy < vz {
+        Vec3::new(-v.z, 0.0, v.x)
     } else {
-        Vec3::new(-v.z, 0., v.x)
+        Vec3::new(-v.y, v.x, 0.0)
     }
 }
 
@@ -40,7 +45,8 @@ impl Surface {
     }
 
     fn reflectance(&self, r0: f32) -> f32 {
-        r0 + (1.0 - r0) * (1.0 - self.wi.dot(self.n).abs()).powi(5)
+        let cos = self.wi.dot(self.n).abs().clamp(0.0, 1.0);
+        r0 + (1.0 - r0) * (1.0 - cos).powi(5)
     }
 }
 
