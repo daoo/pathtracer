@@ -51,6 +51,7 @@ where
             let material = self.geometry_collection.material(&intersection);
 
             // TODO: How to chose offset?
+            // TODO: Offset should depend on incoming direction, not only surface normal.
             // In PBRT the offset is chosen based on the surface normal, surface intersection
             // calculation error, sampled incoming direction and then rounded up to the next float.
             let offset = 0.00001 * n;
@@ -65,7 +66,6 @@ where
                 .lights
                 .iter()
                 .map(|light| {
-                    // TODO: Offset should depend on incoming direction, not only surface normal.
                     let (shadow_ray, t_range) = light.sample_shadow_ray(point_above, rng);
                     let intersection = self.geometry_collection.intersect(&shadow_ray, t_range);
                     ray_logger
