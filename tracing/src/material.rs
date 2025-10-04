@@ -80,13 +80,11 @@ fn diffuse_reflection_sample(
     let tangent = perpendicular(surface_normal).normalize();
     let bitangent = surface_normal.cross(tangent);
     let s = cosine_sample_hemisphere(rng);
-
-    let wo = (s.x * tangent + s.y * bitangent + s.z * surface_normal).normalize();
-    SurfaceSample {
-        pdf: 1.0,
-        brdf: diffuse_reflective_brdf(texture, reflectance, uv),
-        wo,
-    }
+    let wo = s.x * tangent + s.y * bitangent + s.z * surface_normal;
+    let cos_theta = wo.dot(*surface_normal).max(0.0);
+    let brdf = diffuse_reflective_brdf(texture, reflectance, uv);
+    let pdf = cos_theta * std::f32::consts::FRAC_1_PI;
+    SurfaceSample { pdf, brdf, wo }
 }
 
 fn specular_reflection_sample(reflectance: Vec3, surface: &Surface) -> SurfaceSample {
