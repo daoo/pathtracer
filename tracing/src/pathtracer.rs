@@ -82,7 +82,7 @@ where
 
             accumulated_radiance += accumulated_transport * incoming_radiance;
 
-            if sample.pdf <= 0.01 {
+            if sample.pdf == 0.0 {
                 return accumulated_radiance;
             }
 
