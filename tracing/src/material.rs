@@ -152,18 +152,6 @@ impl Material {
         }
     }
 
-    pub fn brdf(&self, surface: &Surface) -> Vec3 {
-        let reflection = diffuse_reflective_brdf(
-            self.diffuse_texture_reflectance.as_ref(),
-            &self.diffuse_reflectance,
-            surface.uv,
-        );
-        let transparency_blend = reflection * (1.0 - self.transparency);
-        let fresnel_blend =
-            transparency_blend * (1.0 - surface.reflectance(self.reflection_0_degrees));
-        transparency_blend.lerp(fresnel_blend, self.reflection_90_degrees)
-    }
-
     pub fn sample(&self, surface: &Surface, rng: &mut SmallRng) -> SurfaceSample {
         if rng.random::<f32>() < self.reflection_90_degrees {
             if rng.random::<f32>() < surface.reflectance(self.reflection_0_degrees) {

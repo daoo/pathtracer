@@ -57,6 +57,9 @@ where
             let point = ray.param(intersection.inner.t());
             let point_above = point + offset;
             let point_below = point - offset;
+            let surface = Surface { wi, n, uv };
+
+            let sample = material.sample(&surface, rng);
 
             let incoming_radiance: Vec3 = self
                 .lights
@@ -72,20 +75,18 @@ where
                         return Vec3::ZERO;
                     }
                     let radiance = light.emitted(&point);
-                    let brdf = material.brdf(&Surface { wi, n, uv });
                     let wo = shadow_ray.direction.normalize();
-                    brdf * radiance * wo.dot(n).abs()
+                    sample.brdf * radiance * wo.dot(surface.n).abs()
                 })
                 .sum();
 
             accumulated_radiance += accumulated_transport * incoming_radiance;
 
-            let sample = material.sample(&Surface { wi, n, uv }, rng);
             if sample.pdf <= 0.01 {
                 return accumulated_radiance;
             }
 
-            let cosine_term = sample.wo.dot(n);
+            let cosine_term = sample.wo.dot(surface.n);
             accumulated_transport *= sample.brdf * (cosine_term.abs() / sample.pdf);
             if accumulated_transport.length_squared() <= 1.0e-4 {
                 return accumulated_radiance;
