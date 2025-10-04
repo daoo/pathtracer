@@ -4,8 +4,8 @@ use kdtree::{build::build_kdtree, sah::SahCost};
 use miniquad::conf::Conf;
 use stage::Stage;
 use tracing::{
-    collections::TriangleCollection, light::Light, material::Material, pathtracer::Pathtracer,
-    properties::from_wavefront,
+    camera::Camera, collections::TriangleCollection, light::Light, material::Material,
+    pathtracer::Pathtracer, properties::from_wavefront,
 };
 use wavefront::read_obj_and_mtl_with_print_logging;
 
@@ -28,8 +28,7 @@ struct Args {
     empty_factor: f32,
 }
 
-fn main() {
-    let args = Args::parse();
+fn setup_scene(args: &Args) -> (Camera, Pathtracer<TriangleCollection>) {
     let (obj, mtl, mtl_path) = read_obj_and_mtl_with_print_logging(&args.input).unwrap();
     let (triangles, properties) = from_wavefront(&obj, &mtl);
 
@@ -63,7 +62,14 @@ fn main() {
         environment: Vec3::new(0.8, 0.8, 0.8),
     };
 
+    (mtl.cameras[0].clone().into(), pathtracer)
+}
+
+fn main() {
+    let args = Args::parse();
+    let (camera, pathtracer) = setup_scene(&args);
+
     miniquad::start(Conf::default(), move || {
-        Box::new(Stage::new(pathtracer, mtl.cameras[0].clone().into()))
+        Box::new(Stage::new(pathtracer, camera))
     });
 }

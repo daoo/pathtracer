@@ -109,14 +109,7 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
     }
 }
 
-fn main() {
-    let args = Args::parse();
-
-    let total_iterations = args.threads * args.iterations_per_thread;
-    println!(
-        "Rendering {} px image with {} thread(s) and {} total iteration(s)...",
-        args.size, args.threads, total_iterations,
-    );
+fn setup_scene(args: &Args) -> (Pinhole, Pathtracer<SphereCollection>) {
     let camera = Camera::new(
         [-15.0, 0.0, 0.0].into(),
         [0.0, 0.0, 0.0].into(),
@@ -166,6 +159,18 @@ fn main() {
         lights: lights.map(Light::from).to_vec(),
         environment: Vec3::new(0.8, 0.8, 0.8),
     };
+    (pinhole, pathtracer)
+}
+
+fn main() {
+    let args = Args::parse();
+    let (pinhole, pathtracer) = setup_scene(&args);
+
+    let total_iterations = args.threads * args.iterations_per_thread;
+    println!(
+        "Rendering {} px image with {} thread(s) and {} total iteration(s)...",
+        args.size, args.threads, total_iterations,
+    );
 
     thread::scope(|s| {
         let (tx, rx) = mpsc::channel();

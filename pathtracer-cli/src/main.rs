@@ -120,8 +120,7 @@ fn printer_thread(threads: u32, iterations: u32, rx: &Receiver<Duration>) {
     }
 }
 
-fn main() {
-    let args = Args::parse();
+fn setup_scene(args: &Args) -> (Pinhole, Pathtracer<TriangleCollection>) {
     let (obj, mtl, mtl_path) = read_obj_and_mtl_with_print_logging(&args.input).unwrap();
     let (triangles, properties) = from_wavefront(&obj, &mtl);
 
@@ -135,11 +134,6 @@ fn main() {
         },
     );
 
-    let total_iterations = args.threads * args.iterations_per_thread;
-    println!(
-        "Rendering {} px image with {} thread(s) and {} total iteration(s)...",
-        args.size, args.threads, total_iterations,
-    );
     let camera = Pinhole::new(mtl.cameras[0].clone().into(), args.size.as_uvec2());
     let image_directory = mtl_path.parent().unwrap();
     let materials = mtl
@@ -160,6 +154,19 @@ fn main() {
         lights,
         environment: Vec3::new(0.8, 0.8, 0.8),
     };
+
+    (camera, pathtracer)
+}
+
+fn main() {
+    let args = Args::parse();
+    let (camera, pathtracer) = setup_scene(&args);
+
+    let total_iterations = args.threads * args.iterations_per_thread;
+    println!(
+        "Rendering {} px image with {} thread(s) and {} total iteration(s)...",
+        args.size, args.threads, total_iterations,
+    );
 
     thread::scope(|s| {
         let (tx, rx) = mpsc::channel();
