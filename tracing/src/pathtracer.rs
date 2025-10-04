@@ -87,7 +87,12 @@ where
             }
 
             let cosine_term = sample.wo.dot(surface.n);
-            accumulated_transport *= sample.brdf * (cosine_term.abs() / sample.pdf);
+            if sample.is_delta {
+                accumulated_transport *= sample.brdf;
+            } else {
+                accumulated_transport *= sample.brdf * (cosine_term.abs() / sample.pdf);
+            }
+
             if accumulated_transport.length_squared() <= 1.0e-4 {
                 return accumulated_radiance;
             }

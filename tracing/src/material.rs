@@ -20,10 +20,6 @@ fn perpendicular(v: &Vec3) -> Vec3 {
     }
 }
 
-fn is_same_sign(a: f32, b: f32) -> bool {
-    a.signum() == b.signum()
-}
-
 #[derive(Debug)]
 pub struct Surface {
     pub wi: Vec3,
@@ -40,10 +36,6 @@ impl Surface {
         }
     }
 
-    fn is_same_hemisphere(&self, wo: &Vec3) -> bool {
-        is_same_sign(self.wi.dot(self.n), wo.dot(self.n))
-    }
-
     fn reflectance(&self, r0: f32) -> f32 {
         let cos = self.wi.dot(self.n).abs().clamp(0.0, 1.0);
         r0 + (1.0 - r0) * (1.0 - cos).powi(5)
@@ -52,6 +44,7 @@ impl Surface {
 
 #[derive(Debug, PartialEq)]
 pub struct SurfaceSample {
+    pub is_delta: bool,
     pub pdf: f32,
     pub brdf: Vec3,
     pub wo: Vec3,
@@ -84,18 +77,19 @@ fn diffuse_reflection_sample(
     let cos_theta = wo.dot(*surface_normal).max(0.0);
     let brdf = diffuse_reflective_brdf(texture, reflectance, uv);
     let pdf = cos_theta * std::f32::consts::FRAC_1_PI;
-    SurfaceSample { pdf, brdf, wo }
+    SurfaceSample {
+        is_delta: false,
+        pdf,
+        brdf,
+        wo,
+    }
 }
 
 fn specular_reflection_sample(reflectance: Vec3, surface: &Surface) -> SurfaceSample {
     let wo = (2.0 * surface.wi.dot(surface.n).abs() * surface.n - surface.wi).normalize();
-    let pdf = if surface.is_same_hemisphere(&wo) {
-        wo.dot(surface.n).abs()
-    } else {
-        0.0
-    };
     SurfaceSample {
-        pdf,
+        is_delta: true,
+        pdf: 1.0,
         brdf: reflectance,
         wo,
     }
@@ -117,6 +111,7 @@ fn specular_refractive_sample(index_of_refraction: f32, surface: &Surface) -> Su
     let k = k.sqrt();
     let wo = (-eta * surface.wi + (w - k) * n_refracted).normalize();
     SurfaceSample {
+        is_delta: true,
         pdf: 1.0,
         brdf: Vec3::new(1.0, 1.0, 1.0),
         wo,
