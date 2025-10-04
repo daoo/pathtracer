@@ -161,7 +161,7 @@ fn main() {
     //    intensity: Vec3::ONE * 100.0 * 100.0f32.powi(2),
     //}];
     let lights = [DirectionalLight {
-        direction: Vec3::new(-1.0, -1.0, 1.0),
+        direction: (Vec3::ZERO - camera.position).normalize(),
         intensity: Vec3::ONE,
     }];
     let geometry_collection = SphereCollection {
