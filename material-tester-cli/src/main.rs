@@ -118,24 +118,15 @@ fn main() {
         args.size, args.threads, total_iterations,
     );
     let camera = Camera::new(
-        [-10.0, 0.0, 0.0].into(),
+        [-15.0, 0.0, 0.0].into(),
         [0.0, 0.0, 0.0].into(),
         [0.0, 0.0, 1.0].into(),
         20.0,
     );
-    let pinhole = Pinhole::new(camera, args.size.as_uvec2());
-    let spheres = [
-        Sphere::new(Vec3::new(0.0, -1.0, -1.0), 0.45),
-        Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.45),
-        Sphere::new(Vec3::new(0.0, 1.0, -1.0), 0.45),
-        Sphere::new(Vec3::new(0.0, -1.0, 0.0), 0.45),
-        Sphere::new(Vec3::new(0.0, 0.0, 0.0), 0.45),
-        Sphere::new(Vec3::new(0.0, 1.0, 0.0), 0.45),
-        Sphere::new(Vec3::new(0.0, -1.0, 1.0), 0.45),
-        Sphere::new(Vec3::new(0.0, 0.0, 1.0), 0.45),
-        Sphere::new(Vec3::new(0.0, 1.0, 1.0), 0.45),
-    ]
-    .to_vec();
+    let pinhole = Pinhole::new(camera.clone(), args.size.as_uvec2());
+    let spheres = (-2..=2)
+        .flat_map(|y| (-2..=2).map(move |x| Sphere::new([0.0, x as f32, y as f32], 0.45)))
+        .collect::<Vec<_>>();
     let properties: Vec<SphereProperties> = spheres
         .iter()
         .enumerate()
@@ -145,12 +136,12 @@ fn main() {
         })
         .collect();
     let material = |t| Material {
-        diffuse_reflectance: [1.0, 0.0, 0.0].into(),
+        diffuse_reflectance: [t, 0.0, 0.0].into(),
         diffuse_texture_reflectance: None,
-        specular_reflectance: [1.0, t, 0.1].into(),
+        specular_reflectance: [0.0, 0.0, 0.0].into(),
         index_of_refraction: 0.0,
-        reflection_0_degrees: 1.0,
-        reflection_90_degrees: 1.0,
+        reflection_0_degrees: 0.0,
+        reflection_90_degrees: 0.0,
         transparency: 0.0,
     };
     let materials = (0..spheres.len())
