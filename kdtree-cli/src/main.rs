@@ -115,7 +115,7 @@ impl Statistics {
         vec.sort_unstable();
         let median = if vec.len() == 1 {
             vec[0] as f32
-        } else if vec.len() % 2 == 0 {
+        } else if vec.len().is_multiple_of(2) {
             vec[vec.len() / 2] as f32
         } else {
             ((vec[vec.len() / 2] + vec[vec.len() / 2 + 1]) as f32) / 2.0
