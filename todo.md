@@ -1,0 +1,87 @@
+# Links
+
+- [ ] [Spectral Ray Tracing](https://larswander.com/writing/spectral-ray-tracing/)
+- [ ] [pbrt-v3/src/accelerators/kdtreeaccel.cpp](https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/kdtreeaccel.cpp)
+- [ ] [Cosine weighted hemisphere sampling is a little bit darker and arguably noisier than reference](https://computergraphics.stackexchange.com/questions/13759/cosine-weighted-hemisphere-sampling-is-a-little-bit-darker-and-arguably-noisier)
+- [ ] [https://www.irisa.fr/prive/kadi/Sujets_CTR/kadi/Kadi_sujet2_article_Kdtree.pdf](https://www.irisa.fr/prive/kadi/Sujets_CTR/kadi/Kadi_sujet2_article_Kdtree.pdf)
+
+# TODO
+
+- [ ] Camera
+    - [ ] Camera depth of field
+- [ ] Lighting
+    - [x] Directional (sun like) light
+    - [x] Point source
+    - [ ] Sphere light (only sample visible surface)
+- [ ] Geometry
+    - [x] Spheres separately
+    - [ ] Spheres in kdtree
+- [ ] Input
+    - [ ] Open standard obj/mtl files (from internet or blender export)
+    - [ ] More scenes
+    - [ ] Other input formats (research)
+- [ ] Materials
+    - [x] Textured materials
+    - [x] Spherical test renderer
+    - [ ] Fancier specular highlights
+    - [ ] Support for Ka (ambient) mtl command
+    - [ ] Support for Ns (specular exponent) mtl command
+    - [ ] Support for Ke (emissive) mtl command (mesh lighting)
+    - [ ] Support illum mtl command
+- [ ] Optimization
+    - [ ] Specialized kd-Tree traversal for shadow rays
+    - [ ] Check ray against kd-Tree extent for early exit?
+    - [ ] Rust memory profiling
+    - [ ] Rust benchmark project
+    - [ ] Cancellation token in GUI
+    - [ ] GUI custom shader for gamma correction and iteration conversions
+
+## Archive
+
+- [x] KdTree
+    - [x] Triangle AABB clipping
+    - [x] Perfect splits
+    - [x] Split flat cells (for cornell box sides)
+    - [x] O(n log^2 n) construction
+    - [x] Test insertion sort in aabb triangle clip code for performance
+    - [x] How to avoid look-up of indices?
+    - [x] How to avoid re-constructing indices vecs?
+    - [x] O(n log n) construction
+- [x] Rust Learning
+    - [x] ETA, total and mean iteration time in CLI
+    - [x] Material properties plot
+    - [x] Transparent cornell cube looking weird
+    - [x] Surface area heuristic
+    - [x] Profiling cpu
+    - [x] Non-square aspect ratios crashing
+    - [x] Restructure root library (tracing)
+- [x] Interactive GUI
+    - [x] Threaded rendering
+    - [x] Camera controls translation
+    - [x] Further subdivision and user selectable thread count
+    - [x] Render levels with threads for fast restarts
+    - [x] Request repaint when receiving new rendered frame
+    - [x] Camera controls rotation
+    - [x] Subdivided threading instead of full frame
+- [x] KdTree Cornell Bug
+    - [x] Aabb min/max instead of center/half size.
+    - [x] Intersection test for flat cells
+    - [x] Recursively recurring splits
+    - [x] Visualization
+    - [x] KdTree tester CLI that bounces rays and checks them against intersection with all triangles
+    - [x] Flat cells missed in traversal depending on tree layout
+    - [x] Enum Geometries
+    - [x] Use 2D triangle-point intersection when triangle is axially aligned
+    - [x] Floating point issue in comparing ray-triangle and ray-plane intersection in traversal
+- [x] KdTree SR2 Bug
+    - [x] Tree reducer program
+    - [x] Create test from reduced sr2 scene
+    - [x] Output arguments in tester and reducer programs
+    - [x] Run reducer multiple times to find smallest example
+    - [x] Write json scene format from reducer
+    - [x] Read scene from json format
+    - [x] Write reduced geometries as wavefront obj
+    - [x] Debug reduced, why is it finding the wrong triangle?
+    - [x] Something seems wrong with the ray visualization, the ray intersection parameters does not match with the ray length
+    - [x] Fix clipping issue
+    - [x] Fix capacity issue
