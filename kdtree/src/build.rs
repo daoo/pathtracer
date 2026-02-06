@@ -36,9 +36,7 @@ pub fn build_kdtree(geometries: &[impl Geometry], sah: &SahCost) -> KdNode {
         sah,
         1,
         KdCell::generate_initial(geometries),
-        &mut (0..geometries.len())
-            .map(|_| EventSide::Both)
-            .collect::<Vec<_>>(),
+        &mut vec![EventSide::Both; geometries.len()],
     )
 }
 

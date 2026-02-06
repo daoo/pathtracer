@@ -179,7 +179,7 @@ fn sweep_plane(
     best_cost
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub(crate) enum EventSide {
     Both,
     LeftOnly,
