@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-clap = { version = "4.5.27", features = ["derive"] }
+clap = { version = "4.5.57", features = ["derive"] }
 geometry = { version = "1.0.0", path = "../geometry" }
-glam = "0.30.0"
+glam = "0.31.0"
 kdtree = { version = "1.0.0", path = "../kdtree" }
-miniquad = "0.4.7"
-time = "0.3.37"
+miniquad = "0.4.8"
+time = "0.3.47"
 tracing = { version = "1.0.0", path = "../tracing" }
 wavefront = { version = "1.0.0", path = "../wavefront" }
