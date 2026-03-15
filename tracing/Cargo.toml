@@ -7,9 +7,9 @@ edition = "2024"
 ray_logging = []
 
 [dependencies]
-assert_approx_eq = "1.1.0"
+approx = "0.5.1"
 geometry = { version = "1.0.0", path = "../geometry" }
-glam = "0.31.0"
+glam = { version = "0.31.0", features = ["approx"] }
 image = { version = "0.25.9", default-features = false }
 kdtree = { version = "1.0.0", path = "../kdtree" }
 rand = { version = "0.9.2", default-features = false, features = ["small_rng", "os_rng"] }

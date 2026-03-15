@@ -76,7 +76,7 @@ where
                     }
                     let radiance = light.emitted(&point);
                     let wo = shadow_ray.direction.normalize();
-                    sample.brdf * radiance * wo.dot(surface.n).abs()
+                    sample.bsdf * radiance * wo.dot(surface.n).abs()
                 })
                 .sum();
 
@@ -88,9 +88,9 @@ where
 
             let cosine_term = sample.wo.dot(surface.n);
             if sample.is_delta {
-                accumulated_transport *= sample.brdf;
+                accumulated_transport *= sample.bsdf;
             } else {
-                accumulated_transport *= sample.brdf * (cosine_term.abs() / sample.pdf);
+                accumulated_transport *= sample.bsdf * (cosine_term.abs() / sample.pdf);
             }
 
             if accumulated_transport.length_squared() <= 1.0e-4 {
