@@ -50,7 +50,7 @@ fn clip_triangle_aabb_points(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Ar
     }
 
     let push_consecutive = |o: &mut ArrayVec<Vec3, 9>, p: Vec3| {
-        if o.last().map_or(true, |q| *q != p) {
+        if o.last().is_none_or(|q| *q != p) {
             unsafe {
                 o.push_unchecked(p);
             }

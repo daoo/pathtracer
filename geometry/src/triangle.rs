@@ -1,6 +1,6 @@
 use glam::{Vec2, Vec3};
 
-use crate::{aabb::Aabb, aap::Aap, axial_triangle::AxiallyAlignedTriangle, axis::Axis, ray::Ray};
+use crate::{aap::Aap, axial_triangle::AxiallyAlignedTriangle, axis::Axis, ray::Ray};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Triangle {
