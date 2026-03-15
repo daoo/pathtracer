@@ -103,75 +103,6 @@ impl Triangle {
         let t = inv_det * base2.dot(s_cross_base1);
         Some(TriangleIntersection { t, u, v })
     }
-
-    /// Check for overlap using the Separating Axis Theorem.
-    pub fn overlaps_aabb(&self, aabb: &Aabb) -> bool {
-        let center = aabb.center();
-        let half_size = aabb.half_size();
-
-        let v0 = self.v0 - center;
-        let v1 = self.v1 - center;
-        let v2 = self.v2 - center;
-
-        let f0 = v1 - v0;
-        let f1 = v2 - v1;
-        let f2 = v0 - v2;
-
-        let test_axis = |axis: Vec3| {
-            let p0 = v0.dot(axis);
-            let p1 = v1.dot(axis);
-            let p2 = v2.dot(axis);
-            let r = half_size.x * Vec3::X.dot(axis).abs()
-                + half_size.y * Vec3::Y.dot(axis).abs()
-                + half_size.z * Vec3::Z.dot(axis).abs();
-            (-p0.max(p1.max(p2))).max(p0.min(p1.min(p2))) > r
-        };
-
-        if test_axis(Vec3::X.cross(f0)) {
-            return false;
-        }
-        if test_axis(Vec3::X.cross(f1)) {
-            return false;
-        }
-        if test_axis(Vec3::X.cross(f2)) {
-            return false;
-        }
-        if test_axis(Vec3::Y.cross(f0)) {
-            return false;
-        }
-        if test_axis(Vec3::Y.cross(f1)) {
-            return false;
-        }
-        if test_axis(Vec3::Y.cross(f2)) {
-            return false;
-        }
-        if test_axis(Vec3::Z.cross(f0)) {
-            return false;
-        }
-        if test_axis(Vec3::Z.cross(f1)) {
-            return false;
-        }
-        if test_axis(Vec3::Z.cross(f2)) {
-            return false;
-        }
-
-        if test_axis(Vec3::X) {
-            return false;
-        }
-        if test_axis(Vec3::Y) {
-            return false;
-        }
-        if test_axis(Vec3::Z) {
-            return false;
-        }
-
-        let triangle_normal = f0.cross(f1);
-        if test_axis(triangle_normal) {
-            return false;
-        }
-
-        true
-    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -493,41 +424,5 @@ mod tests {
                 v: 0.5,
             })
         );
-    }
-
-    #[test]
-    fn overlaps_aabb_triangle_completely_inside() {
-        let triangle = Triangle {
-            v0: Vec3::new(1., 1., 1.),
-            v1: Vec3::new(2., 1., 1.),
-            v2: Vec3::new(1., 2., 1.),
-        };
-        let aabb = Aabb::from_extents(Vec3::new(0., 0., 0.), Vec3::new(2., 2., 2.));
-
-        assert!(triangle.overlaps_aabb(&aabb));
-    }
-
-    #[test]
-    fn overlaps_aabb_triangle_contained_in_one_face() {
-        let triangle = Triangle {
-            v0: Vec3::new(1., 1., 2.),
-            v1: Vec3::new(2., 1., 2.),
-            v2: Vec3::new(1., 2., 2.),
-        };
-        let aabb = Aabb::from_extents(Vec3::new(0., 0., 0.), Vec3::new(2., 2., 2.));
-
-        assert!(triangle.overlaps_aabb(&aabb));
-    }
-
-    #[test]
-    fn overlaps_aabb_triangle_outside() {
-        let triangle = Triangle {
-            v0: Vec3::new(10., 10., 10.),
-            v1: Vec3::new(11., 10., 10.),
-            v2: Vec3::new(10., 11., 10.),
-        };
-        let aabb = Aabb::from_extents(Vec3::new(0., 0., 0.), Vec3::new(2., 2., 2.));
-
-        assert!(!triangle.overlaps_aabb(&aabb));
     }
 }
