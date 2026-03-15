@@ -8,11 +8,14 @@ pub fn clip_triangle_aabb(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Optio
     if clipped.len() <= 2 {
         return None;
     }
-    let start = (clipped[0], clipped[0]);
-    let (min, max) = clipped
-        .into_iter()
-        .skip(1)
-        .fold(start, |(min, max), b| (min.min(b), max.max(b)));
+    let first = aabb.clamp(clipped[0]);
+    let mut min = first;
+    let mut max = first;
+    for i in 1..clipped.len() {
+        let point = aabb.clamp(clipped[i]);
+        min = min.min(point);
+        max = max.max(point);
+    }
     Some(Aabb::from_extents(min, max))
 }
 
@@ -46,8 +49,8 @@ fn clip_triangle_aabb_points(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Ar
         output.push_unchecked(*v0);
     }
 
-    let push_unique = |o: &mut ArrayVec<Vec3, 9>, p: Vec3| {
-        if !o.contains(&p) {
+    let push_consecutive = |o: &mut ArrayVec<Vec3, 9>, p: Vec3| {
+        if o.last().map_or(true, |q| *q != p) {
             unsafe {
                 o.push_unchecked(p);
             }
@@ -58,37 +61,32 @@ fn clip_triangle_aabb_points(v0: &Vec3, v1: &Vec3, v2: &Vec3, aabb: &Aabb) -> Ar
         if output.is_empty() {
             return output;
         }
-        // Default implementation of clone() for arrayvec uses extend which causes unnecessary
-        // stack usage and potential calls to panic.
-        //
-        // I tried to put this into a separate function but that trips up the optimizer, generating
-        // much worse code (empirically 20% slower).
-        let mut input = ArrayVec::<Vec3, 9>::new();
-        for x in &output {
-            unsafe {
-                input.push_unchecked(*x);
-            }
-        }
-        output.clear();
-        let points_iter = input.iter().cycle().skip(input.len() - 1).zip(input.iter());
-        for (a, b) in points_iter {
-            let ray = Ray::between(*a, *b);
+        let input = output.take();
+        for i in 0..input.len() {
+            let a = if i == 0 {
+                input[input.len() - 1]
+            } else {
+                input[i - 1]
+            };
+            let b = input[i];
             // When a and b are on different sides of the clip plane it is safe to assume that the
             // denominator in the division in the intersection calculation is non-zero. Hence the
             // unchecked unwraps below.
-            let intersecting = clip_plane.1.intersect_ray_point(&ray);
-            if is_inside(&clip_plane, *b) {
-                if !is_inside(&clip_plane, *a) {
-                    push_unique(&mut output, unsafe { intersecting.unwrap_unchecked() });
+            let a_inside = is_inside(&clip_plane, a);
+            let b_inside = is_inside(&clip_plane, b);
+            if a_inside && b_inside {
+                push_consecutive(&mut output, b);
+            } else if a_inside != b_inside {
+                let ray = Ray::between(a, b);
+                let intersecting = clip_plane.1.intersect_ray_point(&ray);
+                push_consecutive(&mut output, unsafe { intersecting.unwrap_unchecked() });
+                if b_inside {
+                    push_consecutive(&mut output, b);
                 }
-                push_unique(&mut output, *b);
-            } else if is_inside(&clip_plane, *a) {
-                push_unique(&mut output, unsafe { intersecting.unwrap_unchecked() });
             }
         }
     }
 
-    output.iter_mut().for_each(|p| *p = aabb.clamp(*p));
     output
 }
 
@@ -201,14 +199,19 @@ mod tests {
         let v2 = Vec3::new(1.0, -1.0, -1.0);
         let aabb = Aabb::from_extents(Vec3::new(-1.5, -1.5012, -1.5), Vec3::new(-0.076, 1.5, 1.0));
 
-        let actual = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
+        let actual_points = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
+        let actual_aabb = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
 
-        let expected: &[Vec3] = &[];
-        let outside = actual
-            .into_iter()
-            .filter(|p| !aabb.contains(*p))
-            .collect::<ArrayVec<Vec3, 1>>();
-        assert_eq!(outside.as_slice(), expected);
+        let expected_points = [
+            Vec3::new(-1.0, -1.0, 1.0),
+            Vec3::new(-0.076, -1.0, 0.075999975),
+            Vec3::new(-0.076, -1.0, -1.0),
+            Vec3::new(-1.0, -1.0, -1.0),
+        ];
+        let expected_aabb =
+            Aabb::from_extents(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(-0.076, -1.0, 1.0));
+        assert_eq!(actual_points.as_slice(), expected_points);
+        assert_eq!(actual_aabb, Some(expected_aabb));
     }
 
     #[test]
@@ -221,14 +224,22 @@ mod tests {
             Vec3::new(-0.076, 0.075999975, 0.075999975),
         );
 
-        let actual = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
+        let actual_points = clip_triangle_aabb_points(&v0, &v1, &v2, &aabb);
+        let actual_aabb = clip_triangle_aabb(&v0, &v1, &v2, &aabb);
 
-        let expected: &[Vec3] = &[];
-        let outside = actual
-            .into_iter()
-            .filter(|p| !aabb.contains(*p))
-            .collect::<ArrayVec<Vec3, 1>>();
-        assert_eq!(outside.as_slice(), expected);
+        let expected_points = [
+            Vec3::new(-1.0, -1.0, 0.075999975),
+            Vec3::new(-0.075999975, -1.0, 0.075999975),
+            Vec3::new(-0.076, -1.0, 0.075999975),
+            Vec3::new(-0.076, -1.0, -1.0),
+            Vec3::new(-1.0, -1.0, -1.0),
+        ];
+        let expected_aabb = Aabb::from_extents(
+            Vec3::new(-1.0, -1.0, -1.0),
+            Vec3::new(-0.076, -1.0, 0.075999975),
+        );
+        assert_eq!(actual_points.as_slice(), expected_points);
+        assert_eq!(actual_aabb, Some(expected_aabb));
     }
 
     #[test]
