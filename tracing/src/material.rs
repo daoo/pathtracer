@@ -122,7 +122,7 @@ mod tests {
     use approx::assert_ulps_eq;
     use image::Rgb;
 
-    use std::f32::consts::PI;
+    use std::{f32::consts::PI, iter};
 
     use rand::SeedableRng;
 
@@ -152,14 +152,14 @@ mod tests {
         let mut rng = SmallRng::seed_from_u64(1234u64);
         let iterations = 1000;
 
-        let sum: Vec3 = (0..iterations)
-            .map(|_| {
-                let actual = lambertian.sample(&surface_normal, uv, &mut rng);
-                let cos = actual.wo.dot(surface_normal).max(0.0);
-                let weight = actual.bsdf * (cos / actual.pdf);
-                weight
-            })
-            .sum();
+        let sum: Vec3 = iter::repeat_with(|| {
+            let actual = lambertian.sample(&surface_normal, uv, &mut rng);
+            let cos = actual.wo.dot(surface_normal).max(0.0);
+            let weight = actual.bsdf * (cos / actual.pdf);
+            weight
+        })
+        .take(iterations)
+        .sum();
         let mean = sum / iterations as f32;
 
         assert_ulps_eq!(mean, albedo, epsilon = 1e-5);
