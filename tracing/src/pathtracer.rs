@@ -62,23 +62,26 @@ where
 
             let sample = material.sample(&surface, rng);
 
-            let incoming_radiance: Vec3 = self
-                .lights
-                .iter()
-                .map(|light| {
-                    let (shadow_ray, t_range) = light.sample_shadow_ray(point_above, rng);
-                    let intersection = self.geometry_collection.intersect(&shadow_ray, t_range);
-                    ray_logger
-                        .log_shadow(&shadow_ray, bounce, intersection.is_some())
-                        .unwrap();
-                    if intersection.is_some() {
-                        return Vec3::ZERO;
-                    }
-                    let radiance = light.emitted(&point);
-                    let wo = shadow_ray.direction.normalize();
-                    sample.bsdf * radiance * wo.dot(surface.n).abs()
-                })
-                .sum();
+            let incoming_radiance: Vec3 = if sample.is_delta {
+                Vec3::ZERO
+            } else {
+                self.lights
+                    .iter()
+                    .map(|light| {
+                        let (shadow_ray, t_range) = light.sample_shadow_ray(point_above, rng);
+                        let intersection = self.geometry_collection.intersect(&shadow_ray, t_range);
+                        ray_logger
+                            .log_shadow(&shadow_ray, bounce, intersection.is_some())
+                            .unwrap();
+                        if intersection.is_some() {
+                            return Vec3::ZERO;
+                        }
+                        let radiance = light.emitted(&point);
+                        let wo = shadow_ray.direction.normalize();
+                        sample.bsdf * radiance * wo.dot(surface.n).abs()
+                    })
+                    .sum()
+            };
 
             accumulated_radiance += accumulated_transport * incoming_radiance;
 

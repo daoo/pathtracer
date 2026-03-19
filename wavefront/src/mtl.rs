@@ -23,7 +23,7 @@ impl Material {
             name,
             diffuse_map: String::new(),
             diffuse_reflection: [0.7, 0.7, 0.7],
-            specular_reflection: [1.0, 1.0, 1.0],
+            specular_reflection: [0.0, 0.0, 0.0],
             emittance: [0.0, 0.0, 0.0],
             transparency: 0.0,
             reflection_0_degrees: 0.0,

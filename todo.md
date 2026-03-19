@@ -29,7 +29,7 @@
         - [x] Implement pure Lambertian diffuse only (constant albedo, no textures)
         - [x] Validate diffuse sampling energy with a simple reference scene
         - [x] Add diffuse texture support (image lookup + UV clamping)
-        - [ ] Add specular reflection (delta) with correct weighting
+        - [x] Add specular reflection (delta) with correct weighting
         - [ ] Add refraction (delta) with Fresnel split and eta^2 handling
         - [ ] Rebuild material mixing logic to keep PDFs consistent
         - [ ] Add tests for PDF/lobe selection correctness
