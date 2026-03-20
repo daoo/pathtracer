@@ -12,6 +12,7 @@
 - [ ] Lighting
     - [x] Directional (sun like) light
     - [x] Point source
+    - [ ] Specular direct lighting for delta materials
     - [ ] Sphere light (only sample visible surface)
 - [ ] Geometry
     - [x] Spheres separately
