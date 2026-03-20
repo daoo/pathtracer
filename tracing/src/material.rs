@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use glam::{Vec2, Vec3};
-use image::{ConvertColorOptions, metadata::Cicp};
+use image::{ConvertColorOptions, Pixel, metadata::Cicp};
 use rand::{Rng, rngs::SmallRng};
 use wavefront::mtl;
 
@@ -49,8 +49,10 @@ pub struct Material {
 
 impl Material {
     pub fn load_from_mtl(image_directory: &Path, material: &mtl::Material) -> Self {
+        let specular = Specular(material.specular_reflection.into());
+        let diffuse_scale = 1.0 - specular.0.max_element();
         let lambertian = if material.diffuse_map.is_empty() {
-            Lambertian::Color(material.diffuse_reflection.into())
+            Lambertian::Color(Vec3::from(material.diffuse_reflection) * diffuse_scale)
         } else {
             let mut image = image::open(image_directory.join(&material.diffuse_map)).unwrap();
             image
@@ -60,9 +62,12 @@ impl Material {
                     image::ColorType::Rgba32F,
                 )
                 .unwrap();
-            Lambertian::Texture(image.into_rgb32f())
+            let mut image = image.into_rgb32f();
+            image
+                .enumerate_pixels_mut()
+                .for_each(|p| p.2.apply(|x| x * diffuse_scale));
+            Lambertian::Texture(image)
         };
-        let specular = Specular(material.specular_reflection.into());
         Self {
             lambertian,
             specular,

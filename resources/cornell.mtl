@@ -35,7 +35,7 @@ newmtl RedWall
 	Kd 0.7529 0.3059 0.3137
 
 newmtl LeftBox
-	Ks 0.7 0.7 0.7
+	Ks 0.3 0.3 0.3
 	Kd 0.8 0.8 0.205804
 	reflat0deg 0.3
 	reflat90deg 1.0
@@ -44,7 +44,7 @@ newmtl LeftBox
 	specularroughness 0.001
 
 newmtl RightBox
-	Ks 0.7 0.7 0.7
+	Ks 0.9 0.9 0.9
 	Kd 0.18 0.725 0.725
 	reflat0deg 0.2
 	reflat90deg 1.0
