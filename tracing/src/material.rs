@@ -10,6 +10,11 @@ use crate::material::{lambertian::Lambertian, specular::Specular};
 pub mod lambertian;
 pub mod specular;
 
+fn luminance(c: Vec3) -> f32 {
+    // Rec.709 / sRGB linear luminance
+    0.2126 * c.x + 0.7152 * c.y + 0.0722 * c.z
+}
+
 #[derive(Debug)]
 pub struct Surface {
     pub wi: Vec3,
@@ -65,8 +70,8 @@ impl Material {
     }
 
     pub fn sample(&self, surface: &Surface, rng: &mut SmallRng) -> BsdfSample {
-        let diffuse_strength = self.lambertian.albedo(surface.uv).max_element();
-        let specular_strength = self.specular.0.max_element();
+        let diffuse_strength = luminance(self.lambertian.albedo(surface.uv));
+        let specular_strength = luminance(self.specular.0);
         let total_strength = diffuse_strength + specular_strength;
         if total_strength <= 0.0 {
             return BsdfSample::zero(surface.n);
