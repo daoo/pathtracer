@@ -14,7 +14,7 @@ use tracing::{
     camera::{Camera, Pinhole},
     collections::SphereCollection,
     light::{DirectionalLight, Light},
-    material::{Material, lambertian::Lambertian, specular::Specular},
+    material::{Material, albedo::AlbedoSource},
     pathtracer::Pathtracer,
     properties::SphereProperties,
     worker::render_parallel_iterations,
@@ -129,8 +129,9 @@ fn setup_scene(args: &Args) -> (Pinhole, Pathtracer<SphereCollection>) {
         })
         .collect();
     let material = |t| Material {
-        lambertian: Lambertian::Color(Vec3::new(t, 0.0, 0.0)),
-        specular: Specular::ZERO,
+        albedo: AlbedoSource::Color(Vec3::new(t, 0.0, 0.0)),
+        specular: Vec3::ZERO,
+        schlick_f0: Vec3::ZERO,
     };
     let materials = (0..spheres.len())
         .map(|i| material(i as f32 * 1.0 / (spheres.len() - 1) as f32))

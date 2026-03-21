@@ -15,6 +15,7 @@ pub struct Material {
     pub reflection_0_degrees: f32,
     pub reflection_90_degrees: f32,
     pub index_of_refraction: f32,
+    pub metalness: f32,
 }
 
 impl Material {
@@ -29,6 +30,7 @@ impl Material {
             reflection_0_degrees: 0.0,
             reflection_90_degrees: 0.0,
             index_of_refraction: 1.0,
+            metalness: 0.0,
         }
     }
 }
@@ -137,6 +139,8 @@ where
             materials.last_mut().unwrap().transparency = 1.0 - x;
         } else if let Ok((_, x)) = tagged("Tr", float, trimmed) {
             materials.last_mut().unwrap().transparency = x;
+        } else if let Ok((_, x)) = tagged("Pm", float, trimmed) {
+            materials.last_mut().unwrap().metalness = x;
         } else if let Ok((_, _)) = tagged("specularroughness", float, trimmed) {
             // TODO: not supported
         } else {
