@@ -89,8 +89,7 @@ impl Material {
         let f = {
             let cos_theta = surface.wi.dot(surface.n).max(0.0);
             let t = (1.0 - cos_theta).powi(5);
-            let f = self.schlick_f0 + (1.0 - self.schlick_f0) * t;
-            f
+            self.schlick_f0 + (1.0 - self.schlick_f0) * t
         };
         let diffuse = self.albedo.get(surface.uv);
         let diffuse_strength = luminance((1.0 - f) * diffuse);
