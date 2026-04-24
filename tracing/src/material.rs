@@ -2,7 +2,7 @@ use std::{f32::consts::FRAC_1_PI, path::Path};
 
 use glam::{Vec2, Vec3};
 use image::{ConvertColorOptions, metadata::Cicp};
-use rand::{Rng, rngs::SmallRng};
+use rand::{RngExt, rngs::SmallRng};
 use wavefront::mtl;
 
 use crate::{material::albedo::AlbedoSource, sampling::cosine_sample_hemisphere};

@@ -9,10 +9,10 @@ ray_logging = []
 [dependencies]
 approx = "0.5.1"
 geometry = { version = "1.0.0", path = "../geometry" }
-glam = { version = "0.31.0", features = ["approx"] }
-image = { version = "0.25.9", default-features = false }
+glam = { version = "0.32.1", features = ["approx"] }
+image = { version = "0.25.10", default-features = false }
 kdtree = { version = "1.0.0", path = "../kdtree" }
-rand = { version = "0.9.2", default-features = false, features = ["small_rng", "os_rng"] }
-rayon = "1.11.0"
+rand = { version = "0.10.1", default-features = false, features = ["sys_rng"] }
+rayon = "1.12.0"
 time = "0.3.47"
 wavefront = { version = "1.0.0", path = "../wavefront" }

@@ -4,7 +4,7 @@ use std::{ops::Add, sync::mpsc::Sender, thread};
 use time::Duration;
 
 use glam::UVec2;
-use rand::{SeedableRng, rngs::SmallRng};
+use rand::rngs::SmallRng;
 
 use crate::{
     camera::Pinhole,
@@ -32,7 +32,7 @@ fn render_iterations(
     iterations: u32,
     tx: &Sender<Duration>,
 ) -> ImageBuffer {
-    let mut rng = SmallRng::from_os_rng();
+    let mut rng: SmallRng = rand::make_rng();
     let mut buffer = ImageBuffer::new(size);
     let mut ray_logger = create_ray_logger(thread);
     for iteration in 0..iterations {
@@ -58,7 +58,7 @@ pub fn render_parallel_subdivided(
     (0..count.x * count.y)
         .into_par_iter()
         .fold(
-            || (SmallRng::from_os_rng(), ImageBuffer::new(pinhole.size)),
+            || (rand::make_rng(), ImageBuffer::new(pinhole.size)),
             |(mut rng, mut buffer), i| {
                 let pixel = UVec2::new(i % count.x * sub_size.x, i / count.x * sub_size.y);
                 let mut ray_logger = RayLoggerWithIteration {

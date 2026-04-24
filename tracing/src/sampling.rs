@@ -1,5 +1,5 @@
 use glam::{Vec2, Vec3};
-use rand::{Rng, rngs::SmallRng};
+use rand::{RngExt, rngs::SmallRng};
 
 #[inline]
 pub fn uniform_sample_unit_square(rng: &mut SmallRng) -> Vec2 {
@@ -54,7 +54,7 @@ mod tests {
 
     #[test]
     fn test_uniform_sample_unit_square() {
-        let mut rng = SmallRng::from_os_rng();
+        let mut rng = SmallRng::seed_from_u64(1);
         for _ in 0..1000 {
             let point = uniform_sample_unit_square(&mut rng);
             assert!(point.cmpge(Vec2::new(0.0, 0.0)).all());
@@ -64,7 +64,7 @@ mod tests {
 
     #[test]
     fn test_uniform_sample_unit_sphere() {
-        let mut rng = SmallRng::from_os_rng();
+        let mut rng = SmallRng::seed_from_u64(1);
         for _ in 0..1000 {
             let point = uniform_sample_unit_sphere(&mut rng);
             let error = point.length();
@@ -74,7 +74,7 @@ mod tests {
 
     // #[test]
     // fn test_uniform_sample_hemisphere() {
-    //     let mut rng = SmallRng::from_os_rng();
+    //     let mut rng = SmallRng::seed_from_u64(1);
     //     for _ in 0..1000 {
     //         let point = uniform_sample_hemisphere(&mut rng);
     //         let error = (point.norm_squared() - 1.0).abs();
@@ -85,7 +85,7 @@ mod tests {
 
     #[test]
     fn test_concentric_sample_disk() {
-        let mut rng = SmallRng::from_os_rng();
+        let mut rng = SmallRng::seed_from_u64(1);
         for _ in 0..1000 {
             let point = concentric_sample_unit_disk(&mut rng);
             assert!(point.length_squared() <= 1.0, "{}", point.length_squared());
@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn cosine_cosine_sample_hemisphere() {
-        let mut rng = SmallRng::from_os_rng();
+        let mut rng = SmallRng::seed_from_u64(1);
         for _ in 0..1000 {
             let point = cosine_sample_hemisphere(&mut rng);
             let error = (point.length_squared() - 1.0).abs();
