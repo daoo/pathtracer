@@ -25,16 +25,18 @@
     - [x] Textured materials
     - [x] Spherical test renderer
     - [ ] Fancier specular highlights
-    - [ ] Reimplement materials from scratch (start with simplest diffuse)
+    - [x] Reimplement materials from scratch (start with simplest diffuse)
         - [x] Define new `SurfaceSample` contract (full-mixture PDF) and document it
         - [x] Implement pure Lambertian diffuse only (constant albedo, no textures)
         - [x] Validate diffuse sampling energy with a simple reference scene
         - [x] Add diffuse texture support (image lookup + UV clamping)
         - [x] Add specular reflection (delta) with correct weighting
         - [x] Add Fresnel-based specular reflection only (metal / no transmission)
-        - [ ] Add refraction (delta) for dielectrics with Fresnel split and eta^2 handling
-        - [ ] Rebuild material mixing logic to keep PDFs consistent
+        - [x] Add refraction (delta) for dielectrics with Fresnel split and eta^2 handling
+        - [x] Rebuild material mixing logic to keep PDFs consistent
+        - [ ] Tests for refraction
         - [ ] Add tests for PDF/lobe selection correctness
+    - [ ] Multiple Importance Sampling (MIS)
     - [ ] Support for Ka (ambient) mtl command
     - [ ] Support for Ns (specular exponent) mtl command
     - [ ] Support for Ke (emissive) mtl command (mesh lighting)

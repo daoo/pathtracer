@@ -131,6 +131,8 @@ fn setup_scene(args: &Args) -> (Pinhole, Pathtracer<SphereCollection>) {
     let material = |t| Material {
         albedo: AlbedoSource::Color(Vec3::new(t, 0.0, 0.0)),
         schlick_f0: Vec3::ZERO,
+        transmission: 0.0,
+        ior: 1.0,
     };
     let materials = (0..spheres.len())
         .map(|i| material(i as f32 * 1.0 / (spheres.len() - 1) as f32))

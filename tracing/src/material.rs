@@ -31,6 +31,12 @@ fn perpendicular(v: Vec3) -> Vec3 {
     }
 }
 
+fn schlicks_approximation(r0: Vec3, wi: Vec3, n: Vec3) -> Vec3 {
+    let cos_theta = wi.dot(n).max(0.0);
+    let t = (1.0 - cos_theta).powi(5);
+    r0 + (1.0 - r0) * t
+}
+
 #[derive(Debug)]
 pub struct Surface {
     pub wi: Vec3,
@@ -61,6 +67,72 @@ impl BsdfSample {
 pub struct Material {
     pub albedo: AlbedoSource,
     pub schlick_f0: Vec3,
+    pub transmission: f32,
+    pub ior: f32,
+}
+
+fn sample_specular(surface: &Surface, color: Vec3, probability: f32) -> BsdfSample {
+    let wo = reflect(-surface.wi, surface.n).normalize();
+    BsdfSample {
+        is_delta: true,
+        pdf: probability,
+        bsdf: color,
+        wo,
+    }
+}
+
+fn sample_refraction(
+    surface: &Surface,
+    ior: f32,
+    diffuse: Vec3,
+    transmitted_diffuse: Vec3,
+    probability: f32,
+) -> BsdfSample {
+    let is_entering = surface.wi.dot(surface.n) < 0.0;
+    let n1 = if is_entering { 1.0 } else { ior };
+    let n2 = if is_entering { ior } else { 1.0 };
+    let eta = n1 / n2;
+    let normal = if is_entering { surface.n } else { -surface.n };
+    let incoming = -surface.wi;
+    let cos_theta_i = incoming.dot(normal);
+    let sin2_theta_t = eta * eta * (1.0 - cos_theta_i * cos_theta_i);
+    if sin2_theta_t >= 1.0 {
+        // Fallback to reflection if refraction is impossible
+        return sample_specular(surface, diffuse, probability);
+    }
+    let cos_theta_t = (1.0 - sin2_theta_t).sqrt();
+    let wo = (eta * incoming + (eta * cos_theta_i - cos_theta_t) * normal).normalize();
+    let eta_scale = (n2 * n2) / (n1 * n1);
+    BsdfSample {
+        is_delta: true,
+        pdf: probability,
+        bsdf: transmitted_diffuse * eta_scale,
+        wo,
+    }
+}
+
+fn sample_diffuse(
+    surface: &Surface,
+    rng: &mut SmallRng,
+    transmitted_diffuse: Vec3,
+    probability: f32,
+) -> BsdfSample {
+    let tangent = perpendicular(surface.n).normalize();
+    let bitangent = surface.n.cross(tangent);
+
+    let hemisphere_sample = cosine_sample_hemisphere(rng);
+
+    let wo = (hemisphere_sample.x * tangent
+        + hemisphere_sample.y * bitangent
+        + hemisphere_sample.z * surface.n)
+        .normalize();
+    let cos_theta = wo.dot(surface.n).max(0.0);
+    BsdfSample {
+        is_delta: false,
+        pdf: probability * cos_theta * FRAC_1_PI,
+        bsdf: transmitted_diffuse * FRAC_1_PI,
+        wo,
+    }
 }
 
 impl Material {
@@ -82,55 +154,37 @@ impl Material {
             ((material.index_of_refraction - 1.0) / (material.index_of_refraction + 1.0)).powi(2);
         let schlick_f0 = Vec3::splat(f0_dielectric)
             .lerp(material.specular_reflection.into(), material.metalness);
-        Self { albedo, schlick_f0 }
+        let transmission = material.transparency;
+        let ior = material.index_of_refraction;
+        Self {
+            albedo,
+            schlick_f0,
+            transmission,
+            ior,
+        }
     }
 
     pub fn sample(&self, surface: &Surface, rng: &mut SmallRng) -> BsdfSample {
-        let f = {
-            let cos_theta = surface.wi.dot(surface.n).max(0.0);
-            let t = (1.0 - cos_theta).powi(5);
-            self.schlick_f0 + (1.0 - self.schlick_f0) * t
-        };
+        let f = schlicks_approximation(self.schlick_f0, surface.wi, surface.n);
         let diffuse = self.albedo.get(surface.uv);
-        let diffuse_strength = luminance((1.0 - f) * diffuse);
+        let transmitted_diffuse = (1.0 - f) * diffuse;
         let specular_strength = luminance(f);
-        let total_strength = diffuse_strength + specular_strength;
+        let diffuse_strength = luminance(transmitted_diffuse) * (1.0 - self.transmission);
+        let refraction_strength = luminance(transmitted_diffuse) * self.transmission;
+        let total_strength = specular_strength + diffuse_strength + refraction_strength;
         if total_strength <= 0.0 {
             return BsdfSample::zero(surface.n);
         }
-        let p_specular = if total_strength > 0.0 {
-            specular_strength / total_strength
-        } else {
-            0.0
-        };
-        let p_diffuse = 1.0 - p_specular;
-        if p_specular > 0.0 && rng.random::<f32>() < p_specular {
-            return BsdfSample {
-                is_delta: true,
-                pdf: p_specular,
-                bsdf: f,
-                wo: { reflect(-surface.wi, surface.n).normalize() },
-            };
-        }
-        if p_diffuse > 0.0 {
-            let wo = {
-                let tangent = perpendicular(surface.n).normalize();
-                let bitangent = surface.n.cross(tangent);
-
-                let hemisphere_sample = cosine_sample_hemisphere(rng);
-
-                (hemisphere_sample.x * tangent
-                    + hemisphere_sample.y * bitangent
-                    + hemisphere_sample.z * surface.n)
-                    .normalize()
-            };
-            let cos_theta = wo.dot(surface.n).max(0.0);
-            return BsdfSample {
-                is_delta: false,
-                pdf: p_diffuse * cos_theta * FRAC_1_PI,
-                bsdf: (1.0 - f) * diffuse * FRAC_1_PI,
-                wo,
-            };
+        let p_specular = specular_strength / total_strength;
+        let p_diffuse = diffuse_strength / total_strength;
+        let p_refraction = refraction_strength / total_strength;
+        let r = rng.random::<f32>();
+        if p_specular > 0.0 && r < p_specular {
+            return sample_specular(surface, f, p_specular);
+        } else if r < p_specular + p_refraction {
+            return sample_refraction(surface, self.ior, f, transmitted_diffuse, p_refraction);
+        } else if p_diffuse > 0.0 {
+            return sample_diffuse(surface, rng, transmitted_diffuse, p_diffuse);
         }
 
         BsdfSample::zero(surface.n)
@@ -154,6 +208,8 @@ mod tests {
         let material = Material {
             albedo: AlbedoSource::ZERO,
             schlick_f0: Vec3::ZERO,
+            transmission: 0.0,
+            ior: 1.0,
         };
         let mut rng = SmallRng::seed_from_u64(1234);
 
@@ -180,6 +236,8 @@ mod tests {
         let material = Material {
             albedo: AlbedoSource::ZERO,
             schlick_f0: Vec3::new(0.2, 0.4, 0.6),
+            transmission: 0.0,
+            ior: 1.0,
         };
         let mut rng = SmallRng::seed_from_u64(1234);
 
@@ -202,6 +260,8 @@ mod tests {
         let material = Material {
             albedo: AlbedoSource::Color(albedo),
             schlick_f0: Vec3::ZERO,
+            transmission: 0.0,
+            ior: 1.0,
         };
         let rng = || SmallRng::seed_from_u64(1);
 
@@ -226,6 +286,8 @@ mod tests {
         let material = Material {
             albedo: AlbedoSource::Color(albedo),
             schlick_f0: Vec3::splat(0.25),
+            transmission: 0.0,
+            ior: 1.0,
         };
         let f = material.schlick_f0;
         let p_specular = 0.5;
@@ -254,6 +316,8 @@ mod tests {
         let material = Material {
             albedo: AlbedoSource::Color(albedo),
             schlick_f0: Vec3::splat(0.25),
+            transmission: 0.0,
+            ior: 1.0,
         };
         let p_specular = 0.5;
         let seed = (0u64..1024)
