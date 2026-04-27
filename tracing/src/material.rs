@@ -199,6 +199,42 @@ mod tests {
     use super::*;
 
     #[test]
+    fn sample_refraction_entering() {
+        let surface = Surface {
+            wi: -Vec3::X,
+            n: Vec3::X,
+            uv: Vec2::ZERO,
+        };
+        let ior = 1.5;
+        let diffuse = Vec3::ONE;
+        let transmitted_diffuse = Vec3::ONE;
+        let probability = 1.0;
+
+        let sample = sample_refraction(&surface, ior, diffuse, transmitted_diffuse, probability);
+
+        assert_eq!(sample.wo, Vec3::X);
+        assert_eq!(sample.bsdf, Vec3::splat(2.25));
+    }
+
+    #[test]
+    fn sample_refraction_exiting() {
+        let surface = Surface {
+            wi: Vec3::X,
+            n: Vec3::X,
+            uv: Vec2::ZERO,
+        };
+        let ior = 1.5;
+        let diffuse = Vec3::ONE;
+        let transmitted_diffuse = Vec3::ONE;
+        let probability = 1.0;
+
+        let sample = sample_refraction(&surface, ior, diffuse, transmitted_diffuse, probability);
+
+        assert_eq!(sample.wo, -Vec3::X);
+        assert_eq!(sample.bsdf, Vec3::splat(0.44444445));
+    }
+
+    #[test]
     fn sample_returns_zero_when_no_lobes() {
         let surface = Surface {
             wi: Vec3::new(0.0, 1.0, 0.0),
