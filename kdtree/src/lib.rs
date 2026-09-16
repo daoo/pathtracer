@@ -94,12 +94,10 @@ impl KdNode {
                     ) {
                         Some(result) => return Some(result),
                         _ if t2 == *t_range.end() => return None,
-                        _ => match stack.pop() {
-                            Some(s) => {
-                                (node, t1, t2) = s;
-                            }
-                            None => return None,
-                        },
+                        _ => {
+                            let s = stack.pop()?;
+                            (node, t1, t2) = s;
+                        }
                     }
                 }
                 Self::Node { plane, left, right } => {

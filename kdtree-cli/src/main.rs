@@ -160,7 +160,7 @@ fn statistics(geometries: &[impl Geometry], tree: &KdNode) -> KdTreeStatistics {
 
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
-    eprintln!("Reading {:?}...", &args.input);
+    eprintln!("Reading {:?}...", args.input);
     let obj = obj::obj(&mut BufReader::new(File::open(args.input)?))?;
     let geometries = obj
         .chunks

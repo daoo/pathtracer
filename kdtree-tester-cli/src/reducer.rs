@@ -117,9 +117,9 @@ pub(crate) fn kdtree_reduce(
     };
     eprintln!("Seed: {seed}");
     eprintln!("Testing with failed intersection:");
-    eprintln!("  {:?}", &intersection.ray);
-    eprintln!("  Expected: {:?}", &intersection.reference);
-    eprintln!("    Actual: {:?}", &intersection.kdtree);
+    eprintln!("  {:?}", intersection.ray);
+    eprintln!("  Expected: {:?}", intersection.reference);
+    eprintln!("    Actual: {:?}", intersection.kdtree);
 
     eprintln!("Loading {}...", input.display());
     let obj = obj::obj(&mut BufReader::new(File::open(input)?))?;
