@@ -7,10 +7,9 @@ edition = "2024"
 ray_logging = ["tracing/ray_logging"]
 
 [dependencies]
-clap = { version = "4.6.1", features = ["derive"] }
+clap = { version = "4.6.7", default-features = false, features = ["std", "error-context", "help", "usage", "derive"] }
 geometry = { version = "1.0.0", path = "../geometry" }
-glam = "0.32.1"
+glam = "0.33.7"
 image = { version = "0.25.10", default-features = false, features = ["png"] }
-kdtree = { version = "1.0.0", path = "../kdtree" }
-time = "0.3.47"
+time = "0.3.55"
 tracing = { version = "1.0.0", path = "../tracing" }
